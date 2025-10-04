@@ -1,0 +1,102 @@
+<div class="container my-5">
+    <div class="card shadow rounded-4 border-0">
+      <div class="card-header text-white text-center p-4 table_head">
+        <h3 class="mb-0 fw-bold">Add New User</h3>
+        <small>Create a new user account with role and department</small>
+      </div>
+  
+      <div class="card-body p-4">
+        <!-- Alerts -->
+        <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+          {{ successMessage }}
+          <button type="button" class="btn-close" (click)="successMessage = null"></button>
+        </div>
+        <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+          {{ errorMessage }}
+          <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+        </div>
+  
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+          <div class="row g-3">
+  
+            <!-- Username -->
+            <div class="col-md-6">
+              <label class="form-label">Username</label>
+              <input type="text" class="form-control" formControlName="username" placeholder="e.g. john_doe">
+            </div>
+  
+            <!-- Email -->
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" formControlName="email" placeholder="e.g. john@example.com">
+            </div>
+  
+            <!-- Full Name -->
+            <div class="col-md-6">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-control" formControlName="fullName" placeholder="e.g. John Doe">
+            </div>
+  
+            <!-- Password with toggle + strength meter -->
+            <div class="col-md-6 position-relative">
+              <label class="form-label">Password</label>
+              <div class="input-group">
+                <input [type]="showPassword ? 'text' : 'password'"
+                       class="form-control"
+                       formControlName="password"
+                       placeholder="Enter strong password">
+                <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()" tabindex="-1">
+                  <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                </button>
+              </div>
+  
+              <!-- Strength Meter -->
+              <div class="progress mt-2" style="height: 6px;">
+                <div class="progress-bar"
+                     role="progressbar"
+                     [style.width.%]="passwordStrength.score"
+                     [style.backgroundColor]="passwordStrength.color"></div>
+              </div>
+              <small *ngIf="passwordStrength.label" class="mt-1 d-block">
+                <i class="bi"
+                   [ngClass]="{
+                     'bi-shield-lock text-success': passwordStrength.label === 'Strong',
+                     'bi-shield-exclamation text-warning': passwordStrength.label === 'Medium',
+                     'bi-shield-x text-danger': passwordStrength.label === 'Weak'
+                   }"></i>
+                {{ passwordStrength.label }} password
+              </small>
+            </div>
+  
+            <!-- Role -->
+            <div class="col-md-6">
+              <label class="form-label">Role</label>
+              <select class="form-select" formControlName="role">
+                <option value="" disabled selected>Select Role</option>
+                <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+              </select>
+            </div>
+  
+            <!-- Department -->
+            <div class="col-md-6">
+              <label class="form-label">Department</label>
+              <select class="form-select" formControlName="departmentId">
+                <option value="" disabled selected>Select Department</option>
+                <option *ngFor="let dept of departments" [value]="dept.departmentId">{{ dept.name }}</option>
+              </select>
+            </div>
+  
+          </div>
+  
+          <div class="d-flex justify-content-end mt-4 gap-2">
+            <button type="button" class="btn btn-outline-secondary px-4" (click)="cancel()">Cancel</button>
+            <button type="submit" class="btn btn-success px-4" [disabled]="isSubmitting">
+              <span *ngIf="!isSubmitting">Add User</span>
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  

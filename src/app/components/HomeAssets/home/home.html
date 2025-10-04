@@ -1,0 +1,171 @@
+<div class="landing-page">
+
+  <div class="background-container">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+      <div class="shape shape-5"></div>
+      <div class="shape shape-6"></div>
+      <div class="shape shape-7"></div>
+      <div class="shape shape-8"></div>
+    </div>
+    <div class="particles-container">
+      <div class="particle" *ngFor="let p of particles"></div>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero-section d-flex align-items-center min-vh-100">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6 hero-content animate-fade-in">
+          <h1 class="display-3 fw-bold text-white mb-4">Welcome to RCEF Project</h1>
+          <p class="lead text-light mb-4">
+            Report Communication Effectiveness Framework Streamlining task management and communication
+            tracking across your institution.
+          </p>
+          <div class="d-flex gap-3 flex-wrap">
+            <button class="btn btn-primary btn-lg shadow-lg" (click)="dashboard()">Get Started</button>
+            <button class="btn btn-outline-light btn-lg" routerLink="/about">Learn More</button>
+          </div>
+
+        </div>
+        <div class="col-lg-6 hero-image animate-float">
+          <img src="images/renaissance-logo.png" alt="Dashboard illustration" class="img-fluid rounded-4 shadow-lg">
+        </div>
+      </div>
+    </div>
+  </section>
+  <br><br><br>
+
+  <!-- ✅ Features Section -->
+  <section class="features-section py-6">
+    <div class="container">
+      <div class="text-center mb-5 animate-fade-in">
+        <h2 class="display-4 fw-bold gradient-text-glow mb-3">💎 Key Features</h2>
+        <p class="text-light lead">Smart tools to make your institution shine and collaborate efficiently.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4 animate-slide-up delay-1">
+          <div class="feature-card">
+            <div class="card-inner text-center p-4">
+              <div class="feature-icon bg-primary text-white rounded-circle mx-auto mb-3">
+                <i class="fas fa-tasks fs-2"></i>
+              </div>
+              <h4 class="fw-bold mb-3">Task Management</h4>
+              <p>Create, assign, and track tasks with seamless workflows.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 animate-slide-up delay-2">
+          <div class="feature-card">
+            <div class="card-inner text-center p-4">
+              <div class="feature-icon bg-success text-white rounded-circle mx-auto mb-3">
+                <i class="fas fa-chart-line fs-2"></i>
+              </div>
+              <h4 class="fw-bold mb-3">Real-time Dashboards</h4>
+              <p>Role-specific dashboards with live updates & analytics.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 animate-slide-up delay-3">
+          <div class="feature-card">
+            <div class="card-inner text-center p-4">
+              <div class="feature-icon bg-info text-white rounded-circle mx-auto mb-3">
+                <i class="fas fa-bell fs-2"></i>
+              </div>
+              <h4 class="fw-bold mb-3">Bulletin Alerts</h4>
+              <p>Automatic notifications for overdue tasks & announcements.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 animate-slide-up delay-4">
+          <div class="feature-card">
+            <div class="card-inner text-center p-4">
+              <div class="feature-icon bg-warning text-white rounded-circle mx-auto mb-3">
+                <i class="fas fa-user-shield fs-2"></i>
+              </div>
+              <h4 class="fw-bold mb-3">Role-Based Access</h4>
+              <p>Secure access with customized roles and permissions.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 animate-slide-up delay-5">
+          <div class="feature-card">
+            <div class="card-inner text-center p-4">
+              <div class="feature-icon bg-danger text-white rounded-circle mx-auto mb-3">
+                <i class="fas fa-chart-pie fs-2"></i>
+              </div>
+              <h4 class="fw-bold mb-3">Analytics & Reports</h4>
+              <p>Detailed reports to track performance and productivity.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 animate-slide-up delay-6">
+          <div class="feature-card">
+            <div class="card-inner text-center p-4">
+              <div class="feature-icon bg-secondary text-white rounded-circle mx-auto mb-3">
+                <i class="fas fa-comments fs-2"></i>
+              </div>
+              <h4 class="fw-bold mb-3">Communication Tools</h4>
+              <p>Integrated messaging and notification system for smooth collaboration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br><br><br>
+
+  <!-- Impact Section -->
+  <section class="impact-section py-6 text-white text-center">
+    <div class="container">
+      <h2 class="display-5 fw-bold mb-5 animate-fade-in">Our Impact So Far</h2>
+      <div class="row g-4">
+        <div class="col-md-4 animate-slide-up delay-1">
+          <h3 class="fw-bold display-6">12,500+</h3>
+          <p class="small">Tasks Completed</p>
+        </div>
+        <div class="col-md-4 animate-slide-up delay-2">
+          <h3 class="fw-bold display-6">150+</h3>
+          <p class="small">Departments Connected</p>
+        </div>
+        <div class="col-md-4 animate-slide-up delay-3">
+          <h3 class="fw-bold display-6">5,000+</h3>
+          <p class="small">Active Users</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br><br><br>
+
+  <!-- Testimonials -->
+  <section class="testimonials-section py-6">
+    <div class="container text-center">
+      <h2 class="display-5 fw-bold mb-5 gradient-text-glow">What People Say</h2>
+      <div class="row g-4">
+        <div class="col-md-4 animate-slide-up delay-1">
+          <div class="card p-4 border-0 shadow testimonial-card">
+            <p>"RCEF has completely transformed how our department collaborates!"</p>
+            <h6 class="fw-bold mt-3">— Head of Department</h6>
+          </div>
+        </div>
+        <div class="col-md-4 animate-slide-up delay-2">
+          <div class="card p-4 border-0 shadow testimonial-card">
+            <p>"The dashboards are so clear and easy to use. Managing tasks is effortless."</p>
+            <h6 class="fw-bold mt-3">— Teacher</h6>
+          </div>
+        </div>
+        <div class="col-md-4 animate-slide-up delay-3">
+          <div class="card p-4 border-0 shadow testimonial-card">
+            <p>"Finally, a centralized system that gives us real-time insights!"</p>
+            <h6 class="fw-bold mt-3">— Admin</h6>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>

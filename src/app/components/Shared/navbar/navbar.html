@@ -1,0 +1,31 @@
+<nav class="glass-navbar fixed-top shadow-sm">
+  <div class="container d-flex justify-content-between align-items-center">
+
+    <!-- Brand -->
+    <a class="navbar-brand fw-bold fs-3 d-flex align-items-center" routerLink="/" (click)="closeMenu()">
+      <img src="images/AreYouReportingLogo.png"
+           alt="RCEF Logo" class="me-2 rounded shadow-sm pulse-logo">
+      <span>RCEF Project</span>
+    </a>
+
+    <!-- Toggle Button (Mobile) -->
+    <button class="menu-toggle d-lg-none" (click)="toggleMenu()">
+      <i class="bi" [ngClass]="isMenuOpen ? 'bi-x-lg' : 'bi-list'"></i>
+    </button>
+
+    <!-- Nav Links -->
+    <ul class="nav-links d-lg-flex" [ngClass]="{'active': isMenuOpen}">
+      <li><a routerLink="/" (click)="closeMenu()">Home</a></li>
+      <li><a routerLink="/about" (click)="closeMenu()">About</a></li>
+      <li><a routerLink="/contact" (click)="closeMenu()">Contact</a></li>
+
+      <!-- Login / Logout -->
+      <li *ngIf="!(isLoggedIn$ | async)">
+        <a routerLink="/login" (click)="closeMenu()">Login</a>
+      </li>
+      <li *ngIf="isLoggedIn$ | async">
+        <a href="#" (click)="logout()">Logout</a>
+      </li>
+    </ul>
+  </div>
+</nav>

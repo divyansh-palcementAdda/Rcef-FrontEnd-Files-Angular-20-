@@ -1,0 +1,578 @@
+/* Enhanced CSS Styles */
+:host {
+  display: block;
+  min-height: 100vh;
+  position: relative;
+  font-family: "Segoe UI", sans-serif;
+  color: #1A1A1A;
+  overflow-x: hidden;
+}
+
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 🌈 Enhanced Background with Animated Elements */
+.background-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #2b7818 0%, #34D399 50%, #1e3a8a 100%);
+  background-size: 300% 300%;
+  animation: gradientBG 15s ease infinite;
+  overflow: hidden;
+}
+
+.floating-shapes {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  animation: float 20s infinite ease-in-out;
+}
+
+.shape-1 {
+  width: 100px;
+  height: 100px;
+  background: #2b7818;
+  top: 10%;
+  left: 5%;
+  animation-delay: 0s;
+  animation-duration: 25s;
+}
+
+.shape-2 {
+  width: 150px;
+  height: 150px;
+  background: #34D399;
+  top: 70%;
+  left: 85%;
+  animation-delay: -3s;
+  animation-duration: 30s;
+}
+
+.shape-3 {
+  width: 80px;
+  height: 80px;
+  background: #FFFFFF;
+  top: 65%;
+  left: 10%;
+  animation-delay: -5s;
+  animation-duration: 20s;
+}
+
+.shape-4 {
+  width: 120px;
+  height: 120px;
+  background: #1A1A1A;
+  top: 15%;
+  left: 80%;
+  animation-delay: -7s;
+  animation-duration: 28s;
+}
+
+.shape-5 {
+  width: 60px;
+  height: 60px;
+  background: #2b7818;
+  top: 40%;
+  left: 25%;
+  animation-delay: -10s;
+  animation-duration: 22s;
+}
+
+.shape-6 {
+  width: 90px;
+  height: 90px;
+  background: #34D399;
+  top: 30%;
+  left: 65%;
+  animation-delay: -12s;
+  animation-duration: 26s;
+}
+
+.particles-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  animation: particleFloat 15s infinite linear;
+}
+
+.particle:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+.particle:nth-child(2) { top: 60%; left: 75%; animation-delay: 2s; }
+.particle:nth-child(3) { top: 30%; left: 50%; animation-delay: 4s; }
+.particle:nth-child(4) { top: 80%; left: 25%; animation-delay: 6s; }
+.particle:nth-child(5) { top: 40%; left: 85%; animation-delay: 8s; }
+.particle:nth-child(6) { top: 70%; left: 40%; animation-delay: 10s; }
+.particle:nth-child(7) { top: 25%; left: 65%; animation-delay: 12s; }
+.particle:nth-child(8) { top: 55%; left: 30%; animation-delay: 14s; }
+
+/* 🌈 Background Gradient Animation */
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(30px, 50px) rotate(120deg) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 70px) rotate(240deg) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ✅ Enhanced Navbar */
+.bg-gradient {
+  background: linear-gradient(90deg, #2b7818, #34D399);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+}
+
+.navbar .navbar-brand img {
+  height: 45px;
+  width: 45px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.navbar .navbar-brand:hover img {
+  transform: rotate(15deg) scale(1.1);
+}
+
+.navbar .nav-link {
+  color: #ffffff !important;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 0.5rem 1rem !important;
+  border-radius: 8px;
+  margin: 0 0.2rem;
+}
+
+.navbar .nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 3px;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #d1fae5;
+  transition: width 0.3s ease;
+}
+
+.navbar .nav-link:hover::after {
+  width: 70%;
+}
+
+.navbar .nav-link:hover {
+  color: #d1fae5 !important;
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-toggler {
+  border: none;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none;
+}
+
+/* ✅ Enhanced Login Section */
+.login-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 120px 15px 80px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* ✅ Enhanced Card */
+.login-card {
+  border: none;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  transition: all 0.4s ease;
+  color: #1A1A1A;
+  padding: 2.5rem;
+  animation: fadeSlide 0.8s ease;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, #2b7818, #34D399, #2b7818);
+  background-size: 200% 100%;
+  animation: gradientFlow 3s infinite linear;
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.login-card:hover {
+  transform: translateY(-10px) scale(1.01);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+}
+
+/* ✨ Card Animation */
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Logo Container */
+.logo-container {
+  position: relative;
+  display: inline-block;
+}
+
+.login-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 50%;
+  padding: 8px;
+  background: white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.logo-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #2b7818, #34D399);
+  opacity: 0.3;
+  filter: blur(15px);
+  z-index: 1;
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.3; width: 120px; height: 120px; }
+  50% { opacity: 0.5; width: 130px; height: 130px; }
+}
+
+/* ✅ Gradient Headings */
+.login-card h2 {
+  background: linear-gradient(90deg, #2b7818, #34D399);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+/* ✅ Enhanced Buttons */
+.btn-primary {
+  background: linear-gradient(45deg, #2b7818, #34D399);
+  border: none;
+  color: #fff;
+  transition: all 0.4s ease;
+  box-shadow: 0 5px 15px rgba(52, 211, 153, 0.3);
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  font-size: 1.1rem;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: 0.5s;
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(45deg, #34D399, #2b7818);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(52, 211, 153, 0.5);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.login-btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn-outline-secondary {
+  border-color: #34D399;
+  color: #2b7818;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.btn-outline-secondary:hover {
+  background: #2b7818;
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(43, 120, 24, 0.4);
+  transform: translateY(-2px);
+}
+
+.social-btn {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.social-btn:hover {
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* ✅ Enhanced Input Styling */
+.input-group-lg>.form-control, 
+.input-group-lg>.input-group-text {
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+}
+
+.input-group-text {
+  background: #F7F7F7;
+  border: 1px solid #D4D4D4;
+  border-right: none;
+  border-radius: 10px 0 0 10px !important;
+}
+
+.form-control {
+  border-left: none;
+  border: 1px solid #D4D4D4;
+  background: #F7F7F7;
+  transition: all 0.3s ease;
+  border-radius: 0 10px 10px 0 !important;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 0.25rem rgba(43, 120, 24, 0.2);
+  border-color: #2b7818;
+  background: #FFFFFF;
+}
+
+/* ✅ Enhanced Error messages */
+.alert-danger {
+  background: linear-gradient(90deg, #FF5959, #ef4444);
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(255, 89, 89, 0.3);
+  padding: 0.75rem 1.25rem;
+}
+
+.text-danger {
+  color: #FF5959 !important;
+  font-weight: 500;
+}
+
+/* Divider */
+.divider {
+  color: #D4D4D4;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #D4D4D4;
+}
+
+.divider::before {
+  margin-right: 0.5rem;
+}
+
+.divider::after {
+  margin-left: 0.5rem;
+}
+
+/* ✅ Enhanced Footer */
+.footer {
+  background: linear-gradient(180deg, #1A1A1A, #2d2d2d);
+  color: #e5e5e5;
+  padding: 2.5rem 0 1.5rem;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+}
+
+.footer h5 {
+  color: #ffffff;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+}
+
+.footer a {
+  color: #e5e5e5;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.footer a:hover {
+  color: #34D399;
+  transform: translateY(-2px);
+}
+
+.footer i {
+  transition: all 0.3s ease;
+}
+
+.footer a:hover i {
+  transform: rotate(10deg) scale(1.2);
+  color: #34D399;
+}
+
+.footer ul li {
+  margin-bottom: 0.5rem;
+}
+
+/* Subtle pulse animation for the logo */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse-logo {
+  animation: pulse 4s infinite ease-in-out;
+}
+
+/* ✅ Responsive Adjustments */
+@media (max-width: 992px) {
+  .login-container {
+    padding: 110px 15px 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-brand span {
+    font-size: 1.1rem;
+  }
+  
+  .login-container {
+    padding: 100px 10px 40px;
+  }
+  
+  .login-card {
+    padding: 2rem 1.5rem;
+  }
+  
+  footer .col-md-4 {
+    text-align: center !important;
+    margin-bottom: 2rem;
+  }
+  
+  .shape {
+    display: none;
+  }
+  
+  .login-logo {
+    width: 85px;
+    height: 85px;
+  }
+  
+  .logo-glow {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar .nav-link {
+    padding: 0.4rem 0.8rem !important;
+    margin: 0 0.1rem;
+  }
+  
+  .login-card {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .btn-primary {
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+}

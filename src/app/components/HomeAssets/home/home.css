@@ -1,0 +1,490 @@
+/* 🌈 Gradient Heading */
+.gradient-text {
+  background: linear-gradient(90deg, #00ff88, #34d399, #00c6ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+}
+
+.gradient-text.glow {
+  text-shadow: 0 0 12px rgba(0, 255, 136, 0.7), 0 0 18px rgba(0, 198, 255, 0.6);
+}
+
+/* ✨ Feature Cards with Gradient Borders */
+.feature-card {
+  border-radius: 20px;
+  padding: 3px;
+  /* border thickness */
+  background: linear-gradient(135deg, #2b7818, #34D399, #1e3a8a);
+  transition: all 0.4s ease;
+}
+
+.feature-card .card-inner {
+  background: #fff;
+  border-radius: 18px;
+  height: 100%;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Inner background variations */
+.bg-light-green .card-inner {
+  background: #e6f9f0;
+}
+
+.bg-light-blue .card-inner {
+  background: #e6f3ff;
+}
+
+.bg-light-purple .card-inner {
+  background: #f3e6ff;
+}
+
+/* Icons */
+.feature-icon {
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1) rotate(10deg);
+}
+
+/* Animations */
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 1s ease forwards;
+}
+
+.animate-slide-up {
+  opacity: 0;
+  animation: slideUp 0.8s ease forwards;
+}
+
+.animate-slide-up.delay-1 {
+  animation-delay: 0.3s;
+}
+
+.animate-slide-up.delay-2 {
+  animation-delay: 0.6s;
+}
+
+.animate-slide-up.delay-3 {
+  animation-delay: 0.9s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.background-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #2b7818 0%, #34D399 50%, #1e3a8a 100%);
+  background-size: 300% 300%;
+  animation: gradientBG 15s ease infinite;
+  overflow: hidden;
+}
+
+/* 🌿 Floating Shapes */
+.shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+  animation: float 20s infinite ease-in-out, rotate 30s linear infinite;
+}
+
+.shape-1 {
+  width: 120px;
+  height: 120px;
+  background: #2b7818;
+  top: 10%;
+  left: 5%;
+}
+
+.shape-2 {
+  width: 180px;
+  height: 180px;
+  background: #34D399;
+  top: 70%;
+  left: 85%;
+  animation-delay: 2s;
+}
+
+.shape-3 {
+  width: 100px;
+  height: 100px;
+  background: #ffffff;
+  top: 65%;
+  left: 10%;
+  animation-delay: 4s;
+}
+
+.shape-4 {
+  width: 140px;
+  height: 140px;
+  background: #1A1A1A;
+  top: 15%;
+  left: 80%;
+  animation-delay: 6s;
+}
+
+.shape-5 {
+  width: 80px;
+  height: 80px;
+  background: #2b7818;
+  top: 40%;
+  left: 25%;
+  animation-delay: 8s;
+}
+
+.shape-6 {
+  width: 110px;
+  height: 110px;
+  background: #34D399;
+  top: 30%;
+  left: 65%;
+  animation-delay: 10s;
+}
+
+.shape-7 {
+  width: 90px;
+  height: 90px;
+  background: #1e3a8a;
+  top: 50%;
+  left: 45%;
+  animation-delay: 12s;
+}
+
+.shape-8 {
+  width: 130px;
+  height: 130px;
+  background: #ffffff;
+  top: 80%;
+  left: 60%;
+  animation-delay: 14s;
+}
+
+/* ✨ Particles */
+.particles-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: particleFloat 12s infinite linear, sparkle 2s infinite;
+}
+
+/* Gradient animation */
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-30px) rotate(180deg);
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    transform: translateY(-120vh) scale(0.5);
+  }
+}
+
+@keyframes sparkle {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #00ff88, #34d399, #00c6ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+}
+
+.gradient-text.glow {
+  text-shadow: 0 0 12px rgba(0, 255, 136, 0.7), 0 0 18px rgba(0, 198, 255, 0.6);
+}
+
+/* 🌈 Gradient Headings */
+.gradient-text-glow {
+  /* background: linear-gradient(90deg, #00ff88, #34d399, #00c6ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  text-shadow: 0 0 12px rgba(0,255,136,0.7), 0 0 18px rgba(0,198,255,0.6); */
+  color: white;
+}
+
+/* Feature Cards */
+.feature-card {
+  border-radius: 20px;
+  padding: 3px;
+  background: linear-gradient(135deg, #2b7818, #34D399, #1e3a8a);
+  transition: all 0.4s ease;
+}
+
+.feature-card .card-inner {
+  background: #fff;
+  border-radius: 18px;
+  height: 100%;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.2) !important;
+}
+
+.feature-icon {
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1) rotate(10deg);
+}
+
+.bg-light-green .card-inner {
+  background: #e6f9f0;
+}
+
+.bg-light-blue .card-inner {
+  background: #e6f3ff;
+}
+
+.bg-light-purple .card-inner {
+  background: #f3e6ff;
+}
+
+/* Animations */
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 1s ease forwards;
+}
+
+.animate-slide-up {
+  opacity: 0;
+  animation: slideUp 0.8s ease forwards;
+}
+
+.animate-slide-up.delay-1 {
+  animation-delay: 0.3s;
+}
+
+.animate-slide-up.delay-2 {
+  animation-delay: 0.6s;
+}
+
+.animate-slide-up.delay-3 {
+  animation-delay: 0.9s;
+}
+
+.animate-slide-up.delay-4 {
+  animation-delay: 1.2s;
+}
+
+.animate-slide-up.delay-5 {
+  animation-delay: 1.5s;
+}
+
+.animate-slide-up.delay-6 {
+  animation-delay: 1.8s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Background */
+.background-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #2b7818 0%, #34D399 50%, #1e3a8a 100%);
+  background-size: 300% 300%;
+  animation: gradientBG 15s ease infinite;
+  overflow: hidden;
+}
+
+/* Floating Shapes */
+.shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+  animation: float 20s infinite ease-in-out, rotate 30s linear infinite;
+}
+
+/* shapes... same as before */
+
+/* Particles */
+.particles-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: particleFloat 12s infinite linear, sparkle 2s infinite;
+}
+
+/* Testimonials */
+/* Testimonials - Transparent Background */
+.testimonials-section {
+  background: transparent;
+  /* remove any background */
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.testimonial-card {
+  background: transparent;
+  /* no background */
+  border-radius: 0;
+  /* optional: remove card rounding if you like */
+  padding: 2rem 1rem;
+  color: #fff;
+  /* text color suitable for gradient background */
+  box-shadow: none;
+  /* remove shadow */
+}
+
+.testimonial-card p {
+  font-style: italic;
+  color: #e0f7fa;
+  /* or any light color that is readable */
+}
+
+.testimonial-card h6 {
+  margin-top: 1rem;
+  font-weight: 700;
+  color: #00ffe0;
+  /* matching theme color */
+}
+
+
+/* CTA Section */
+.cta-section {
+  background: linear-gradient(135deg, #00ff88, #34D399, #00c6ff);
+  padding: 4rem 2rem;
+  border-radius: 30px;
+  margin-top: 3rem;
+}
+
+.cta-section button {
+  font-weight: 700;
+}

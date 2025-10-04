@@ -1,0 +1,92 @@
+/* Dashboard Wrapper */
+.dashboard-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Fixed Top Navbar handled by Bootstrap .fixed-top */
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 56px; /* adjust based on navbar height */
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  padding-top: 1rem;
+  background: #fff;
+  border-right: 1px solid #e9ecef;
+  overflow-y: auto;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.sidebar .nav-link {
+  font-weight: 500;
+  color: #2a2a2a;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+  color: #4e73df;
+  background: #f8f9fc;
+  transform: translateX(5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 250px; /* same as sidebar width */
+  padding: 2rem 2rem 4rem 2rem;
+  width: 100%;
+}
+
+/* Department Badge */
+.department-badge {
+  font-size: 1rem;
+  font-weight: 500;
+  background: #f8f9fc;
+  color: #2a2a2a;
+  border-radius: 50px;
+}
+
+/* Stat Cards */
+.stat-card {
+  border-radius: 1rem;
+  background: linear-gradient(145deg, #ffffff, #f1f3f8);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+}
+
+/* Charts */
+.chart-card {
+  background: linear-gradient(145deg, #ffffff, #f7f9fc);
+  transition: all 0.3s ease;
+}
+
+canvas {
+  width: 100% !important;
+  max-height: 350px;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: calc(100% - 56px);
+    top: 56px;
+  }
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+}

@@ -1,0 +1,15 @@
+.glass-footer {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.glass-footer a {
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.glass-footer a:hover {
+  color: #34D399;
+}

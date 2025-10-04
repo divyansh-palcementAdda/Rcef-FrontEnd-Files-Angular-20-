@@ -1,0 +1,14 @@
+:root{
+  --navbar-height: 64px;   /* adjust to your navbar's height (e.g. 56, 64) */
+  --footer-height: 0px;    /* set if you have a fixed footer */
+  --sidebar-width: 240px;
+}
+
+/* reserve space when navbar is fixed-top */
+body {
+  padding-top: var(--navbar-height);
+  padding-bottom: var(--footer-height);
+}
+
+/* small helper to avoid horizontal overflow when sidebar shows */
+html, body { overflow-x: hidden; }
