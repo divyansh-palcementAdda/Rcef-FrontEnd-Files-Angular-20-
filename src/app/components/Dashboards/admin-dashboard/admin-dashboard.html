@@ -1,83 +1,88 @@
 <!-- src/app/Components/admin-dashboard/admin-dashboard.component.html -->
-
-<!-- 🔹 Fixed Top Navbar -->
-<h1 style="color: white;">Admin Dashboard</h1>
 <div class="dashboard-wrapper">
     <!-- 🔹 Sidebar -->
-    <nav id="sidebarMenu" class="sidebar shadow-sm animate__animated animate__fadeInLeft">
-        <div class="position-sticky pt-3 d-flex flex-column h-100">
-            <div class="text-center mb-4 pb-2 border-bottom">
-                <h5 class="mb-1 fw-bold text-dark">Administrator</h5>
-                <p class="text-muted small mb-2">Super Admin Access</p>
-            </div>
-            <ul class="nav flex-column mb-auto">
-                <li class="nav-item mb-1" *ngFor="let link of sidebarLinks">
-                    <a class="nav-link d-flex align-items-center" [routerLink]="link.route" routerLinkActive="active">
-                        <i class="bi {{ link.icon }} me-2 text-{{ link.color }}"></i>
-                        {{ link.label }}
-                    </a>
-                </li>
-            </ul>
-            <div class="border-top pt-3 mt-auto">
-                <a class="nav-link text-danger d-flex align-items-center" routerLink="/logout">
-                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+    <nav id="sidebarMenu" class="sidebar shadow-sm">
+        <div class="sidebar-profile">
+            <!-- <img src="https://via.placeholder.com/60?text=Admin" alt="Profile" class="img-fluid"> -->
+            <h6 class="mb-0 text-dark">Admin</h6>
+            <small class="text-muted">{{ dashboardData?.email}}</small>
+        </div>
+        <ul class="nav flex-column mb-auto">
+            <li class="nav-item mb-1" *ngFor="let link of sidebarLinks">
+                <a class="nav-link d-flex align-items-center" [routerLink]="link.route" routerLinkActive="active">
+                    <i class="bi {{ link.icon }} me-2 text-{{ link.color }}"></i>
+                    {{ link.label }}
                 </a>
-            </div>
+            </li>
+        </ul>
+        <div class="border-top pt-3 mt-auto">
+            <a class="nav-link text-danger d-flex align-items-center" (click)="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+            </a>
         </div>
     </nav>
 
     <!-- 🔹 Main Content -->
-    <main class="main-content animate__animated animate__fadeInRight">
-
-        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 flex-wrap">
-            <ng-container *ngIf="dashboardData as dashboardData; else loading">
-                <div class="text-center flex-grow-1">
-                    <h2 class="fw-bold mb-1 text-dark">Admin Console</h2>
-                    <p class="text-muted mb-0">Welcome {{ dashboardData.userName }}!</p>
-                </div>
-            </ng-container>
-                <!-- <span class="badge department-badge shadow-sm px-4 py-2">
-                    Department: {{ dashboardData.departmentName }}
-                </span> -->
-            </div> 
-
-            <!-- Stat Cards -->
-            <div class="row mb-4">
-                <div class="col-xl-3 col-md-6 mb-4" *ngFor="let card of statCards(dashboardData)">
-                    <!-- Entire card clickable -->
-                    <a [routerLink]="card.route" class="text-decoration-none d-block">
-                        <div
-                            class="card border-start border-4 border-{{ card.color }} shadow stat-card animate__animated animate__fadeInUp">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="text-xs fw-bold text-{{ card.color }} text-uppercase mb-1">{{ card.title
-                                        }}</div>
-                                    <div class="h5 mb-0 fw-bold text-dark">{{ card.value || 0 }}</div>
-                                </div>
-                                <i class="bi {{ card.icon }} fs-2 text-{{ card.color }}"></i>
-                            </div>
-                        </div>
-                    </a>
+    <main class="main-content">
+        <!-- Welcome Banner -->
+        <ng-container *ngIf="dashboardData; else loading">
+            <div class="welcome-banner">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-1">Welcome Back, {{ dashboardData.userName }}!</h2>
+                        <p class="mb-0" style="color: black;">Today's date: {{ currentDate | date:'mediumDate' }}</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="department-badge">Admin Dashboard</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Charts -->
+            <!-- Stat Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-lg-6 col-md-6 mb-4"
+                    *ngFor="let card of statCards(dashboardData); let i = index" [@fadeInUpStagger]="i * 0.1">
+
+                    <div class="text-decoration-none d-block" (click)="goToTaskPage(card)" style="cursor: pointer;">
+                        <div class="card stat-card" [style.--card-color]="card.color">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-xs fw-bold text-uppercase mb-1" [class]="'text-' + card.color">{{
+                                        card.title }}</div>
+                                    <div class="h4 mb-1 fw-bold text-dark">{{ card.value || 0 }}</div>
+                                    <div class="delta text-muted"
+                                        [class]="'text-' + (card.delta > 0 ? 'success' : 'danger')">
+                                        {{ card.delta > 0 ? '+' : '' }}{{ card.delta }}% from last week
+                                    </div>
+                                </div>
+                                <i class="bi {{ card.icon }} fs-1" [class]="'text-' + card.color"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- <div class="text-center mb-4">
+                <a routerLink="/full-stats" class="btn btn-outline-primary">View All Metrics</a>
+            </div> -->
+
+            <!-- Charts Row -->
             <div class="row mb-4">
                 <div class="col-lg-6 mb-4">
-                    <div class="card shadow h-100 chart-card">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0 text-dark">Task Distribution</h5>
+                    <div class="card chart-card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0">Task Distribution</h5>
                         </div>
                         <div class="card-body">
                             <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie"></canvas>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-lg-6 mb-4">
-                    <div class="card shadow h-100 chart-card">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0 text-dark">System Statistics</h5>
+                    <div class="card chart-card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0">System Statistics</h5>
                         </div>
                         <div class="card-body">
                             <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar"></canvas>
@@ -86,13 +91,26 @@
                 </div>
             </div>
 
-        <!-- </ng-container> -->
+            <!-- Recent Activity -->
+            <!-- <div class="recent-activity">
+                <h5 class="mb-3">Recent Activity</h5>
+                <div *ngFor="let activity of recentActivities" class="activity-item">
+                    <i class="bi bi-circle-fill text-muted me-3 fs-5" [style.color]="activity.color"></i>
+                    <div class="flex-grow-1">
+                        <strong>{{ activity.title }}</strong> - {{ activity.time }}
+                        <small class="d-block text-muted">{{ activity.desc }}</small>
+                    </div>
+                </div>
+            </div> -->
+        </ng-container>
 
         <ng-template #loading>
             <div class="text-center my-5">
-                <div class="spinner-border text-primary" role="status"></div>
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Loading dashboard...</p>
             </div>
         </ng-template>
-
     </main>
 </div>

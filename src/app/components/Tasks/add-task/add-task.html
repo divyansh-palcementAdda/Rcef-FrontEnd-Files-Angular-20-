@@ -1,0 +1,105 @@
+<div class="container my-5">
+  <div class="card shadow rounded-4 border-0">
+    <div class="card-header text-white text-center p-4 table_head">
+      <h3 class="mb-0 fw-bold">Add New Task</h3>
+      <small>Assign task to users or departments</small>
+    </div>
+
+    <div class="card-body p-4">
+      <!-- Alerts -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+        {{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+      </div>
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+        {{ errorMessage }}
+        <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+      </div>
+
+      <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+        <div class="row g-3">
+          <!-- Title -->
+          <div class="col-md-6">
+            <label class="form-label">Task Title</label>
+            <input type="text" class="form-control" formControlName="title" placeholder="Enter task name">
+            <div *ngIf="f['title']?.errors && f['title']?.touched" class="text-danger">
+              <small *ngIf="f['title']?.errors?.['required']">Title is required.</small>
+              <small *ngIf="f['title']?.errors?.['maxlength']">Max 255 characters allowed.</small>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="col-md-6">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" formControlName="description" placeholder="Enter task details"></textarea>
+            <div *ngIf="f['description']?.errors && f['description']?.touched" class="text-danger">
+              <small *ngIf="f['description']?.errors?.['maxlength']">Max 2000 characters allowed.</small>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="col-md-6">
+            <label class="form-label">Status</label>
+            <select class="form-select" formControlName="status">
+              <option value="" disabled selected>Select status</option>
+              <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+            </select>
+            <div *ngIf="f['status']?.errors && f['status']?.touched" class="text-danger">
+              <small *ngIf="f['status']?.errors?.['required']">Status is required.</small>
+            </div>
+          </div>
+
+          <!-- Start Date (for UPCOMING tasks) -->
+          <div class="col-md-6" *ngIf="f['status']?.value === 'UPCOMING'">
+            <label class="form-label">Start Date</label>
+            <input type="datetime-local" class="form-control" formControlName="startDate">
+            <div *ngIf="f['startDate']?.errors && f['startDate']?.touched" class="text-danger">
+              <small *ngIf="f['startDate']?.errors?.['required']">Start date is required for UPCOMING tasks.</small>
+            </div>
+          </div>
+
+          <!-- Due Date -->
+          <div class="col-md-6">
+            <label class="form-label">Due Date</label>
+            <input type="datetime-local" class="form-control" formControlName="dueDate">
+            <div *ngIf="f['dueDate']?.errors && f['dueDate']?.touched" class="text-danger">
+              <small *ngIf="f['dueDate']?.errors?.['required']">Due date is required.</small>
+            </div>
+          </div>
+
+          <!-- Department -->
+          <div class="col-md-6">
+            <label class="form-label">Department</label>
+            <select class="form-select" formControlName="departmentId">
+              <option [ngValue]="null" disabled selected>Select Department</option>
+              <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.name }}</option>
+            </select>
+            <div *ngIf="f['departmentId']?.errors && f['departmentId']?.touched" class="text-danger">
+              <small *ngIf="f['departmentId']?.errors?.['required']">Department is required.</small>
+            </div>
+          </div>
+
+          <!-- Assigned Users -->
+          <div class="col-md-6">
+            <label class="form-label">Assign To Users</label>
+            <select class="form-select" formControlName="assignedToIds" multiple>
+              <option *ngFor="let u of filteredUsers" [ngValue]="u.userId">{{ u.username }}</option>
+            </select>
+            <div class="form-check mt-1">
+              <input class="form-check-input" type="checkbox" formControlName="assignToSelf" (change)="assignToSelfChange()">
+              <label class="form-check-label">Assign to Self</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4 gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4" (click)="cancel()">Cancel</button>
+          <button type="submit" class="btn btn-success px-4" [disabled]="isSubmitting">
+            <span *ngIf="!isSubmitting">Add Task</span>
+            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -11,6 +11,9 @@ import { AuthGuard } from './Guards/auth-guard';
 import { RoleGuard } from './Guards/role-guard';
 import { AddDepartmentComponent } from './components/Department/add-department/add-department';
 import { AddUserComponent } from './components/Auth/add-user/add-user';
+import { AddTaskComponent } from './components/Tasks/add-task/add-task';
+import { ViewTasksComponent } from './components/Tasks/view-tasks/view-tasks';
+import { ViewUserComponent } from './components/Users/view-user/view-user';
 
 export const routes: Routes = [
 
@@ -51,7 +54,16 @@ export const routes: Routes = [
   {
     path: 'add-user', component: AddUserComponent, canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN'] }
+  },{
+    path: 'add-task', component: AddTaskComponent, canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'HOD'] }
+  },{
+    path: 'view-tasks', component: ViewTasksComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'HOD', 'TEACHER'] }
   },
+  { path: 'user/:id', component: ViewUserComponent, canActivate: [AuthGuard] },
+
   // Wildcard route for a 404 page
   { path: '**', redirectTo: '' },
 

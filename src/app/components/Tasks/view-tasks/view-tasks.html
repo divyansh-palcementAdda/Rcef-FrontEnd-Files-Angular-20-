@@ -1,0 +1,134 @@
+<h1 class="text-center my-4 fw-bold" style="color: #fff;">
+  {{ statusFilter ? ('Tasks: ' + statusFilter) : 'All Tasks' }}
+</h1>
+
+<div class="container my-5">
+  <div class="card shadow animate__animated animate__fadeIn">
+
+    <!-- Header -->
+    <div class="card-header py-3">
+      <h3 class="mb-0 fw-bold">Task Management</h3>
+      <small class="text-light-50">View, filter, and manage tasks efficiently</small>
+    </div>
+
+    <div class="card-body px-4 py-4">
+
+      <!-- Alerts -->
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+        <strong>Error!</strong> {{ errorMessage }}
+        <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="text-center my-5">
+        <div class="spinner-border text-primary"></div>
+      </div>
+
+      <!-- Filters -->
+      <div class="row mb-3 g-2">
+        <div class="col-md-6">
+          <input type="text" class="form-control" placeholder="🔍 Search by title, assignee or department"
+                 [(ngModel)]="searchTerm" (input)="applyFilters()">
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+            <option value="">All Statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="UPCOMING">Upcoming</option>
+            <option value="DELAYED">Delayed</option>
+            <option value="REQUEST_FOR_CLOSURE">RFC</option>
+            <option value="REQUEST_FOR_EXTENSION">RFE</option>
+            <option value="CLOSED">Closed</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">Reset Filters</button>
+        </div>
+      </div>
+
+      <!-- Desktop Table -->
+      <div class="table-responsive d-none d-md-block" *ngIf="!loading && paginatedTasks?.length">
+        <table class="table table-borderless align-middle">
+          <thead class="table_head">
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Department</th>
+              <th>Assigned To</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of paginatedTasks" (click)="viewTaskDetails(task.taskId)">
+              <td>{{ task.taskId }}</td>
+              <td>{{ task.title }}</td>
+              <td>{{ task.departmentName }}</td>
+              <td>{{ task.assignedToName || 'Unassigned' }}</td>
+              <td>{{ task.dueDate | date:'short' }}</td>
+              <td>
+                <span class="badge rounded-pill"
+                      [ngClass]="{
+                        'bg-warning text-dark': task.status === 'PENDING' || task.status === 'UPCOMING',
+                        'bg-danger blink': task.status === 'DELAYED',
+                        'bg-info': task.status === 'REQUEST_FOR_CLOSURE' || task.status === 'REQUEST_FOR_EXTENSION',
+                        'bg-success': task.status === 'CLOSED'
+                      }">{{ task.status }}</span>
+              </td>
+              <td class="text-center">
+                <div class="row-actions">
+                  <button class="btn btn-sm btn-outline-primary me-1" (click)="viewTaskDetails(task.taskId)">View</button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="deleteTask($event, task.taskId)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="d-md-none" *ngIf="!loading && paginatedTasks?.length">
+        <div class="row g-3">
+          <div class="col-12" *ngFor="let task of paginatedTasks">
+            <div class="clickable-card" (click)="viewTaskDetails(task.taskId)">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0">{{ task.title }}</h6>
+                <span class="badge rounded-pill"
+                      [ngClass]="{
+                        'bg-warning text-dark': task.status === 'PENDING' || task.status === 'UPCOMING',
+                        'bg-danger blink': task.status === 'DELAYED',
+                        'bg-info': task.status === 'REQUEST_FOR_CLOSURE' || task.status === 'REQUEST_FOR_EXTENSION',
+                        'bg-success': task.status === 'CLOSED'
+                      }">{{ task.status }}</span>
+              </div>
+              <p class="mb-1"><strong>Department:</strong> {{ task.departmentName }}</p>
+              <p class="mb-1"><strong>Assigned To:</strong> {{ task.assignedToName || 'Unassigned' }}</p>
+              <p class="mb-1"><strong>Due:</strong> {{ task.dueDate | date:'short' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Tasks -->
+      <div *ngIf="!loading && !paginatedTasks?.length" class="text-center text-muted mt-4">
+        No tasks found.
+      </div>
+
+      <!-- Pagination -->
+      <nav *ngIf="filteredTasks?.length" aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+          </li>
+          <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="currentPage === page">
+            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>

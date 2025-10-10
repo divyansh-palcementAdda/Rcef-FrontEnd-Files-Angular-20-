@@ -1,112 +1,156 @@
-// src/app/Components/admin-dashboard/admin-dashboard.component.ts
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { DashboardService } from '../../../Services/dashboard-service';
-import { Observable, Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
-
-import { Chart, registerables } from 'chart.js';
-import { Navbar } from "../../Shared/navbar/navbar";
-import { routes } from '../../../app.routes';
+import { Chart, registerables, ChartConfiguration } from 'chart.js';
 import { ApiService } from '../../../Services/api-service';
 import { DashboardDto } from '../../../Model/DashboardDto';
-Chart.register(...registerables);  
+import { trigger, transition, useAnimation } from '@angular/animations';
+import { fadeInUp } from '../../../Animations/fade-in-up.animation';
+import { AuthApiService } from '../../../Services/auth-api-service';
+
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-admin-dashboard',
+  standalone: true,
   templateUrl: './admin-dashboard.html',
-  imports: [CommonModule, RouterLink, BaseChartDirective],
-  styleUrls: ['./admin-dashboard.css']
+  styleUrls: ['./admin-dashboard.css'],
+  imports: [CommonModule, RouterLink, BaseChartDirective, DatePipe],
+  animations: [
+    trigger('fadeInUpStagger', [
+      transition(':enter', useAnimation(fadeInUp, { params: { time: '600ms' } }))
+    ])
+  ]
 })
 export class AdminDashboard implements OnInit, OnDestroy {
-  // username: string | undefined;
-  dashboardData : DashboardDto | undefined;
+
   private dataSub!: Subscription;
-  private apiService = inject(ApiService);
+  dashboardData?: DashboardDto;
 
-  pieChartData: any;
-  barChartData: any;
+  pieChartData!: ChartConfiguration<'pie'>['data'];
+  barChartData!: ChartConfiguration<'bar'>['data'];
 
-  pieChartType = 'pie';
-  barChartType = 'bar';
+  pieChartOptions: ChartConfiguration<'pie'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 20 } },
+      tooltip: { enabled: true }
+    },
+    animation: { duration: 2000, easing: 'easeInOutQuart' as const }
+  };
 
-  pieChartOptions = { responsive: true, maintainAspectRatio: false };
-  barChartOptions = { responsive: true, maintainAspectRatio: false };
+  barChartOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+    scales: { y: { beginAtZero: true } },
+    animation: { duration: 2000, easing: 'easeInOutQuart' as const }
+  };
 
-  // isRefreshing = false;  // 🔄 Button loader flag
+  currentDate = new Date();
 
-   sidebarLinks = [
-    { label: 'Dashboard', route: '/dashboard', icon: 'bi-speedometer2', color: 'primary' },
-    { label: 'Self Task', route: '/self-task', icon: 'bi-list-check', color: 'success' },
-    { label: 'Add Task', route: '/add-task', icon: 'bi-list-task', color: 'success' },
-    { label: 'Add User', route: '/add-user', icon: 'bi-people-add', color: 'success' },
-    { label: 'Add Department', route: '/add-department', icon: 'bi-building-add', color: 'success' },
-    { label: 'Bulletin Alerts', route: '/bulletin-alerts', icon: 'bi-bell-fill', color: 'danger' },
-    { label: 'Analytics', route: '/analytics', icon: 'bi-bar-chart-line-fill', color: 'warning' }
+  sidebarLinks = [
+    { label: 'Dashboard', click: () => this.dashboard(), icon: 'bi-speedometer2', color: 'primary' },
+    { label: 'Self Task', route: '/view-tasks', icon: 'bi-list-check', color: 'success' },
+    { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle', color: 'success' },
+    { label: 'Add User', route: '/add-user', icon: 'bi-person-plus', color: 'info' },
+    { label: 'Add Department', route: '/add-department', icon: 'bi-building-gear', color: 'warning' },
+    { label: 'Bulletin Alerts', route: '/bulletin-alerts', icon: 'bi-bell', color: 'danger' }
   ];
 
-  statCards(dashboardData: any) {
-    return [
-      { title: 'Total Tasks', value: dashboardData.totalTask, color: 'primary', icon: 'bi-list-task' },
-      { title: 'Total Users', value: dashboardData.totalUsers, color: 'success', icon: 'bi-people-fill' },
-      { title: 'Pending Tasks', value: dashboardData.pendingTask, color: 'warning', icon: 'bi-hourglass-split' },
-      { title: 'Delayed Tasks', value: dashboardData.delayedTask, color: 'danger', icon: 'bi-exclamation-triangle-fill' },
-      { title: 'Completed Tasks', value: dashboardData.completedTask, color: 'success', icon: 'bi-check-circle-fill' },
-      { title: 'Upcoming Tasks', value: dashboardData.upcomingTask, color: 'info', icon: 'bi-calendar-event' },
-      { title: 'Request for Extension', value: dashboardData.requestForExtension, color: 'warning', icon: 'bi-clock-history' },
-      { title: 'Active Users', value: dashboardData.activeUsers, color: 'info', icon: 'bi-person-check-fill', route: '/viewAllUsers' },
-      { title: 'Total Departments', value: dashboardData.totalDepartments, color: 'secondary', icon: 'bi-building' },
-      { title: 'Request for Closure', value: dashboardData.requestForClosure, color: 'secondary', icon: 'bi-check-square-fill' },
-      { title: 'My Tasks', value: dashboardData.myTasks, color: 'secondary', icon: 'bi-check-square-fill' }
+  constructor(
+    private router: Router,
+    private apiService: ApiService,
+    private authService: AuthApiService
+  ) {}
 
+  ngOnInit(): void {
+    this.dataSub = this.apiService.getDashboardData().subscribe({
+      next: (data) => {
+        if (data) {
+          this.dashboardData = data;
+          this.updateCharts(data);
+        }
+      },
+      error: (err) => console.error('Error fetching dashboard data:', err)
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.dataSub?.unsubscribe();
+  }
+
+  logout() {
+    this.authService.logout();
+  }
+
+  dashboard() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      this.authService.dashboard(payload);
+    } else {
+      this.router.navigate(['/login']);
+    }
+  }
+
+  /** Dashboard stat cards */
+  statCards(d: DashboardDto) {
+    return [
+      { title: 'Total Tasks', value: d.totalTask, color: 'primary', icon: 'bi-clipboard-list', route: '/view-tasks', delta: 5 },
+      { title: 'Total Users', value: d.totalUsers, color: 'success', icon: 'bi-people', route: '/viewAllUsers', delta: 2 },
+      { title: 'Pending Tasks', value: d.pendingTask, color: 'warning', icon: 'bi-hourglass', route: '/view-tasks', queryParams: { status: 'PENDING' }, delta: -1 },
+      { title: 'Delayed Tasks', value: d.delayedTask, color: 'danger', icon: 'bi-exclamation-octagon', route: '/view-tasks', queryParams: { status: 'Delayed' }, delta: 3 },
+      { title: 'Completed Tasks', value: d.completedTask, color: 'success', icon: 'bi-check-lg', route: '/view-tasks', queryParams: { status: 'CLOSED' }, delta: 8 },
+      { title: 'Upcoming Tasks', value: d.upcomingTask, color: 'info', icon: 'bi-calendar3-week', route: '/view-tasks', queryParams: { status: 'Upcoming' }, delta: 4 },
+      { title: 'Extension Requests', value: d.requestForExtension, color: 'warning', icon: 'bi-arrow-clockwise', route: '/extensions', delta: 1 },
+      { title: 'Active Users', value: d.activeUsers, color: 'info', icon: 'bi-person-badge', route: '/viewAllUsers', queryParams: { status: 'ACTIVE' }, delta: 6 },
+      { title: 'Total Departments', value: d.totalDepartments, color: 'dark', icon: 'bi-building', route: '/departments', delta: 0 },
+      { title: 'Closure Requests', value: d.requestForClosure, color: 'secondary', icon: 'bi-lock-fill', route: '/closures', delta: -2 },
+      { title: 'My Tasks', value: d.selfTasks, color: 'primary', icon: 'bi-person-check', route: '/view-tasks', queryParams: { status: 'Self' }, delta: 7 },
+      { title: 'Extended Tasks', value: d.Extended, color: 'warning', icon: 'bi-arrow-repeat', route: '/view-tasks', queryParams: { status: 'Extended' }, delta: 2 }
     ];
   }
 
-  // constructor(private dashboardService: DashboardService) {}
-
-  ngOnInit(): void {
-    
-    this.dataSub = this.apiService.getDashboardData().subscribe(data => {
-      if (data) {
-        // this.username= data.userName  ;  // Set username
-        this.dashboardData=data
-        console.log('📊 Dashboard data updated:', data);
-        this.updateCharts(data);
-      }
-    });
-
+  /** Navigate to card route with query params */
+  goToTaskPage(card: any) {
+    console.log('Navigating to:', card.route, 'with params:', card.queryParams );
+    this.router.navigate([card.route], { queryParams: card.queryParams || {} });
   }
 
-
-  private updateCharts(data: any): void {
-    // 🥧 Pie Chart — Task Distribution
+  /** Update chart data */
+  private updateCharts(data: DashboardDto): void {
     this.pieChartData = {
-      labels: ['Pending', 'Completed', 'Delayed'],
+      labels: ['Pending', 'Completed', 'Delayed', 'Extended'],
       datasets: [
         {
-          data: [data.pendingTask, data.completedTask, data.delayedTask],
-          backgroundColor: ['#fbbf24', '#10b981', '#ef4444']
+          data: [
+            data.pendingTask ?? 0,
+            data.completedTask ?? 0,
+            data.delayedTask ?? 0,
+            data.Extended ?? 0
+          ],
+          backgroundColor: ['#fbbf24', '#10b981', '#ef4444', '#8b5cf6']
         }
       ]
     };
 
-    // 📊 Bar Chart — System Stats
     this.barChartData = {
       labels: ['Total Users', 'Total Tasks', 'Upcoming Tasks'],
       datasets: [
         {
           label: 'Count',
-          data: [data.totalUsers, data.totalTask, data.upcomingTask],
+          data: [
+            data.totalUsers ?? 0,
+            data.totalTask ?? 0,
+            data.upcomingTask ?? 0
+          ],
           backgroundColor: ['#3b82f6', '#6366f1', '#06b6d4']
         }
       ]
     };
-  }
-
-  ngOnDestroy(): void {
-    if (this.dataSub) {
-      this.dataSub.unsubscribe();
-    }
   }
 }

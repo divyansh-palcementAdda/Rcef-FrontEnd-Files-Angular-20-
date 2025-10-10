@@ -1,0 +1,10 @@
+.table_head {
+  background: linear-gradient(135deg, #2b7818 0%, #34D399 50%, #1e3a8a 100%);
+  color: #fff;
+  border-radius: 1rem 1rem 0 0;
+  text-align: center;
+}
+
+.card-body {
+  padding: 2rem;
+}

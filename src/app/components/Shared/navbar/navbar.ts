@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthApiService } from '../../../Services/auth-api-service';
 
@@ -15,8 +15,11 @@ export class Navbar {
   isMenuOpen = false;
   isLoggedIn$: Observable<boolean>;
 
-  constructor(private authService: AuthApiService) {
+  constructor(private authService: AuthApiService, private router : Router) {
     this.isLoggedIn$ = this.authService.isLoggedIn$;
+  }
+  onHomeClick(){
+    this.authService.onHomeClick();
   }
 
   toggleMenu() {

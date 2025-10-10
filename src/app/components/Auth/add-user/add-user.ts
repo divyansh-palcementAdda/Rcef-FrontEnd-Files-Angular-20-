@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
+import { UserApiService } from '../../../Services/UserApiService';
 
 @Component({
   selector: 'app-add-user',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule,FormsModule],
   templateUrl: './add-user.html',
   styleUrls: ['./add-user.css']
 })
@@ -17,38 +18,28 @@ export class AddUserComponent implements OnInit {
   successMessage: string | null = null;
   errorMessage: string | null = null;
 
-  roles =  ['HOD', 'TEACHER'];
+  roles = ['HOD', 'TEACHER'];
   departments: any[] = [];
 
   showPassword = false;
   passwordStrength = { score: 0, label: '', color: '' };
 
+  // OTP
+  otpSent = false;
+  otpValidated = false;
+  otpInput = '';
+
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
+    private userApiService : UserApiService,
     private router: Router
   ) {
     this.userForm = this.fb.group({
-      username: [
-        '',
-        [Validators.required, Validators.minLength(3), Validators.maxLength(80),
-        Validators.pattern(/^[a-zA-Z0-9._-]+$/)]
-      ],
-      password: [
-        '',
-        [Validators.required, Validators.minLength(8), Validators.maxLength(64),
-        Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\S+$).{8,64}$/)]
-      ],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.maxLength(200),
-        Validators.pattern(/^[A-Za-z0-9+_.-]+@[A-Za-z.]+$/)]
-      ],
-      fullName: [
-        '',
-        [Validators.required, Validators.minLength(2), Validators.maxLength(80),
-        Validators.pattern(/^[A-Za-z]+([ '-][A-Za-z]+)*$/)]
-      ],
+      username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(80), Validators.pattern(/^[a-zA-Z0-9._-]+$/)]],
+      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(64), Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\S+$).{8,64}$/)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(200), Validators.pattern(/^[A-Za-z0-9+_.-]+@[A-Za-z.]+$/)]],
+      fullName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80), Validators.pattern(/^[A-Za-z]+([ '-][A-Za-z]+)*$/)]],
       role: ['', Validators.required],
       departmentId: ['', Validators.required]
     });
@@ -86,8 +77,57 @@ export class AddUserComponent implements OnInit {
     return { score: 100, label: 'Strong', color: '#1cc88a' };
   }
 
+  /** Send OTP */
+  sendOtp(): void {
+    const email = this.userForm.value.email;
+    if (!email) {
+      this.errorMessage = 'Please enter an email first';
+      return;
+    }
+    this.apiService.sendOtp({ email }).subscribe({
+      next: () => {
+        this.successMessage = 'OTP sent successfully. Check your email.';
+        this.otpSent = true;
+        this.errorMessage = null;
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || 'Failed to send OTP';
+      }
+    });
+  }
+
+  /** Verify OTP */
+  verifyOtp(): void {
+    const email = this.userForm.value.email;
+    if (!this.otpInput) {
+      this.errorMessage = 'Please enter the OTP';
+      return;
+    }
+    this.apiService.validateOtp({ email, otp: this.otpInput }).subscribe({
+      next: (res: any) => {
+        this.successMessage = 'OTP verified successfully!';
+        this.otpValidated = true;
+        this.errorMessage = null;
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || 'Invalid OTP';
+        this.otpValidated = false;
+      }
+    });
+  }
+
   onSubmit(): void {
+    console.log('Form submission initiated');
+    if (!this.otpValidated) {
+      this.errorMessage = 'OTP must be verified before creating a user';
+      console.log('OTP not validated, cannot submit form');
+      return;
+    }
+
     if (this.userForm.invalid) {
+      console.log('Form is invalid:', this.userForm.errors);
+      console.log('Form values:', this.userForm.value);
+      this.errorMessage = 'Please correct the errors in the form.';
       this.userForm.markAllAsTouched();
       return;
     }
@@ -95,12 +135,16 @@ export class AddUserComponent implements OnInit {
     this.isSubmitting = true;
     const payload = this.userForm.value;
 
-    this.apiService.createUser(payload).subscribe({
+    this.userApiService.createUser(payload).subscribe({
       next: () => {
+        console.log('User created successfully');
         this.isSubmitting = false;
         this.successMessage = '✅ User created successfully!';
         this.userForm.reset();
         this.passwordStrength = { score: 0, label: '', color: '' };
+        this.otpSent = false;
+        this.otpValidated = false;
+        this.otpInput = '';
       },
       error: (err) => {
         this.isSubmitting = false;

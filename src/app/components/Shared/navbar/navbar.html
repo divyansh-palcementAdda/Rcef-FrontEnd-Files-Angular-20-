@@ -3,8 +3,7 @@
 
     <!-- Brand -->
     <a class="navbar-brand fw-bold fs-3 d-flex align-items-center" routerLink="/" (click)="closeMenu()">
-      <img src="images/AreYouReportingLogo.png"
-           alt="RCEF Logo" class="me-2 rounded shadow-sm pulse-logo">
+      <img src="images/AreYouReportingLogo.png" alt="RCEF Logo" class="me-2 rounded shadow-sm pulse-logo">
       <span>RCEF Project</span>
     </a>
 
@@ -14,18 +13,30 @@
     </button>
 
     <!-- Nav Links -->
-    <ul class="nav-links d-lg-flex" [ngClass]="{'active': isMenuOpen}">
-      <li><a routerLink="/" (click)="closeMenu()">Home</a></li>
-      <li><a routerLink="/about" (click)="closeMenu()">About</a></li>
-      <li><a routerLink="/contact" (click)="closeMenu()">Contact</a></li>
+    <ul class="nav-links d-lg-flex" [ngClass]="{ 'active': isMenuOpen }">
+      <!-- 🏠 Home Redirect with Auth Check -->
+      <li>
+        <a style="cursor: pointer;" (click)="onHomeClick()">Home</a>
+      </li>
 
-      <!-- Login / Logout -->
+      <!-- 📄 About -->
+      <li>
+        <a routerLink="/about" (click)="closeMenu()">About</a>
+      </li>
+
+      <!-- 📞 Contact -->
+      <li>
+        <a routerLink="/contact" (click)="closeMenu()">Contact</a>
+      </li>
+
+      <!-- 🔐 Login / Logout -->
       <li *ngIf="!(isLoggedIn$ | async)">
         <a routerLink="/login" (click)="closeMenu()">Login</a>
       </li>
       <li *ngIf="isLoggedIn$ | async">
-        <a href="#" (click)="logout()">Logout</a>
+        <a href="#" (click)="logout(); closeMenu()">Logout</a>
       </li>
     </ul>
+
   </div>
 </nav>

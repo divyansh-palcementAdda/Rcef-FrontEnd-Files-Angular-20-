@@ -1,0 +1,80 @@
+.card {
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+}
+
+.table_head {
+  background: linear-gradient(135deg, #2b7818 0%, #34D399 50%, #1e3a8a 100%);
+  color: #fff;
+}
+
+.table_head th {
+  text-align: center;
+  padding: 0.75rem;
+  vertical-align: middle;
+  font-weight: 600;
+  border: none;
+}
+
+.table tbody tr {
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s ease-in-out;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(78, 115, 223, 0.07);
+  transform: translateX(2px);
+}
+
+.row-actions {
+  opacity: 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.table tbody tr:hover .row-actions {
+  opacity: 1;
+}
+
+.badge.blink {
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.clickable-card {
+  border-radius: 1rem;
+  background: #ffffff;
+  padding: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clickable-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 15px rgba(78, 115, 223, 0.25);
+}
+
+input.form-control,
+select.form-select {
+  border-radius: 0.5rem;
+  border: 1px solid #ced4da;
+}
+
+input.form-control:focus,
+select.form-select:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.15rem rgba(78, 115, 223, 0.25);
+}

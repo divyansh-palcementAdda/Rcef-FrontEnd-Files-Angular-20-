@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
 import { userDto } from '../../../Model/userDto';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { UserApiService } from '../../../Services/UserApiService';
 
 @Component({
   selector: 'app-view-all-users',
@@ -15,7 +16,7 @@ export class ViewAllUserss implements OnInit {
 
   // All users from API
   users: userDto[] = [];
-
+   
   // Users after search/filter
   filteredUsers: userDto[] = [];
 
@@ -32,10 +33,22 @@ export class ViewAllUserss implements OnInit {
   searchTerm: string = '';
   statusFilter: string = '';
 
-  constructor(private apiService: ApiService, private router: Router) {}
+  constructor(private apiService: UserApiService, private router: Router,private route: ActivatedRoute,
+) {}
 
   ngOnInit(): void {
-    this.loadUsers();
+    // Subscribe to query params to get status (e.g. /view-users?status=Active)
+  this.route.queryParams.subscribe(params => {
+    const status = params['status'];
+    console.log('Status filter from query params:', status);
+    if (status) {
+      this.statusFilter = status.toUpperCase();
+      this.loadUsersByStatus(this.statusFilter);
+    } else {
+      this.statusFilter = '';
+      this.loadUsers();
+    }
+  });
   }
 
   /** Load all users from API */
@@ -52,6 +65,22 @@ export class ViewAllUserss implements OnInit {
       },
       error: (err: any) => {
         this.errorMessage = err?.error?.message || 'Failed to load users.';
+        this.loading = false;
+      }
+    });
+  }
+  loadUsersByStatus(status: string): void {
+    this.loading = true;
+    this.errorMessage = null;
+    this.apiService.getAllUsersByStatus(status).subscribe({
+      next: (users) => {
+        this.users = users || []; 
+        console.log('Fetched users by status:', this.users);
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: (err: any) => {
+        this.errorMessage = err?.error?.message || 'Failed to load users by status.'; 
         this.loading = false;
       }
     });
