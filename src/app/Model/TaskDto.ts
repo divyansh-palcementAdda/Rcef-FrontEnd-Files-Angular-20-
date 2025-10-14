@@ -9,4 +9,5 @@ export interface TaskDto {
   assignedToName: string; // ID of the user the task is assigned to
   createdByUserId: number; // ID of the user who created the task
   departmentName: string; // ID of the department
+  assignedToId : number;
 }

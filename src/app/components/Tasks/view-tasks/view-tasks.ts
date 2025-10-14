@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { TaskDto } from '../../../Model/TaskDto';
+import { JwtService } from '../../../Services/jwt-service';
 
 @Component({
   selector: 'app-view-tasks',
@@ -17,8 +18,9 @@ export class ViewTasksComponent implements OnInit {
   tasks: TaskDto[] = [];
   filteredTasks: TaskDto[] = [];
 
-  loading = true;
+  loading = false;
   errorMessage: string | null = null;
+  loggedInUserID: number | null = null;
 
   searchTerm = '';
   statusFilter = '';
@@ -30,67 +32,76 @@ export class ViewTasksComponent implements OnInit {
   constructor(
     private apiService: TaskApiService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private jwtService: JwtService
   ) { }
 
   ngOnInit(): void {
-  // Subscribe to query params to get status (e.g. /view-tasks?status=Pending)
-  this.route.queryParams.subscribe(params => {
-    const status = params['status'];
-    console.log('Status filter from query params:', status);
-    if (status) {
-      this.statusFilter = status.toUpperCase();
-      this.loadTasksByStatus(this.statusFilter);
-    } else {
-      this.statusFilter = '';
-      this.loadAllTasks();
-    }
-  });
-}
+    this.route.queryParams.subscribe(params => {
+      const status = params['status'];
+      this.statusFilter = status ? status.toUpperCase() : '';
+      if (status?.toLowerCase() === 'self') {
+        this.loadTasksByUser();
+      } else if (status) {
+        this.loadTasksByStatus(this.statusFilter);
+      } else {
+        this.loadAllTasks();
+      }
+    });
+  }
 
-  /** ✅ Load all tasks */
-  /** ✅ Load all tasks */
-  loadAllTasks(): void {
+  /** Load tasks for logged-in user */
+  private loadTasksByUser(): void {
+    this.loading = true;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.loggedInUserID = this.jwtService.getUserIdFromToken(token);
+    if (!this.loggedInUserID) return;
+
+    this.apiService.getTasksByUser(this.loggedInUserID).subscribe({
+      next: res => this.handleTaskResponse(res.data || []),
+      error: err => this.handleError(err, 'Failed to load your tasks.')
+    });
+  }
+
+  /** Load all tasks */
+  private loadAllTasks(): void {
     this.loading = true;
     this.apiService.getAllTasks().subscribe({
-      next: (res) => {
-        // res is of type { success, message, data }
-        this.handleTaskResponse(res.data || []); // pass TaskDto[] to handler
-        this.loading = false;
-      },
-      error: (err) => this.handleError(err, 'Failed to load tasks.')
+      next: res => this.handleTaskResponse(res.data || []),
+      error: err => this.handleError(err, 'Failed to load tasks.')
     });
   }
 
-  /** ✅ Load tasks by specific status */
-  loadTasksByStatus(status: string): void {
+  /** Load tasks by status */
+  private loadTasksByStatus(status: string): void {
     this.loading = true;
     this.apiService.getTasksByStatus(status).subscribe({
-      next: (res) => {
-        // res is of type { success, message, data }
-        this.handleTaskResponse(res.data || []); // pass TaskDto[] to handler
-        this.loading = false;
-      },
-      error: (err) => this.handleError(err, `Failed to load ${status.toLowerCase()} tasks.`)
+      next: res => this.handleTaskResponse(res.data || []),
+      error: err => this.handleError(err, `Failed to load ${status} tasks.`)
     });
+
   }
 
-
-  /** 🧠 Common response handler */
-  private handleTaskResponse(tasks: TaskDto[] | null): void {
+  /** Handle API response */
+  private handleTaskResponse(tasks: TaskDto[]): void {
     this.tasks = tasks || [];
+    console.log(this.tasks)
     this.applyFilters();
     this.loading = false;
   }
 
-  /** ⚠️ Error handler */
+  /** Error handler */
   private handleError(err: any, fallback: string): void {
-    console.error('Task load error:', err);
+    console.error(err);
     this.errorMessage = err?.error?.message || fallback;
     this.loading = false;
   }
 
-  /** 🔍 Apply search + status filters */
+  /** Apply search and status filters */
   applyFilters(): void {
     this.filteredTasks = this.tasks.filter(task => {
       const matchesSearch =
@@ -99,13 +110,19 @@ export class ViewTasksComponent implements OnInit {
         task.assignedToName?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         task.departmentName?.toLowerCase().includes(this.searchTerm.toLowerCase());
 
-      const matchesStatus = !this.statusFilter || task.status === this.statusFilter;
+      // Special case for 'SELF'
+      const matchesStatus =
+        this.statusFilter.toUpperCase() === 'SELF'
+          ? task.assignedToId === this.loggedInUserID
+          : !this.statusFilter || task.status?.toUpperCase() === this.statusFilter;
+
       return matchesSearch && matchesStatus;
     });
 
     this.totalPages = Math.ceil(this.filteredTasks.length / this.pageSize) || 1;
     this.currentPage = 1;
   }
+
 
   resetFilters(): void {
     this.searchTerm = '';
@@ -126,28 +143,42 @@ export class ViewTasksComponent implements OnInit {
     return this.filteredTasks.slice(start, start + this.pageSize);
   }
 
-  /** 🔗 Navigate to details page */
+  /** Navigate to task details */
   viewTaskDetails(taskId?: number): void {
-    if (taskId) {
-      this.router.navigate(['/tasks', taskId]);
-    }
+    if (taskId) this.router.navigate(['/tasks', taskId]);
   }
 
-  /** ❌ Delete task */
+  /** Delete task */
   deleteTask(event: Event, taskId?: number): void {
     event.stopPropagation();
     if (!taskId) return;
 
-    if (confirm('Are you sure you want to delete this task?')) {
-      this.apiService.deleteTask(taskId).subscribe({
-        next: () => {
-          this.tasks = this.tasks.filter(t => t.taskId !== taskId);
-          this.applyFilters();
-        },
-        error: (err) => {
-          this.errorMessage = err?.error?.message || 'Failed to delete task.';
-        }
-      });
+    if (!confirm('Are you sure you want to delete this task?')) return;
+
+    this.apiService.deleteTask(taskId).subscribe({
+      next: () => {
+        this.tasks = this.tasks.filter(t => t.taskId !== taskId);
+        this.applyFilters();
+      },
+      error: err => this.handleError(err, 'Failed to delete task.')
+    });
+  }
+
+  /** Helper for status badge class */
+  getStatusClass(status?: string): string {
+    switch (status) {
+      case 'PENDING':
+      case 'UPCOMING':
+        return 'bg-warning text-dark';
+      case 'DELAYED':
+        return 'bg-danger blink';
+      case 'REQUEST_FOR_CLOSURE':
+      case 'REQUEST_FOR_EXTENSION':
+        return 'bg-info';
+      case 'CLOSED':
+        return 'bg-success';
+      default:
+        return 'bg-secondary';
     }
   }
 }

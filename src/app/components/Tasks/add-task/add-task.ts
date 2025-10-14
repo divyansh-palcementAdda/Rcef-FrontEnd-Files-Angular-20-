@@ -27,8 +27,12 @@ export class AddTaskComponent implements OnInit {
   errorMessage: string | null = null;
   isSubmitting = false;
 
-  constructor(private fb: FormBuilder, private apiService: ApiService, private router: Router,private taskApiservice : TaskApiService,
-    private userApiService : UserApiService
+  constructor(
+    private fb: FormBuilder,
+    private apiService: ApiService,
+    private router: Router,
+    private taskApiService: TaskApiService,
+    private userApiService: UserApiService
   ) {}
 
   ngOnInit(): void {
@@ -38,28 +42,29 @@ export class AddTaskComponent implements OnInit {
       dueDate: ['', Validators.required],
       startDate: [''],
       status: ['', Validators.required],
-      createdById: [''],
+      createdById: [null],
       assignedToIds: [[]],
       assignToSelf: [false],
-      departmentId: ['', Validators.required]
+      departmentId: [null, Validators.required]
     });
 
     this.loadDepartments();
 
-    // Fetch users when departmentId changes
-    this.taskForm.get('departmentId')?.valueChanges.subscribe(deptId => {
-      if (deptId && !isNaN(Number(deptId))) {
-        console.log('Department changed, loading users for department ID:', deptId);
-        this.loadUsers(Number(deptId));
+    // React when department changes
+    this.taskForm.get('departmentId')?.valueChanges.subscribe((deptId) => {
+      console.log('Selected departmentId:', deptId);
+      if (typeof deptId === 'number' && deptId > 0) {
+        console.log('Loading users for department ID:', deptId);
+        this.loadUsers(deptId);
       } else {
         console.warn('Invalid department ID selected:', deptId);
         this.filteredUsers = [];
-        this.taskForm.patchValue({ assignedToIds: [] }); // Clear assigned users if no valid department
+        this.taskForm.patchValue({ assignedToIds: [] });
       }
     });
 
-    // Validate start date for UPCOMING tasks
-    this.taskForm.get('status')?.valueChanges.subscribe(status => {
+    // Add validation dynamically for upcoming tasks
+    this.taskForm.get('status')?.valueChanges.subscribe((status) => {
       const startDateControl = this.taskForm.get('startDate');
       if (status === TaskStatus.UPCOMING) {
         startDateControl?.setValidators([Validators.required]);
@@ -78,10 +83,11 @@ export class AddTaskComponent implements OnInit {
     this.apiService.getAllDepartments().subscribe({
       next: (data: Department[]) => {
         console.log(`Loaded ${data.length} departments`);
-        console.table(data);
-        this.departments = data.filter(d => d.name.toUpperCase() !== 'ADMINSTRATION'); // Fixed typo
+        this.departments = data.filter(
+          (d) => d.name?.trim().toLowerCase() !== 'administration'
+        );
       },
-      error: err => {
+      error: (err) => {
         console.error('Failed to load departments', err);
         this.errorMessage = 'Failed to load departments. Please try again.';
       }
@@ -89,14 +95,13 @@ export class AddTaskComponent implements OnInit {
   }
 
   loadUsers(departmentId: number): void {
-    console.log('Loading users for department ID:', departmentId);
     this.userApiService.getAllUsersByDepartment(departmentId).subscribe({
       next: (data: userDto[]) => {
         this.users = data;
         this.filteredUsers = data;
         console.log(`Loaded ${data.length} users for department ID ${departmentId}`);
       },
-      error: err => {
+      error: (err) => {
         console.error('Failed to load users', err);
         this.errorMessage = 'Failed to load users for the selected department.';
         this.filteredUsers = [];
@@ -107,8 +112,8 @@ export class AddTaskComponent implements OnInit {
 
   assignToSelfChange(): void {
     if (this.taskForm.value.assignToSelf) {
-      const createdById = this.taskForm.value.createdById;
-      if (createdById) {
+      const createdById = Number(this.taskForm.value.createdById);
+      if (createdById && !isNaN(createdById)) {
         this.taskForm.patchValue({ assignedToIds: [createdById] });
         this.successMessage = '✅ Task automatically assigned to you.';
       } else {
@@ -136,18 +141,18 @@ export class AddTaskComponent implements OnInit {
       ...this.taskForm.value,
       title: `Task: ${this.taskForm.value.title}`,
       description: `Details: ${this.taskForm.value.description}`,
-      departmentId: Number(this.taskForm.value.departmentId) // Ensure departmentId is a number
+      departmentId: Number(this.taskForm.value.departmentId)
     };
 
-    this.taskApiservice.createTask(payload).subscribe({
+    this.taskApiService.createTask(payload).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.successMessage = '✅ Task added successfully!';
         this.taskForm.reset();
         this.filteredUsers = [];
-        setTimeout(() => this.router.navigate(['/view-tasks']), 1500); // Redirect after success
+        setTimeout(() => this.router.navigate(['/view-tasks']), 1500);
       },
-      error: err => {
+      error: (err) => {
         this.isSubmitting = false;
         this.errorMessage = err?.error?.message || 'Failed to add task.';
       }

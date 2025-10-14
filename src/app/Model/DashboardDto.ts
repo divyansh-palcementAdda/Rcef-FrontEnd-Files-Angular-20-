@@ -13,7 +13,7 @@ export interface DashboardDto {
   loggedInRole: string;
   departmentName?: string;
   userName?: string;
-  selfTasks?: number;           // User only
+  selfTask?: number;           // User only
   Extended?: number;           // Admin/HOD only
   email?: string;
 }
