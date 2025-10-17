@@ -1,28 +1,42 @@
 <div class="container my-5">
-  <div class="card shadow rounded-4 border-0">
+  <div class="card shadow-lg rounded-4 border-0 animate__animated animate__fadeIn">
+    <!-- Card Header -->
     <div class="card-header text-white text-center p-4 table_head">
-      <h3 class="mb-0 fw-bold">Add New Task</h3>
-      <small>Assign task to users or departments</small>
+      <h3 class="mb-0 fw-bold animate__animated animate__bounceInDown">Create New Task</h3>
+      <small class="text-light opacity-75">Assign tasks to users or departments with ease</small>
     </div>
 
-    <div class="card-body p-4">
-      <!-- Alerts -->
-      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
-        {{ successMessage }}
-        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+    <!-- Card Body -->
+    <div class="card-body p-4 p-md-5">
+      <!-- Success & Error Alerts -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show animate__animated animate__pulse" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}
+        <button type="button" class="btn-close" aria-label="Close" (click)="successMessage = null"></button>
       </div>
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
-        {{ errorMessage }}
-        <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show animate__animated animate__shakeX" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}
+        <button type="button" class="btn-close" aria-label="Close" (click)="errorMessage = null"></button>
       </div>
 
-      <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
-        <div class="row g-3">
-          <!-- Title -->
+      <!-- Task Form -->
+      <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="row g-4">
+          <!-- Task Title -->
           <div class="col-md-6">
-            <label class="form-label">Task Title</label>
-            <input type="text" class="form-control" formControlName="title" placeholder="Enter task name" />
-            <div *ngIf="f['title']?.errors && f['title']?.touched" class="text-danger">
+            <label for="title" class="form-label fw-semibold">Task Title</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-pencil-square"></i></span>
+              <input
+                id="title"
+                type="text"
+                class="form-control"
+                formControlName="title"
+                placeholder="Enter task name"
+                aria-describedby="titleHelp"
+                [ngClass]="{'is-invalid': f['title']?.errors && f['title']?.touched}"
+              />
+            </div>
+            <div *ngIf="f['title']?.errors && f['title']?.touched" class="invalid-feedback">
               <small *ngIf="f['title']?.errors?.['required']">Title is required.</small>
               <small *ngIf="f['title']?.errors?.['maxlength']">Max 255 characters allowed.</small>
             </div>
@@ -30,78 +44,195 @@
 
           <!-- Description -->
           <div class="col-md-6">
-            <label class="form-label">Description</label>
-            <textarea class="form-control" formControlName="description" placeholder="Enter task details"></textarea>
-            <div *ngIf="f['description']?.errors && f['description']?.touched" class="text-danger">
+            <label for="description" class="form-label fw-semibold">Description</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-text-paragraph"></i></span>
+              <textarea
+                id="description"
+                class="form-control"
+                formControlName="description"
+                placeholder="Enter task details"
+                rows="4"
+                [ngClass]="{'is-invalid': f['description']?.errors && f['description']?.touched}"
+              ></textarea>
+            </div>
+            <div *ngIf="f['description']?.errors && f['description']?.touched" class="invalid-feedback">
               <small *ngIf="f['description']?.errors?.['maxlength']">Max 2000 characters allowed.</small>
             </div>
           </div>
 
           <!-- Status -->
           <div class="col-md-6">
-            <label class="form-label">Status</label>
-            <select class="form-select" formControlName="status">
-              <option [ngValue]="null" disabled>Select status</option>
-              <option *ngFor="let s of statuses" [ngValue]="s">{{ s }}</option>
-            </select>
-            <div *ngIf="f['status']?.errors && f['status']?.touched" class="text-danger">
+            <label for="status" class="form-label fw-semibold">Status</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-tag-fill"></i></span>
+              <select
+                id="status"
+                class="form-select"
+                formControlName="status"
+                [ngClass]="{'is-invalid': f['status']?.errors && f['status']?.touched}"
+                aria-describedby="statusHelp"
+              >
+                <option [ngValue]="null" disabled>Select status</option>
+                <option *ngFor="let s of statuses" [ngValue]="s">{{ s | titlecase }}</option>
+              </select>
+            </div>
+            <div *ngIf="f['status']?.errors && f['status']?.touched" class="invalid-feedback">
               <small *ngIf="f['status']?.errors?.['required']">Status is required.</small>
             </div>
           </div>
 
-          <!-- Start Date -->
+          <!-- Start Date (UPCOMING tasks) -->
           <div class="col-md-6" *ngIf="f['status']?.value === 'UPCOMING'">
-            <label class="form-label">Start Date</label>
-            <input type="datetime-local" class="form-control" formControlName="startDate" />
-            <div *ngIf="f['startDate']?.errors && f['startDate']?.touched" class="text-danger">
-              <small *ngIf="f['startDate']?.errors?.['required']">Start date is required for UPCOMING tasks.</small>
+            <label for="startDate" class="form-label fw-semibold">Start Date</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
+              <input
+                id="startDate"
+                type="datetime-local"
+                class="form-control"
+                formControlName="startDate"
+                [ngClass]="{'is-invalid': f['startDate']?.errors && f['startDate']?.touched}"
+              />
+            </div>
+            <div *ngIf="f['startDate']?.errors && f['startDate']?.touched" class="invalid-feedback">
+              <small *ngIf="f['startDate']?.errors?.['required']">Start date required for UPCOMING tasks.</small>
             </div>
           </div>
 
           <!-- Due Date -->
           <div class="col-md-6">
-            <label class="form-label">Due Date</label>
-            <input type="datetime-local" class="form-control" formControlName="dueDate" />
-            <div *ngIf="f['dueDate']?.errors && f['dueDate']?.touched" class="text-danger">
+            <label for="dueDate" class="form-label fw-semibold">Due Date</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-calendar-check"></i></span>
+              <input
+                id="dueDate"
+                type="datetime-local"
+                class="form-control"
+                formControlName="dueDate"
+                [ngClass]="{'is-invalid': f['dueDate']?.errors && f['dueDate']?.touched}"
+              />
+            </div>
+            <div *ngIf="f['dueDate']?.errors && f['dueDate']?.touched" class="invalid-feedback">
               <small *ngIf="f['dueDate']?.errors?.['required']">Due date is required.</small>
             </div>
           </div>
 
-          <!-- Department -->
+          <!-- Departments -->
           <div class="col-md-6">
-            <label class="form-label">Department</label>
-            <select class="form-select" formControlName="departmentId">
-              <option [ngValue]="null" disabled>Select Department</option>
-              <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.name }}</option>
-            </select>
-            <div *ngIf="f['departmentId']?.errors && f['departmentId']?.touched" class="text-danger">
-              <small *ngIf="f['departmentId']?.errors?.['required']">Department is required.</small>
+            <label class="form-label fw-semibold">Select Departments</label>
+            <div class="department-list p-3 bg-light rounded-3 shadow-sm">
+              <!-- Skeleton loader for departments -->
+              <div *ngIf="isLoadingDepartments" class="skeleton-loader">
+                <div class="skeleton-item" *ngFor="let _ of [1,2,3]"></div>
+              </div>
+              <!-- Department checkboxes -->
+              <div *ngIf="!isLoadingDepartments" class="animate__animated animate__fadeIn">
+                <div *ngFor="let dept of departments" class="form-check mb-2">
+                  <input
+                    type="checkbox"
+                    class="form-check-input custom-checkbox"
+                    [id]="'dept-' + dept.departmentId"
+                    [value]="dept.departmentId"
+                    (change)="updateDepartmentSelection($event, dept.departmentId)"
+                    [checked]="taskForm.value.departmentIds.includes(dept.departmentId)"
+                    [attr.aria-label]="'Select department ' + dept.name"
+                  />
+                  <label class="form-check-label" [for]="'dept-' + dept.departmentId">
+                    {{ dept.name }}
+                  </label>
+                </div>
+                <div *ngIf="departments.length === 0" class="text-muted">No departments available.</div>
+                <div *ngIf="f['departmentIds']?.errors && f['departmentIds']?.touched" class="text-danger mt-2">
+                  <small *ngIf="f['departmentIds']?.errors?.['required']">At least one department is required.</small>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Assigned Users -->
-          <div class="col-md-6">
-            <label class="form-label">Assign To Users</label>
-            <select class="form-select" formControlName="assignedToIds" multiple>
-              <option *ngFor="let u of filteredUsers" [ngValue]="u.userId">{{ u.username }}</option>
-            </select>
-            <div class="form-check mt-1">
+          <!-- Users per Department -->
+          <div class="col-md-6" *ngIf="taskForm.value.departmentIds?.length">
+            <label class="form-label fw-semibold">Assign Users</label>
+            <!-- Skeleton loader for users -->
+            <div *ngIf="isLoadingUsers" class="skeleton-loader">
+              <div class="skeleton-item" *ngFor="let _ of [1,2,3]"></div>
+            </div>
+            <!-- Accordion for users -->
+            <div *ngIf="!isLoadingUsers" class="accordion" id="userAccordion">
+              <div *ngFor="let deptId of taskForm.value.departmentIds; let i = index" class="accordion-item shadow-sm mb-2 animate__animated animate__fadeIn">
+                <h2 class="accordion-header">
+                  <button
+                    class="accordion-button"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    [attr.data-bs-target]="'#collapse-' + deptId"
+                    [attr.aria-expanded]="i === 0"
+                    [attr.aria-controls]="'collapse-' + deptId"
+                  >
+                    {{ getDepartmentName(deptId) }}
+                  </button>
+                </h2>
+                <div
+                  [id]="'collapse-' + deptId"
+                  class="accordion-collapse collapse"
+                  [ngClass]="{'show': i === 0}"
+                  data-bs-parent="#userAccordion"
+                >
+                  <div class="accordion-body p-3">
+                    <div *ngFor="let user of usersByDepartment.get(deptId)" class="form-check mb-2">
+                      <input
+                        type="checkbox"
+                        class="form-check-input custom-checkbox"
+                        [id]="'user-' + user.userId"
+                        [value]="user.userId"
+                        (change)="updateUserSelection($event, deptId, user.userId)"
+                        [checked]="selectedUsersByDeptObj[deptId]?.includes(user.userId)"
+                        [attr.aria-label]="'Select user ' + user.username + ' for ' + getDepartmentName(deptId)"
+                      />
+                      <label class="form-check-label" [for]="'user-' + user.userId">
+                        {{ user.fullName }}
+                      </label>
+                    </div>
+                    <div *ngIf="!usersByDepartment.get(deptId)?.length" class="text-muted">
+                      No users available in this department.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-check mt-3">
               <input
-                class="form-check-input"
                 type="checkbox"
+                class="form-check-input custom-checkbox"
+                id="assignToSelf"
                 formControlName="assignToSelf"
-                (change)="assignToSelfChange()"
+                [attr.aria-label]="'Assign task to self'"
               />
-              <label class="form-check-label">Assign to Self</label>
+              <label class="form-check-label" for="assignToSelf">Assign to Self</label>
             </div>
           </div>
         </div>
 
-        <div class="d-flex justify-content-end mt-4 gap-2">
-          <button type="button" class="btn btn-outline-secondary px-4" (click)="cancel()">Cancel</button>
-          <button type="submit" class="btn btn-success px-4" [disabled]="isSubmitting">
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-end mt-5 gap-3">
+          <button
+            type="button"
+            class="btn btn-outline-secondary px-4 py-2"
+            (click)="cancel()"
+            [disabled]="isSubmitting"
+            aria-label="Cancel task creation"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary px-4 py-2"
+            [disabled]="isSubmitting || taskForm.invalid"
+            aria-label="Submit task"
+          >
             <span *ngIf="!isSubmitting">Add Task</span>
-            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
+            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span *ngIf="isSubmitting" class="visually-hidden">Submitting...</span>
           </button>
         </div>
       </form>

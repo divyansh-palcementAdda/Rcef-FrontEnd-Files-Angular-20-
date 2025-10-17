@@ -1,13 +1,30 @@
-import { TaskStatus } from "./TaskStatus";
+import { TaskStatus } from './TaskStatus';
+
 
 export interface TaskDto {
   taskId: number;
   title: string;
   description?: string;
-  dueDate: string; // ISO date string
-  status: TaskStatus; // TaskStatus enum values
-  assignedToName: string; // ID of the user the task is assigned to
-  createdByUserId: number; // ID of the user who created the task
-  departmentName: string; // ID of the department
-  assignedToId : number;
+  startDate?: string; // ISO 8601 date string
+  dueDate: string; // ISO 8601 date string
+  status: TaskStatus;
+
+  createdById?: number;
+  createdByName?: string;
+
+  // ✅ Multi-user and department support
+  assignedToIds?: number[];      // IDs of users assigned to the task
+  assignedToNames?: string[];    // Names of users assigned to the task
+
+  departmentIds?: number[];      // IDs of associated departments
+  departmentNames?: string[];    // Names of associated departments
+
+  // ✅ Task lifecycle flags
+  requiresApproval?: boolean;
+  approved?: boolean;
+  rfcCompletedAt?: string;       // ISO 8601 date string (nullable)
+
+  // ✅ Related entities
+  // proofs?: TaskProofDto[];
+  // requests?: TaskRequestDto[];
 }

@@ -10,6 +10,7 @@ import { trigger, transition, useAnimation } from '@angular/animations';
 import { fadeInUp } from '../../../Animations/fade-in-up.animation';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
+import { BulletinBannerComponent } from '../../Shared/bulletin-banner/bulletin-banner';
 
 Chart.register(...registerables);
 
@@ -18,7 +19,7 @@ Chart.register(...registerables);
   standalone: true,
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css'],
-  imports: [CommonModule, RouterLink, BaseChartDirective, DatePipe,RouterLinkActive],
+  imports: [CommonModule, RouterLink, BaseChartDirective, DatePipe,RouterLinkActive,BulletinBannerComponent],
   animations: [
     trigger('fadeInUpStagger', [
       transition(':enter', useAnimation(fadeInUp, { params: { time: '600ms' } }))
@@ -74,7 +75,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
       next: (data) => {
         if (data) {
           this.dashboardData = data;
-          // console.log(this.dashboardData)
+          console.log(this.dashboardData)
           this.updateCharts(data);
         }
       },
@@ -121,9 +122,17 @@ export class AdminDashboard implements OnInit, OnDestroy {
       { title: 'Total Departments', value: d.totalDepartments, color: 'dark', icon: 'bi-building', route: '/departments', delta: 0 },
       { title: 'Closure Requests', value: d.requestForClosure, color: 'secondary', icon: 'bi-lock-fill',route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_CLOSURE' }, delta: -2 },
       { title: 'My Tasks', value: d.selfTask, color: 'primary', icon: 'bi-person-check', route: '/view-tasks', queryParams: { status: 'Self' }, delta: 7 },
-      { title: 'Extended Tasks', value: d.Extended, color: 'warning', icon: 'bi-arrow-repeat', route: '/view-tasks', queryParams: { status: 'Extended' }, delta: 2 }
+      { title: 'Extended Tasks', value: d.extendedTask, color: 'warning', icon: 'bi-arrow-repeat', route: '/view-tasks', queryParams: { status: 'Extended' }, delta: 2 }
     ];
   }
+  dashboardStats = {
+  delayedTasks: 5,
+  departmentsPending: [
+    { departmentName: 'HR', pendingTasks: 3 },
+    { departmentName: 'IT', pendingTasks: 4 },
+    { departmentName: 'Finance', pendingTasks: 2 }
+  ]
+};
 
   /** ✅ Navigate to a Route */
   goToTaskPage(card: any): void {
@@ -141,7 +150,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
             data.pendingTask ?? 0,
             data.completedTask ?? 0,
             data.delayedTask ?? 0,
-            data.Extended ?? 0,
+            data.extendedTask ?? 0,
             data.upcomingTask??0
           ],
           backgroundColor: ['#fbbf24', '#10b981', '#ef4444', '#8b5cf6','#f7ff04ff']

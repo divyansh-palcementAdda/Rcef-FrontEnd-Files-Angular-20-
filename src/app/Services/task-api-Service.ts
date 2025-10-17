@@ -4,6 +4,13 @@ import { Observable, catchError, map, throwError } from 'rxjs';
 import { TaskDto } from '../Model/TaskDto';
 import { TaskPayload } from '../Model/TaskPayload';
 import { environment } from '../environment/environment';
+import { userDto } from '../Model/userDto';
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data?: T;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -14,127 +21,70 @@ export class TaskApiService {
 
   constructor(private http: HttpClient) {}
 
-  /** ✅ Create a new task (Admin/HOD only) */
-  createTask(payload: TaskPayload): Observable<{ success: boolean; message: string; data?: TaskDto }> {
-    return this.http.post<TaskDto>(`${this.baseUrl}`, payload).pipe(
-      map(res => ({
-        success: true,
-        message: '✅ Task created successfully.',
-        data: res
-      })),
+  /** CREATE TASK */
+  createTask(payload: TaskPayload): Observable<ApiResponse<TaskDto>> {
+    return this.http.post<ApiResponse<TaskDto>>(`${this.baseUrl}`, payload).pipe(
       catchError(err => this.handleError(err, 'creating the task'))
     );
   }
 
-  /** ✏️ Update task details */
-  updateTask(taskId: number, payload: TaskPayload): Observable<{ success: boolean; message: string; data?: TaskDto }> {
-    return this.http.put<TaskDto>(`${this.baseUrl}/${taskId}`, payload).pipe(
-      map(res => ({
-        success: true,
-        message: '✅ Task updated successfully.',
-        data: res
-      })),
+  /** UPDATE TASK */
+  updateTask(taskId: number, payload: TaskPayload): Observable<ApiResponse<TaskDto>> {
+    return this.http.put<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}`, payload).pipe(
       catchError(err => this.handleError(err, 'updating the task'))
     );
   }
 
-  /** ❌ Delete a task (Admin only) */
-  deleteTask(taskId: number): Observable<{ success: boolean; message: string }> {
-    return this.http.delete<void>(`${this.baseUrl}/${taskId}`).pipe(
-      map(() => ({
-        success: true,
-        message: '🗑️ Task deleted successfully.'
-      })),
+  /** DELETE TASK */
+  deleteTask(taskId: number): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`${this.baseUrl}/${taskId}`).pipe(
       catchError(err => this.handleError(err, 'deleting the task'))
     );
   }
 
-  /** 🔍 Get task by ID */
-  getTaskById(taskId: number): Observable<{ success: boolean; message: string; data?: TaskDto }> {
-    return this.http.get<TaskDto>(`${this.baseUrl}/${taskId}`).pipe(
-      map(res => ({
-        success: true,
-        message: '✅ Task fetched successfully.',
-        data: res
-      })),
-      catchError(err => this.handleError(err, 'fetching the task details'))
+  /** GET TASK BY ID */
+  getTaskById(taskId: number): Observable<ApiResponse<TaskDto>> {
+    return this.http.get<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}`).pipe(
+      catchError(err => this.handleError(err, 'fetching task details'))
     );
   }
 
-  /** 👤 Get tasks by assigned user */
-  getTasksByUser(userId: number): Observable<{ success: boolean; message: string; data?: TaskDto[] }> {
-    console.log("fetching task by user user id ",userId)
-    return this.http.get<TaskDto[]>(`${this.baseUrl}/user/${userId}`).pipe(
-      map(res => ({
-        success: true,
-        message: `✅ ${res.length} tasks found for the user.`,
-        data: res
-      })),
+  /** GET TASKS BY USER */
+  getTasksByUser(userId: number): Observable<ApiResponse<TaskDto[]>> {
+    return this.http.get<ApiResponse<TaskDto[]>>(`${this.baseUrl}/user/${userId}`).pipe(
       catchError(err => this.handleError(err, 'fetching user tasks'))
     );
   }
 
-  /** 🏢 Get tasks by department */
-  getTasksByDepartment(departmentId: number): Observable<{ success: boolean; message: string; data?: TaskDto[] }> {
-    return this.http.get<TaskDto[]>(`${this.baseUrl}/department/${departmentId}`).pipe(
-      map(res => ({
-        success: true,
-        message: `✅ ${res.length} department tasks found.`,
-        data: res
-      })),
-      catchError(err => this.handleError(err, 'fetching department tasks'))
+  /** GET TASKS BY STATUS */
+  getTasksByStatus(status: string): Observable<ApiResponse<TaskDto[]>> {
+    return this.http.get<ApiResponse<TaskDto[]>>(`${this.baseUrl}/status/${status}`).pipe(
+      catchError(err => this.handleError(err, `fetching tasks by status "${status}"`))
     );
   }
 
-  /** 📋 Get all tasks */
-  getAllTasks(): Observable<{ success: boolean; message: string; data?: TaskDto[] }> {
-    return this.http.get<TaskDto[]>(`${this.baseUrl}`).pipe(
-      map(res => ({
-        success: true,
-        message: `✅ ${res.length} tasks fetched successfully.`,
-        data: res
-      })),
+  /** GET ALL TASKS */
+  getAllTasks(): Observable<ApiResponse<TaskDto[]>> {
+    return this.http.get<ApiResponse<TaskDto[]>>(`${this.baseUrl}`).pipe(
       catchError(err => this.handleError(err, 'fetching all tasks'))
     );
   }
 
-  /** ⏳ Get tasks filtered by status */
-  getTasksByStatus(status: string): Observable<{ success: boolean; message: string; data?: TaskDto[] }> {
-    return this.http.get<TaskDto[]>(`${this.baseUrl}/status/${status}`).pipe(
-      map(res => ({
-        success: true,
-        message: `✅ ${res.length} "${status}" tasks found.`,
-        data: res
-      })),
-      catchError(err => this.handleError(err, 'fetching tasks by status'))
-    );
-  }
-
-  /** ✅ Approve task (Admin/HOD) */
-  approveTask(taskId: number): Observable<{ success: boolean; message: string; data?: TaskDto }> {
-    return this.http.post<TaskDto>(`${this.baseUrl}/${taskId}/approve`, {}).pipe(
-      map(res => ({
-        success: true,
-        message: '✅ Task approved successfully.',
-        data: res
-      })),
+  /** APPROVE TASK */
+  approveTask(taskId: number): Observable<ApiResponse<TaskDto>> {
+    return this.http.put<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}/approve`, {}).pipe(
       catchError(err => this.handleError(err, 'approving the task'))
     );
   }
 
-  /** ❌ Reject task (Admin/HOD) */
-  rejectTask(taskId: number, reason: string): Observable<{ success: boolean; message: string; data?: TaskDto }> {
-    return this.http.post<TaskDto>(`${this.baseUrl}/${taskId}/reject`, { reason }).pipe(
-      map(res => ({
-        success: true,
-        message: '❌ Task rejected successfully.',
-        data: res
-      })),
+  /** REJECT TASK */
+  rejectTask(taskId: number, reason: string): Observable<ApiResponse<TaskDto>> {
+    return this.http.put<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}/reject`, null, { params: { reason } }).pipe(
       catchError(err => this.handleError(err, 'rejecting the task'))
     );
   }
 
-  /** ⚠️ Unified Error Handler — maps backend error → user-friendly UI message */
+  /** Unified error handler */
   private handleError(error: any, context: string): Observable<never> {
     console.error(`Error ${context}:`, error);
 

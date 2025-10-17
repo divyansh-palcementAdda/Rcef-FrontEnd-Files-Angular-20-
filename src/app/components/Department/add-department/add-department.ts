@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
 import { Department } from '../../../Model/department';
+import { DepartmentApiService } from '../../../Services/department-api-service';
 
 @Component({
   selector: 'app-add-department',
@@ -20,7 +21,7 @@ export class AddDepartmentComponent {
 
   constructor(
     private fb: FormBuilder,
-    private apiService: ApiService,
+    private apiService: DepartmentApiService,
     private router: Router
   ) {
     this.departmentForm = this.fb.group({

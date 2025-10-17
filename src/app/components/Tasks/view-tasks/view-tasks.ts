@@ -1,10 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { TaskDto } from '../../../Model/TaskDto';
 import { JwtService } from '../../../Services/jwt-service';
+import { Subscription, of } from 'rxjs';
+import { finalize, catchError } from 'rxjs/operators';
+
+interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+}
 
 @Component({
   selector: 'app-view-tasks',
@@ -13,7 +21,7 @@ import { JwtService } from '../../../Services/jwt-service';
   templateUrl: './view-tasks.html',
   styleUrls: ['./view-tasks.css']
 })
-export class ViewTasksComponent implements OnInit {
+export class ViewTasksComponent implements OnInit, OnDestroy {
 
   tasks: TaskDto[] = [];
   filteredTasks: TaskDto[] = [];
@@ -29,100 +37,139 @@ export class ViewTasksComponent implements OnInit {
   pageSize = 8;
   totalPages = 1;
 
+  private subscriptions = new Subscription();
+
   constructor(
     private apiService: TaskApiService,
     private route: ActivatedRoute,
     private router: Router,
     private jwtService: JwtService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      const status = params['status'];
-      this.statusFilter = status ? status.toUpperCase() : '';
-      if (status?.toLowerCase() === 'self') {
-        this.loadTasksByUser();
-      } else if (status) {
-        this.loadTasksByStatus(this.statusFilter);
-      } else {
-        this.loadAllTasks();
-      }
-    });
+    this.subscriptions.add(
+      this.route.queryParams.subscribe(params => {
+        const status = params['status'];
+        this.statusFilter = status ? status.toUpperCase() : '';
+        if (status?.toLowerCase() === 'self') {
+          this.loadTasksByUser();
+        } else if (status) {
+          this.loadTasksByStatus(this.statusFilter);
+        } else {
+          this.loadAllTasks();
+        }
+      })
+    );
   }
 
-  /** Load tasks for logged-in user */
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  /** 🔹 Load tasks for logged-in user */
   private loadTasksByUser(): void {
-    this.loading = true;
     const token = localStorage.getItem('token');
     if (!token) {
       this.router.navigate(['/login']);
       return;
     }
+
     this.loggedInUserID = this.jwtService.getUserIdFromToken(token);
     if (!this.loggedInUserID) return;
 
-    this.apiService.getTasksByUser(this.loggedInUserID).subscribe({
-      next: res => this.handleTaskResponse(res.data || []),
-      error: err => this.handleError(err, 'Failed to load your tasks.')
-    });
+    this.loading = true;
+    this.subscriptions.add(
+      this.apiService.getTasksByUser(this.loggedInUserID)
+        .pipe(
+          finalize(() => (this.loading = false)),
+          catchError(err => {
+            this.handleError(err, 'Failed to load your tasks.');
+            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
+          })
+        )
+        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
+    );
   }
 
-  /** Load all tasks */
+  /** 🔹 Load all tasks */
   private loadAllTasks(): void {
     this.loading = true;
-    this.apiService.getAllTasks().subscribe({
-      next: res => this.handleTaskResponse(res.data || []),
-      error: err => this.handleError(err, 'Failed to load tasks.')
-    });
+    this.subscriptions.add(
+      this.apiService.getAllTasks()
+        .pipe(
+          finalize(() => (this.loading = false)),
+          catchError(err => {
+            this.handleError(err, 'Failed to load tasks.');
+            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
+          })
+        )
+        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
+    );
   }
 
-  /** Load tasks by status */
+  /** 🔹 Load tasks by status */
   private loadTasksByStatus(status: string): void {
     this.loading = true;
-    this.apiService.getTasksByStatus(status).subscribe({
-      next: res => this.handleTaskResponse(res.data || []),
-      error: err => this.handleError(err, `Failed to load ${status} tasks.`)
-    });
-
+    this.subscriptions.add(
+      this.apiService.getTasksByStatus(status)
+        .pipe(
+          finalize(() => (this.loading = false)),
+          catchError(err => {
+            this.handleError(err, `Failed to load ${status} tasks.`);
+            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
+          })
+        )
+        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
+    );
   }
 
-  /** Handle API response */
+  /** ✅ Safely extract tasks array from API response */
+  private extractTasks(res: any): TaskDto[] {
+    if (!res) return [];
+    if (res.success === false) {
+      this.handleError(res, res.message || 'Error fetching tasks');
+      return [];
+    }
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res.data)) return res.data;
+    if (Array.isArray(res.tasks)) return res.tasks;
+    return [];
+  }
+
+  /** ✅ Handle API success response */
   private handleTaskResponse(tasks: TaskDto[]): void {
+    this.errorMessage = null;
     this.tasks = tasks || [];
-    console.log(this.tasks)
     this.applyFilters();
-    this.loading = false;
   }
 
-  /** Error handler */
+  /** ✅ Centralized error handling */
   private handleError(err: any, fallback: string): void {
     console.error(err);
-    this.errorMessage = err?.error?.message || fallback;
-    this.loading = false;
+    this.errorMessage = err?.message || err?.error?.message || fallback;
   }
 
-  /** Apply search and status filters */
+  /** 🔹 Apply search + status filters */
   applyFilters(): void {
+    const term = this.searchTerm.toLowerCase();
     this.filteredTasks = this.tasks.filter(task => {
       const matchesSearch =
-        !this.searchTerm ||
-        task.title?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        task.assignedToName?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        task.departmentName?.toLowerCase().includes(this.searchTerm.toLowerCase());
+        !term ||
+        task.title?.toLowerCase().includes(term) ||
+        task.assignedToNames?.some(name => name?.toLowerCase().includes(term)) ||
+        task.departmentNames?.some(name => name?.toLowerCase().includes(term));
 
-      // Special case for 'SELF'
       const matchesStatus =
-        this.statusFilter.toUpperCase() === 'SELF'
-          ? task.assignedToId === this.loggedInUserID
+        this.statusFilter === 'SELF'
+          ? task.assignedToIds?.includes(this.loggedInUserID!)
           : !this.statusFilter || task.status?.toUpperCase() === this.statusFilter;
 
       return matchesSearch && matchesStatus;
     });
 
-    this.totalPages = Math.ceil(this.filteredTasks.length / this.pageSize) || 1;
+    this.totalPages = Math.max(Math.ceil(this.filteredTasks.length / this.pageSize), 1);
     this.currentPage = 1;
   }
-
 
   resetFilters(): void {
     this.searchTerm = '';
@@ -143,42 +190,46 @@ export class ViewTasksComponent implements OnInit {
     return this.filteredTasks.slice(start, start + this.pageSize);
   }
 
-  /** Navigate to task details */
   viewTaskDetails(taskId?: number): void {
     if (taskId) this.router.navigate(['/tasks', taskId]);
   }
 
-  /** Delete task */
+  /** ✅ Delete task with robust error handling */
   deleteTask(event: Event, taskId?: number): void {
     event.stopPropagation();
-    if (!taskId) return;
+    if (!taskId || !confirm('Are you sure you want to delete this task?')) return;
 
-    if (!confirm('Are you sure you want to delete this task?')) return;
-
-    this.apiService.deleteTask(taskId).subscribe({
-      next: () => {
-        this.tasks = this.tasks.filter(t => t.taskId !== taskId);
-        this.applyFilters();
-      },
-      error: err => this.handleError(err, 'Failed to delete task.')
-    });
+    this.loading = true;
+    this.subscriptions.add(
+      this.apiService.deleteTask(taskId)
+        .pipe(
+          finalize(() => (this.loading = false)),
+          catchError(err => {
+            this.handleError(err, 'Failed to delete task.');
+            return of({ success: false, message: 'Request failed' } as ApiResponse<null>);
+          })
+        )
+        .subscribe(res => {
+          if (res?.success) {
+            this.tasks = this.tasks.filter(t => t.taskId !== taskId);
+            this.applyFilters();
+          } else {
+            this.handleError(res, res?.message || 'Failed to delete task');
+          }
+        })
+    );
   }
 
-  /** Helper for status badge class */
+  /** ✅ Dynamic status color badge */
   getStatusClass(status?: string): string {
-    switch (status) {
+    switch (status?.toUpperCase()) {
       case 'PENDING':
-      case 'UPCOMING':
-        return 'bg-warning text-dark';
-      case 'DELAYED':
-        return 'bg-danger blink';
+      case 'UPCOMING': return 'bg-warning text-dark';
+      case 'DELAYED': return 'bg-danger blink';
       case 'REQUEST_FOR_CLOSURE':
-      case 'REQUEST_FOR_EXTENSION':
-        return 'bg-info';
-      case 'CLOSED':
-        return 'bg-success';
-      default:
-        return 'bg-secondary';
+      case 'REQUEST_FOR_EXTENSION': return 'bg-info';
+      case 'CLOSED': return 'bg-success';
+      default: return 'bg-secondary';
     }
   }
 }

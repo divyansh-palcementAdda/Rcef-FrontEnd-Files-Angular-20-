@@ -7,9 +7,9 @@
 
   <!-- Card -->
   <div class="card shadow animate__animated animate__fadeIn">
-    <div class="card-header py-3">
+    <div class="card-header py-3 bg-primary text-white rounded-top">
       <h3 class="mb-0 fw-bold">Task Management</h3>
-      <small class="text-light-50">View, filter, and manage tasks efficiently</small>
+      <small class="text-light">View, filter, and manage tasks efficiently</small>
     </div>
 
     <div class="card-body px-4 py-4">
@@ -28,10 +28,13 @@
       <!-- Filters -->
       <div class="row mb-3 g-2">
         <div class="col-md-6">
-          <input type="text" class="form-control"
-                 placeholder="🔍 Search by title, assignee or department"
-                 [(ngModel)]="searchTerm"
-                 (input)="applyFilters()">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="🔍 Search by title, assignee, or department"
+            [(ngModel)]="searchTerm"
+            (input)="applyFilters()"
+          />
         </div>
         <div class="col-md-3">
           <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
@@ -42,21 +45,27 @@
             <option value="REQUEST_FOR_CLOSURE">RFC</option>
             <option value="REQUEST_FOR_EXTENSION">RFE</option>
             <option value="CLOSED">Closed</option>
+            <option value="EXTENDED">Extended</option>
           </select>
         </div>
         <div class="col-md-3">
-          <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">Reset Filters</button>
+          <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">
+            Reset Filters
+          </button>
         </div>
       </div>
 
       <!-- Desktop Table -->
-      <div class="table-responsive d-none d-md-block" *ngIf="!loading && paginatedTasks?.length">
-        <table class="table table-borderless align-middle">
-          <thead class="table_head">
+      <div
+        class="table-responsive d-none d-md-block"
+        *ngIf="!loading && paginatedTasks?.length"
+      >
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
             <tr>
               <th>ID</th>
               <th>Title</th>
-              <th>Department</th>
+              <th>Departments</th>
               <th>Assigned To</th>
               <th>Due Date</th>
               <th>Status</th>
@@ -64,20 +73,47 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let task of paginatedTasks" (click)="viewTaskDetails(task.taskId)">
+            <tr
+              *ngFor="let task of paginatedTasks"
+              (click)="viewTaskDetails(task.taskId)"
+              class="cursor-pointer"
+            >
               <td>{{ task.taskId }}</td>
               <td>{{ task.title }}</td>
-              <td>{{ task.departmentName }}</td>
-              <td>{{ task.assignedToName || 'Unassigned' }}</td>
-              <td>{{ task.dueDate | date:'short' }}</td>
               <td>
-                <span class="badge rounded-pill" [ngClass]="getStatusClass(task.status)">
+                <span *ngIf="task.departmentNames?.length; else noDept">
+                  {{ task.departmentNames?.join(', ') }}
+                </span>
+                <ng-template #noDept>—</ng-template>
+              </td>
+              <td>
+                <span *ngIf="task.assignedToNames?.length; else unassigned">
+                  {{ task.assignedToNames?.join(', ') }}
+                </span>
+                <ng-template #unassigned>Unassigned</ng-template>
+              </td>
+              <td>{{ task.dueDate | date: 'short' }}</td>
+              <td>
+                <span
+                  class="badge rounded-pill"
+                  [ngClass]="getStatusClass(task.status)"
+                >
                   {{ task.status }}
                 </span>
               </td>
               <td class="text-center">
-                <button class="btn btn-sm btn-outline-primary me-1" (click)="viewTaskDetails(task.taskId)">View</button>
-                <button class="btn btn-sm btn-outline-danger" (click)="deleteTask($event, task.taskId)">Delete</button>
+                <button
+                  class="btn btn-sm btn-outline-primary me-1"
+                  (click)="viewTaskDetails(task.taskId)"
+                >
+                  View
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="deleteTask($event, task.taskId)"
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           </tbody>
@@ -88,33 +124,62 @@
       <div class="d-md-none" *ngIf="!loading && paginatedTasks?.length">
         <div class="row g-3">
           <div class="col-12" *ngFor="let task of paginatedTasks">
-            <div class="clickable-card p-3 shadow-sm rounded-3" (click)="viewTaskDetails(task.taskId)">
-              <div class="d-flex justify-content-between align-items-center mb-2">
+            <div
+              class="clickable-card p-3 shadow-sm rounded-3 bg-light"
+              (click)="viewTaskDetails(task.taskId)"
+            >
+              <div
+                class="d-flex justify-content-between align-items-center mb-2"
+              >
                 <h6 class="fw-bold mb-0">{{ task.title }}</h6>
-                <span class="badge rounded-pill" [ngClass]="getStatusClass(task.status)">
+                <span
+                  class="badge rounded-pill"
+                  [ngClass]="getStatusClass(task.status)"
+                >
                   {{ task.status }}
                 </span>
               </div>
-              <p class="mb-1"><strong>Department:</strong> {{ task.departmentName }}</p>
-              <p class="mb-1"><strong>Assigned To:</strong> {{ task.assignedToName || 'Unassigned' }}</p>
-              <p class="mb-1"><strong>Due:</strong> {{ task.dueDate | date:'short' }}</p>
+              <p class="mb-1">
+                <strong>Departments:</strong>
+                <span *ngIf="task.departmentNames?.length; else noDeptM">
+                  {{ task.departmentNames?.join(', ') }}
+                </span>
+                <ng-template #noDeptM>—</ng-template>
+              </p>
+              <p class="mb-1">
+                <strong>Assigned To:</strong>
+                <span *ngIf="task.assignedToNames?.length; else unassignedM">
+                  {{ task.assignedToNames?.join(', ') }}
+                </span>
+                <ng-template #unassignedM>Unassigned</ng-template>
+              </p>
+              <p class="mb-1">
+                <strong>Due:</strong> {{ task.dueDate | date: 'short' }}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- No Tasks -->
-      <div *ngIf="!loading && !paginatedTasks?.length" class="text-center text-muted mt-4">
+      <div
+        *ngIf="!loading && !paginatedTasks?.length"
+        class="text-center text-muted mt-4"
+      >
         No tasks found.
       </div>
 
       <!-- Pagination -->
-      <nav *ngIf="filteredTasks?.length" aria-label="Page navigation" class="mt-4">
+      <nav *ngIf="filteredTasks?.length" class="mt-4" aria-label="Page navigation">
         <ul class="pagination justify-content-center">
           <li class="page-item" [class.disabled]="currentPage === 1">
             <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
           </li>
-          <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="currentPage === page">
+          <li
+            class="page-item"
+            *ngFor="let page of getPageNumbers()"
+            [class.active]="currentPage === page"
+          >
             <a class="page-link" (click)="changePage(page)">{{ page }}</a>
           </li>
           <li class="page-item" [class.disabled]="currentPage === totalPages">

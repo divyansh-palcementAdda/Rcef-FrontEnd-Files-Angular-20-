@@ -1,0 +1,78 @@
+/* 🌈 Table Header */
+.table_head {
+  background: linear-gradient(135deg, #2b7818 0%, #34d399 50%, #1e3a8a 100%);
+  color: #fff;
+  border-radius: 1rem 1rem 0 0;
+  text-align: center;
+}
+
+/* 💳 Card Styling */
+.card {
+  background: #ffffff;
+  border: none;
+  border-radius: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* 🧩 Table Row Hover Effect */
+.table tbody tr {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(52, 211, 153, 0.1);
+}
+
+/* 🎨 Badge Styling */
+.badge {
+  font-size: 0.85rem;
+}
+
+.badge.blink {
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* 🔄 Spinner */
+.spinner-border {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+/* ✨ Counter Cards Hover */
+.hover-scale:hover {
+  transform: scale(1.05);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+/* 💠 Responsive Table for Mobile */
+@media (max-width: 767px) {
+  .table-responsive {
+    overflow-x: auto;
+  }
+  .table thead {
+    display: none;
+  }
+  .table tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+  }
+  .table tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+  }
+}

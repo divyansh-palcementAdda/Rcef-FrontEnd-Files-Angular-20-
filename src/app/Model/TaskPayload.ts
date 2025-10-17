@@ -11,11 +11,14 @@ export interface TaskPayload {
   /** ⏰ Deadline date (ISO format recommended) */
   dueDate?: string; // Backend expects LocalDateTime → send ISO string
 
+  /** ⏰ Start date (ISO format recommended, required for UPCOMING) */
+  startDate?: string;
+
   /** 👤 Assigned user ID (optional for unassigned tasks) */
   assignedToId?: number;
 
   /** 🏢 Department ID (required) */
-  departmentId: number;
+  // departmentId: number;
 
   /** ✅ Whether this task requires approval (e.g. created by HOD) */
   requiresApproval?: boolean;

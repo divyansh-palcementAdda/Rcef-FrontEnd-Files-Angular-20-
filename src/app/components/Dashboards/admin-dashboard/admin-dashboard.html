@@ -8,13 +8,8 @@
 
     <ul class="nav flex-column mb-auto">
       <li class="nav-item mb-1" *ngFor="let link of sidebarLinks">
-        <a
-          class="nav-link d-flex align-items-center"
-          [routerLink]="link.route"
-          [queryParams]="link.queryParams"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: false }"
-        >
+        <a class="nav-link d-flex align-items-center" [routerLink]="link.route" [queryParams]="link.queryParams"
+          routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
           <i class="bi {{ link.icon }} me-2 text-{{ link.color }}"></i>
           {{ link.label }}
         </a>
@@ -44,14 +39,15 @@
           </div>
         </div>
       </div>
+      <app-bulletin-banner [delayedTasksCount]="dashboardStats.delayedTasks"
+        [departmentsWithPending]="dashboardStats.departmentsPending">
+      </app-bulletin-banner>
+      <br><br>
 
       <!-- Stat Cards -->
       <div class="row mb-4">
-        <div
-          class="col-xl-3 col-lg-6 col-md-6 mb-4"
-          *ngFor="let card of statCards(dashboardData); let i = index"
-          [@fadeInUpStagger]="i * 0.1"
-        >
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4" *ngFor="let card of statCards(dashboardData); let i = index"
+          [@fadeInUpStagger]="i * 0.1">
           <div class="text-decoration-none d-block" (click)="goToTaskPage(card)" style="cursor: pointer;">
             <div class="card stat-card" [style.--card-color]="card.color">
               <div class="card-body d-flex justify-content-between align-items-center">
@@ -60,10 +56,7 @@
                     {{ card.title }}
                   </div>
                   <div class="h4 mb-1 fw-bold text-dark">{{ card.value || 0 }}</div>
-                  <div
-                    class="delta text-muted"
-                    [class]="'text-' + (card.delta > 0 ? 'success' : 'danger')"
-                  >
+                  <div class="delta text-muted" [class]="'text-' + (card.delta > 0 ? 'success' : 'danger')">
                     {{ card.delta > 0 ? '+' : '' }}{{ card.delta }}% from last week
                   </div>
                 </div>
@@ -78,7 +71,9 @@
       <div class="row mb-4">
         <div class="col-lg-6 mb-4">
           <div class="card chart-card h-100">
-            <div class="card-header"><h5 class="mb-0">Task Distribution</h5></div>
+            <div class="card-header">
+              <h5 class="mb-0">Task Distribution</h5>
+            </div>
             <div class="card-body">
               <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie"></canvas>
             </div>
@@ -86,12 +81,15 @@
         </div>
         <div class="col-lg-6 mb-4">
           <div class="card chart-card h-100">
-            <div class="card-header"><h5 class="mb-0">System Statistics</h5></div>
+            <div class="card-header">
+              <h5 class="mb-0">System Statistics</h5>
+            </div>
             <div class="card-body">
               <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar"></canvas>
             </div>
           </div>
         </div>
+
       </div>
     </ng-container>
 

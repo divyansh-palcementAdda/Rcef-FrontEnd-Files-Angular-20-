@@ -14,7 +14,7 @@ export interface DashboardDto {
   departmentName?: string;
   userName?: string;
   selfTask?: number;           // User only
-  Extended?: number;           // Admin/HOD only
+  extendedTask?: number;           // Admin/HOD only
   email?: string;
 }
 

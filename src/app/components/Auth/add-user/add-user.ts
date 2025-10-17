@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
 import { UserApiService } from '../../../Services/UserApiService';
+import { DepartmentApiService } from '../../../Services/department-api-service';
 
 @Component({
   selector: 'app-add-user',
@@ -31,7 +32,8 @@ export class AddUserComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private apiService: ApiService,
+    private deprtmentApiService: DepartmentApiService,
+    private apiService :ApiService,
     private userApiService : UserApiService,
     private router: Router
   ) {
@@ -54,7 +56,7 @@ export class AddUserComponent implements OnInit {
   }
 
   loadDepartments(): void {
-    this.apiService.getAllDepartments().subscribe({
+    this.deprtmentApiService.getAllDepartments().subscribe({
       next: (data) => this.departments = data,
       error: (err) => console.error('Failed to load departments', err)
     });

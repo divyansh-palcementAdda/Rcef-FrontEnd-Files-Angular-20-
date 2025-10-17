@@ -14,17 +14,7 @@ export class ApiService {
 
 
   constructor(private http: HttpClient) { }
-  // ---------------- Department APIs ----------------
-  getAllDepartments(): Observable<Department[]> {
-    console.log('Fetching departments from:', `${this.apiUrl}/departments`);
-    return this.http.get<Department[]>(`${this.apiUrl}/departments`);
-  }
-
-  createDepartment(payload: Department) {
-    console.log('Creating department with payload:', payload);
-    return this.http.post(`${this.apiUrl}/departments`, payload);
-  }
-
+ 
   // ---------------- Dashboard ----------------
   getDashboardData(): Observable<DashboardDto> {
     console.log('Fetching dashboard data from:', `${this.apiUrl}/dashboard`);
