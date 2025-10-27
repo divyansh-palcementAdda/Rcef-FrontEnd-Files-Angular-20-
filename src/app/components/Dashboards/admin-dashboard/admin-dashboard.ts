@@ -60,7 +60,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle', color: 'success' },
     { label: 'Add User', route: '/add-user', icon: 'bi-person-plus', color: 'info' },
     { label: 'Add Department', route: '/add-department', icon: 'bi-building-gear', color: 'warning' },
-    { label: 'Bulletin Alerts', route: '/bulletin-alerts', icon: 'bi-bell', color: 'danger' }
+    // { label: 'Bulletin Alerts', route: '/bulletin-alerts', icon: 'bi-bell', color: 'danger' }
   ];
 
   constructor(
@@ -125,14 +125,14 @@ export class AdminDashboard implements OnInit, OnDestroy {
       { title: 'Extended Tasks', value: d.extendedTask, color: 'warning', icon: 'bi-arrow-repeat', route: '/view-tasks', queryParams: { status: 'Extended' }, delta: 2 }
     ];
   }
-  dashboardStats = {
-  delayedTasks: 5,
-  departmentsPending: [
-    { departmentName: 'HR', pendingTasks: 3 },
-    { departmentName: 'IT', pendingTasks: 4 },
-    { departmentName: 'Finance', pendingTasks: 2 }
-  ]
-};
+//   dashboardStats = {
+//   delayedTasksCount: 5,
+//   departmentsPending: [
+//     { departmentName: 'HR', pendingTasks: 3 },
+//     { departmentName: 'IT', pendingTasks: 4 },
+//     { departmentName: 'Finance', pendingTasks: 2 }
+//   ]
+// };
 
   /** ✅ Navigate to a Route */
   goToTaskPage(card: any): void {

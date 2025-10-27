@@ -1,13 +1,12 @@
-// src/app/components/Auth/login/login.component.ts
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JWTResponseDTO } from '../../../Model/jwtresponse-dto';
 import { LoginRequestDTO } from '../../../Model/login-request-dto';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -23,7 +22,6 @@ export class LoginComponent implements OnInit {
   validationErrors: string[] = [];
   particles: number[] = Array(8).fill(0).map((_, i) => i);
 
-
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -36,11 +34,19 @@ export class LoginComponent implements OnInit {
     });
   }
 
+  // -------------------------------------------------
+  // ✅ Auto-redirect if already logged in and token valid
+  // -------------------------------------------------
   ngOnInit(): void {
     const token = localStorage.getItem('token');
     if (token && !this.isTokenExpired(token)) {
       const payload = JSON.parse(atob(token.split('.')[1]));
       this.authService.dashboard(payload);
+    }
+
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      this.loginForm.patchValue({ emailOrUsername: rememberedEmail });
     }
   }
 
@@ -57,6 +63,9 @@ export class LoginComponent implements OnInit {
     this.showPassword = !this.showPassword;
   }
 
+  // -------------------------------------------------
+  // ✅ Handle Login Submit
+  // -------------------------------------------------
   onSubmit(): void {
     if (this.loginForm.invalid) {
       this.markFormGroupTouched();
@@ -71,29 +80,45 @@ export class LoginComponent implements OnInit {
     const loginRequest: LoginRequestDTO = { emailOrUsername, password };
 
     this.authService.login(loginRequest).pipe(
-      catchError((err: Error) => {
+      catchError((error: HttpErrorResponse | Error) => {
         this.isLoading = false;
-        this.validationErrors.push(err.message);
+
+        // Handle both network & backend errors gracefully
+        let message = 'Login failed. Please try again.';
+        if (error instanceof HttpErrorResponse) {
+          message = error.error?.message || message;
+        } else if (error.message) {
+          message = error.message;
+        }
+
+        this.validationErrors = [message];
         return of(null);
       })
     ).subscribe((response: JWTResponseDTO | null) => {
       this.isLoading = false;
 
       if (response) {
+        // Save JWT
         localStorage.setItem('token', response.token);
         this.authService['loggedIn'].next(true);
+
+        // Remember email if checked
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', emailOrUsername);
         } else {
           localStorage.removeItem('rememberedEmail');
         }
 
+        // Decode token payload and navigate
         const payload = JSON.parse(atob(response.token.split('.')[1]));
         this.authService.dashboard(payload);
       }
     });
   }
 
+  // -------------------------------------------------
+  // ✅ Validation helpers
+  // -------------------------------------------------
   private markFormGroupTouched(): void {
     Object.keys(this.loginForm.controls).forEach(key => {
       this.loginForm.get(key)?.markAsTouched();
@@ -102,14 +127,20 @@ export class LoginComponent implements OnInit {
 
   private collectValidationErrors(): void {
     this.validationErrors = [];
+
     const emailCtrl = this.loginForm.get('emailOrUsername');
     if (emailCtrl?.touched && emailCtrl.errors?.['required']) {
-      this.validationErrors.push('Email or Username is required');
+      this.validationErrors.push('Email or Username is required.');
     }
+
     const pwdCtrl = this.loginForm.get('password');
     if (pwdCtrl?.touched && pwdCtrl.errors) {
-      if (pwdCtrl.errors['required']) this.validationErrors.push('Password is required');
-      if (pwdCtrl.errors['minlength']) this.validationErrors.push('Password must be at least 6 characters long');
+      if (pwdCtrl.errors['required']) {
+        this.validationErrors.push('Password is required.');
+      }
+      if (pwdCtrl.errors['minlength']) {
+        this.validationErrors.push('Password must be at least 6 characters long.');
+      }
     }
   }
 }

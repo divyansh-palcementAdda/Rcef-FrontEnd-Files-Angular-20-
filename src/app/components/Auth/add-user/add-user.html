@@ -29,13 +29,14 @@
           <div class="col-md-6">
             <label class="form-label">Email</label>
             <div class="input-group">
-              <input type="email" class="form-control" formControlName="email" placeholder="e.g. john@example.com"
-                [readonly]="otpValidated">
+              <input type="email" class="form-control" formControlName="email" [readonly]="otpValidated"
+                [ngClass]="{'bg-light': otpValidated}" placeholder="e.g. john@example.com">
               <button type="button" class="btn btn-outline-primary" (click)="sendOtp()" [disabled]="otpValidated">
-                Send OTP
+                {{ otpValidated ? 'Verified ✅' : 'Send OTP' }}
               </button>
             </div>
           </div>
+
 
           <!-- OTP Input -->
           <div class="col-md-6" *ngIf="otpSent && !otpValidated">

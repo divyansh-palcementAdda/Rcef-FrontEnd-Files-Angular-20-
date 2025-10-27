@@ -191,7 +191,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   viewTaskDetails(taskId?: number): void {
-    if (taskId) this.router.navigate(['/tasks', taskId]);
+    if (taskId) this.router.navigate(['/task', taskId]);
   }
 
   /** ✅ Delete task with robust error handling */

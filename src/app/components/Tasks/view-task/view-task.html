@@ -1,169 +1,95 @@
-<div class="container my-5">
+<!-- <br><br>
+<div class="container py-5">
 
-  <!-- 🔴 Error -->
-  <div *ngIf="errorMessage" class="alert alert-danger text-center shadow-sm">
+  <div *ngIf="errorMessage" class="alert alert-danger text-center shadow-sm rounded-pill py-3 fw-semibold">
     {{ errorMessage }}
   </div>
 
-  <!-- 🔵 Loading -->
-  <div *ngIf="loadingUser" class="text-center my-5">
-    <div class="spinner-border text-primary"></div>
-    <p class="mt-2">Loading user details...</p>
+  <div *ngIf="isLoading" class="text-center my-5">
+    <div class="spinner-border text-success"></div>
+    <p class="mt-3 fw-medium text-muted">Loading task details...</p>
   </div>
 
-  <!-- 🧍 User Info -->
-  <div *ngIf="user && !loadingUser" class="card shadow rounded-4 border-0 animate__animated animate__fadeIn">
-    <div class="card-header text-white text-center table_head">
-      <h3 class="fw-bold mb-0">{{ user.fullName }}</h3>
-      <small class="text-light-50">User Profile</small>
+  <div *ngIf="task && !isLoading" class="task-card shadow-lg border-0 rounded-4 overflow-hidden animate__animated animate__fadeInUp">
+
+    <div class="task-header text-white text-center py-4">
+      <h3 class="fw-bold mb-1">{{ task.title }}</h3>
+      <p class="mb-0 text-light fs-6">{{ task.status }}</p>
     </div>
 
-    <div class="card-body p-4">
-      <div class="row g-3">
+    <div class="card-body px-4 py-4">
+      <div class="row gy-3">
         <div class="col-md-6">
-          <p><strong>Username:</strong> {{ user.username }}</p>
-          <p><strong>Email:</strong> {{ user.email }}</p>
-          <p><strong>Role:</strong> {{ user.role }}</p>
+          <p><i class="bi bi-person-circle me-2 text-primary"></i><strong>Created By:</strong> {{ task.createdByName || 'N/A' }}</p>
+          <p><i class="bi bi-calendar-check me-2 text-primary"></i><strong>Start Date:</strong> {{ task.startDate | date:'mediumDate' }}</p>
+          <p><i class="bi bi-calendar-event me-2 text-primary"></i><strong>Due Date:</strong> {{ task.dueDate | date:'mediumDate' }}</p>
         </div>
         <div class="col-md-6">
-          <p><strong>Status:</strong>
-            <span class="badge rounded-pill" [ngClass]="{
-              'bg-success': user.status === 'ACTIVE',
-              'bg-secondary': user.status === 'INACTIVE'
-            }">{{ user.status }}</span>
-          </p>
-
-          <p><strong>Department:</strong> {{ user.departmentName || 'N/A' }}</p>
-
-          <p><strong>Email Verified:</strong>
-            <span [ngClass]="user.emailVerified ? 'text-success fw-semibold' : 'text-danger fw-semibold'">
-              {{ user.emailVerified ? 'Yes' : 'No' }}
+          <p><i class="bi bi-people me-2 text-primary"></i><strong>Assigned To:</strong> {{ assignedUsers }}</p>
+          <p><i class="bi bi-diagram-3 me-2 text-primary"></i><strong>Departments:</strong> {{ departments }}</p>
+          <p>
+            <i class="bi bi-shield-lock me-2 text-primary"></i><strong>Requires Approval:</strong>
+            <span [ngClass]="task.requiresApproval ? 'text-danger fw-semibold' : 'text-success fw-semibold'">
+              {{ task.requiresApproval ? 'Yes' : 'No' }}
             </span>
           </p>
         </div>
       </div>
 
-      <!-- 🧮 Task Counters (Clickable) -->
-      <div class="row mt-3 text-center">
-        <div class="col-6 col-md-3 mb-2" *ngIf="user" (click)="filterByStatus('PENDING')" style="cursor:pointer;">
-          <div class="p-3 bg-light rounded shadow-sm hover-scale">
-            <h5 class="mb-0">{{ user.pendingTasks || 0 }}</h5>
-            <small>Pending</small>
-          </div>
-        </div>
-        <div class="col-6 col-md-3 mb-2" *ngIf="user" (click)="filterByStatus('UPCOMING')" style="cursor:pointer;">
-          <div class="p-3 bg-light rounded shadow-sm hover-scale">
-            <h5 class="mb-0">{{ user.upcomingTasks || 0 }}</h5>
-            <small>Upcoming</small>
-          </div>
-        </div>
-        <div class="col-6 col-md-3 mb-2" *ngIf="user" (click)="filterByStatus('DELAYED')" style="cursor:pointer;">
-          <div class="p-3 bg-light rounded shadow-sm hover-scale">
-            <h5 class="mb-0">{{ user.delayedTasks || 0 }}</h5>
-            <small>Delayed</small>
-          </div>
-        </div>
-        <div class="col-6 col-md-3 mb-2" *ngIf="user" (click)="filterByStatus('CLOSED')" style="cursor:pointer;">
-          <div class="p-3 bg-light rounded shadow-sm hover-scale">
-            <h5 class="mb-0">{{ user.closedTasks || 0 }}</h5>
-            <small>Closed</small>
-          </div>
-        </div>
+      <hr>
+
+      <p><strong><i class="bi bi-file-text me-2 text-primary"></i>Description:</strong></p>
+      <p class="text-muted">{{ task.description || 'No description available.' }}</p>
+
+      <div *ngIf="task.proofs?.length" class="mt-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-paperclip me-2 text-primary"></i>Task Proofs</h5>
+        <ul class="list-group">
+          <li *ngFor="let proof of task.proofs" class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ proof.fileName }}</span>
+            <a [href]="proof.fileUrl" target="_blank" class="btn btn-sm btn-outline-success">View</a>
+          </li>
+        </ul>
       </div>
 
-      <!-- 🧭 Action Buttons -->
-      <div class="text-center mt-4 d-flex justify-content-center flex-wrap gap-2">
-        <button class="btn btn-outline-primary px-4" (click)="editUser()">
-          <i class="bi bi-pencil"></i> Edit
-        </button>
-
-        <button *ngIf="user.status === 'ACTIVE'" class="btn btn-outline-danger px-4" (click)="deleteUser()">
-          <i class="bi bi-person-trash"></i> Delete
-        </button>
-
-        <button *ngIf="user.status === 'INACTIVE'" class="btn btn-outline-success px-4" (click)="toggleUserStatus()">
-          <i class="bi bi-person-check"></i> Activate
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 🔍 Task Filter & Table -->
-  <div class="card shadow rounded-4 border-0 mt-5" *ngIf="userTasks?.length">
-    <div class="card-header table_head text-center">
-      <h4 class="fw-bold mb-0">Assigned Tasks</h4>
-    </div>
-
-    <div class="card-body px-4 py-3">
-      <!-- Search & Reset -->
-      <div class="row mb-3 g-2">
-        <div class="col-md-6">
-          <input type="text" class="form-control" placeholder="Search tasks by title"
-            [(ngModel)]="searchTerm" (input)="applyFilters()">
-        </div>
-        <div class="col-md-6">
-          <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">Reset Filters</button>
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div *ngIf="loadingTasks" class="text-center my-3">
-        <div class="spinner-border text-primary"></div>
-      </div>
-
-      <!-- Table -->
-      <div class="table-responsive" *ngIf="!loadingTasks && paginatedTasks?.length">
-        <table class="table table-borderless align-middle mb-0">
+      <div *ngIf="task.requests?.length" class="mt-5">
+        <h5 class="fw-bold mb-3"><i class="bi bi-journal-text me-2 text-primary"></i>Task Requests</h5>
+        <table class="table table-hover align-middle">
           <thead class="table_head">
             <tr>
               <th>ID</th>
-              <th>Title</th>
+              <th>Type</th>
+              <th>Date</th>
               <th>Status</th>
-              <th>Due Date</th>
+              <th>Remarks</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let task of paginatedTasks">
-              <td>{{ task.taskId }}</td>
-              <td>{{ task.title }}</td>
+            <tr *ngFor="let req of task.requests">
+              <td>{{ req.requestId }}</td>
+              <td>{{ req.requestType }}</td>
+              <td>{{ req.requestDate | date:'mediumDate' }}</td>
               <td>
-                <span class="badge rounded-pill" [ngClass]="{
-                    'bg-warning text-dark': task.status === 'PENDING' || task.status === 'UPCOMING',
-                    'bg-danger blink': task.status === 'DELAYED',
-                    'bg-info': task.status === 'REQUEST_FOR_CLOSURE' || task.status === 'REQUEST_FOR_EXTENSION',
-                    'bg-success': task.status === 'CLOSED'
-                  }">{{ task.status }}</span>
+                <span class="badge rounded-pill px-3 py-2"
+                  [ngClass]="{
+                    'bg-warning text-dark': req.status === 'PENDING',
+                    'bg-success': req.status === 'APPROVED',
+                    'bg-danger': req.status === 'REJECTED'
+                  }">{{ req.status }}</span>
               </td>
-              <td>{{ task.dueDate | date: 'mediumDate' }}</td>
+              <td>{{ req.remarks || '-' }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- No Tasks -->
-      <div *ngIf="!loadingTasks && !paginatedTasks?.length" class="text-center text-muted mt-4">
-        <i class="bi bi-clipboard-x"></i> No tasks match the filter.
+      <div class="text-center mt-5 d-flex justify-content-center flex-wrap gap-3">
+        <button class="btn btn-outline-primary px-4 py-2" (click)="editTask()">
+          <i class="bi bi-pencil-square me-2"></i>Edit Task
+        </button>
+        <button class="btn btn-outline-secondary px-4 py-2" (click)="goBack()">
+          <i class="bi bi-arrow-left-circle me-2"></i>Back to Tasks
+        </button>
       </div>
-
-      <!-- Pagination -->
-<nav *ngIf="(filteredTasks?.length || 0) > pageSize" class="mt-4">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" [class.disabled]="currentPage === 1">
-            <a class="page-link"style="cursor: pointer;" (click)="changePage(currentPage - 1)">Previous</a>
-          </li>
-          <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="currentPage === page">
-            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
-          </li>
-          <li class="page-item" [class.disabled]="currentPage === totalPages">
-            <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-          </li>
-        </ul>
-      </nav>
     </div>
   </div>
-
-  <!-- ⚪ No Tasks Message -->
-  <div *ngIf="!loadingTasks && !userTasks?.length" class="text-center text-muted mt-4">
-    <i class="bi bi-clipboard-x"></i> No tasks assigned to this user.
-  </div>
-</div>
+</div> -->

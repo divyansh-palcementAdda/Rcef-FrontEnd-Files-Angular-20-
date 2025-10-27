@@ -9,7 +9,7 @@ import { DepartmentApiService } from '../../../Services/department-api-service';
 @Component({
   selector: 'app-add-user',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule,FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './add-user.html',
   styleUrls: ['./add-user.css']
 })
@@ -29,12 +29,13 @@ export class AddUserComponent implements OnInit {
   otpSent = false;
   otpValidated = false;
   otpInput = '';
+  verifiedEmail: string | null = null; // ✅ store verified email
 
   constructor(
     private fb: FormBuilder,
-    private deprtmentApiService: DepartmentApiService,
-    private apiService :ApiService,
-    private userApiService : UserApiService,
+    private departmentApiService: DepartmentApiService,
+    private apiService: ApiService,
+    private userApiService: UserApiService,
     private router: Router
   ) {
     this.userForm = this.fb.group({
@@ -49,18 +50,22 @@ export class AddUserComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDepartments();
-
     this.userForm.get('password')?.valueChanges.subscribe(value => {
       this.passwordStrength = this.evaluatePasswordStrength(value || '');
     });
   }
 
   loadDepartments(): void {
-    this.deprtmentApiService.getAllDepartments().subscribe({
-      next: (data) => this.departments = data,
-      error: (err) => console.error('Failed to load departments', err)
-    });
-  }
+  this.departmentApiService.getAllDepartments().subscribe({
+    next: (data) => {
+      this.departments = data.filter(
+        (dept: any) => dept.name?.toLowerCase() !== 'adminstration'
+      );
+    },
+    error: (err) => console.error('Failed to load departments', err)
+  });
+}
+
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -80,23 +85,65 @@ export class AddUserComponent implements OnInit {
   }
 
   /** Send OTP */
-  sendOtp(): void {
-    const email = this.userForm.value.email;
-    if (!email) {
-      this.errorMessage = 'Please enter an email first';
-      return;
-    }
-    this.apiService.sendOtp({ email }).subscribe({
-      next: () => {
-        this.successMessage = 'OTP sent successfully. Check your email.';
+sendOtp(): void {
+  const email = this.userForm.value.email;
+  if (!email) {
+    this.errorMessage = 'Please enter an email first';
+    return;
+  }
+
+  this.apiService.sendOtp({ email }).subscribe({
+    next: (res: any) => {
+      // ✅ OTP sent successfully
+      if (res.success && res.status === 'OTP_SENT') {
+        this.successMessage = res.message;
         this.otpSent = true;
         this.errorMessage = null;
-      },
-      error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to send OTP';
       }
-    });
-  }
+    },
+    error: (err) => {
+      const response = err.error;
+      const message = response?.message || 'Failed to send OTP';
+
+      // 🟡 1️⃣ Detect inactive user case
+      if (message.includes('inactive on user id')) {
+        // 🔍  Extract user ID using regex
+        const match = message.match(/user id (\d+)/);
+        const userId = match ? Number(match[1]) : null;
+
+        const confirmRedirect = confirm(
+          `${message}\n\nDo you want to view and activate this user?`
+        );
+
+        if (confirmRedirect && userId) {
+          // 🟢 Fetch user first before redirecting
+          this.userApiService.getUserById(userId).subscribe({
+            next: (user) => {
+              console.log('Fetched user:', user);
+              this.router.navigate(['/user', userId]);
+            },
+            error: (fetchError) => {
+              console.error('Failed to fetch user before redirect:', fetchError);
+              alert('Failed to fetch user details. Please try again.');
+            }
+          });
+        } else if (!userId) {
+          alert('Could not extract user ID from response.');
+        }
+        return;
+      }
+
+      // 🔴 2️⃣ If email already active
+      if (message.includes('already registered with an active user')) {
+        alert(message);
+        return;
+      }
+
+      // ⚪ 3️⃣ Other errors
+      this.errorMessage = message;
+    }
+  });
+}
 
   /** Verify OTP */
   verifyOtp(): void {
@@ -105,10 +152,13 @@ export class AddUserComponent implements OnInit {
       this.errorMessage = 'Please enter the OTP';
       return;
     }
+
     this.apiService.validateOtp({ email, otp: this.otpInput }).subscribe({
-      next: (res: any) => {
+      next: () => {
         this.successMessage = 'OTP verified successfully!';
         this.otpValidated = true;
+        this.verifiedEmail = email; // ✅ Lock the verified email
+        this.userForm.get('email')?.disable(); // ✅ Disable input to prevent UI changes
         this.errorMessage = null;
       },
       error: (err) => {
@@ -118,35 +168,35 @@ export class AddUserComponent implements OnInit {
     });
   }
 
+  /** Submit form */
   onSubmit(): void {
-    console.log('Form submission initiated');
     if (!this.otpValidated) {
       this.errorMessage = 'OTP must be verified before creating a user';
-      console.log('OTP not validated, cannot submit form');
       return;
     }
 
     if (this.userForm.invalid) {
-      console.log('Form is invalid:', this.userForm.errors);
-      console.log('Form values:', this.userForm.value);
       this.errorMessage = 'Please correct the errors in the form.';
       this.userForm.markAllAsTouched();
       return;
     }
 
     this.isSubmitting = true;
-    const payload = this.userForm.value;
+    const payload = {
+      ...this.userForm.getRawValue(), // getRawValue() includes disabled fields
+      email: this.verifiedEmail // ✅ Always send only verified email
+    };
 
     this.userApiService.createUser(payload).subscribe({
       next: () => {
-        console.log('User created successfully');
-        this.isSubmitting = false;
         this.successMessage = '✅ User created successfully!';
+        this.isSubmitting = false;
         this.userForm.reset();
         this.passwordStrength = { score: 0, label: '', color: '' };
         this.otpSent = false;
         this.otpValidated = false;
         this.otpInput = '';
+        this.verifiedEmail = null;
       },
       error: (err) => {
         this.isSubmitting = false;

@@ -28,24 +28,30 @@ export class AuthApiService {
   }
 
   login(loginRequest: LoginRequestDTO): Observable<JWTResponseDTO> {
-    return this.http.post<JWTResponseDTO>(`${this.apiUrl}/auth/login`, loginRequest).pipe(
-      catchError((error: HttpErrorResponse) => {
-        let errorMsg = 'Login failed. Please try again.';
+  return this.http.post<JWTResponseDTO>(`${this.apiUrl}/auth/login`, loginRequest).pipe(
+    catchError((error: HttpErrorResponse) => {
+      let errorMsg = 'Login failed. Please try again.';
 
-        if (error.status === 404 || error.error?.message?.includes('User not found')) {
-          errorMsg = '❌ The username you entered does not exist.';
-        }
-        else if (error.status === 401 || error.error?.message?.includes('Invalid credentials')) {
-          errorMsg = '❌ Incorrect password. Please check your password and try again.';
-        }
-        else if (error.error?.message) {
-          errorMsg = error.error.message;
-        }
+      const message = error.error?.message || '';
 
-        return throwError(() => new Error(errorMsg));
-      })
-    );
-  }
+      if (message.includes('not verified')) {
+        errorMsg = '⚠️ Your email is not verified. Please verify it before logging in.';
+      } 
+      else if (message.includes('inactive')) {
+        errorMsg = '🚫 Your account is inactive. Please contact the administrator.';
+      }
+      else if (message.includes('Invalid credentials or user not found')) {
+        errorMsg = '❌ No account found with this email or username.';
+      }
+      else if (message.includes('Invalid credentials')) {
+        errorMsg = '❌ Incorrect password. Please try again.';
+      }
+
+      return throwError(() => new Error(errorMsg));
+    })
+  );
+}
+
 
   onHomeClick() {
     if (this.isLoggedIn$) {

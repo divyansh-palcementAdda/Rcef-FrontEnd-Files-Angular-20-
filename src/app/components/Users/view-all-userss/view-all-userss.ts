@@ -92,6 +92,7 @@ export class ViewAllUserss implements OnInit {
       const matchesSearch = !this.searchTerm ||
         user.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        user.departmentName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         user.role.toLowerCase().includes(this.searchTerm.toLowerCase());
 
       const matchesStatus = !this.statusFilter || user.status === this.statusFilter;

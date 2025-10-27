@@ -1,7 +1,6 @@
-<div class="bulletin-banner shadow-sm">
-  <div class="ticker-wrap">
-    <div class="ticker">
-      <span>{{ headlineText }}</span>
-    </div>
+<div class="bulletin-container" [class.loading]="isLoading">
+  <div class="bulletin-ticker">
+    <span class="icon">Announcement</span>
+    <span class="message" [innerText]="headlineText"></span>
   </div>
 </div>

@@ -15,7 +15,7 @@ import { AddTaskComponent } from './components/Tasks/add-task/add-task';
 import { ViewTasksComponent } from './components/Tasks/view-tasks/view-tasks';
 import { ViewUserComponent } from './components/Users/view-user/view-user';
 import { ViewDepartmentsComponent } from './components/Department/view-all-departments/view-all-departments';
-import { ViewTask } from './components/Tasks/view-task/view-task';
+// import { ViewTask } from './components/Tasks/view-task/view-task';
 
 export const routes: Routes = [
 
@@ -68,7 +68,7 @@ export const routes: Routes = [
   {
     path: 'departments', component: ViewDepartmentsComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN', 'HOD'] }
   },
-  { path: 'task/:id', component: ViewTask, canActivate: [AuthGuard] },
+  // { path: 'task/:id', component: ViewTask, canActivate: [AuthGuard] },
 
   // Wildcard route for a 404 page
   { path: '**', redirectTo: '' },

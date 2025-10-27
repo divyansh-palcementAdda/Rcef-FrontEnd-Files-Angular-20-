@@ -4,13 +4,8 @@ import { Observable, catchError, map, throwError } from 'rxjs';
 import { TaskDto } from '../Model/TaskDto';
 import { TaskPayload } from '../Model/TaskPayload';
 import { environment } from '../environment/environment';
-import { userDto } from '../Model/userDto';
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
+
 
 @Injectable({
   providedIn: 'root'
