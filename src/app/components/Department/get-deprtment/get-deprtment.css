@@ -1,0 +1,109 @@
+/* Same as view-user.css – copy/paste the whole file */
+/* 🌈 Header Gradient */
+.user-header {
+  background: linear-gradient(135deg, #16a34a, #22d3ee);
+}
+
+/* 🪄 User Card */
+.user-card {
+  background: #fff;
+  border-radius: 1rem;
+  transition: all 0.3s ease-in-out;
+}
+.user-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* 📊 Task Summary Cards */
+.stat-card {
+  background: #f9fafb;
+  transition: all 0.25s ease;
+}
+.hover-zoom:hover {
+  transform: scale(1.05);
+  background: #e6fffa;
+}
+
+/* 🧭 Table */
+.table_head {
+  background: linear-gradient(135deg, #16a34a, #22d3ee);
+  color: #fff;
+}
+.table tbody tr {
+  transition: all 0.2s ease-in-out;
+}
+.table tbody tr:hover {
+  background-color: rgba(34, 197, 94, 0.08);
+}
+
+/* 🧩 Blink Animation */
+.blink {
+  animation: blink 1.5s infinite ease-in-out;
+}
+@keyframes blink {
+  50% { opacity: 0.6; }
+}
+
+/* 🌀 Pagination */
+.page-link {
+  border-radius: 50px !important;
+  padding: 6px 14px;
+  color: #047857;
+}
+.page-item.active .page-link {
+  background-color: #047857;
+  border-color: #047857;
+  color: #fff;
+}
+
+/* 📱 Responsive Table for Mobile */
+@media (max-width: 767px) {
+  .table-responsive {
+    border-radius: 1rem;
+    overflow-x: auto;
+  }
+  .table thead {
+    display: none;
+  }
+  .table tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    background: #f9fafb;
+    border-radius: 0.8rem;
+    padding: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  .table tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    font-size: 0.9rem;
+  }
+}
+.dept-header {
+  background: linear-gradient(135deg, #16a34a, #22d3ee);
+}
+.dept-card { background:#fff; border-radius:1rem; transition:all .3s; }
+.dept-card:hover { transform:translateY(-4px); box-shadow:0 10px 25px rgba(0,0,0,.08); }
+
+.stat-card { background:#f9fafb; transition:all .25s; }
+.hover-zoom:hover { transform:scale(1.05); background:#e6fffa; }
+
+.table_head { background:linear-gradient(135deg,#047857,#16a34a); color:#fff; }
+.table tbody tr { transition:all .2s; }
+.table tbody tr:hover { background:rgba(34,197,94,.08); }
+
+.blink { animation:blink 1.5s infinite ease-in-out; }
+@keyframes blink { 50% { opacity:.6; } }
+
+.page-link { border-radius:50px !important; padding:6px 14px; color:#047857; }
+.page-item.active .page-link { background:#047857; border-color:#047857; color:#fff; }
+
+/* Mobile responsive table – same as view-user */
+@media (max-width:767px){
+  .table-responsive{border-radius:1rem;overflow-x:auto;}
+  .table thead{display:none;}
+  .table tbody tr{display:block;margin-bottom:1rem;background:#f9fafb;border-radius:.8rem;padding:1rem;box-shadow:0 2px 5px rgba(0,0,0,.05);}
+  .table tbody td{display:flex;justify-content:space-between;padding:.4rem 0;font-size:.9rem;}
+}

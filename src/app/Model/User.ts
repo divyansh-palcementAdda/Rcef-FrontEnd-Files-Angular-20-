@@ -5,7 +5,7 @@ export  interface User {
     role: string;
     fullName: string;
     status: string;
-    departmentName: string;
+    departmentNames: string[];
     emailVerified: boolean;
-    departmentId: number;
+    departmentIds: number[];
 }

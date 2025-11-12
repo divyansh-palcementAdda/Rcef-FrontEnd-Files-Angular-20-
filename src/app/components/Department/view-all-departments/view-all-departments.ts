@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Department } from '../../../Model/department';
 import { DepartmentApiService } from '../../../Services/department-api-service';
+import { AuthApiService } from '../../../Services/auth-api-service';
+import { JwtService } from '../../../Services/jwt-service';
 
 
 @Component({
@@ -28,12 +30,26 @@ export class ViewDepartmentsComponent implements OnInit {
 
   constructor(
     private apiService: DepartmentApiService,
-    private router: Router
+    private router: Router,
+    private jwtService: JwtService,
+    private authApiService: AuthApiService
   ) { }
 
   ngOnInit(): void {
     this.loadAllDepartments();
   }
+  
+  goBackToDashboard() {
+  const token = this.jwtService.getAccessToken();
+  // console.log('User Token:', token);
+
+  if (token) {
+    const payload =this.jwtService.decodeToken(token)
+    this.authApiService.goToDashboard();
+  } else {
+    this.router.navigate(['/login']);
+  }
+}
 
   private loadAllDepartments(): void {
   this.loading = true;
@@ -85,7 +101,7 @@ export class ViewDepartmentsComponent implements OnInit {
   }
 
   viewDepartmentDetails(departmentId?: number): void {
-    if (departmentId) this.router.navigate(['/departments', departmentId]);
+    if (departmentId) this.router.navigate(['/department', departmentId]);
   }
 
   deleteDepartment(event: Event, departmentId?: number): void {

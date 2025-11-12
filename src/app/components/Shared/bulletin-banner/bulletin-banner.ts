@@ -48,10 +48,31 @@ export class BulletinBannerComponent implements OnInit {
             return;
           }
 
-          const tasks: TaskDto[] = response.data;
+          let tasks: TaskDto[] = response.data;
+
+          // === FILTER LOGIC ===
+          tasks = tasks.filter(task => {
+            const creator = task.createdByName;
+            const assignees = task.assignedToNames || [];
+
+            // If no assignees → include
+            if (assignees.length === 0) return true;
+
+            // If creator undefined → include (not self-assigned)
+            if (!creator) return true;
+
+            // Case 1: Creator NOT in assignees → INCLUDE
+            if (!assignees.includes(creator)) {
+              return true;
+            }
+
+            // Case 2: Creator IS in assignees → EXCLUDE only if ONLY assignee
+            return assignees.length > 1;
+          });
+
           this.totalDelayed = tasks.length;
 
-          // Group by department
+          // Group by department (rest unchanged)
           const deptMap = new Map<string, number>();
           tasks.forEach(task => {
             const depts = task.departmentNames || [];
@@ -78,18 +99,22 @@ export class BulletinBannerComponent implements OnInit {
       )
       .subscribe();
   }
-
   private generateBulletinMessage(): void {
     if (this.totalDelayed === 0) {
       this.headlineText = 'All tasks are on schedule across departments.';
       return;
     }
 
-    const deptList = this.delayedDepartments
-      .map(d => `${d.departmentName}: ${d.delayedCount} delayed`)
-      .join(' • ');
+    this.headlineText = this.getDelayedHeadline(this.delayedDepartments, this.totalDelayed);
+  }
 
-    const taskWord = this.totalDelayed === 1 ? 'task is' : 'tasks are';
-    this.headlineText = `⚠️ Attention: ${this.totalDelayed} ${taskWord} currently delayed. Please review the following departments: ${deptList}.`;
+
+  private getDelayedHeadline(deptInfo: { departmentName: string, delayedCount: number }[], taskCount: number): string {
+    const deptNamesWithCount = deptInfo.map(d => `${d.departmentName} (${d.delayedCount})`);
+
+    const deptLabel = deptInfo.length > 1 ? 'departments' : 'department';
+    const taskLabel = taskCount > 1 ? 'tasks' : 'task';
+
+    return `⚠️ ${taskCount} delayed ${taskLabel} detected in ${deptInfo.length} ${deptLabel}: ${deptNamesWithCount.join(', ')}. Please review and take necessary action.`;
   }
 }

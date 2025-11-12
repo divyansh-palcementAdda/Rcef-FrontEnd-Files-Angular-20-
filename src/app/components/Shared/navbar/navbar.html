@@ -2,42 +2,48 @@
   <div class="container d-flex justify-content-between align-items-center">
 
     <!-- Brand -->
-    <a class="navbar-brand fw-bold fs-3 d-flex align-items-center" routerLink="/" (click)="closeMenu()">
-      <img src="images/AreYouReportingLogo.png" alt="RCEF Logo" class="me-2 rounded shadow-sm pulse-logo">
+    <a class="navbar-brand fw-bold fs-3 d-flex align-items-center"
+       routerLink="/" (click)="closeMenu()">
+      <img src="images/AreYouReportingLogo.png"
+           alt="RCEF Logo"
+           class="me-2 rounded shadow-sm pulse-logo">
       <span>RCEF Project</span>
     </a>
 
-    <!-- Toggle Button (Mobile) -->
-    <button class="menu-toggle d-lg-none" (click)="toggleMenu()">
+    <!-- Mobile toggle -->
+    <button class="menu-toggle d-lg-none"
+            (click)="toggleMenu()">
       <i class="bi" [ngClass]="isMenuOpen ? 'bi-x-lg' : 'bi-list'"></i>
     </button>
 
-    <!-- Nav Links -->
-    <ul class="nav-links d-lg-flex" [ngClass]="{ 'active': isMenuOpen }">
-      <!-- 🏠 Home Redirect with Auth Check -->
-      <li>
-        <a style="cursor: pointer;" (click)="onHomeClick()">Home</a>
-      </li>
+    <!-- Nav Links (desktop + mobile) -->
+    <ul class="nav-links d-lg-flex"
+        [ngClass]="{ 'active': isMenuOpen }">
 
-      <!-- 📄 About -->
-      <li>
-        <a routerLink="/about" (click)="closeMenu()">About</a>
-      </li>
+      <!-- Home -->
+      <li><a style="cursor:pointer" (click)="onHomeClick()">Home</a></li>
 
-      <!-- 📞 Contact -->
-      <li>
-        <a routerLink="/contact" (click)="closeMenu()">Contact</a>
-      </li>
+      <!-- About -->
+      <li><a routerLink="/about" (click)="closeMenu()">About</a></li>
 
-      <!-- 🔐 Login / Logout -->
+      <!-- Contact -->
+      <li><a routerLink="/contact" (click)="closeMenu()">Contact</a></li>
+
+      <!-- Auth -->
       <li *ngIf="!(isLoggedIn$ | async)">
         <a routerLink="/login" (click)="closeMenu()">Login</a>
       </li>
+
       <li *ngIf="isLoggedIn$ | async">
         <a href="#" (click)="logout(); closeMenu()">Logout</a>
       </li>
-    </ul>
 
+      <!-- ***** NOTIFICATION BELL ***** -->
+    <li *ngIf="isLoggedIn$ | async" class="d-flex align-items-center">
+      <app-notification-bell></app-notification-bell>
+    </li>
+    </ul>
   </div>
-  <!-- <app-bulletin-banner></app-bulletin-banner> -->
 </nav>
+
+<app-toast-container></app-toast-container>

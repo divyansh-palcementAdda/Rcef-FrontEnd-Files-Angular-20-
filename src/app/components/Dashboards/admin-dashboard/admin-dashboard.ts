@@ -6,7 +6,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables, ChartConfiguration } from 'chart.js';
 import { ApiService } from '../../../Services/api-service';
 import { DashboardDto } from '../../../Model/DashboardDto';
-import { trigger, transition, useAnimation } from '@angular/animations';
+import { trigger, transition, useAnimation, query, stagger } from '@angular/animations';
 import { fadeInUp } from '../../../Animations/fade-in-up.animation';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
@@ -19,12 +19,20 @@ Chart.register(...registerables);
   standalone: true,
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css'],
-  imports: [CommonModule, RouterLink, BaseChartDirective, DatePipe,RouterLinkActive,BulletinBannerComponent],
+  imports: [CommonModule, RouterLink, BaseChartDirective, DatePipe, RouterLinkActive, BulletinBannerComponent,],
   animations: [
     trigger('fadeInUpStagger', [
-      transition(':enter', useAnimation(fadeInUp, { params: { time: '600ms' } }))
+      transition(':enter', [
+        query(':enter', [
+          stagger(80, [
+            useAnimation(fadeInUp, {
+              params: { time: '300ms ease-out' } // Valid timing
+            })
+          ])
+        ], { optional: true })
+      ])
     ])
-  ]
+  ],
 })
 export class AdminDashboard implements OnInit, OnDestroy {
 
@@ -60,22 +68,27 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle', color: 'success' },
     { label: 'Add User', route: '/add-user', icon: 'bi-person-plus', color: 'info' },
     { label: 'Add Department', route: '/add-department', icon: 'bi-building-gear', color: 'warning' },
-    // { label: 'Bulletin Alerts', route: '/bulletin-alerts', icon: 'bi-bell', color: 'danger' }
-  ];
+    {
+      label: 'New Tasks Requiring Approval',
+      route: '/view-tasks',
+      queryParams: { status: 'Approval' },
+      icon: 'bi-bell',
+      color: 'danger'
+    }];
 
   constructor(
     private router: Router,
     private apiService: ApiService,
     private authService: AuthApiService,
     private jwtService: JwtService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.dataSub = this.apiService.getDashboardData().subscribe({
       next: (data) => {
         if (data) {
           this.dashboardData = data;
-          console.log(this.dashboardData)
+          // console.log(this.dashboardData)
           this.updateCharts(data);
         }
       },
@@ -93,11 +106,11 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   /** ✅ Dashboard Navigation with Token Validation */
   dashboard(): void {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     if (token && this.jwtService.isTokenValid(token)) {
       const userId = this.jwtService.getUserIdFromToken(token);
       if (userId) {
-        this.authService.dashboard({ userId });
+        this.authService.goToDashboard();
       } else {
         console.warn('User ID not found in token');
         this.router.navigate(['/login']);
@@ -110,40 +123,45 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
   /** ✅ Stat Cards Builder */
   statCards(d: DashboardDto) {
+    const c = (color: string) => color; // shorthand
+
     return [
-      { title: 'Total Tasks', value: d.totalTask, color: 'primary', icon: 'bi-clipboard-list', route: '/view-tasks', delta: 5 },
-      { title: 'Total Users', value: d.totalUsers, color: 'success', icon: 'bi-people', route: '/viewAllUsers', delta: 2 },
-      { title: 'Pending Tasks', value: d.pendingTask, color: 'warning', icon: 'bi-hourglass', route: '/view-tasks', queryParams: { status: 'PENDING' }, delta: -1 },
-      { title: 'Delayed Tasks', value: d.delayedTask, color: 'danger', icon: 'bi-exclamation-octagon', route: '/view-tasks', queryParams: { status: 'Delayed' }, delta: 3 },
-      { title: 'Completed Tasks', value: d.completedTask, color: 'success', icon: 'bi-check-lg', route: '/view-tasks', queryParams: { status: 'CLOSED' }, delta: 8 },
-      { title: 'Upcoming Tasks', value: d.upcomingTask, color: 'info', icon: 'bi-calendar3-week', route: '/view-tasks', queryParams: { status: 'Upcoming' }, delta: 4 },
-      { title: 'Extension Requests', value: d.requestForExtension, color: 'warning', icon: 'bi-arrow-clockwise',route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_EXTENSION' }, delta: 1 },
-      { title: 'Active Users', value: d.activeUsers, color: 'info', icon: 'bi-person-badge', route: '/viewAllUsers', queryParams: { status: 'ACTIVE' }, delta: 6 },
-      { title: 'Total Departments', value: d.totalDepartments, color: 'dark', icon: 'bi-building', route: '/departments', delta: 0 },
-      { title: 'Closure Requests', value: d.requestForClosure, color: 'secondary', icon: 'bi-lock-fill',route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_CLOSURE' }, delta: -2 },
-      { title: 'My Tasks', value: d.selfTask, color: 'primary', icon: 'bi-person-check', route: '/view-tasks', queryParams: { status: 'Self' }, delta: 7 },
-      { title: 'Extended Tasks', value: d.extendedTask, color: 'warning', icon: 'bi-arrow-repeat', route: '/view-tasks', queryParams: { status: 'Extended' }, delta: 2 }
+      // ── Core Totals (Dark) ────────────────────────
+      { title: 'Total Tasks', value: d.totalTask, color: c('dark'), icon: 'bi-clipboard-list', route: '/view-tasks', delta: 5 },
+      { title: 'Total Users', value: d.totalUsers, color: c('dark'), icon: 'bi-people', route: '/viewAllUsers', delta: 2 },
+      { title: 'Total Departments', value: d.totalDepartments, color: c('dark'), icon: 'bi-building', route: '/departments', delta: 0 },
+
+      // ── Users ─────────────────────────────────────
+      { title: 'Active Users', value: d.activeUsers, color: c('info'), icon: 'bi-person-check-fill', route: '/viewAllUsers', queryParams: { status: 'ACTIVE' }, delta: 6 },
+
+      // ── Task Flow ─────────────────────────────────
+      { title: 'Active Tasks', value: d.activeTask, color: c('primary'), icon: 'bi-play-circle', route: '/view-tasks', queryParams: { status: 'IN_PROGRESS' }, delta: 7 },
+      { title: 'Pending Tasks', value: d.pendingTask, color: c('warning'), icon: 'bi-hourglass-split', route: '/view-tasks', queryParams: { status: 'PENDING' }, delta: -1 },
+      { title: 'Upcoming Tasks', value: d.upcomingTask, color: c('info'), icon: 'bi-calendar3', route: '/view-tasks', queryParams: { status: 'Upcoming' }, delta: 4 },
+      { title: 'Completed Tasks', value: d.completedTask, color: c('success'), icon: 'bi-check2-circle', route: '/view-tasks', queryParams: { status: 'CLOSED' }, delta: 8 },
+
+      // ── Issues & Extensions ───────────────────────
+      { title: 'Delayed Tasks', value: d.delayedTask, color: c('danger'), icon: 'bi-exclamation-triangle-fill', route: '/view-tasks', queryParams: { status: 'Delayed' }, delta: 3 },
+      { title: 'Extended Tasks', value: d.extendedTask, color: c('warning'), icon: 'bi-arrow-repeat', route: '/view-tasks', queryParams: { status: 'Extended' }, delta: 2 },
+
+      // ── Requests ──────────────────────────────────
+      { title: 'Extension Requests', value: d.requestForExtension, color: c('secondary'), icon: 'bi-clock-history', route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_EXTENSION' }, delta: 1 },
+      { title: 'Closure Requests', value: d.requestForClosure, color: c('secondary'), icon: 'bi-lock-fill', route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_CLOSURE' }, delta: -2 },
+
+      // ── Personal ──────────────────────────────────
+      // { title: 'My Tasks',           value: d.selfTask,         color: c('primary'),  icon: 'bi-person-lines-fill', route: '/view-tasks',   queryParams: { status: 'Self' },          delta: 7 },
     ];
   }
-//   dashboardStats = {
-//   delayedTasksCount: 5,
-//   departmentsPending: [
-//     { departmentName: 'HR', pendingTasks: 3 },
-//     { departmentName: 'IT', pendingTasks: 4 },
-//     { departmentName: 'Finance', pendingTasks: 2 }
-//   ]
-// };
-
   /** ✅ Navigate to a Route */
   goToTaskPage(card: any): void {
-    console.log('Navigating to:', card.route, 'with params:', card.queryParams);
+    // console.log('Navigating to:', card.route, 'with params:', card.queryParams);
     this.router.navigate([card.route], { queryParams: card.queryParams || {} });
   }
 
   /** ✅ Update Chart Data Dynamically */
   private updateCharts(data: DashboardDto): void {
     this.pieChartData = {
-      labels: ['Pending', 'Completed', 'Delayed', 'Extended','Upcomming'],
+      labels: ['Pending', 'Completed', 'Delayed', 'Extended', 'Upcomming'],
       datasets: [
         {
           data: [
@@ -151,9 +169,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
             data.completedTask ?? 0,
             data.delayedTask ?? 0,
             data.extendedTask ?? 0,
-            data.upcomingTask??0
+            data.upcomingTask ?? 0
           ],
-          backgroundColor: ['#fbbf24', '#10b981', '#ef4444', '#8b5cf6','#f7ff04ff']
+          backgroundColor: ['#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f7ff04ff']
         }
       ]
     };

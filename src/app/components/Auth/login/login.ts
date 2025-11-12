@@ -7,6 +7,7 @@ import { AuthApiService } from '../../../Services/auth-api-service';
 import { JWTResponseDTO } from '../../../Model/jwtresponse-dto';
 import { LoginRequestDTO } from '../../../Model/login-request-dto';
 import { HttpErrorResponse } from '@angular/common/http';
+import { JwtService } from '../../../Services/jwt-service';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +26,8 @@ export class LoginComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthApiService
+    private authService: AuthApiService,
+    private jwtService: JwtService
   ) {
     this.loginForm = this.fb.group({
       emailOrUsername: ['', [Validators.required]],
@@ -38,24 +40,15 @@ export class LoginComponent implements OnInit {
   // ✅ Auto-redirect if already logged in and token valid
   // -------------------------------------------------
   ngOnInit(): void {
-    const token = localStorage.getItem('token');
-    if (token && !this.isTokenExpired(token)) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      this.authService.dashboard(payload);
+    const token = this.jwtService.getAccessToken();
+    if (token && this.jwtService.isTokenValid(token)) {
+      const decoded = this.jwtService.decodeToken(token);
+      this.authService.goToDashboard();
     }
 
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
       this.loginForm.patchValue({ emailOrUsername: rememberedEmail });
-    }
-  }
-
-  private isTokenExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return Date.now() > payload.exp * 1000;
-    } catch {
-      return true;
     }
   }
 
@@ -83,7 +76,6 @@ export class LoginComponent implements OnInit {
       catchError((error: HttpErrorResponse | Error) => {
         this.isLoading = false;
 
-        // Handle both network & backend errors gracefully
         let message = 'Login failed. Please try again.';
         if (error instanceof HttpErrorResponse) {
           message = error.error?.message || message;
@@ -98,20 +90,18 @@ export class LoginComponent implements OnInit {
       this.isLoading = false;
 
       if (response) {
-        // Save JWT
-        localStorage.setItem('token', response.token);
-        this.authService['loggedIn'].next(true);
+        localStorage.setItem('accessToken', response.accessToken);
+        localStorage.setItem('refreshToken', response.refreshToken); // Ensure saved
+        localStorage.setItem('user', JSON.stringify(response));
+        this.authService['loggedIn'].next(true); // Better: use public method if possible
 
-        // Remember email if checked
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', emailOrUsername);
         } else {
           localStorage.removeItem('rememberedEmail');
         }
 
-        // Decode token payload and navigate
-        const payload = JSON.parse(atob(response.token.split('.')[1]));
-        this.authService.dashboard(payload);
+        this.authService.goToDashboard();
       }
     });
   }

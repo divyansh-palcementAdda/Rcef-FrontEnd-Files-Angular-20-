@@ -46,6 +46,7 @@
               <th>ID</th>
               <th>Name</th>
               <th>Description</th>
+              <th>Department Status</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
@@ -54,6 +55,7 @@
               <td>{{ dept.departmentId }}</td>
               <td>{{ dept.name }}</td>
               <td>{{ dept.description }}</td>
+              <td>{{ dept.departmentStatus }}</td>
               <td class="text-center">
                 <button class="btn btn-sm btn-outline-primary me-1" (click)="viewDepartmentDetails(dept.departmentId)">View</button>
                 <button class="btn btn-sm btn-outline-danger" (click)="deleteDepartment($event, dept.departmentId)">Delete</button>
@@ -94,6 +96,10 @@
           </li>
         </ul>
       </nav>
+
+      <button class="btn btn-outline-secondary mb-3" (click)="goBackToDashboard()">
+  ← Back to Dashboard
+</button>
 
     </div>
   </div>

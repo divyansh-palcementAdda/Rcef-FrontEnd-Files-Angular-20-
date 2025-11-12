@@ -1,0 +1,17 @@
+.toast-container {
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.toast-header {
+  background-color: rgba(0,0,0,.03);
+}
+
+.toast-body {
+  word-wrap: break-word;
+}

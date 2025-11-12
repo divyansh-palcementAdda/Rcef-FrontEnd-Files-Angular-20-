@@ -15,11 +15,16 @@ import { AddTaskComponent } from './components/Tasks/add-task/add-task';
 import { ViewTasksComponent } from './components/Tasks/view-tasks/view-tasks';
 import { ViewUserComponent } from './components/Users/view-user/view-user';
 import { ViewDepartmentsComponent } from './components/Department/view-all-departments/view-all-departments';
-// import { ViewTask } from './components/Tasks/view-task/view-task';
+import { ViewTask } from './components/Tasks/view-task/view-task';
+import { UpdateTaskComponent } from './components/Tasks/update-task/update-task';
+import { EditUser } from './components/Users/edit-user/edit-user';
+import { GetDepartment } from './components/Department/get-deprtment/get-deprtment';
+// import { Test } from './components/Test/test/test';
 
 export const routes: Routes = [
 
   { path: '', component: Home },
+  // {path:'test',component: Test},
   { path: 'login', component: LoginComponent },
   { path: 'about', component: About },
   { path: 'contact', component: Contact },
@@ -47,7 +52,7 @@ export const routes: Routes = [
     path: 'viewAllUsers',
     component: ViewAllUserss,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN'] }
+    data: { roles: ['ADMIN', 'HOD'] }
   },
   {
     path: 'add-department', component: AddDepartmentComponent, canActivate: [AuthGuard, RoleGuard],
@@ -59,16 +64,27 @@ export const routes: Routes = [
   }, {
     path: 'add-task', component: AddTaskComponent, canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'HOD'] }
+  },
+  {
+    path: 'edit-task', component: UpdateTaskComponent, canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'HOD'] }
+  }, {
+    path: 'edit-user/:id', component: EditUser, canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'HOD', 'TEACHER'] }
   }, {
     path: 'view-tasks', component: ViewTasksComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'HOD', 'TEACHER'] }
+  }, {
+    path: 'user/:id', component: ViewUserComponent, canActivate: [AuthGuard]
   },
-  { path: 'user/:id', component: ViewUserComponent, canActivate: [AuthGuard] },
   {
     path: 'departments', component: ViewDepartmentsComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN', 'HOD'] }
+  }, {
+    path: 'department/:id', component: GetDepartment, canActivate: [AuthGuard], data: { roles: ['ADMIN', 'HOD'] }
   },
-  // { path: 'task/:id', component: ViewTask, canActivate: [AuthGuard] },
+
+  { path: 'task/:id', component: ViewTask, canActivate: [AuthGuard] },
 
   // Wildcard route for a 404 page
   { path: '**', redirectTo: '' },

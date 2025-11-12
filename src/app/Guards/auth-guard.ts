@@ -1,42 +1,58 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router, UrlTree } from '@angular/router';
-import { Observable } from 'rxjs';
+// src/app/guards/auth.guard.ts
+import { inject } from '@angular/core';
+import {
+  CanActivateFn,
+  Router,
+  UrlTree,
+} from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthApiService } from '../Services/auth-api-service';
+export const AuthGuard: CanActivateFn = (): boolean | UrlTree => {
+  const router   = inject(Router);
+  const snack    = inject(MatSnackBar);
+  const authSrv  = inject(AuthApiService);
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
+  const accessToken = localStorage.getItem('accessToken');
 
-  constructor(private router: Router, private authService: AuthApiService) {}
-
-  canActivate():
-    | boolean
-    | UrlTree
-    | Observable<boolean | UrlTree>
-    | Promise<boolean | UrlTree> {
-
-    const token = localStorage.getItem('token');
-
-    if (token && !this.isTokenExpired(token)) {
-      return true; 
-    }
-
-    // 🚨 No token or expired → redirect to login
-     this.authService.logout();
-      return false;
-    // return this.router.createUrlTree(['/login']);
+  // ----------------------------------------------------------------------
+  // No token at all → force login
+  // ----------------------------------------------------------------------
+  if (!accessToken) {
+    showExpired(snack);
+    authSrv.logout();
+    return router.createUrlTree(['/login']);
   }
 
-  // ✅ Decode JWT and check expiration
-  private isTokenExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const exp = payload.exp * 1000; // exp is in seconds → convert to ms
-      return Date.now() > exp;
-    } catch (e) {
-      console.error('Error decoding token', e);
-      return true; // treat as expired if invalid
-    }
+  // ----------------------------------------------------------------------
+  // Token exists but is expired → force logout (interceptor will refresh
+  // only on real 401, not on a stale local token)
+  // ----------------------------------------------------------------------
+  if (isTokenExpired(accessToken)) {
+    showExpired(snack);
+    authSrv.logout();
+    return router.createUrlTree(['/login']);
   }
+
+  // Token is present **and** not expired → allow navigation
+  return true;
+};
+
+/* --------------------------------------------------------------------- */
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const exp = payload.exp * 1000;               // seconds → ms
+    return Date.now() > exp;
+  } catch {
+    return true;   // malformed token = treat as expired
+  }
+}
+
+function showExpired(snack: MatSnackBar) {
+  snack.open('Session expired. Please log in again.', 'Close', {
+    duration: 4000,
+    panelClass: ['snackbar-expired'],
+    horizontalPosition: 'right',
+    verticalPosition: 'top',
+  });
 }

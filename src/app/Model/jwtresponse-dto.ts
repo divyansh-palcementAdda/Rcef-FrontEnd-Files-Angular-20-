@@ -1,7 +1,8 @@
 import { RoleDTO } from "./role-dto";
 
 export interface JWTResponseDTO {
-    token: string;
+  accessToken: string;
+  refreshToken: string;
   type: string;
   id: number;
   username: string;

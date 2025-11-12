@@ -1,0 +1,236 @@
+<br><br>
+<div class="container py-5">
+
+  <!-- Error -->
+  <div *ngIf="errorMessage" class="alert alert-danger text-center shadow-sm rounded-pill py-3 fw-semibold">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-success"></div>
+    <p class="mt-3 fw-medium text-muted">Loading department details…</p>
+  </div>
+
+  <!-- Department Card -->
+  <div *ngIf="department && !loading"
+       class="dept-card shadow-lg border-0 rounded-4 overflow-hidden animate__animated animate__fadeInUp">
+
+    <div class="dept-header text-white text-center py-4">
+      <h3 class="fw-bold mb-1">{{ department.name }}</h3>
+      <p class="mb-0 text-light fs-6">Department</p>
+    </div>
+
+    <div class="card-body px-4 py-4">
+
+      <!-- HOD Section -->
+<div *ngIf="hodUser" class="card shadow-sm border-0 rounded-4 p-4 mb-4 bg-light-subtle border-start border-4 border-primary">
+  <div class="d-flex align-items-center mb-3">
+    <i class="bi bi-person-badge-fill fs-3 text-primary me-2"></i>
+    <h5 class="fw-bold mb-0">Head of Department (HOD)</h5>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <p><strong>Name:</strong> {{ hodUser.fullName }}</p>
+      <p><strong>Email:</strong> {{ hodUser.email }}</p>
+      <p><strong>Username:</strong> {{ hodUser.username }}</p>
+    </div>
+    <div class="col-md-6">
+      <p>
+        <strong>Status:</strong>
+        <span class="badge rounded-pill px-3 py-2"
+              [ngClass]="{'bg-success': hodUser.status==='ACTIVE','bg-secondary': hodUser.status==='INACTIVE'}">
+          {{ hodUser.status }}
+        </span>
+      </p>
+      <p>
+        <strong>Email Verified:</strong>
+        <span [ngClass]="hodUser.emailVerified ? 'text-success fw-semibold' : 'text-danger fw-semibold'">
+          {{ hodUser.emailVerified ? 'Yes' : 'No' }}
+        </span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- User Count Display -->
+<div class="text-center mb-4">
+  <div class="d-inline-flex align-items-center gap-3 stats-badge-container px-3 py-2 rounded-pill shadow-sm">
+    <span class="badge-text fw-semibold text-dark">
+      👥 Total Members: {{ userCount }}
+    </span>
+    <span class="badge-text fw-semibold text-dark">
+      📋 Total Tasks: {{ taskCount }}
+    </span>
+  </div>
+</div>
+
+
+
+      <!-- Task Summary -->
+      <div class="row text-center mt-4">
+        <div class="col-6 col-md-3 mb-3"
+             *ngFor="let stat of deptTaskStats"
+             (click)="filterTasksByStatus(stat.label.toUpperCase())"
+             style="cursor:pointer;">
+          <div class="stat-card shadow-sm border-0 rounded-4 p-3 hover-zoom">
+            <h4 class="fw-bold text-{{ stat.color }} mb-1">{{ stat.count || 0 }}</h4>
+            <small class="text-muted">{{ stat.label }}</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapse Buttons -->
+      <div class="text-center mt-4 d-flex justify-content-center flex-wrap gap-3">
+        <button class="btn btn-outline-primary px-4 py-2" (click)="toggleCollapse('tasks')">
+          <i class="bi bi-list-task me-2"></i>{{ collapsed.tasks ? 'Show' : 'Hide' }} Tasks
+        </button>
+        <button class="btn btn-outline-info px-4 py-2" (click)="toggleCollapse('users')">
+          <i class="bi bi-people me-2"></i>{{ collapsed.users ? 'Show' : 'Hide' }} Users ({{ department.users?.length || 0 }})
+        </button>
+      </div>
+      <button class="btn btn-outline-secondary px-4 py-2" (click)="goBack()">
+          <i class="bi bi-arrow-left-circle me-2"></i>Back
+        </button>
+    </div>
+  </div>
+
+  <!-- Tasks Table -->
+ <div *ngIf="department && !collapsed.tasks"
+     class="card shadow-lg border-0 rounded-4 mt-5 animate__animated animate__fadeIn">
+  <div class="card-header gradient-header text-white text-center py-3 fs-5 fw-bold table_head">
+    <i class="bi bi-clipboard-data me-2"></i>Department Tasks
+  </div>
+    <div class="card-body p-4">
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <input type="text" class="form-control rounded-pill px-3"
+                 placeholder="Search tasks by title..."
+                 [(ngModel)]="taskSearch" (input)="applyTaskFilters()">
+        </div>
+        <div class="col-md-6 text-md-end">
+          <button class="btn btn-outline-secondary rounded-pill px-4" (click)="resetTaskFilters()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Reset
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="loadingTasks" class="text-center my-4">
+        <div class="spinner-border text-success"></div>
+        <p class="mt-2 text-muted">Fetching tasks…</p>
+      </div>
+
+      <div *ngIf="!loadingTasks && taskPaginated?.length" class="table-responsive mt-3">
+        <table class="table table-hover align-middle">
+          <thead class="table_head">
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Assigned To</th>
+              <th>Status</th>
+              <th>Due Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of taskPaginated">
+              <td>{{ t.taskId }}</td>
+              <td>{{ t.title }}</td>
+              <td>{{ t.assignedToNames}}</td>
+              <td>
+                <span class="badge rounded-pill px-3 py-2"
+                      [ngClass]="{
+                        'bg-warning text-dark': t.status===TaskStatus.PENDING || t.status===TaskStatus.UPCOMING,
+                        'bg-danger blink': t.status===TaskStatus.DELAYED,
+                        'bg-info text-dark': t.status===TaskStatus.REQUEST_FOR_CLOSURE || t.status===TaskStatus.REQUEST_FOR_EXTENSION,
+                        'bg-success': t.status===TaskStatus.CLOSED,
+                        'bg-secondary' : t.status===TaskStatus.EXTENDED || t.status===TaskStatus.IN_PROGRESS
+                      }">
+                  {{ t.status }}
+                </span>
+              </td>
+              <td>{{ t.dueDate | date:'mediumDate' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!loadingTasks && !taskPaginated?.length" class="text-center text-muted mt-4">
+        <i class="bi bi-clipboard-x fs-4"></i><br>No matching tasks.
+      </div>
+
+      <nav *ngIf="taskFiltered.length > taskPageSize" class="mt-4">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="taskPage===1">
+            <a class="page-link" (click)="changeTaskPage(taskPage-1)">Previous</a>
+          </li>
+          <li class="page-item" *ngFor="let p of taskPages()" [class.active]="taskPage===p">
+            <a class="page-link" (click)="changeTaskPage(p)">{{ p }}</a>
+          </li>
+          <li class="page-item" [class.disabled]="taskPage===taskTotalPages">
+            <a class="page-link" (click)="changeTaskPage(taskPage+1)">Next</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div *ngIf="department && !collapsed.users"
+     class="card shadow-lg border-0 rounded-4 mt-5 animate__animated animate__fadeIn">
+  <div class="card-header gradient-header text-white text-center py-3 fs-5 fw-bold table_head ">
+    <i class="bi bi-people-fill me-2"></i>Department Members ({{ department.users?.length || 0 }})
+  </div>
+    <div class="card-body p-4">
+
+      <div class="mb-3">
+        <input type="text" class="form-control rounded-pill px-3"
+               placeholder="Search users by name / email..."
+               [(ngModel)]="userSearch" (input)="applyUserFilters()">
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table_head">
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of userPaginated">
+              <td>{{ u.userId }}</td>
+              <td>{{ u.fullName }}</td>
+              <td>{{ u.username }}</td>
+              <td>{{ u.email }}</td>
+              <td>
+                <span class="badge rounded-pill px-3 py-2"
+                      [ngClass]="{'bg-success':u.status==='ACTIVE','bg-secondary':u.status==='INACTIVE'}">
+                  {{ u.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <nav *ngIf="userFiltered.length > userPageSize" class="mt-4">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="userPage===1">
+            <a class="page-link" (click)="changeUserPage(userPage-1)">Previous</a>
+          </li>
+          <li class="page-item" *ngFor="let p of userPages()" [class.active]="userPage===p">
+            <a class="page-link" (click)="changeUserPage(p)">{{ p }}</a>
+          </li>
+          <li class="page-item" [class.disabled]="userPage===userTotalPages">
+            <a class="page-link" (click)="changeUserPage(userPage+1)">Next</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+</div>

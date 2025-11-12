@@ -1,0 +1,39 @@
+<div class="notif-wrapper" #wrapper>
+  <!-- Bell button -->
+  <button
+    class="notif-bell"
+    (click)="toggle()"
+    [class.pulse]="bellPulse"
+    type="button">
+    <i class="bi"
+       [class.bi-bell]="!bellPulse"
+       [class.bi-bell-fill]="bellPulse"></i>
+
+    <span *ngIf="unread.length"
+          class="notif-badge">{{ unread.length }}</span>
+  </button>
+
+  <!-- Dropdown (pure CSS – shown when .open) -->
+  <div class="notif-dropdown" [class.open]="isOpen">
+    <div class="notif-header">
+      <strong>Notifications</strong>
+      <button class="mark-all" (click)="markAll(); $event.stopPropagation()">
+        Mark all read
+      </button>
+    </div>
+
+    <div class="notif-empty" *ngIf="!unread.length">
+      No new notifications
+    </div>
+
+    <div class="notif-list">
+      <div *ngFor="let n of unread"
+           class="notif-item"
+           (click)="open(n); $event.stopPropagation()">
+        <div class="notif-title">{{ n.title ?? 'Notification' }}</div>
+        <div class="notif-time">{{ n.createdAt | date:'short' }}</div>
+        <div class="notif-msg">{{ n.message }}</div>
+      </div>
+    </div>
+  </div>
+</div>

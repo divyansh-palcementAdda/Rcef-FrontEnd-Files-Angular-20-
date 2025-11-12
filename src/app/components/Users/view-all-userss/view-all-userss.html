@@ -71,15 +71,21 @@
                   {{ user.status }}
                 </span>
               </td>
-            <td>{{ user.role === 'ADMIN' ? 'Administration' : (user.departmentName || user.role) }}</td>
+              <td>{{ user.role === 'ADMIN' ? 'Administration' : (user.departmentNames || user.role) }}</td>
               <td class="text-center">
                 <div class="row-actions">
                   <button class="btn btn-sm btn-outline-primary me-1"
                     (click)="viewUser($event, user.userId)">View</button>
-                  <!-- <button class="btn btn-sm btn-outline-warning me-1"
-                    (click)="editUser($event, user.userId)">Edit</button> -->
-                  <button class="btn btn-sm btn-outline-danger"
-                    (click)="deleteUser($event, user.userId)">Delete</button>
+                  <button *ngIf="currentRole !== 'HOD' && user?.status === 'ACTIVE'"
+                    class="btn btn-sm btn-outline-danger" (click)="deleteUser($event, user.userId)">
+                    Delete
+                  </button>
+                  <!-- Activate Button (only for INACTIVE users, non-HOD) -->
+                  <button *ngIf="currentRole !== 'HOD' && user?.status === 'INACTIVE'"
+                    class="btn btn-sm btn-outline-success" (click)="activateUser($event, user.userId)"
+                    title="Activate this user">
+                    Activate
+                  </button>
                 </div>
               </td>
             </tr>
@@ -105,7 +111,6 @@
               <p class="mb-1"><strong>Role:</strong> {{ user.role }}</p>
               <div class="d-flex justify-content-end gap-2 row-actions">
                 <button class="btn btn-sm btn-outline-primary" (click)="viewUser($event, user.userId)">View</button>
-                <button class="btn btn-sm btn-outline-warning" (click)="editUser($event, user.userId)">Edit</button>
                 <button class="btn btn-sm btn-outline-danger" (click)="deleteUser($event, user.userId)">Delete</button>
               </div>
             </div>
@@ -132,6 +137,9 @@
           </li>
         </ul>
       </nav>
+      <button class="btn btn-outline-secondary mb-3" (click)="goBackToDashboard()">
+        ← Back to Dashboard
+      </button>
 
     </div>
   </div>

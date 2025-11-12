@@ -2,7 +2,7 @@
   <div class="card shadow rounded-4 border-0">
     <div class="card-header text-white text-center p-4 table_head">
       <h3 class="mb-0 fw-bold">Add New User</h3>
-      <small>Create a new user account with role and department</small>
+      <small>Create a new user account with role and departments</small>
     </div>
 
     <div class="card-body p-4">
@@ -18,7 +18,6 @@
 
       <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
         <div class="row g-3">
-
           <!-- Username -->
           <div class="col-md-6">
             <label class="form-label">Username</label>
@@ -37,20 +36,14 @@
             </div>
           </div>
 
-
           <!-- OTP Input -->
           <div class="col-md-6" *ngIf="otpSent && !otpValidated">
             <label class="form-label">Enter OTP</label>
             <div class="input-group">
               <input type="text" class="form-control" [(ngModel)]="otpInput" [ngModelOptions]="{standalone: true}"
                 placeholder="Enter OTP">
-              <button type="button" class="btn btn-outline-success" (click)="verifyOtp()">
-                Verify
-              </button>
+              <button type="button" class="btn btn-outline-success" (click)="verifyOtp()">Verify</button>
             </div>
-          </div>
-          <div class="col-md-6" *ngIf="otpValidated">
-            <small class="text-success">✅ OTP validated. You can now create the user.</small>
           </div>
 
           <!-- Full Name -->
@@ -60,28 +53,24 @@
           </div>
 
           <!-- Password -->
-          <div class="col-md-6 position-relative">
+          <div class="col-md-6">
             <label class="form-label">Password</label>
             <div class="input-group">
               <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password"
-                placeholder="Enter strong password">
-              <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()"
-                tabindex="-1">
+                placeholder="Enter strong password ">
+              
+              <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()" tabindex="-1">
                 <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </button>
+                <small id="password-hint" class="password-narration">
+            Password must contain min 8 char including 1 capital letter, 1 small letter, 1 special char, and 1 number.
+        </small>
             </div>
             <div class="progress mt-2" style="height: 6px;">
-              <div class="progress-bar" role="progressbar" [style.width.%]="passwordStrength.score"
+              <div class="progress-bar" [style.width.%]="passwordStrength.score"
                 [style.backgroundColor]="passwordStrength.color"></div>
             </div>
-            <small *ngIf="passwordStrength.label" class="mt-1 d-block">
-              <i class="bi" [ngClass]="{
-                   'bi-shield-lock text-success': passwordStrength.label === 'Strong',
-                   'bi-shield-exclamation text-warning': passwordStrength.label === 'Medium',
-                   'bi-shield-x text-danger': passwordStrength.label === 'Weak'
-                 }"></i>
-              {{ passwordStrength.label }} password
-            </small>
+            <small class="text-muted">{{ passwordStrength.label }} password</small>
           </div>
 
           <!-- Role -->
@@ -93,15 +82,29 @@
             </select>
           </div>
 
-          <!-- Department -->
-          <div class="col-md-6">
-            <label class="form-label">Department</label>
-            <select class="form-select" formControlName="departmentId">
-              <option value="" disabled selected>Select Department</option>
-              <option *ngFor="let dept of departments" [value]="dept.departmentId">{{ dept.name }}</option>
-            </select>
-          </div>
+          <!-- Search Departments -->
+          <!-- <div class="col-12">
+            <label class="form-label fw-semibold">Search Departments</label>
+            <input type="text" class="form-control mb-3" placeholder="Search department..."
+              [(ngModel)]="searchQuery" name="searchQuery">
+          </div> -->
 
+          <!-- Department List -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">Select Departments</label>
+            <div class="department-list p-3 bg-light rounded-3 shadow-sm">
+              <div *ngFor="let dept of filteredDepartments()" class="form-check mb-2">
+                <input type="checkbox" class="form-check-input" [id]="'dept-' + dept.departmentId"
+                  [checked]="selectedDepartments.includes(dept.departmentId)"
+                  (change)="updateDepartmentSelection($event, dept.departmentId)"
+                  [disabled]="isDeptDisabled(dept)">
+                <label class="form-check-label" [for]="'dept-' + dept.departmentId">
+                  {{ dept.name }}
+                  <span *ngIf="isDeptDisabled(dept)" class="text-muted small">(Not allowed)</span>
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="d-flex justify-content-end mt-4 gap-2">

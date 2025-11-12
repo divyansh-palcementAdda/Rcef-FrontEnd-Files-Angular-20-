@@ -5,8 +5,8 @@ export interface userDto {
   fullName: string;        // maps to backend fullName
   role: string;            // maps to backend role (can be enum string)
   status: string;          // maps to backend status (active/inactive)
-  departmentId: number;    // maps to backend departmentId
-  departmentName: string;  // maps to backend departmentName
+  departmentIds: number[];    // maps to backend departmentId
+  departmentNames: string[];  // maps to backend departmentName
   emailVerified: boolean;  // maps to backend emailVerified
 
   // Task counters

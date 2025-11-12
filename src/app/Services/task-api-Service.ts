@@ -16,6 +16,18 @@ export class TaskApiService {
 
   constructor(private http: HttpClient) {}
 
+
+  
+getTasksByDepartment(deptId: number): Observable<{data: TaskDto[]}> {
+  return this.http.get<{data: TaskDto[]}>(`${this.baseUrl}/department/${deptId}`);
+}
+startTask(taskId: number): Observable<ApiResponse<TaskDto>> {
+  return this.http.patch<ApiResponse<TaskDto>>(
+    `${this.baseUrl}/${taskId}/start`,
+    {} // empty body
+  );
+}
+
   /** CREATE TASK */
   createTask(payload: TaskPayload): Observable<ApiResponse<TaskDto>> {
     return this.http.post<ApiResponse<TaskDto>>(`${this.baseUrl}`, payload).pipe(
@@ -37,6 +49,8 @@ export class TaskApiService {
     );
   }
 
+  
+
   /** GET TASK BY ID */
   getTaskById(taskId: number): Observable<ApiResponse<TaskDto>> {
     return this.http.get<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}`).pipe(
@@ -50,7 +64,11 @@ export class TaskApiService {
       catchError(err => this.handleError(err, 'fetching user tasks'))
     );
   }
-
+  getAllTasksWhichRequriesApproval(): Observable<ApiResponse<TaskDto[]>> {
+    return this.http.get<ApiResponse<TaskDto[]>>(`${this.baseUrl}/approval`).pipe(
+      catchError(err => this.handleError(err, 'fetching approval tasks'))
+    );
+  }
   /** GET TASKS BY STATUS */
   getTasksByStatus(status: string): Observable<ApiResponse<TaskDto[]>> {
     return this.http.get<ApiResponse<TaskDto[]>>(`${this.baseUrl}/status/${status}`).pipe(
@@ -71,6 +89,7 @@ export class TaskApiService {
       catchError(err => this.handleError(err, 'approving the task'))
     );
   }
+
 
   /** REJECT TASK */
   rejectTask(taskId: number, reason: string): Observable<ApiResponse<TaskDto>> {

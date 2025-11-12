@@ -1,34 +1,52 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, Router, UrlTree } from '@angular/router';
+// src/app/guards/role.guard.ts
+import { inject } from '@angular/core';
+import {
+  ActivatedRouteSnapshot,
+  CanActivateFn,
+  Router,
+  UrlTree,
+} from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class RoleGuard implements CanActivate {
-  constructor(private router: Router) {}
+export const RoleGuard: CanActivateFn = (
+  route: ActivatedRouteSnapshot
+): boolean | UrlTree => {
+  const router = inject(Router);
+  const snack  = inject(MatSnackBar);
 
-  canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return this.router.createUrlTree(['/login']);
-    }
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1])); // decode JWT payload
-      const userRole = payload.role; // assuming 'role' field in payload
-      if (!userRole) {
-        return this.router.createUrlTree(['/login']);
-      }
-      const allowedRoles: string[] = route.data['roles'];
-      if (allowedRoles.includes(userRole)) {
-        return true; // ✅ authorized
-      } else {
-        alert('🚫 Access denied! You do not have permission.');
-        return this.router.createUrlTree(['/home']);
-      }
-    } catch (e) {
-      console.error('Error decoding token', e);
-      return this.router.createUrlTree(['/login']);
-    }
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    // Should never happen – AuthGuard runs first – but be safe
+    return router.createUrlTree(['/login']);
   }
-}
+
+  let role: string;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    role = payload.role;
+  } catch (e) {
+    console.error('Failed to decode JWT for role check', e);
+    snack.open('Invalid session. Logging you out.', 'Close', { duration: 3000 });
+    // localStorage.clear();
+    return router.createUrlTree(['/login']);
+  }
+
+  if (!role) {
+    snack.open('No role found in token.', 'Close', { duration: 3000 });
+    return router.createUrlTree(['/login']);
+  }
+
+  const allowed = (route.data['roles'] as string[] | undefined) ?? [];
+  if (allowed.includes(role)) {
+    return true;
+  }
+
+  // --------------------------------------------------------------------
+  // Unauthorized role
+  // --------------------------------------------------------------------
+  snack.open('Access denied! You do not have permission.', 'Close', {
+    duration: 4000,
+    panelClass: ['snackbar-warn'],
+  });
+  return router.createUrlTree(['/home']);
+};

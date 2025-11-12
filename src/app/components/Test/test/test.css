@@ -1,0 +1,269 @@
+/* CSS Custom Properties for Colors */
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --secondary-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+/* Dashboard Wrapper - Flex for side-by-side, scrolls with body */
+.dashboard-wrapper {
+  display: flex;
+  min-height: calc(100vh - 4rem); /* Account for footer height (~4rem) */
+  padding-top: 56px; /* Clear fixed navbar */
+  margin: 0;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* Sidebar - Enhanced with avatar and glow */
+.sidebar {
+  position: relative; /* Normal flow */
+  flex: 0 0 280px; /* Slightly wider for better UX */
+  height: auto;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid #e9ecef;
+  overflow-y: visible;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+}
+
+.sidebar .nav-link {
+  font-weight: 500;
+  color: #2a2a2a;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.25rem;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar .nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-gradient);
+  opacity: 0;
+  transition: left 0.3s, opacity 0.3s;
+  z-index: -1;
+}
+
+.sidebar .nav-link:hover::before,
+.sidebar .nav-link.active::before {
+  left: 0;
+  opacity: 0.1;
+}
+
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+  color: #4e73df;
+  background: rgba(248, 249, 252, 0.8);
+  transform: translateX(8px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+/* Profile in Sidebar */
+.sidebar-profile {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.sidebar-profile img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+  border: 3px solid var(--primary-gradient);
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 2.5rem 2.5rem 8rem 2.5rem;
+  width: 100%;
+  overflow-y: visible;
+  animation: fadeInRight 0.6s ease-out;
+}
+
+/* Welcome Banner */
+.welcome-banner {
+  background: var(--primary-gradient);
+  color: rgb(63, 180, 122);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.welcome-banner .btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  transition: background 0.3s;
+}
+
+.welcome-banner .btn:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* Department Badge */
+.department-badge {
+  font-size: 1rem;
+  font-weight: 500;
+  background: rgba(255,255,255,0.2);
+  color: rgb(63, 180, 122);
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+}
+
+/* Stat Cards - Enhanced */
+.stat-card {
+  border-radius: 1rem;
+  background: white;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient); /* Dynamic via inline style? Use CSS vars per card */
+}
+
+.stat-card:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.stat-card .card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.stat-card .delta {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Charts - Enhanced */
+.chart-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.chart-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+}
+
+.chart-card .card-header {
+  background: var(--secondary-gradient);
+  color: #333;
+  border: none;
+}
+
+canvas {
+  width: 100% !important;
+  max-height: 400px;
+  border-radius: 0.5rem;
+}
+
+/* Recent Activity */
+.recent-activity {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.activity-item:hover {
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+/* Animations */
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate__fadeInUp {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ensure body scrolls */
+body {
+  overflow-y: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    flex-direction: column;
+    padding-top: 56px;
+  }
+  
+  .sidebar {
+    flex: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+    order: -1;
+    padding: 1rem;
+  }
+  
+  .main-content {
+    padding: 1.5rem 1rem 6rem 1rem;
+  }
+  
+  .row .col-xl-3 {
+    flex: 0 0 100%; /* Full width on mobile */
+  }
+}

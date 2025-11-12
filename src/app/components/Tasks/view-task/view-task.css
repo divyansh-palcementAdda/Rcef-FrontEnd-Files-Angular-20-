@@ -1,41 +1,62 @@
-/* 🌈 Header Gradient */
-.task-header {
-  background: linear-gradient(135deg, #2563eb, #38bdf8);
+/* Gradient Header */
+.dept-header {
+  background: linear-gradient(135deg, #16a34a, #22d3ee);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
 }
 
-/* 🪄 Card */
-.task-card {
+/* Main Card */
+.dept-card {
   background: #fff;
   border-radius: 1rem;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease;
 }
-.task-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+.dept-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* 🧭 Table Header */
+/* Stats Cards */
+.stat-card {
+  background: #f8fdfa;
+  transition: all 0.25s ease;
+}
+.hover-zoom:hover {
+  transform: scale(1.05);
+  background: #e6fffa;
+  box-shadow: 0 5px 15px rgba(34, 197, 94, 0.15);
+}
+
+/* Table Header Gradient */
 .table_head {
-  background: linear-gradient(135deg, #2563eb, #38bdf8);
+  background: linear-gradient(135deg, #047857, #16a34a);
   color: #fff;
 }
-
-/* 🧩 Hover Row */
+.table tbody tr {
+  transition: background 0.2s ease;
+}
 .table tbody tr:hover {
-  background-color: rgba(59, 130, 246, 0.08);
+  background-color: rgba(34, 197, 94, 0.08);
 }
 
-/* 🔗 Buttons */
-.btn-outline-primary:hover {
-  background: #2563eb;
-  color: #fff;
+/* Blink Animation */
+.blink {
+  animation: blink 1.5s infinite ease-in-out;
 }
-.btn-outline-secondary:hover {
-  background: #6b7280;
-  color: #fff;
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
-/* 📱 Mobile Responsive */
+/* Spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Table (Mobile) */
 @media (max-width: 767px) {
   .table-responsive {
     border-radius: 1rem;
@@ -50,12 +71,27 @@
     background: #f9fafb;
     border-radius: 0.8rem;
     padding: 1rem;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
   .table tbody td {
     display: flex;
     justify-content: space-between;
-    padding: 0.4rem 0;
+    padding: 0.5rem 0;
     font-size: 0.9rem;
+    border: none;
   }
+  .table tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #475569;
+    flex: 1;
+  }
+  .table tbody td:last-child {
+    border-bottom: none;
+  }
+}
+
+/* Button Focus */
+.btn:focus {
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
 }

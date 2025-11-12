@@ -1,7 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Token } from '@angular/compiler';
 import { Component, OnInit, HostListener } from '@angular/core';
-import { LoginComponent } from '../../Auth/login/login';
 import { Router, RouterLink } from '@angular/router';
 import { AuthApiService } from '../../../Services/auth-api-service';
 
@@ -41,10 +39,10 @@ export class Home implements OnInit {
   // constructor(private router: Router, private loginComponent: LoginComponent) {}
 
   dashboard() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     if (token) {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      this.authService.dashboard(payload);
+      this.authService.goToDashboard();
     } else {
       this.router.navigate(['/login']);
     }

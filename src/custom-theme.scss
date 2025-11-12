@@ -1,0 +1,38 @@
+// -----------------------------------------------------------
+// 1. Import only mat
+// -----------------------------------------------------------
+@use '@angular/material' as mat;
+
+// -----------------------------------------------------------
+// 2. NO DENSITY CONFIG NEEDED
+// -----------------------------------------------------------
+
+// -----------------------------------------------------------
+// 3. Define Light & Dark Themes (NO density field!)
+// -----------------------------------------------------------
+$light-theme: mat.define-theme((
+  color: (
+    primary: mat.$rose-palette,
+    tertiary: mat.$red-palette,
+  ),
+  // density: ... ← REMOVED ENTIRELY
+));
+
+$dark-theme: mat.define-theme((
+  color: (
+    primary: mat.$rose-palette,
+    tertiary: mat.$red-palette,
+  ),
+  // theme-type: dark,
+));
+
+// -----------------------------------------------------------
+// 4. Apply Themes
+// -----------------------------------------------------------
+html {
+  @include mat.all-component-themes($light-theme);
+}
+
+html.dark {
+  @include mat.all-component-themes($dark-theme);
+}

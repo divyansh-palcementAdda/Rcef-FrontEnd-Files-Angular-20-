@@ -28,13 +28,8 @@
       <!-- Filters -->
       <div class="row mb-3 g-2">
         <div class="col-md-6">
-          <input
-            type="text"
-            class="form-control"
-            placeholder="🔍 Search by title, assignee, or department"
-            [(ngModel)]="searchTerm"
-            (input)="applyFilters()"
-          />
+          <input type="text" class="form-control" placeholder="🔍 Search by title, assignee, or department"
+            [(ngModel)]="searchTerm" (input)="applyFilters()" />
         </div>
         <div class="col-md-3">
           <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
@@ -56,64 +51,80 @@
       </div>
 
       <!-- Desktop Table -->
-      <div
-        class="table-responsive d-none d-md-block"
-        *ngIf="!loading && paginatedTasks?.length"
-      >
+      <div class="table-responsive d-none d-md-block" *ngIf="!loading && paginatedTasks?.length">
         <table class="table table-hover align-middle">
           <thead class="table-light">
             <tr>
               <th>ID</th>
               <th>Title</th>
-              <th>Departments</th>
-              <th>Assigned To</th>
+              <th>Departments & Assignees</th>
+              <th>Start Date</th>
               <th>Due Date</th>
               <th>Status</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              *ngFor="let task of paginatedTasks"
-              (click)="viewTaskDetails(task.taskId)"
-              class="cursor-pointer"
-            >
+            <tr *ngFor="let task of paginatedTasks" (click)="viewTaskDetails(task.taskId)" class="cursor-pointer">
               <td>{{ task.taskId }}</td>
               <td>{{ task.title }}</td>
+
+              <!-- ✅ Combined Department + User Logic -->
               <td>
-                <span *ngIf="task.departmentNames?.length; else noDept">
-                  {{ task.departmentNames?.join(', ') }}
-                </span>
-                <ng-template #noDept>—</ng-template>
+                <ng-container *ngIf="task.departmentNames && task.assignedToNames; else noDeptOrUser">
+
+                  <!-- Multiple departments & multiple users -->
+                  <ng-container *ngIf="task.departmentNames.length > 1 && task.assignedToNames.length > 1">
+                    <span>Multiple departments and users — click View for details.</span>
+                  </ng-container>
+
+                  <!-- Multiple departments, single/missing user -->
+                  <ng-container *ngIf="task.departmentNames.length > 1 && task.assignedToNames.length <= 1">
+                    <span>Multiple departments — click View for details.</span>
+                  </ng-container>
+
+                  <!-- Single department, multiple users -->
+                  <ng-container *ngIf="task.departmentNames.length === 1 && task.assignedToNames.length > 1">
+                    <span>
+                      {{ task.departmentNames[0] }} — multiple assignees, click View for details.
+                    </span>
+                  </ng-container>
+
+                  <!-- Single department & single user -->
+                  <ng-container *ngIf="task.departmentNames.length === 1 && task.assignedToNames.length === 1">
+                    <span>
+                      {{ task.departmentNames[0] }} — {{ task.assignedToNames[0] }}
+                    </span>
+                  </ng-container>
+
+                  <!-- Single department, unassigned -->
+                  <ng-container *ngIf="task.departmentNames.length === 1 && (!task.assignedToNames.length)">
+                    <span>
+                      {{ task.departmentNames[0] }} — Unassigned
+                    </span>
+                  </ng-container>
+
+                </ng-container>
+
+                <ng-template #noDeptOrUser>—</ng-template>
               </td>
-              <td>
-                <span *ngIf="task.assignedToNames?.length; else unassigned">
-                  {{ task.assignedToNames?.join(', ') }}
-                </span>
-                <ng-template #unassigned>Unassigned</ng-template>
-              </td>
+
+              <td>{{ task.startDate | date: 'short' }}</td>
               <td>{{ task.dueDate | date: 'short' }}</td>
               <td>
-                <span
-                  class="badge rounded-pill"
-                  [ngClass]="getStatusClass(task.status)"
-                >
+                <span class="badge rounded-pill" [ngClass]="getStatusClass(task.status)">
                   {{ task.status }}
                 </span>
               </td>
               <td class="text-center">
-                <button
-                  class="btn btn-sm btn-outline-primary me-1"
-                  (click)="viewTaskDetails(task.taskId)"
-                >
+                <button class="btn btn-sm btn-outline-primary me-1" (click)="viewTaskDetails(task.taskId)">
                   View
                 </button>
-                <button
-                  class="btn btn-sm btn-outline-danger"
-                  (click)="deleteTask($event, task.taskId)"
-                >
-                  Delete
-                </button>
+
+               
+                  <button *ngIf="task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"  class="btn btn-sm btn-outline-danger" (click)="deleteTask($event, task.taskId)">
+                    Delete
+                  </button>
               </td>
             </tr>
           </tbody>
@@ -124,35 +135,43 @@
       <div class="d-md-none" *ngIf="!loading && paginatedTasks?.length">
         <div class="row g-3">
           <div class="col-12" *ngFor="let task of paginatedTasks">
-            <div
-              class="clickable-card p-3 shadow-sm rounded-3 bg-light"
-              (click)="viewTaskDetails(task.taskId)"
-            >
-              <div
-                class="d-flex justify-content-between align-items-center mb-2"
-              >
+            <div class="clickable-card p-3 shadow-sm rounded-3 bg-light" (click)="viewTaskDetails(task.taskId)">
+              <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="fw-bold mb-0">{{ task.title }}</h6>
-                <span
-                  class="badge rounded-pill"
-                  [ngClass]="getStatusClass(task.status)"
-                >
+                <span class="badge rounded-pill" [ngClass]="getStatusClass(task.status)">
                   {{ task.status }}
                 </span>
               </div>
+
+              <!-- ✅ Same combined logic for mobile -->
               <p class="mb-1">
-                <strong>Departments:</strong>
-                <span *ngIf="task.departmentNames?.length; else noDeptM">
-                  {{ task.departmentNames?.join(', ') }}
-                </span>
-                <ng-template #noDeptM>—</ng-template>
+                <strong>Department & Users:</strong>
+                <ng-container *ngIf="task.departmentNames && task.assignedToNames; else noDeptOrUserM">
+
+                  <ng-container *ngIf="task.departmentNames.length > 1 && task.assignedToNames.length > 1">
+                    Multiple departments and users — click View for details.
+                  </ng-container>
+
+                  <ng-container *ngIf="task.departmentNames.length > 1 && task.assignedToNames.length <= 1">
+                    Multiple departments — click View for details.
+                  </ng-container>
+
+                  <ng-container *ngIf="task.departmentNames.length === 1 && task.assignedToNames.length > 1">
+                    {{ task.departmentNames[0] }} — multiple assignees, click View for details.
+                  </ng-container>
+
+                  <ng-container *ngIf="task.departmentNames.length === 1 && task.assignedToNames.length === 1">
+                    {{ task.departmentNames[0] }} — {{ task.assignedToNames[0] }}
+                  </ng-container>
+
+                  <ng-container *ngIf="task.departmentNames.length === 1 && (!task.assignedToNames.length)">
+                    {{ task.departmentNames[0] }} — Unassigned
+                  </ng-container>
+
+                </ng-container>
+                <ng-template #noDeptOrUserM>—</ng-template>
               </p>
-              <p class="mb-1">
-                <strong>Assigned To:</strong>
-                <span *ngIf="task.assignedToNames?.length; else unassignedM">
-                  {{ task.assignedToNames?.join(', ') }}
-                </span>
-                <ng-template #unassignedM>Unassigned</ng-template>
-              </p>
+
               <p class="mb-1">
                 <strong>Due:</strong> {{ task.dueDate | date: 'short' }}
               </p>
@@ -162,10 +181,7 @@
       </div>
 
       <!-- No Tasks -->
-      <div
-        *ngIf="!loading && !paginatedTasks?.length"
-        class="text-center text-muted mt-4"
-      >
+      <div *ngIf="!loading && !paginatedTasks?.length" class="text-center text-muted mt-4">
         No tasks found.
       </div>
 
@@ -175,11 +191,7 @@
           <li class="page-item" [class.disabled]="currentPage === 1">
             <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
           </li>
-          <li
-            class="page-item"
-            *ngFor="let page of getPageNumbers()"
-            [class.active]="currentPage === page"
-          >
+          <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="currentPage === page">
             <a class="page-link" (click)="changePage(page)">{{ page }}</a>
           </li>
           <li class="page-item" [class.disabled]="currentPage === totalPages">
@@ -187,7 +199,11 @@
           </li>
         </ul>
       </nav>
+      <button class="btn btn-outline-secondary mb-3" (click)="goBackToDashboard()">
+        ← Back to Dashboard
+      </button>
 
     </div>
+
   </div>
 </div>
