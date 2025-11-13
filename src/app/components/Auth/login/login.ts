@@ -8,6 +8,7 @@ import { JWTResponseDTO } from '../../../Model/jwtresponse-dto';
 import { LoginRequestDTO } from '../../../Model/login-request-dto';
 import { HttpErrorResponse } from '@angular/common/http';
 import { JwtService } from '../../../Services/jwt-service';
+import { NotificationService } from '../../../Services/notification-service';
 
 @Component({
   selector: 'app-login',
@@ -27,7 +28,8 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthApiService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private notificationService:NotificationService
   ) {
     this.loginForm = this.fb.group({
       emailOrUsername: ['', [Validators.required]],
@@ -92,8 +94,9 @@ export class LoginComponent implements OnInit {
       if (response) {
         localStorage.setItem('accessToken', response.accessToken);
         localStorage.setItem('refreshToken', response.refreshToken); // Ensure saved
-        localStorage.setItem('user', JSON.stringify(response));
+        // localStorage.setItem('user', JSON.stringify(response));
         this.authService['loggedIn'].next(true); // Better: use public method if possible
+this.notificationService.init();
 
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', emailOrUsername);
