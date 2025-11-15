@@ -8,7 +8,22 @@
   .body{
     padding-top: 56px;
   }
-  
+  .narration {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #6c757d;
+  font-style: normal;
+}
+
+.narration em {
+  color: #495057;
+  font-style: italic;
+}
+
+.narration strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
   .progress {
     border-radius: 50px;
     background-color: #e9ecef;

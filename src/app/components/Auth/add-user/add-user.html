@@ -1,3 +1,4 @@
+<br><br>
 <div class="container my-5">
   <div class="card shadow rounded-4 border-0">
     <div class="card-header text-white text-center p-4 table_head">
@@ -22,6 +23,10 @@
           <div class="col-md-6">
             <label class="form-label">Username</label>
             <input type="text" class="form-control" formControlName="username" placeholder="e.g. john_doe">
+            <small class="text-muted d-block mt-1 narration">
+              Choose a unique username (3–80 characters). Only letters, numbers, dots, underscores, and hyphens are
+              allowed.
+            </small>
           </div>
 
           <!-- Email + OTP -->
@@ -31,9 +36,12 @@
               <input type="email" class="form-control" formControlName="email" [readonly]="otpValidated"
                 [ngClass]="{'bg-light': otpValidated}" placeholder="e.g. john@example.com">
               <button type="button" class="btn btn-outline-primary" (click)="sendOtp()" [disabled]="otpValidated">
-                {{ otpValidated ? 'Verified ✅' : 'Send OTP' }}
+                {{ otpValidated ? 'Verified' : 'Send OTP' }}
               </button>
             </div>
+            <small class="text-muted d-block mt-1 narration">
+              A valid email is required. We'll send a secure OTP to verify ownership.
+            </small>
           </div>
 
           <!-- OTP Input -->
@@ -41,15 +49,21 @@
             <label class="form-label">Enter OTP</label>
             <div class="input-group">
               <input type="text" class="form-control" [(ngModel)]="otpInput" [ngModelOptions]="{standalone: true}"
-                placeholder="Enter OTP">
+                placeholder="Enter 6-digit OTP">
               <button type="button" class="btn btn-outline-success" (click)="verifyOtp()">Verify</button>
             </div>
+            <small class="text-muted d-block mt-1 narration">
+              Check your inbox (and spam) for the 6-digit code. It expires in 10 minutes.
+            </small>
           </div>
 
           <!-- Full Name -->
           <div class="col-md-6">
             <label class="form-label">Full Name</label>
             <input type="text" class="form-control" formControlName="fullName" placeholder="e.g. John Doe">
+            <small class="text-muted d-block mt-1 narration">
+              Enter the user's complete name using only letters and spaces (2–80 characters).
+            </small>
           </div>
 
           <!-- Password -->
@@ -57,20 +71,21 @@
             <label class="form-label">Password</label>
             <div class="input-group">
               <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password"
-                placeholder="Enter strong password ">
-              
-              <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()" tabindex="-1">
+                placeholder="Create a strong password">
+              <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()"
+                tabindex="-1">
                 <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </button>
-                <small id="password-hint" class="password-narration">
-            Password must contain min 8 char including 1 capital letter, 1 small letter, 1 special char, and 1 number.
-        </small>
             </div>
+            <small class="text-muted d-block mt-1 narration">
+              Minimum 8 characters: include at least <strong>1 uppercase</strong>, <strong>1 lowercase</strong>,
+              <strong>1 number</strong>, and <strong>1 special character</strong> (@#$%^&+=!).
+            </small>
             <div class="progress mt-2" style="height: 6px;">
               <div class="progress-bar" [style.width.%]="passwordStrength.score"
                 [style.backgroundColor]="passwordStrength.color"></div>
             </div>
-            <small class="text-muted">{{ passwordStrength.label }} password</small>
+            <small class="text-muted d-block">{{ passwordStrength.label }} password</small>
           </div>
 
           <!-- Role -->
@@ -80,14 +95,12 @@
               <option value="" disabled selected>Select Role</option>
               <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
             </select>
+            <small class="text-muted d-block mt-1 narration">
+              Select the appropriate role. <br>
+              <em>• HOD: Manages one department</em><br>
+              <em>• TEACHER: Can be assigned to multiple departments</em>
+            </small>
           </div>
-
-          <!-- Search Departments -->
-          <!-- <div class="col-12">
-            <label class="form-label fw-semibold">Search Departments</label>
-            <input type="text" class="form-control mb-3" placeholder="Search department..."
-              [(ngModel)]="searchQuery" name="searchQuery">
-          </div> -->
 
           <!-- Department List -->
           <div class="col-12">
@@ -96,14 +109,17 @@
               <div *ngFor="let dept of filteredDepartments()" class="form-check mb-2">
                 <input type="checkbox" class="form-check-input" [id]="'dept-' + dept.departmentId"
                   [checked]="selectedDepartments.includes(dept.departmentId)"
-                  (change)="updateDepartmentSelection($event, dept.departmentId)"
-                  [disabled]="isDeptDisabled(dept)">
+                  (change)="updateDepartmentSelection($event, dept.departmentId)" [disabled]="isDeptDisabled(dept)">
                 <label class="form-check-label" [for]="'dept-' + dept.departmentId">
                   {{ dept.name }}
                   <span *ngIf="isDeptDisabled(dept)" class="text-muted small">(Not allowed)</span>
                 </label>
               </div>
             </div>
+            <small class="text-muted d-block mt-2 narration">
+              Assign relevant departments based on the selected role.
+              HODs can manage only <strong>one department</strong>.
+            </small>
           </div>
         </div>
 
