@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { DepartmentApiService } from '../../../Services/department-api-service';
+import { AuthApiService } from '../../../Services/auth-api-service';
 
 @Component({
   selector: 'app-add-user',
@@ -38,7 +39,8 @@ export class AddUserComponent implements OnInit {
     private departmentApiService: DepartmentApiService,
     private apiService: ApiService,
     private userApiService: UserApiService,
-    private router: Router
+    private router: Router,
+    private authApiService: AuthApiService
   ) {
     this.userForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(80), Validators.pattern(/^[a-zA-Z0-9._-]+$/)]],
@@ -190,6 +192,7 @@ export class AddUserComponent implements OnInit {
         this.otpInput = '';
         this.verifiedEmail = null;
         this.isSubmitting = false;
+        this.authApiService.goToDashboard();
       },
       error: (err) => {
         this.isSubmitting = false;
@@ -199,6 +202,6 @@ export class AddUserComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/dashboard']);
+   this.authApiService.goToDashboard();
   }
 }

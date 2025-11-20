@@ -18,6 +18,7 @@ import { UserApiService } from '../../../Services/UserApiService';
 import { userDto } from '../../../Model/userDto';
 import { TaskDto } from '../../../Model/TaskDto';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthApiService } from '../../../Services/auth-api-service';
 
 interface TaskFormControls {
   title: any;
@@ -47,7 +48,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   usersByDepartment: Map<number, userDto[]> = new Map();
   filteredUsersByDept: Map<number, userDto[]> = new Map();
   selectedUsersByDeptObj: Record<number, number[]> = {};
-  statuses = ["UPCOMING","PENDING"];
+  statuses = ["UPCOMING", "PENDING"];
   currentUser: userDto | null = null;
 
   // UI States
@@ -77,7 +78,9 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     private departmentService: DepartmentApiService,
     private userService: UserApiService,
     private jwtService: JwtService,
-    private router: Router
+    private router: Router,
+    private authApiService: AuthApiService
+
   ) {
     this.initForm();
   }
@@ -434,16 +437,16 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
     return { valid: true };
   }
-focusInput(event: MouseEvent, inputEl: HTMLInputElement): void {
+  focusInput(event: MouseEvent, inputEl: HTMLInputElement): void {
     // Prevent the click from bubbling to the native picker twice
     event.preventDefault();
     inputEl.focus();
     // For some browsers you also need to programmatically open the picker:
     inputEl.showPicker?.();   // Chrome/Edge/Firefox (2025+)
   }
-get dueDateCtrl()   { return this.taskForm.get('dueDate') as FormControl; }
+  get dueDateCtrl() { return this.taskForm.get('dueDate') as FormControl; }
   get startDateCtrl() { return this.taskForm.get('startDate') as FormControl; }
-onStartDateChange(): void {
+  onStartDateChange(): void {
     const { startDate, dueDate, status } = this.taskForm.value;
     const validation = this.validateDatesClientSide(startDate, dueDate, status);
     this.startDateErrorMessage = validation.valid ? null : validation.msg!;
@@ -503,6 +506,7 @@ onStartDateChange(): void {
       next: (response: ApiResponse<TaskDto>) => {
         this.successMessage = response.message || 'Task created successfully!';
         this.isSubmitting = false;
+        this.authApiService.goToDashboard();
 
         setTimeout(() => {
           this.resetForm();
@@ -574,6 +578,6 @@ onStartDateChange(): void {
   }
 
   cancel(): void {
-    this.router.navigate(['/dashboard']);
+    this.authApiService.goToDashboard();
   }
 }

@@ -4,6 +4,7 @@ import {
   OnInit,
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -23,7 +24,7 @@ import { DepartmentApiService } from '../../../Services/department-api-service';
 import { JwtService } from '../../../Services/jwt-service';
 import { TaskDto } from '../../../Model/TaskDto';
 
-interface TaskFormControls  {
+interface TaskFormControls {
   title: any;
   description: any;
   status: any;
@@ -79,7 +80,6 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   /* ---------- DEFERRED ASSIGNED USERS ---------- */
   private _deferredAssignedUserIds: number[] = [];
 
-  /* ---------- CONSTRUCTOR ---------- */
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -87,13 +87,14 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     private taskService: TaskApiService,
     private departmentService: DepartmentApiService,
     private userService: UserApiService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private cdr: ChangeDetectorRef  // ← Required for OnPush
   ) {
     this.initForm();
   }
 
   /* ---------- GETTERS ---------- */
-  get f() {return this.taskForm.controls as unknown as TaskFormControls; }
+  get f() { return this.taskForm.controls as unknown as TaskFormControls; }
   get dueDateCtrl() { return this.taskForm.get('dueDate') as FormControl; }
   get startDateCtrl() { return this.taskForm.get('startDate') as FormControl; }
 
@@ -109,10 +110,10 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       this.loadCurrentUserAndTask();
     });
 
-    // Assign-to-self listener
     this.taskForm.get('assignToSelf')?.valueChanges.subscribe((v) => {
       if (v && this.currentUser) this.assignToSelfLogic();
       else this.clearAssignToSelfLogic();
+      this.cdr.markForCheck();
     });
   }
 
@@ -126,14 +127,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   /* ---------- FORM SETUP ---------- */
   private initForm(): void {
     this.taskForm = this.fb.group({
-      title: [
-        '',
-        [
-          Validators.required,
-          Validators.maxLength(255),
-          Validators.pattern(/^[a-zA-Z0-9\s]+$/),
-        ],
-      ],
+      title: ['', [Validators.required, Validators.maxLength(255), Validators.pattern(/^[a-zA-Z0-9\s]+$/)]],
       description: ['', [Validators.maxLength(2000)]],
       status: [null, Validators.required],
       startDate: [''],
@@ -143,26 +137,30 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       assignToSelf: [false],
     });
 
-    this.taskForm
-      .get('departmentIds')
-      ?.valueChanges.subscribe(() => {
-        this.updateFilteredUsers();
-        this.expandFirstAccordion();
-      });
+    this.taskForm.get('departmentIds')?.valueChanges.subscribe(() => {
+      this.updateFilteredUsers();
+      this.expandFirstAccordion();
+      this.cdr.markForCheck();
+    });
 
     this.taskForm.get('status')?.valueChanges.subscribe((s) => {
-      if (s !== 'UPCOMING') this.taskForm.patchValue({ startDate: '' });
+      if (s !== 'UPCOMING') {
+        this.taskForm.patchValue({ startDate: '' });
+        this.cdr.markForCheck();
+      }
     });
   }
 
   /* ---------- LOAD USER + TASK ---------- */
   private loadCurrentUserAndTask(): void {
     this.isLoadingTask = true;
+    this.cdr.markForCheck();
 
     const token = this.jwtService.getAccessToken();
     if (!token) {
       this.errorMessage = 'Authentication required.';
       this.isLoadingTask = false;
+      this.cdr.markForCheck();
       return;
     }
 
@@ -170,6 +168,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     if (!userId) {
       this.errorMessage = 'Invalid token - no user ID.';
       this.isLoadingTask = false;
+      this.cdr.markForCheck();
       return;
     }
 
@@ -177,10 +176,12 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       next: (user) => {
         this.currentUser = user;
         this.loadTask();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.errorMessage = 'Failed to load current user.';
         this.isLoadingTask = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -196,22 +197,19 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
           this.router.navigate(['/view-tasks']);
         }
         this.isLoadingTask = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.errorMessage = 'Failed to load task.';
         this.isLoadingTask = false;
+        this.cdr.markForCheck();
       },
     });
   }
 
-  /** Fill form + defer assigned users */
   private populateForm(task: TaskDto): void {
-    const start = task.startDate
-      ? new Date(task.startDate).toISOString().split('T')[0]
-      : '';
-    const due = task.dueDate
-      ? new Date(task.dueDate).toISOString().split('T')[0]
-      : '';
+    const start = task.startDate ? new Date(task.startDate).toISOString().split('T')[0] : '';
+    const due = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
 
     this.taskForm.patchValue({
       title: task.title,
@@ -224,16 +222,24 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
 
     this._deferredAssignedUserIds = task.assignedToIds ?? [];
 
-    if (this.currentUser && this._deferredAssignedUserIds.includes(this.currentUser.userId)) {
+    if (
+      this.currentUser &&
+      task.assignedToIds &&
+      task.assignedToIds.length === 1 &&
+      task.assignedToIds[0] === this.currentUser.userId
+    ) {
       this.taskForm.patchValue({ assignToSelf: true });
     }
 
     this.dateErrorMessage = null;
+    this.cdr.markForCheck();
   }
 
-  /* ---------- DEPARTMENTS ---------- */
+  /* ---------- DEPARTMENTS & USERS ---------- */
   private loadDepartments(): void {
     this.isLoadingDepartments = true;
+    this.cdr.markForCheck();
+
     this.departmentService.getAllDepartments().subscribe({
       next: (depts) => {
         let filtered = depts;
@@ -247,17 +253,20 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
         this.isLoadingDepartments = false;
         this.onDeptSearch();
         this.loadUsers();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.errorMessage = 'Failed to load departments.';
         this.isLoadingDepartments = false;
+        this.cdr.markForCheck();
       },
     });
   }
 
-  /* ---------- USERS + PRE-CHECK ASSIGNED ---------- */
   private loadUsers(): void {
     this.isLoadingUsers = true;
+    this.cdr.markForCheck();
+
     this.userService.getAllUsers().subscribe({
       next: (allUsers) => {
         const active = allUsers.filter((u) => u.status === 'ACTIVE');
@@ -275,53 +284,53 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
 
         this.isLoadingUsers = false;
 
-        // Now pre-check assigned users
-        this.preCheckAssignedUsers();
-
+        this.applyDeferredUserAssignments();
         this.updateSelectAllStates();
-        this.updateFilteredUsers();
         this.expandFirstAccordion();
-
-        // Re-validate dates
         this.onDueDateChange();
+
+        this.cdr.markForCheck(); // Critical: UI updates now
       },
       error: () => {
         this.errorMessage = 'Failed to load users.';
         this.isLoadingUsers = false;
+        this.cdr.markForCheck();
       },
     });
   }
 
-  private preCheckAssignedUsers(): void {
-    const assigned = this._deferredAssignedUserIds;
-    if (!assigned.length) return;
+  private applyDeferredUserAssignments(): void {
+    if (this._deferredAssignedUserIds.length === 0) return;
 
     this.selectedUsersByDeptObj = {};
 
-    assigned.forEach((uid) => {
+    this._deferredAssignedUserIds.forEach((userId) => {
       for (const [deptId, users] of this.usersByDepartment.entries()) {
-        if (users.some((u) => u.userId === uid)) {
-          if (!this.selectedUsersByDeptObj[deptId]) {
-            this.selectedUsersByDeptObj[deptId] = [];
-          }
-          if (!this.selectedUsersByDeptObj[deptId].includes(uid)) {
-            this.selectedUsersByDeptObj[deptId].push(uid);
+        if (users.some(u => u.userId === userId)) {
+          if (!this.selectedUsersByDeptObj[deptId]) this.selectedUsersByDeptObj[deptId] = [];
+          if (!this.selectedUsersByDeptObj[deptId].includes(userId)) {
+            this.selectedUsersByDeptObj[deptId].push(userId);
           }
         }
       }
     });
 
     this.updateAssignedToIds();
+    this.updateFilteredUsers();
+    this.updateSelectAllStates();
     this._deferredAssignedUserIds = [];
+
+    this.cdr.markForCheck();
   }
 
-  /* ---------- SEARCH ---------- */
+  /* ---------- SEARCH & SELECTION ---------- */
   onDeptSearch(): void {
     const q = this.deptSearch.toLowerCase().trim();
     this.filteredDepartments = this.departments.filter((d) =>
       d.name.toLowerCase().includes(q)
     );
     this.updateSelectAllDepts();
+    this.cdr.markForCheck();
   }
 
   clearDeptSearch(): void {
@@ -332,13 +341,12 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   onUserSearch(deptId: number): void {
     const q = (this.userSearchByDept[deptId] ?? '').toLowerCase().trim();
     const all = this.usersByDepartment.get(deptId) ?? [];
-    const filtered = all.filter(
-      (u) =>
-        u.fullName.toLowerCase().includes(q) ||
-        u.username.toLowerCase().includes(q)
+    const filtered = all.filter(u =>
+      u.fullName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)
     );
     this.filteredUsersByDept.set(deptId, filtered);
     this.updateSelectAllUsersForDept(deptId);
+    this.cdr.markForCheck();
   }
 
   clearUserSearch(deptId: number): void {
@@ -346,62 +354,55 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     this.onUserSearch(deptId);
   }
 
-  /* ---------- SELECT-ALL ---------- */
   toggleSelectAllDepts(): void {
     this.selectAllDepts = !this.selectAllDepts;
-    const ids = this.selectAllDepts
-      ? this.filteredDepartments.map((d) => d.departmentId)
-      : [];
-
+    const ids = this.selectAllDepts ? this.filteredDepartments.map(d => d.departmentId) : [];
     this.taskForm.patchValue({ departmentIds: ids });
     if (!this.selectAllDepts) this.selectedUsersByDeptObj = {};
     this.updateAssignedToIds();
     this.updateFilteredUsers();
+    this.cdr.markForCheck();
   }
 
   toggleSelectAllUsers(deptId: number): void {
     const users = this.filteredUsersByDept.get(deptId) ?? [];
-    const enabled = users.filter((u) => !this.isUserSelectionDisabled(u));
+    const enabled = users.filter(u => !this.isUserSelectionDisabled(u));
     const selected = this.selectedUsersByDeptObj[deptId] ?? [];
-    const allSelected = enabled.every((u) => selected.includes(u.userId));
+    const allSelected = enabled.every(u => selected.includes(u.userId));
 
-    this.selectedUsersByDeptObj[deptId] = allSelected
-      ? []
-      : enabled.map((u) => u.userId);
-
+    this.selectedUsersByDeptObj[deptId] = allSelected ? [] : enabled.map(u => u.userId);
     this.updateAssignedToIds();
     this.updateSelectAllUsersForDept(deptId);
+    this.cdr.markForCheck();
   }
 
-  /* ---------- SELECTION ---------- */
   updateDepartmentSelection(deptId: number, checked: boolean): void {
     if (this.taskForm.value.assignToSelf) return;
 
     let ids = [...this.taskForm.value.departmentIds];
     if (checked && !ids.includes(deptId)) ids.push(deptId);
     else if (!checked) {
-      ids = ids.filter((id) => id !== deptId);
+      ids = ids.filter(id => id !== deptId);
       delete this.selectedUsersByDeptObj[deptId];
     }
     this.taskForm.patchValue({ departmentIds: ids });
     this.updateAssignedToIds();
     this.updateSelectAllDepts();
+    this.cdr.markForCheck();
   }
 
   updateUserSelection(deptId: number, userId: number, checked: boolean): void {
-    if (this.taskForm.value.assignToSelf && userId !== this.currentUser?.userId)
-      return;
+    if (this.taskForm.value.assignToSelf && userId !== this.currentUser?.userId) return;
 
     this.selectedUsersByDeptObj[deptId] ??= [];
     if (checked && !this.selectedUsersByDeptObj[deptId].includes(userId)) {
       this.selectedUsersByDeptObj[deptId].push(userId);
     } else if (!checked) {
-      this.selectedUsersByDeptObj[deptId] = this.selectedUsersByDeptObj[deptId].filter(
-        (id) => id !== userId
-      );
+      this.selectedUsersByDeptObj[deptId] = this.selectedUsersByDeptObj[deptId].filter(id => id !== userId);
     }
     this.updateAssignedToIds();
     this.updateSelectAllUsersForDept(deptId);
+    this.cdr.markForCheck();
   }
 
   private updateAssignedToIds(): void {
@@ -411,22 +412,20 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
 
   private updateSelectAllDepts(): void {
     const sel = this.taskForm.value.departmentIds;
-    this.selectAllDepts =
-      this.filteredDepartments.length > 0 &&
-      this.filteredDepartments.every((d) => sel.includes(d.departmentId));
+    this.selectAllDepts = this.filteredDepartments.length > 0 &&
+      this.filteredDepartments.every(d => sel.includes(d.departmentId));
   }
 
   private updateSelectAllUsersForDept(deptId: number): void {
     const users = this.filteredUsersByDept.get(deptId) ?? [];
     const sel = this.selectedUsersByDeptObj[deptId] ?? [];
-    const enabled = users.filter((u) => !this.isUserSelectionDisabled(u));
-    this.selectAllUsersByDept[deptId] =
-      enabled.length > 0 && enabled.every((u) => sel.includes(u.userId));
+    const enabled = users.filter(u => !this.isUserSelectionDisabled(u));
+    this.selectAllUsersByDept[deptId] = enabled.length > 0 && enabled.every(u => sel.includes(u.userId));
   }
 
   private updateFilteredUsers(): void {
     const ids = this.taskForm.value.departmentIds as number[];
-    ids.forEach((id) => {
+    ids.forEach(id => {
       if (!this.filteredUsersByDept.has(id)) {
         const users = this.usersByDepartment.get(id) ?? [];
         this.filteredUsersByDept.set(id, [...users]);
@@ -437,29 +436,24 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
 
   private updateSelectAllStates(): void {
     this.updateSelectAllDepts();
-    (this.taskForm.value.departmentIds as number[]).forEach((id) =>
-      this.updateSelectAllUsersForDept(id)
-    );
+    (this.taskForm.value.departmentIds as number[]).forEach(id => this.updateSelectAllUsersForDept(id));
   }
 
   private expandFirstAccordion(): void {
     setTimeout(() => {
       const first = (this.taskForm.value.departmentIds as number[])[0];
       if (first) {
-        const btn = document.querySelector(
-          `[data-bs-target="#collapse-${first}"]`
-        ) as HTMLElement;
+        const btn = document.querySelector(`[data-bs-target="#collapse-${first}"]`) as HTMLElement;
         btn?.click();
       }
     }, 100);
   }
 
-  /* ---------- USER DISABLE LOGIC ---------- */
   isUserSelectionDisabled(user: userDto): boolean {
     if (!this.currentUser) return true;
     if (this.currentUser.role === 'ADMIN') return false;
     if (this.currentUser.role === 'HOD') {
-      const sameDept = user.departmentIds?.some((id) =>
+      const sameDept = user.departmentIds?.some(id =>
         this.currentUser?.departmentIds?.includes(id)
       );
       return !(user.userId === this.currentUser.userId || sameDept);
@@ -467,7 +461,6 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     return true;
   }
 
-  /* ---------- ASSIGN-TO-SELF ---------- */
   private assignToSelfLogic(): void {
     if (!this.currentUser) return;
     const myDepts = this.currentUser.departmentIds ?? [];
@@ -475,32 +468,31 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
 
     this.taskForm.patchValue({ departmentIds: myDepts });
     this.selectedUsersByDeptObj = {};
-    myDepts.forEach((id) => (this.selectedUsersByDeptObj[id] = [myId]));
+    myDepts.forEach(id => (this.selectedUsersByDeptObj[id] = [myId]));
     this.updateAssignedToIds();
     this.updateSelectAllStates();
     this.expandFirstAccordion();
+    this.cdr.markForCheck();
   }
 
   private clearAssignToSelfLogic(): void {
     this.selectedUsersByDeptObj = {};
     this.updateAssignedToIds();
-    Object.keys(this.selectAllUsersByDept).forEach(
-      (k) => (this.selectAllUsersByDept[+k] = false)
-    );
+    Object.keys(this.selectAllUsersByDept).forEach(k => (this.selectAllUsersByDept[+k] = false));
+    this.cdr.markForCheck();
   }
 
   /* ---------- DATE VALIDATION ---------- */
   private validateDates(start: string | null, due: string): { valid: boolean; msg?: string } {
-    // if (!due) return { valid: false, msg: 'Due date is required.' };
-    // const d = new Date(due);
-    // const today = new Date(this.minDate);
-    // if (d < today) return { valid: false, msg: 'Due date cannot be in the past.' };
-
-    // if (start) {
-    //   const s = new Date(start);
-    //   if (s >= d) return { valid: false, msg: 'Start date must be before Due date.' };
-    //   if (s < today) return { valid: false, msg: 'Start date cannot be in the past.' };
-    // }
+    if (!due) return { valid: false, msg: 'Due date is required.' };
+    const d = new Date(due);
+    const today = new Date(this.minDate);
+    if (d < today) return { valid: false, msg: 'Due date cannot be in the past.' };
+    if (start) {
+      // const s = new Date(start);
+      // if (s >= d) return { valid: false, msg: 'Start date must be before Due date.' };
+      // if (s < today) return { valid: false, msg: 'Start date cannot be in the past.' };
+    }
     return { valid: true };
   }
 
@@ -508,31 +500,28 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     const { startDate, dueDate } = this.taskForm.value;
     const v = this.validateDates(startDate, dueDate);
     this.dateErrorMessage = v.valid ? null : v.msg!;
+    this.cdr.markForCheck();
   }
 
   onDueDateChange(): void {
     const { startDate, dueDate } = this.taskForm.value;
     const v = this.validateDates(startDate, dueDate);
     this.dateErrorMessage = v.valid ? null : v.msg!;
+    this.cdr.markForCheck();
   }
 
-  /* ---------- CLICK ANYWHERE → OPEN CALENDAR ---------- */
   focusInput(event: MouseEvent, inputEl: HTMLInputElement): void {
     event.preventDefault();
     inputEl.focus();
     inputEl.showPicker?.();
   }
 
-  /* ---------- HELPERS ---------- */
   getDepartmentName(id: number): string {
-    return this.departments.find((d) => d.departmentId === id)?.name ?? `Dept ${id}`;
+    return this.departments.find(d => d.departmentId === id)?.name ?? `Dept ${id}`;
   }
 
   getDepartmentNames(ids: number[]): string {
-    return ids
-      .map((id) => this.getDepartmentName(id))
-      .filter(Boolean)
-      .join(', ');
+    return ids.map(id => this.getDepartmentName(id)).filter(Boolean).join(', ');
   }
 
   /* ---------- SUBMIT ---------- */
@@ -540,6 +529,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     if (this.taskForm.invalid) {
       this.taskForm.markAllAsTouched();
       this.errorMessage = 'Please fill all required fields correctly.';
+      this.cdr.markForCheck();
       return;
     }
 
@@ -547,12 +537,13 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     const v = this.validateDates(startDate, dueDate);
     if (!v.valid) {
       this.dateErrorMessage = v.msg!;
+      this.cdr.markForCheck();
       return;
     }
 
     const payload = {
       ...this.taskForm.value,
-      startDate: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
+      startDate: startDate ? new Date(startDate).toISOString() : null,
       dueDate: new Date(dueDate).toISOString(),
       departmentIds: this.taskForm.value.departmentIds,
       assignedToIds: this.taskForm.value.assignedToIds,
@@ -560,19 +551,23 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     };
 
     this.isSubmitting = true;
+    this.cdr.markForCheck();
+
     this.taskService.updateTask(this.taskId, payload).subscribe({
       next: () => {
         this.successMessage = 'Task updated successfully!';
-        setTimeout(() => this.router.navigate(['/task',this.taskId]), 1500);
+        this.cdr.markForCheck();
+        setTimeout(() => this.router.navigate(['/task', this.taskId]), 1500);
       },
       error: (err) => {
         this.errorMessage = err?.error?.message || 'Failed to update task.';
         this.isSubmitting = false;
+        this.cdr.markForCheck();
       },
     });
   }
 
   cancel(): void {
-    this.router.navigate(['/task',this.taskId]);
+    this.router.navigate(['/task', this.taskId]);
   }
 }

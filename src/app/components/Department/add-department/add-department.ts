@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
 import { Department } from '../../../Model/department';
 import { DepartmentApiService } from '../../../Services/department-api-service';
+import { AuthApiService } from '../../../Services/auth-api-service';
 
 @Component({
   selector: 'app-add-department',
@@ -22,7 +23,8 @@ export class AddDepartmentComponent {
   constructor(
     private fb: FormBuilder,
     private apiService: DepartmentApiService,
-    private router: Router
+    private router: Router,
+    private authApiService: AuthApiService
   ) {
     this.departmentForm = this.fb.group({
       name: [
@@ -59,6 +61,8 @@ export class AddDepartmentComponent {
         this.isSubmitting = false;
         this.successMessage = '✅ Department created successfully!';
         this.departmentForm.reset();
+        this.authApiService.goToDashboard();
+
       },
       error: (err) => {
         console.error('Error creating department:', err);
@@ -69,6 +73,6 @@ export class AddDepartmentComponent {
   }
 
   cancel(): void {
-    this.router.navigate(['/admin/departments']);
+    this.authApiService.goToDashboard();
   }
 }
