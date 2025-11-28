@@ -101,8 +101,12 @@ export class AdminDashboard implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.authService.logout();
-  }
+  const refreshToken = this.authService.getRefreshToken() ?? undefined; // normalize null to undefined
+  this.authService.logout(refreshToken).subscribe({
+    next: () => this.router.navigate(['/login']),
+    error: () => this.router.navigate(['/login']) // still redirect
+  });
+}
 
   /** ✅ Dashboard Navigation with Token Validation */
   dashboard(): void {
@@ -159,9 +163,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
   }
 
   /** ✅ Update Chart Data Dynamically */
-  private updateCharts(data: DashboardDto): void {
+    private updateCharts(data: DashboardDto): void {
     this.pieChartData = {
-      labels: ['Pending', 'Completed', 'Delayed', 'Extended', 'Upcomming'],
+      labels: ['Pending', 'Completed', 'Delayed', 'Extended', 'Upcomming','Active'],
       datasets: [
         {
           data: [
@@ -169,9 +173,11 @@ export class AdminDashboard implements OnInit, OnDestroy {
             data.completedTask ?? 0,
             data.delayedTask ?? 0,
             data.extendedTask ?? 0,
-            data.upcomingTask ?? 0
+            data.upcomingTask ?? 0,
+            data.activeTask ?? 0
           ],
-          backgroundColor: ['#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f7ff04ff']
+          backgroundColor: ['#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f7ff04ff', '#3b82f6'
+          ]
         }
       ]
     };

@@ -44,8 +44,12 @@ export class Navbar {
     this.isMenuOpen = false;
   }
 
-  logout() {
-    this.authService.logout();
-    this.closeMenu();
-  }
+ // In your logout button handler
+logout(): void {
+  const refreshToken = this.authService.getRefreshToken() ?? undefined; // normalize null to undefined
+  this.authService.logout(refreshToken).subscribe({
+    next: () => this.router.navigate(['/login']),
+    error: () => this.router.navigate(['/login']) // still redirect
+  });
+}
 }

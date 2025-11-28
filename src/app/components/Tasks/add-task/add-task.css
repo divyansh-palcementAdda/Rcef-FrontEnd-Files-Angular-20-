@@ -1,4 +1,4 @@
-/* Dark Mode Support */
+/* ====================== ROOT VARIABLES ====================== */
 :root {
   --bg: #ffffff;
   --card-bg: #f8fafc;
@@ -6,70 +6,179 @@
   --border: #e2e8f0;
   --primary: #10b981;
   --primary-light: #34d399;
+  --input-bg-light: #ffffff;
+  --input-text-light: #1e293b;
+  --input-bg-dark: #334155;
+  --input-text-dark: #f1f5f9;
+  --caret-color: #34d399;
+  --placeholder-color: #94a3b8;
 }
 
+/* ====================== DARK MODE ====================== */
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0f172a;
     --card-bg: #1e293b;
     --text: #e2e8f0;
     --border: #334155;
+    --input-bg: var(--input-bg-dark);
+    --input-text: var(--input-text-dark);
   }
-  .card-body { background: var(--card-bg) !important; }
-  .form-control, .form-select { background: #334155; color: white; border-color: #475569; }
-  .accordion-button { background: #334155; color: white; }
-  .alert-success { background: #065f46; color: #a7f3d0; border: 1px solid #0f9d58; }
+
+  /* Force background */
+  .card-body {
+    background: var(--card-bg) !important;
+  }
+
+  /* INPUTS & TEXTAREA - MAC-SAFE TEXT VISIBILITY */
+  .form-control,
+  .form-select,
+  textarea.form-control {
+    background-color: var(--input-bg) !important;
+    color: var(--input-text) !important;
+    border-color: #475569 !important;
+    -webkit-text-fill-color: var(--input-text) !important; /* Critical for Mac */
+    caret-color: var(--caret-color) !important;
+  }
+
+  /* Placeholder */
+  .form-control::placeholder,
+  textarea::placeholder {
+    color: var(--placeholder-color) !important;
+    opacity: 1;
+  }
+
+  /* Autofill fix (yellow background + white text) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: var(--input-text) !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
+    background-color: var(--input-bg) !important;
+    caret-color: var(--caret-color) !important;
+    transition: background-color 5000s ease-in-out 0s; /* Prevents flash */
+  }
+
+  /* Accordion */
+  .accordion-button {
+    background: #334155 !important;
+    color: white !important;
+  }
+
+  .accordion-button:not(.collapsed) {
+    background: linear-gradient(135deg, #10b981, #34d399) !important;
+    color: white !important;
+    box-shadow: none;
+  }
+
+  /* Alerts */
+  .alert-success {
+    background: #065f46 !important;
+    color: #a7f3d0 !important;
+    border: 1px solid #0f9d58 !important;
+  }
 }
 
-/* Gradient Header */
+/* ====================== GRADIENT HEADER ====================== */
 .table_head {
   background: linear-gradient(135deg, #1e3a8a 0%, #10b981 50%, #34d399 100%);
   border-radius: 1.5rem 1.5rem 0 0;
   padding: 2.5rem 1.5rem;
 }
 
-/* Card */
+/* ====================== CARD ====================== */
 .card {
   border: none;
   overflow: hidden;
   background: var(--card-bg);
 }
+
 .card-body {
   background: linear-gradient(to bottom, #f8fafc, #ffffff);
   border-radius: 0 0 1.5rem 1.5rem;
 }
 
-/* Inputs */
-.form-control, .form-select {
+@media (prefers-color-scheme: dark) {
+  .card-body {
+    background: var(--card-bg) !important;
+  }
+}
+
+/* ====================== INPUTS & SELECTS ====================== */
+.form-control,
+.form-select,
+textarea.form-control {
   border: 1.5px solid var(--border);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
   transition: all 0.3s ease;
-  background: white;
-}
-.form-control:focus, .form-select:focus {
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 0.25rem rgba(52, 211, 153, 0.2);
+  background-color: var(--input-bg-light);
+  color: var(--input-text-light);
 }
 
-/* Checkboxes */
+@media (prefers-color-scheme: dark) {
+  .form-control,
+  .form-select,
+  textarea.form-control {
+    background-color: var(--input-bg-dark);
+    color: var(--input-text-dark);
+  }
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea.form-control:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 0.25rem rgba(52, 211, 153, 0.2);
+  outline: none;
+}
+
+/* ====================== CUSTOM CHECKBOXES (WITH VISIBLE CHECKMARK) ====================== */
 .custom-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
   width: 1.4rem;
   height: 1.4rem;
   border: 2.5px solid #94a3b8;
   border-radius: 0.4rem;
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
   transition: all 0.2s;
 }
+
 .custom-checkbox:checked {
   background: linear-gradient(135deg, #10b981, #34d399);
   border-color: #10b981;
 }
+
+/* Beautiful white checkmark */
+.custom-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .custom-checkbox:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* HOD Highlight */
+.custom-checkbox:disabled:checked {
+  background: #64748b;
+  border-color: #64748b;
+}
+
+/* ====================== HOD HIGHLIGHT ====================== */
 .hod-highlight {
   background: linear-gradient(135deg, #0d9488, #22d3ee);
   border-radius: 0.5rem;
@@ -79,24 +188,27 @@
   font-size: 0.85rem;
 }
 
-/* Scrollbar */
-.department-list, .max-h-48 {
+/* ====================== SCROLLBAR ====================== */
+.department-list,
+.max-h-48 {
   max-height: 240px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #34d399 #e2e8f0;
 }
+
 .department-list::-webkit-scrollbar,
 .max-h-48::-webkit-scrollbar {
   width: 6px;
 }
+
 .department-list::-webkit-scrollbar-thumb,
 .max-h-48::-webkit-scrollbar-thumb {
   background: #34d399;
   border-radius: 3px;
 }
 
-/* Buttons */
+/* ====================== BUTTONS ====================== */
 .btn-primary {
   background: linear-gradient(135deg, #10b981, #34d399);
   border: none;
@@ -105,29 +217,25 @@
   padding: 0.75rem 2rem;
   transition: all 0.3s;
 }
-.btn-primary:hover {
+
+.btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, #059669, #10b981);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
 }
 
-/* Accordion */
-.accordion-button {
-  background: #f1f5f9;
-  border-radius: 0.75rem !important;
-  font-weight: 600;
-  color: var(--text);
-}
-.accordion-button:not(.collapsed) {
-  background: linear-gradient(135deg, #10b981, #34d399);
-  color: white;
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
-/* Skeleton */
+/* ====================== SKELETON ====================== */
 @keyframes skeleton-loading {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
 .skeleton-item {
   height: 1.6rem;
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -136,18 +244,33 @@
   border-radius: 0.5rem;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .table_head { padding: 2rem 1rem; font-size: 1.5rem; }
-  .card-body { padding: 1.5rem; }
-  .btn { font-size: 0.9rem; }
+@media (prefers-color-scheme: dark) {
+  .skeleton-item {
+    background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+  }
 }
 
-/* Self-Assign Alert Animation */
-.alert-success {
-  animation: fadeIn 0.4s ease-out;
-}
+/* ====================== ANIMATIONS ====================== */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.alert-success,
+.animate_animated {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* ====================== RESPONSIVE ====================== */
+@media (max-width: 768px) {
+  .table_head {
+    padding: 2rem 1rem;
+    font-size: 1.5rem;
+  }
+  .card-body {
+    padding: 1.5rem;
+  }
+  .btn {
+    font-size: 0.9rem;
+  }
 }

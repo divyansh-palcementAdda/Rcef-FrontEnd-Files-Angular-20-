@@ -1,0 +1,46 @@
+<section class="testimonials-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        Trusted by
+        <span class="gradient-text">leading teams</span>
+      </h2>
+      <p class="section-description">
+        See what our customers have to say about their experience
+      </p>
+    </div>
+
+    <div class="testimonials-grid">
+      @for (testimonial of testimonials(); track testimonial.name; let i = $index) {
+        <div class="testimonial-card" [attr.data-testid]="'card-testimonial-' + i">
+          <div class="stars">
+            @for (star of getStars(testimonial.rating); track $index) {
+              <svg class="star-icon" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            }
+          </div>
+
+          <p class="quote" [attr.data-testid]="'text-testimonial-quote-' + i">
+            "{{ testimonial.quote }}"
+          </p>
+
+          <div class="author">
+            <div class="avatar">
+              <img [src]="testimonial.avatar" [alt]="testimonial.name" (error)="$event.target.style.display='none'" />
+              <span class="avatar-fallback">{{ getInitials(testimonial.name) }}</span>
+            </div>
+            <div class="author-info">
+              <p class="author-name" [attr.data-testid]="'text-testimonial-name-' + i">
+                {{ testimonial.name }}
+              </p>
+              <p class="author-role" [attr.data-testid]="'text-testimonial-role-' + i">
+                {{ testimonial.role }}, {{ testimonial.company }}
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

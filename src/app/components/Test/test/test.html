@@ -1,14 +1,457 @@
-<!-- refresh-token.component.html
-<br><br><br><br><br><br>
+<!-- landing-page.component.html -->
+<main class="landing-page">
+  
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-background">
+      <div class="grid-pattern"></div>
+      <div class="gradient-overlay"></div>
+    </div>
 
-<button (click)="onRefreshClick()" [disabled]="isLoading">
-  {{ isLoading ? 'Refreshing…' : 'Refresh Token' }}
-</button>
+    <div class="container">
+      <div class="hero-grid">
+        <!-- Left Content -->
+        <div class="hero-content">
+          <div class="badge-container">
+            <span class="hero-badge">
+              <span class="pulse-dot">
+                <span class="pulse-ring"></span>
+                <span class="pulse-core"></span>
+              </span>
+              Streamlined Task Reporting
+            </span>
+          </div>
 
-<div *ngIf="result" class="result">
-  <pre>{{ result | json }}</pre>
-</div>
+          <h1 class="hero-title">
+            Smart Task Management for
+            <span class="gradient-text">Smart Teams</span>
+          </h1>
 
-<div *ngIf="errorMsg" class="error">
-  {{ errorMsg }}
-</div> -->
+          <p class="hero-description">
+            Streamline your workflow with automated reporting, real-time collaboration,
+            and intelligent task distribution. Say goodbye to manual status updates and hello to productivity.
+          </p>
+
+          <div class="cta-buttons">
+            <button class="btn btn-primary" (click)="scrollToFeatures()" data-testid="button-get-started">
+              Get Started
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Image -->
+        <div class="hero-image-container">
+          <div class="image-glow"></div>
+          <div class="image-wrapper">
+            <img [src]="heroDashboardImage" alt="Dashboard Preview" data-testid="img-hero-dashboard" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="section stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        @for (stat of stats(); track stat.label; let i = $index) {
+          <div class="stat-card" [attr.data-testid]="'card-stat-' + i">
+            <div class="stat-header">
+              <div class="stat-icon-wrapper" [ngClass]="'icon-' + stat.color">
+                @if (stat.icon === 'check-circle') {
+                  <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                }
+                @if (stat.icon === 'trending-up') {
+                  <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                    <polyline points="17 6 23 6 23 12"/>
+                  </svg>
+                }
+                @if (stat.icon === 'users') {
+                  <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                }
+                @if (stat.icon === 'file-text') {
+                  <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                  </svg>
+                }
+              </div>
+              <span class="stat-trend">{{ stat.trend }}</span>
+            </div>
+            <p class="stat-label" [attr.data-testid]="'text-stat-label-' + i">{{ stat.label }}</p>
+            <p class="stat-value" [attr.data-testid]="'text-stat-value-' + i">{{ stat.value }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard Preview -->
+  <section class="section dashboard-preview-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">
+          Your command center for
+          <span class="gradient-text">productivity</span>
+        </h2>
+        <p class="section-description">
+          Get instant insights with our intuitive dashboard that puts everything you need right at your fingertips
+        </p>
+      </div>
+
+      <!-- Dashboard Image -->
+      <div class="dashboard-image-container">
+        <div class="dashboard-image-glow"></div>
+        <div class="dashboard-image-card">
+          <div class="dashboard-image-wrapper">
+            <img [src]="heroDashboardImage" alt="Dashboard Analytics Preview" data-testid="img-dashboard-preview" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Sections -->
+      <div class="progress-grid">
+        <div class="progress-section">
+          <h4 class="progress-title">Task Progress</h4>
+          @for (item of taskProgress(); track item.label) {
+            <div class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">{{ item.label }}</span>
+                <span class="progress-value">{{ item.value }}%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar" [style.width.%]="item.value"></div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="progress-section">
+          <h4 class="progress-title">Team Activity</h4>
+          @for (item of teamActivity(); track item.label) {
+            <div class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">{{ item.label }}</span>
+                <span class="progress-value">{{ item.value }}%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar" [style.width.%]="item.value"></div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="progress-section">
+          <h4 class="progress-title">Completion Rate</h4>
+          @for (item of completionRate(); track item.label) {
+            <div class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">{{ item.label }}</span>
+                <span class="progress-value">{{ item.value }}%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar" [style.width.%]="item.value"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="section features-section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">
+          Everything you need to
+          <span class="gradient-text">stay productive</span>
+        </h2>
+        <p class="section-description">
+          Powerful features designed to streamline your workflow and enhance team collaboration across all departments
+        </p>
+      </div>
+
+      <div class="features-grid">
+        @for (feature of features(); track feature.title; let i = $index) {
+          <div class="feature-card" [attr.data-testid]="'card-feature-' + i">
+            <div class="feature-icon-wrapper">
+              <!-- Check Circle Icon -->
+              @if (feature.icon === 'check-circle') {
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              }
+              <!-- Bar Chart Icon -->
+              @if (feature.icon === 'bar-chart') {
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="20" x2="12" y2="10"/>
+                  <line x1="18" y1="20" x2="18" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="16"/>
+                </svg>
+              }
+              <!-- Users Icon -->
+              @if (feature.icon === 'users') {
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              }
+              <!-- Layers Icon -->
+              @if (feature.icon === 'layers') {
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                  <polyline points="2 17 12 22 22 17"/>
+                  <polyline points="2 12 12 17 22 12"/>
+                </svg>
+              }
+              <!-- Trending Up Icon -->
+              @if (feature.icon === 'trending-up') {
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                  <polyline points="17 6 23 6 23 12"/>
+                </svg>
+              }
+              <!-- Zap Icon -->
+              @if (feature.icon === 'zap') {
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+              }
+            </div>
+            <h3 class="feature-title" [attr.data-testid]="'text-feature-title-' + i">
+              {{ feature.title }}
+            </h3>
+            <p class="feature-description" [attr.data-testid]="'text-feature-description-' + i">
+              {{ feature.description }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Section -->
+  <section class="section why-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">
+          Why
+          <span class="gradient-text">AreYouReporting</span>
+        </h2>
+        <p class="section-description">
+          Built for modern teams who demand more from their tools and expect seamless collaboration
+        </p>
+      </div>
+
+      <div class="benefits-grid">
+        @for (benefit of benefits(); track benefit.title; let i = $index) {
+          <div class="benefit-item" [attr.data-testid]="'benefit-' + i">
+            <div class="benefit-icon-wrapper">
+              <!-- Bot/Cog Icon -->
+              @if (benefit.icon === 'bot') {
+                <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              }
+              <!-- Eye Icon -->
+              @if (benefit.icon === 'eye') {
+                <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              }
+              <!-- Gauge Icon -->
+              @if (benefit.icon === 'gauge') {
+                <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v4"/>
+                  <path d="m16.2 7.8 2.9-2.9"/>
+                  <path d="M18 12h4"/>
+                  <path d="m16.2 16.2 2.9 2.9"/>
+                  <path d="M12 18v4"/>
+                  <path d="m4.9 19.1 2.9-2.9"/>
+                  <path d="M2 12h4"/>
+                  <path d="m4.9 4.9 2.9 2.9"/>
+                  <circle cx="12" cy="12" r="4"/>
+                </svg>
+              }
+            </div>
+            <h3 class="benefit-title" [attr.data-testid]="'text-benefit-title-' + i">
+              {{ benefit.title }}
+            </h3>
+            <p class="benefit-description" [attr.data-testid]="'text-benefit-description-' + i">
+              {{ benefit.description }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="section testimonials-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">
+          Trusted by
+          <span class="gradient-text">leading teams</span>
+        </h2>
+        <p class="section-description">
+          See what our customers have to say about their experience with AreYouReporting
+        </p>
+      </div>
+
+      <div class="testimonials-grid">
+        @for (testimonial of testimonials(); track testimonial.name; let i = $index) {
+          <div class="testimonial-card" [attr.data-testid]="'card-testimonial-' + i">
+            <div class="stars">
+              @for (star of getStars(testimonial.rating); track $index) {
+                <svg class="star-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              }
+            </div>
+
+            <p class="quote" [attr.data-testid]="'text-testimonial-quote-' + i">
+              "{{ testimonial.quote }}"
+            </p>
+
+            <div class="author">
+              <div class="avatar">
+                <img [src]="testimonial.avatar" [alt]="testimonial.name" (error)="$event.target.style.display='none'" />
+                <span class="avatar-fallback">{{ getInitials(testimonial.name) }}</span>
+              </div>
+              <div class="author-info">
+                <p class="author-name" [attr.data-testid]="'text-testimonial-name-' + i">
+                  {{ testimonial.name }}
+                </p>
+                <p class="author-role" [attr.data-testid]="'text-testimonial-role-' + i">
+                  {{ testimonial.role }}, {{ testimonial.company }}
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <br>
+      <div class="footer-grid">
+        <!-- Brand & Newsletter -->
+        <div class="brand-section">
+          <div class="brand">
+            <h3 class="brand-name">AreYouReporting</h3>
+            <p class="brand-description">
+              Smart task management for smart teams. Streamline workflows and boost productivity with automated reporting and real-time collaboration.
+            </p>
+          </div>
+
+          <div class="newsletter">
+            <p class="newsletter-label">Subscribe to our newsletter</p>
+            <div class="newsletter-form">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                [value]="email()"
+                (input)="updateEmail($event)"
+                class="newsletter-input"
+                data-testid="input-newsletter-email"
+              />
+              <button
+                class="subscribe-btn"
+                (click)="onSubscribe()"
+                data-testid="button-subscribe"
+              >
+                Subscribe
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Links -->
+        @for (section of footerSections(); track section.title; let i = $index) {
+          <div class="link-section">
+            <h4 class="link-section-title">{{ section.title }}</h4>
+            <ul class="link-list">
+              @for (link of section.links; track link.label; let j = $index) {
+                <li>
+                  <a
+                    [href]="link.href"
+                    class="footer-link"
+                    [attr.data-testid]="'link-' + section.title.toLowerCase() + '-' + j"
+                  >
+                    {{ link.label }}
+                  </a>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="bottom-bar">
+        <p class="copyright">
+          &copy; 2025 AreYouReporting. All rights reserved.
+        </p>
+
+        <div class="social-links">
+          @for (social of socialLinks(); track social.name) {
+            <button
+              class="social-btn"
+              [attr.data-testid]="'button-social-' + social.name"
+            >
+              @if (social.icon === 'github') {
+                <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                </svg>
+              }
+              @if (social.icon === 'twitter') {
+                <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+                </svg>
+              }
+              @if (social.icon === 'linkedin') {
+                <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                  <rect x="2" y="9" width="4" height="12"/>
+                  <circle cx="4" cy="4" r="2"/>
+                </svg>
+              }
+              @if (social.icon === 'mail') {
+                <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</main>

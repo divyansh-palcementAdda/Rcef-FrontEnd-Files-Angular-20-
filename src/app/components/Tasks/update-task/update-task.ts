@@ -55,8 +55,16 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   filteredUsersByDept = new Map<number, userDto[]>();
   selectedUsersByDeptObj: Record<number, number[]> = {};
 
-  statuses = Object.values(TaskStatus);
-  currentUser: userDto | null = null;
+ allowedStatuses: TaskStatus[] = [
+  TaskStatus.PENDING,
+  TaskStatus.UPCOMING,
+  TaskStatus.IN_PROGRESS,
+  TaskStatus.CLOSED,
+];
+
+ statuses = [...this.allowedStatuses];
+
+ currentUser: userDto | null = null;
 
   /* ---------- UI STATE ---------- */
   isSubmitting = false;
@@ -127,7 +135,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   /* ---------- FORM SETUP ---------- */
   private initForm(): void {
     this.taskForm = this.fb.group({
-      title: ['', [Validators.required, Validators.maxLength(255), Validators.pattern(/^[a-zA-Z0-9\s]+$/)]],
+      title: ['', [Validators.required, Validators.maxLength(255)]],
       description: ['', [Validators.maxLength(2000)]],
       status: [null, Validators.required],
       startDate: [''],

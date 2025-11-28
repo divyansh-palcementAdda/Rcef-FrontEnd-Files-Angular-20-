@@ -7,7 +7,7 @@ import { ApiService } from '../../../Services/api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
 import { CommonModule, DatePipe } from '@angular/common';
-import { trigger, transition, useAnimation ,query, stagger} from '@angular/animations';
+import { trigger, transition, useAnimation, query, stagger } from '@angular/animations';
 import { BaseChartDirective } from 'ng2-charts';
 import { fadeInUp } from '../../../Animations/fade-in-up.animation';
 import { BulletinBannerComponent } from '../../Shared/bulletin-banner/bulletin-banner';
@@ -62,14 +62,14 @@ export class HodsDashboard {
     { label: 'Dashboard', click: () => this.dashboard(), icon: 'bi-speedometer2', color: 'primary' },
     { label: 'My Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-list-check', color: 'success' },
     { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle', color: 'success' },
-{
-  label: 'My Self-Assigned Tasks',
-  route: '/view-tasks',
-  queryParams: { status: 'selfAssigned' },     // lowercase, matches backend logic
-  icon: 'bi bi-person-check-fill',    // better icon: person with check
-  color: 'success',
-  tooltip: 'View tasks you created and assigned to yourself'
-}  ];
+    {
+      label: 'My Self-Assigned Tasks',
+      route: '/view-tasks',
+      queryParams: { status: 'selfAssigned' },     // lowercase, matches backend logic
+      icon: 'bi bi-person-check-fill',    // better icon: person with check
+      color: 'success',
+      tooltip: 'View tasks you created and assigned to yourself'
+    }];
 
   constructor(
     private router: Router,
@@ -96,8 +96,12 @@ export class HodsDashboard {
   }
 
   logout(): void {
-    this.authService.logout();
-  }
+  const refreshToken = this.authService.getRefreshToken() ?? undefined; // normalize null to undefined
+  this.authService.logout(refreshToken).subscribe({
+    next: () => this.router.navigate(['/login']),
+    error: () => this.router.navigate(['/login']) // still redirect
+  });
+}
 
   /** ✅ Dashboard Navigation with Token Validation */
   dashboard(): void {
@@ -117,30 +121,128 @@ export class HodsDashboard {
   }
 
   /** ✅ Stat Cards Builder */
- statCards(d: DashboardDto) {
-  const c = (color: string) => color; // shorthand
+  statCards(d: DashboardDto) {
+    const c = (color: string) => color; // shorthand
 
-  return [
-    // ── Core Totals (Dark) ────────────────────────
-    { title: 'Total Tasks',        value: d.totalTask,        color: c('dark'),     icon: 'bi-clipboard-list',    route: '/view-tasks',                     delta: 5 },
-    { title: 'Total Users',       value: d.activeUsers,      color: c('info'),     icon: 'bi-person-check-fill', route: '/viewAllUsers', queryParams: { status: 'ACTIVE' }, delta: 6 },
+    return [
+      // ── Core Totals (Bold & Prominent) ─────────────────────
+      {
+        title: 'Total Tasks',
+        value: d.totalTask,
+        color: c('dark'),
+        icon: 'bi-clipboard-list',
+        route: '/view-tasks',
+        delta: 5
+      },
+      {
+        title: 'Active Users',
+        value: d.activeUsers,
+        color: c('teal'),
+        icon: 'bi-person-check-fill',
+        route: '/viewAllUsers',
+        queryParams: { status: 'ACTIVE' },
+        delta: 6
+      },
 
-    // ── Task Flow ─────────────────────────────────
-    { title: 'Active Tasks',       value: d.activeTask,       color: c('primary'),  icon: 'bi-play-circle',       route: '/view-tasks',   queryParams: { status: 'IN_PROGRESS' }, delta: 7 },
-    { title: 'Pending Tasks',      value: d.pendingTask,      color: c('warning'),  icon: 'bi-hourglass-split',   route: '/view-tasks',   queryParams: { status: 'PENDING' },        delta: -1 },
-    { title: 'Upcoming Tasks',     value: d.upcomingTask,     color: c('info'),     icon: 'bi-calendar3',         route: '/view-tasks',   queryParams: { status: 'Upcoming' },      delta: 4 },
-    { title: 'Completed Tasks',    value: d.completedTask,    color: c('success'),  icon: 'bi-check2-circle',     route: '/view-tasks',   queryParams: { status: 'CLOSED' },        delta: 8 },
+      // ── Task Status Flow ───────────────────────────────────
+      {
+        title: 'In Progress',
+        value: d.activeTask,
+        color: c('primary'),
+        icon: 'bi-play-circle-fill',
+        route: '/view-tasks',
+        queryParams: { status: 'IN_PROGRESS' },
+        badge: 'live'
+      },
+      {
+        title: 'Pending Tasks',
+        value: d.pendingTask,
+        color: c('warning'),
+        icon: 'bi-hourglass-split',
+        route: '/view-tasks',
+        queryParams: { status: 'PENDING' },
+        delta: -2
+      },
+      {
+        title: 'Upcoming Tasks',
+        value: d.upcomingTask,
+        color: c('info'),
+        icon: 'bi-calendar3-event',
+        route: '/view-tasks',
+        queryParams: { status: 'UPCOMING' },
+        delta: 4
+      },
+      {
+        title: 'Completed Tasks',
+        value: d.completedTask,
+        color: c('success'),
+        icon: 'bi-check2-square',
+        route: '/view-tasks',
+        queryParams: { status: 'CLOSED' },
+        delta: 8
+      },
 
-    // ── Issues & Extensions ───────────────────────
-    { title: 'Delayed Tasks',      value: d.delayedTask,      color: c('danger'),   icon: 'bi-exclamation-triangle-fill', route: '/view-tasks', queryParams: { status: 'Delayed' },   delta: 3 },
-    { title: 'Extended Tasks',     value: d.extendedTask,     color: c('warning'),  icon: 'bi-arrow-repeat',      route: '/view-tasks',   queryParams: { status: 'Extended' },      delta: 2 },
+      // ── Critical Alerts ────────────────────────────────────
+      {
+        title: 'Delayed Tasks',
+        value: d.delayedTask,
+        color: c('danger'),
+        icon: 'bi-exclamation-triangle-fill',
+        route: '/view-tasks',
+        queryParams: { status: 'DELAYED' },
+        badge: 'urgent',
+        delta: 3
+      },
 
-    // ── Requests ──────────────────────────────────
-    { title: 'Extension Requests', value: d.requestForExtension, color: c('secondary'), icon: 'bi-clock-history',  route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_EXTENSION' }, delta: 1 },
-    { title: 'Closure Requests',   value: d.requestForClosure,   color: c('secondary'), icon: 'bi-lock-fill',      route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_CLOSURE' },   delta: -2 },
+      // ── Action Requests (Task Level) ───────────────────────
+      {
+        title: 'Extension Requests',
+        value: d.requestForExtension,
+        color: c('orange'),
+        icon: 'bi-clock-history',
+        route: '/view-tasks',
+        queryParams: { status: 'REQUEST_FOR_EXTENSION' },
+        badge: 'review'
+      },
+      {
+        title: 'Closure Requests',
+        value: d.requestForClosure,
+        color: c('pink'),
+        icon: 'bi-lock-fill',
+        route: '/view-tasks',
+        queryParams: { status: 'REQUEST_FOR_CLOSURE' },
+        badge: 'review'
+      },
 
-   ];
-}
+      // ── Request Approval Status (TaskRequest Entity) ───────
+      {
+        title: 'Pending Requests',
+        value: d.pendingRequests,
+        color: c('secondary'),
+        icon: 'bi-hourglass-bottom',
+        route: '/task-requests',
+        queryParams: { status: 'PENDING' },
+        badge: 'action-required',
+        delta: -1
+      },
+      {
+        title: 'Approved Requests',
+        value: d.approvedRequests,
+        color: c('success'),
+        icon: 'bi-check-circle-fill',
+        route: '/task-requests',
+        queryParams: { status: 'APPROVED' }
+      },
+      {
+        title: 'Rejected Requests',
+        value: d.rejectedRequests,
+        color: c('danger'),
+        icon: 'bi-x-circle-fill',
+        route: '/task-requests',
+        queryParams: { status: 'REJECTED' }
+      },
+    ];
+  }
   /** ✅ Navigate to a Route */
   goToTaskPage(card: any): void {
     this.router.navigate([card.route], { queryParams: card.queryParams || {} });
@@ -149,7 +251,7 @@ export class HodsDashboard {
   /** ✅ Update Chart Data Dynamically */
   private updateCharts(data: DashboardDto): void {
     this.pieChartData = {
-      labels: ['Pending', 'Completed', 'Delayed', 'Extended', 'Upcomming'],
+      labels: ['Pending', 'Completed', 'Delayed', 'Extended', 'Upcomming','Active'],
       datasets: [
         {
           data: [
@@ -157,9 +259,11 @@ export class HodsDashboard {
             data.completedTask ?? 0,
             data.delayedTask ?? 0,
             data.extendedTask ?? 0,
-            data.upcomingTask ?? 0
+            data.upcomingTask ?? 0,
+            data.activeTask ?? 0
           ],
-          backgroundColor: ['#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f7ff04ff']
+          backgroundColor: ['#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f7ff04ff', '#3b82f6'
+          ]
         }
       ]
     };

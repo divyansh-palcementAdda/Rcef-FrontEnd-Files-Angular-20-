@@ -56,8 +56,8 @@
                     {{ card.title }}
                   </div>
                   <div class="h4 mb-1 fw-bold text-dark">{{ card.value || 0 }}</div>
-                  <div class="delta text-muted" [class]="'text-' + (card.delta > 0 ? 'success' : 'danger')">
-                    {{ card.delta > 0 ? '+' : '' }}{{ card.delta }}% from last week
+                  <div class="delta text-muted" [class]="'text-' + ((card.delta ?? 0) > 0 ? 'success' : 'danger')">
+                    {{ (card.delta ?? 0) > 0 ? '+' : '' }}{{ card.delta ?? 0 }}% from last week
                   </div>
                 </div>
                 <i class="bi {{ card.icon }} fs-1" [class]="'text-' + card.color"></i>

@@ -140,7 +140,7 @@
         </button>
 
         <!-- Start Task (PENDING / DELAYED) -->
-        <button *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED')"
+        <button *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED'|| task.status === 'EXTENDED')"
                 class="btn btn-primary px-4 py-2 d-flex align-items-center"
                 (click)="startTask()" [disabled]="isStarting">
           <i [class]="isStarting ? 'bi bi-hourglass-split spinner' : 'bi bi-play-circle'"></i>
@@ -416,7 +416,7 @@
 
           <!-- Remarks -->
           <div class="mb-3">
-            <label class="form-label fw-bold">Reason <span class="text-danger">*</span></label>
+            <label class="form-label fw-bold">Reason or Remark<span class="text-danger">*</span></label>
             <textarea class="form-control" [(ngModel)]="newRequest.remarks" name="remarks"
                       rows="3" placeholder="Why do you need an extension?" required></textarea>
           </div>

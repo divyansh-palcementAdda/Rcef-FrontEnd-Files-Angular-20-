@@ -33,7 +33,7 @@ export class AddDepartmentComponent {
           Validators.required,
           Validators.minLength(1),
           Validators.maxLength(100),
-          Validators.pattern(/^[a-zA-Z0-9\s\-']+$/)
+          // Validators.pattern(/^[a-zA-Z0-9\s\-']+$/)
         ]
       ],
       description: ['', [Validators.maxLength(500)]]

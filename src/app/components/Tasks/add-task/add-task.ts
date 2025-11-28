@@ -164,7 +164,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
         [
           Validators.required,
           Validators.maxLength(255),
-          Validators.pattern(/^[a-zA-Z0-9\s]+$/),
+          // Validators.pattern(/^[a-zA-Z0-9\s]+$/),
         ],
       ],
       description: [

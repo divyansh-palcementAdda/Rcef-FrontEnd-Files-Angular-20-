@@ -15,7 +15,7 @@ import { AuthApiService } from '../Services/auth-api-service';
 const PUBLIC_PATHS = [
   '/api/auth/login',
   '/api/auth/refresh-token',
-  '/api/auth/register',
+  // '/api/auth/register',
   '/api/auth/send-otp',
   '/api/auth/verify-otp',
 ];

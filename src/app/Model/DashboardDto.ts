@@ -6,6 +6,9 @@ export interface DashboardDto {
   upcomingTask: number;
   requestForClosure: number;
   requestForExtension: number;
+  approvedRequests: number;
+  rejectedRequests: number;
+  pendingRequests: number;
   activeUsers?: number;         // Admin/HOD only
   totalUsers?: number;          // Admin/HOD only
   activeDepartments?: number;   // Admin only

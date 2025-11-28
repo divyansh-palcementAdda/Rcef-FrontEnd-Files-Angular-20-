@@ -8,6 +8,8 @@ import {
   map,
   throwError,
   tap,
+  finalize,
+  of,
 } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../environment/environment';
@@ -23,6 +25,9 @@ interface ApiResult<T> {
   message: string;
   data: T | null;
   timestamp: string;
+}
+  interface LogoutRequest {
+  refreshToken: string;
 }
 
 /* --------------------------------------------------------------------- */
@@ -101,12 +106,26 @@ export class AuthApiService {
   /* LOGOUT (per device)                                               */
   /* ----------------------------------------------------------------- */
   logout(refreshToken?: string): Observable<void> {
-    const body = refreshToken ? { refreshToken } : {};
-    return this.http.post<void>(`${this.apiUrl}/logout`, body).pipe(
-      tap(() => this.clearAuth()),
-      catchError(() => {
+    console.log('Initiating logout process');
+    // Validate refreshToken is provided and not blank
+    if (!refreshToken || refreshToken.trim() === '') {
+      return throwError(() => new Error('refreshToken is required'));
+    }
+    const body: LogoutRequest = { refreshToken };
+
+    return this.http.post<ApiResult<void>>(`${this.apiUrl}/logout`, body).pipe(
+      tap((res) => {
+        if (res.success) {
+          console.info('LOGOUT SUCCESS | Refresh token revoked');
+          this.clearAuth();
+        }
+      }),
+      map(() => void 0),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Logout failed:', error);
+        // Clear auth locally even if server logout fails
         this.clearAuth();
-        return throwError(() => new Error('Logout failed'));
+        return throwError(() => new Error(error.error?.message || 'Logout failed'));
       })
     );
   }

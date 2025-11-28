@@ -4,6 +4,9 @@ export interface TaskRequestDto {
   /** PK from task_requests.requestId */
   requestId: number;
 
+  taskId: number;
+  taskTitle: string;
+
   /** CLOSURE | EXTENSION */
   requestType: 'CLOSURE' | 'EXTENSION';
 

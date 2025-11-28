@@ -19,12 +19,14 @@ import { ViewTask } from './components/Tasks/view-task/view-task';
 import { UpdateTaskComponent } from './components/Tasks/update-task/update-task';
 import { EditUser } from './components/Users/edit-user/edit-user';
 import { GetDepartment } from './components/Department/get-deprtment/get-deprtment';
-// import { Test } from './components/Test/test/test';
+import { ViewAllRequests } from './components/Requests/view-all-requests/view-all-requests';
+import { LandingPage } from './components/LandingPageComponents/landing-page/landing-page';
+import { Test } from './components/Test/test/test';
 
 export const routes: Routes = [
 
   { path: '', component: Home },
-  // {path:'test',component: Test},
+  {path:'test',component:Test },
   { path: 'login', component: LoginComponent },
   { path: 'about', component: About },
   { path: 'contact', component: Contact },
@@ -85,6 +87,7 @@ export const routes: Routes = [
   },
 
   { path: 'task/:id', component: ViewTask, canActivate: [AuthGuard] },
+  {path: 'task-requests', component: ViewAllRequests, canActivate: [AuthGuard, RoleGuard], data: { roles: ['ADMIN', 'HOD','TEACHER'] }},
 
   // Wildcard route for a 404 page
   { path: '**', redirectTo: '' },

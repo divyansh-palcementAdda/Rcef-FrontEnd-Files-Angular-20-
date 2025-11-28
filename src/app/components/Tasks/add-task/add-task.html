@@ -53,7 +53,7 @@
           <!-- =============== DESCRIPTION =============== -->
           <div class="col-md-6">
             <label class="form-label fw-semibold text-dark">
-              Description
+              Description<span class="text-danger">*</span>
             </label>
             <div class="input-group">
               <span class="input-group-text bg-emerald-50 text-emerald-700">
@@ -74,8 +74,8 @@
               <small *ngIf="f.description.errors?.maxlength">Max 2000 characters allowed.</small>
             </div>
           </div>
-
-          <!-- ================= STATUS ================= -->
+         
+  <!-- ================= STATUS ================= -->
           <div class="col-md-6">
             <label class="form-label fw-semibold text-dark">
               Status <span class="text-danger">*</span>
@@ -107,6 +107,42 @@
               <small>Status is required.</small>
             </div>
           </div>
+
+
+           <!-- ==================== START DATE (UPCOMING only) ==================== -->
+          <div class="col-md-6" *ngIf="f.status.value === 'UPCOMING'">
+            <label class="form-label fw-semibold text-dark">
+              Start Date
+            </label>
+
+            <div
+              class="input-group clickable"
+              (click)="focusInput($event, startDateInput)"
+            >
+              <span class="input-group-text bg-emerald-50 text-emerald-700">
+                <i class="bi bi-calendar-plus"></i>
+              </span>
+
+              <input
+                #startDateInput
+                type="date"
+                class="form-control"
+                formControlName="startDate"
+                [min]="minDate"
+                (change)="onStartDateChange()"
+                [ngClass]="{
+                  'is-invalid': startDateCtrl.touched && (startDateCtrl.errors || startDateErrorMessage)
+                }"
+              />
+            </div>
+            <div class="field-hint">
+              For <strong>UPCOMING</strong> tasks, select the date work is expected to begin. The start date must be a future working day (Monday–Saturday) and not a Sunday.
+            </div>
+            <div *ngIf="startDateErrorMessage" class="text-danger small mt-1">
+              {{ startDateErrorMessage }}
+            </div>
+          </div>
+
 
           <!-- ==================== DUE DATE ==================== -->
           <div class="col-md-6">
@@ -151,40 +187,6 @@
             </div>
           </div>
 
-          <!-- ==================== START DATE (UPCOMING only) ==================== -->
-          <div class="col-md-6" *ngIf="f.status.value === 'UPCOMING'">
-            <label class="form-label fw-semibold text-dark">
-              Start Date
-            </label>
-
-            <div
-              class="input-group clickable"
-              (click)="focusInput($event, startDateInput)"
-            >
-              <span class="input-group-text bg-emerald-50 text-emerald-700">
-                <i class="bi bi-calendar-plus"></i>
-              </span>
-
-              <input
-                #startDateInput
-                type="date"
-                class="form-control"
-                formControlName="startDate"
-                [min]="minDate"
-                (change)="onStartDateChange()"
-                [ngClass]="{
-                  'is-invalid': startDateCtrl.touched && (startDateCtrl.errors || startDateErrorMessage)
-                }"
-              />
-            </div>
-            <div class="field-hint">
-              For <strong>UPCOMING</strong> tasks, select the date work is expected to begin. The start date must be a future working day (Monday–Saturday) and not a Sunday.
-            </div>
-            <div *ngIf="startDateErrorMessage" class="text-danger small mt-1">
-              {{ startDateErrorMessage }}
-            </div>
-          </div>
-
           <!-- ==================== DEPARTMENTS ==================== -->
           <div class="col-md-6">
             <label class="form-label fw-semibold text-dark">
@@ -214,9 +216,9 @@
                   <i class="bi bi-x"></i>
                 </button>
               </div>
-              <div class="field-hint mb-2">
+              <!-- <div class="field-hint mb-2">
                 Filter the department list by name to quickly find the teams that should be responsible for this task.
-              </div>
+              </div> -->
 
               <!-- Select All Depts -->
               <div class="form-check mb-2">
@@ -235,9 +237,9 @@
                   Select All
                 </label>
               </div>
-              <div class="field-hint mb-2">
+              <!-- <div class="field-hint mb-2">
                 Use “Select All” to assign the task to every listed department, or choose only those that are directly involved.
-              </div>
+              </div> -->
 
               <div class="department-list">
                 <div *ngIf="isLoadingDepartments" class="p-3">
@@ -299,7 +301,7 @@
                     {{ currentUser.role }}
                   </span>
                   <span
-                    *ngIf="currentUser.departmentIds?.length"
+                    *ngIf="currentUser.departmentIds.length"
                     class="text-muted"
                   >
                     — {{ getDepartmentNames(currentUser.departmentIds) }}
@@ -354,9 +356,9 @@
                         <i class="bi bi-x"></i>
                       </button>
                     </div>
-                    <div class="field-hint mb-2">
+                    <!-- <div class="field-hint mb-2">
                       Start typing to quickly locate users within this department. Only active users are listed.
-                    </div>
+                    </div> -->
 
                     <!-- Select All Users in Dept -->
                     <div class="form-check mb-2">
@@ -375,9 +377,9 @@
                         Select All
                       </label>
                     </div>
-                    <div class="field-hint mb-2">
+                    <!-- <div class="field-hint mb-2">
                       Use “Select All” to assign the task to all eligible users in this department. When “Assign to Myself” is enabled, only your own user record can be selected.
-                    </div>
+                    </div> -->
 
                     <div class="max-h-48 overflow-y-auto">
                       <div

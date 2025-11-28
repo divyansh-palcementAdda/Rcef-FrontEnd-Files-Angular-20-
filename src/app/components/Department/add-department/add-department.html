@@ -29,7 +29,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Description (Optional)</label>
+          <label class="form-label">Description</label>
           <textarea class="form-control" rows="3" formControlName="description" placeholder="Enter department description"></textarea>
           <small class="text-danger" *ngIf="departmentForm.get('description')?.touched && departmentForm.get('description')?.invalid">
             Description cannot exceed 500 characters.

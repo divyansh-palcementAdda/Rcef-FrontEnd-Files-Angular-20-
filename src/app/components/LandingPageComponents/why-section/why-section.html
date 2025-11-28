@@ -1,0 +1,56 @@
+<section class="why-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        Why
+        <span class="gradient-text">AreYouReporting</span>
+      </h2>
+      <p class="section-description">
+        Built for modern teams who demand more from their tools
+      </p>
+    </div>
+
+    <div class="benefits-grid">
+      @for (benefit of benefits(); track benefit.title; let i = $index) {
+        <div class="benefit-item" [attr.data-testid]="'benefit-' + i">
+          <div class="benefit-icon-wrapper">
+            <!-- Bot/Cog Icon -->
+            @if (benefit.icon === 'bot') {
+              <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            }
+            <!-- Eye Icon -->
+            @if (benefit.icon === 'eye') {
+              <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            }
+            <!-- Gauge Icon -->
+            @if (benefit.icon === 'gauge') {
+              <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4"/>
+                <path d="m16.2 7.8 2.9-2.9"/>
+                <path d="M18 12h4"/>
+                <path d="m16.2 16.2 2.9 2.9"/>
+                <path d="M12 18v4"/>
+                <path d="m4.9 19.1 2.9-2.9"/>
+                <path d="M2 12h4"/>
+                <path d="m4.9 4.9 2.9 2.9"/>
+                <circle cx="12" cy="12" r="4"/>
+              </svg>
+            }
+          </div>
+          <h3 class="benefit-title" [attr.data-testid]="'text-benefit-title-' + i">
+            {{ benefit.title }}
+          </h3>
+          <p class="benefit-description" [attr.data-testid]="'text-benefit-description-' + i">
+            {{ benefit.description }}
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
