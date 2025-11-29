@@ -160,7 +160,7 @@ this.router.navigate(['/edit-task'], {
           this.isLoading = false;
           return;
         }
-
+        console.log('task data:', res.data);
         const assigned = res.data.assignedToIds || [];
         if (!assigned.includes(this.currentUserId)) {
           this.isForbidden = true;
@@ -189,6 +189,7 @@ this.router.navigate(['/edit-task'], {
           this.isLoading = false;
           return;
         }
+        console.log('task data:', res.data);
 
         const taskDeptIds = res.data.departmentIds || [];
         const hasAccess = taskDeptIds.some(id => this.currentUserDepartments.includes(id));
@@ -217,6 +218,8 @@ this.router.navigate(['/edit-task'], {
       next: (res) => {
         if (res.success && res.data) {
           this.task = res.data;
+                  console.log('task data:', res.data);
+
           this.computeStats();      // <-- call once
           this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
           this.filterVisibleRequestsAndProofs();

@@ -1,4 +1,4 @@
-// landing-page.component.ts
+// home.component.ts
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,15 +43,16 @@ interface FooterSection {
 }
 
 @Component({
-  selector: 'app-landing-page',
+  selector: 'app-home',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './test.html',
   styleUrls: ['./test.css']
 })
 export class Test {
-  // Hero Section
-  heroDashboardImage = '/assets/images/hero-dashboard-mockup.png';
+  // Hero Section - Using placeholder image for demo
+  // Replace with your actual dashboard mockup path
+  heroDashboardImage = 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=800&fit=crop';
   
   // Stats Section
   stats = signal<Stat[]>([
@@ -160,7 +161,7 @@ export class Test {
       name: 'Sarah Chen',
       role: 'VP of Operations',
       company: 'TechFlow Inc',
-      avatar: 'assets/images/testimonial-sarah.png',
+      avatar: 'https://i.pravatar.cc/150?img=1',
       quote: 'AreYouReporting transformed how our teams collaborate. We\'ve reduced reporting time by 70% and improved project visibility across all departments.',
       rating: 5
     },
@@ -168,7 +169,7 @@ export class Test {
       name: 'Michael Torres',
       role: 'Engineering Director',
       company: 'DataScale',
-      avatar: 'assets/images/testimonial-michael.png',
+      avatar: 'https://i.pravatar.cc/150?img=2',
       quote: 'The automated reporting feature alone is worth it. Our standup meetings are now focused on solutions, not status updates. Game changer for productivity.',
       rating: 5
     },
@@ -176,7 +177,7 @@ export class Test {
       name: 'Emily Rodriguez',
       role: 'Product Manager',
       company: 'CloudVentures',
-      avatar: 'assets/images/testimonial-emily.png',
+      avatar: 'https://i.pravatar.cc/150?img=3',
       quote: 'Finally, a task management tool that understands how modern teams work. The clear reporting structure helps us make better decisions faster.',
       rating: 5
     }
@@ -230,18 +231,23 @@ export class Test {
     return name.split(' ').map(n => n[0]).join('');
   }
 
-  onSubscribe() {
-    console.log('Subscribe clicked with email:', this.email());
-    // Implement newsletter subscription
-    this.email.set('');
+  onSubscribe(): void {
+    if (this.email()) {
+      console.log('Subscribe clicked with email:', this.email());
+      // Implement newsletter subscription logic here
+      this.email.set('');
+    }
   }
 
-  updateEmail(event: Event) {
+  updateEmail(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.email.set(input.value);
   }
 
-  scrollToFeatures() {
-    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+  scrollToFeatures(): void {
+    const featuresSection = document.getElementById('features');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 }

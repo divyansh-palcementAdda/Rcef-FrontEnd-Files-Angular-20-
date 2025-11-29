@@ -1,53 +1,57 @@
-<!-- landing-page.component.html -->
+<!-- home.component.html -->
 <main class="landing-page">
   
-  <!-- Hero Section -->
+  <!-- Hero Section with Fixed Image Positioning -->
   <section class="hero-section">
+    <!-- Background Elements -->
     <div class="hero-background">
       <div class="grid-pattern"></div>
       <div class="gradient-overlay"></div>
     </div>
 
-    <div class="container">
-      <div class="hero-grid">
-        <!-- Left Content -->
-        <div class="hero-content">
-          <div class="badge-container">
-            <span class="hero-badge">
-              <span class="pulse-dot">
-                <span class="pulse-ring"></span>
-                <span class="pulse-core"></span>
-              </span>
-              Streamlined Task Reporting
+    <div class="container hero-container">
+      <!-- Main Content (Left Side on Desktop, Center on Mobile) -->
+      <div class="hero-content">
+        <div class="badge-container">
+          <span class="hero-badge">
+            <span class="pulse-dot">
+              <span class="pulse-ring"></span>
+              <span class="pulse-core"></span>
             </span>
-          </div>
-
-          <h1 class="hero-title">
-            Smart Task Management for
-            <span class="gradient-text">Smart Teams</span>
-          </h1>
-
-          <p class="hero-description">
-            Streamline your workflow with automated reporting, real-time collaboration,
-            and intelligent task distribution. Say goodbye to manual status updates and hello to productivity.
-          </p>
-
-          <div class="cta-buttons">
-            <button class="btn btn-primary" (click)="scrollToFeatures()" data-testid="button-get-started">
-              Get Started
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
-          </div>
+            Streamlined Task Reporting
+          </span>
         </div>
 
-        <!-- Right Image -->
-        <div class="hero-image-container">
-          <div class="image-glow"></div>
-          <div class="image-wrapper">
-            <img [src]="heroDashboardImage" alt="Dashboard Preview" data-testid="img-hero-dashboard" />
-          </div>
+        <h1 class="hero-title">
+          Smart Task Management for
+          <span class="gradient-text">Smart Teams</span>
+        </h1>
+
+        <p class="hero-description">
+          Streamline your workflow with automated reporting, real-time collaboration,
+          and intelligent task distribution. Say goodbye to manual status updates and hello to productivity.
+        </p>
+
+        <div class="cta-buttons">
+          <button class="btn btn-primary" (click)="scrollToFeatures()">
+            Get Started
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard Preview - Positioned Bottom-Right with Proper Overflow Handling -->
+      <div class="hero-image-container">
+        <div class="hero-image-glow"></div>
+        <div class="hero-image-wrapper">
+          <img 
+            [src]="heroDashboardImage" 
+            alt="Dashboard Preview Mockup" 
+            class="hero-dashboard-img"
+            loading="eager"
+          />
         </div>
       </div>
     </div>
@@ -101,7 +105,7 @@
     </div>
   </section>
 
-  <!-- Dashboard Preview -->
+  <!-- Dashboard Preview Section -->
   <section class="section dashboard-preview-section">
     <div class="container">
       <div class="section-header">
@@ -119,7 +123,11 @@
         <div class="dashboard-image-glow"></div>
         <div class="dashboard-image-card">
           <div class="dashboard-image-wrapper">
-            <img [src]="heroDashboardImage" alt="Dashboard Analytics Preview" data-testid="img-dashboard-preview" />
+            <img 
+              [src]="heroDashboardImage" 
+              alt="Dashboard Analytics Preview" 
+              data-testid="img-dashboard-preview" 
+            />
           </div>
         </div>
       </div>
@@ -191,14 +199,12 @@
         @for (feature of features(); track feature.title; let i = $index) {
           <div class="feature-card" [attr.data-testid]="'card-feature-' + i">
             <div class="feature-icon-wrapper">
-              <!-- Check Circle Icon -->
               @if (feature.icon === 'check-circle') {
                 <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                   <polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
               }
-              <!-- Bar Chart Icon -->
               @if (feature.icon === 'bar-chart') {
                 <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="12" y1="20" x2="12" y2="10"/>
@@ -206,7 +212,6 @@
                   <line x1="6" y1="20" x2="6" y2="16"/>
                 </svg>
               }
-              <!-- Users Icon -->
               @if (feature.icon === 'users') {
                 <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -215,7 +220,6 @@
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
               }
-              <!-- Layers Icon -->
               @if (feature.icon === 'layers') {
                 <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polygon points="12 2 2 7 12 12 22 7 12 2"/>
@@ -223,14 +227,12 @@
                   <polyline points="2 12 12 17 22 12"/>
                 </svg>
               }
-              <!-- Trending Up Icon -->
               @if (feature.icon === 'trending-up') {
                 <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
                   <polyline points="17 6 23 6 23 12"/>
                 </svg>
               }
-              <!-- Zap Icon -->
               @if (feature.icon === 'zap') {
                 <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
@@ -266,21 +268,18 @@
         @for (benefit of benefits(); track benefit.title; let i = $index) {
           <div class="benefit-item" [attr.data-testid]="'benefit-' + i">
             <div class="benefit-icon-wrapper">
-              <!-- Bot/Cog Icon -->
               @if (benefit.icon === 'bot') {
                 <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="3"/>
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
               }
-              <!-- Eye Icon -->
               @if (benefit.icon === 'eye') {
                 <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                   <circle cx="12" cy="12" r="3"/>
                 </svg>
               }
-              <!-- Gauge Icon -->
               @if (benefit.icon === 'gauge') {
                 <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 2v4"/>
@@ -337,7 +336,11 @@
 
             <div class="author">
               <div class="avatar">
-                <img [src]="testimonial.avatar" [alt]="testimonial.name" (error)="$event.target.style.display='none'" />
+                <img 
+                  [src]="testimonial.avatar" 
+                  [alt]="testimonial.name" 
+                  (error)="$any($event.target).style.display='none'" 
+                />
                 <span class="avatar-fallback">{{ getInitials(testimonial.name) }}</span>
               </div>
               <div class="author-info">
@@ -358,7 +361,6 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="container">
-      <br>
       <div class="footer-grid">
         <!-- Brand & Newsletter -->
         <div class="brand-section">
@@ -423,6 +425,7 @@
             <button
               class="social-btn"
               [attr.data-testid]="'button-social-' + social.name"
+              [attr.aria-label]="social.name"
             >
               @if (social.icon === 'github') {
                 <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
