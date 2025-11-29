@@ -1,0 +1,61 @@
+.gradient-card {
+  background: white;
+  border-radius: var(--border-radius, 1.25rem);
+  padding: var(--padding, 1.5rem);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f3f4f6;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gradient-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--card-gradient, linear-gradient(135deg, #6366f1, #a855f7, #ec4899));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-card.hoverable:hover::before {
+  opacity: 1;
+}
+
+.gradient-card.hoverable:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.gradient-card.clickable {
+  cursor: pointer;
+}
+
+.gradient-card.clickable:active {
+  transform: translateY(-2px);
+}
+
+/* Variant-specific styles */
+.gradient-card-primary::before {
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+}
+
+.gradient-card-success::before {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.gradient-card-warning::before {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.gradient-card-danger::before {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.gradient-card-info::before {
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+}

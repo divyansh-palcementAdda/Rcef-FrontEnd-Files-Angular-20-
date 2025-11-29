@@ -1,0 +1,47 @@
+<div class="recent-activity">
+  <app-gradient-card variant="info" padding="0" borderRadius="1.25rem">
+    <div class="activity-header">
+      <h3 class="activity-title">Recent Activity</h3>
+      <button class="view-all-btn" (click)="viewAllActivities()">
+        View All
+        <i class="bi bi-arrow-right"></i>
+      </button>
+    </div>
+
+    <div class="activity-list">
+      <div 
+        *ngFor="let activity of activities" 
+        class="activity-item" 
+        [class.unread]="!activity.read"
+        (click)="markAsRead(activity)">
+        
+        <div class="activity-icon" [class]="'icon-' + getActivityColor(activity.type)">
+          <i class="bi {{ getActivityIcon(activity.type) }}"></i>
+        </div>
+
+        <div class="activity-content">
+          <div class="activity-text">
+            <span class="user-name">{{ activity.user }}</span>
+            <span class="action">{{ activity.action }}</span>
+            <span class="target">{{ activity.target }}</span>
+          </div>
+          <div class="activity-meta">
+            <span class="timestamp">{{ getTimeAgo(activity.timestamp) }}</span>
+            <span class="activity-type">{{ activity.type }}</span>
+          </div>
+        </div>
+
+        <div class="activity-indicator" *ngIf="!activity.read">
+          <div class="unread-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity-footer">
+      <button class="load-more-btn">
+        <i class="bi bi-arrow-clockwise"></i>
+        Load More Activities
+      </button>
+    </div>
+  </app-gradient-card>
+</div>

@@ -1,0 +1,123 @@
+<div class="notifications-panel">
+  <app-gradient-card variant="primary" padding="0" borderRadius="1.25rem">
+    <div class="notifications-header">
+      <div class="header-content">
+        <h3 class="notifications-title">Notifications</h3>
+        <div class="notification-badge" *ngIf="getUnreadCount() > 0">
+          {{ getUnreadCount() }} unread
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button class="mark-all-btn" (click)="markAllAsRead()" [disabled]="getUnreadCount() === 0">
+          <i class="bi bi-check-all"></i>
+          Mark All Read
+        </button>
+        <button class="view-all-btn" (click)="viewAllNotifications()">
+          View All
+          <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Notification Stats -->
+    <div class="notification-stats">
+      <div class="stat-item">
+        <div class="stat-value">{{ getNotificationStats().total }}</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value unread">{{ getNotificationStats().unread }}</div>
+        <div class="stat-label">Unread</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ getNotificationStats().read }}</div>
+        <div class="stat-label">Read</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="notifications-filters">
+      <div class="filter-group">
+        <select [value]="filterType" (change)="onFilterTypeChange($event)" class="filter-select">
+          <option value="all">All Types</option>
+          <option value="info">Info</option>
+          <option value="success">Success</option>
+          <option value="warning">Warning</option>
+          <option value="danger">Danger</option>
+          <option value="system">System</option>
+        </select>
+        
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [checked]="showOnlyUnread"
+            (change)="onUnreadFilterChange($event)">
+          <span class="checkmark"></span>
+          Show only unread
+        </label>
+      </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="notifications-list">
+      <div 
+        *ngFor="let notification of filteredNotifications" 
+        class="notification-item" 
+        [class.unread]="!notification.read"
+        (click)="markAsRead(notification)">
+        
+        <div class="notification-icon" [class]="'icon-' + getNotificationColor(notification.type)">
+          <i class="bi {{ notification.icon }}"></i>
+        </div>
+
+        <div class="notification-content">
+          <div class="notification-header">
+            <h4 class="notification-title">{{ notification.title }}</h4>
+            <div class="notification-meta">
+              <span class="priority-badge" [class]="'priority-' + notification.priority">
+                <i class="bi {{ getPriorityIcon(notification.priority) }}"></i>
+                {{ notification.priority }}
+              </span>
+              <span class="notification-time">{{ getTimeAgo(notification.timestamp) }}</span>
+            </div>
+          </div>
+          
+          <p class="notification-message">{{ notification.message }}</p>
+          
+          <div class="notification-actions" *ngIf="notification.actionUrl">
+            <button class="action-btn" (click)="$event.stopPropagation()">
+              View Details
+              <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="notification-actions-menu">
+          <button 
+            class="action-btn delete-btn" 
+            (click)="deleteNotification(notification, $event)"
+            title="Delete notification">
+            <i class="bi bi-x"></i>
+          </button>
+          <div class="unread-indicator" *ngIf="!notification.read"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredNotifications.length === 0" class="empty-state">
+      <i class="bi bi-bell"></i>
+      <h4>No notifications</h4>
+      <p>You're all caught up!</p>
+    </div>
+
+    <!-- Clear All -->
+    <div class="notifications-footer" *ngIf="filteredNotifications.length > 0">
+      <button class="clear-all-btn" (click)="clearAllNotifications()">
+        <i class="bi bi-trash"></i>
+        Clear All Notifications
+      </button>
+    </div>
+  </app-gradient-card>
+</div>

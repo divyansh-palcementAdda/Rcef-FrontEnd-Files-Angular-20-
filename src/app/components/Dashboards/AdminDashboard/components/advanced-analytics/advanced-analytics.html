@@ -1,0 +1,180 @@
+<div class="advanced-analytics">
+  <app-gradient-card variant="primary" padding="0" borderRadius="1.25rem">
+    <div class="analytics-header">
+      <div class="header-content">
+        <h3 class="analytics-title">Advanced Analytics</h3>
+        <p class="analytics-subtitle">Comprehensive insights and performance metrics</p>
+      </div>
+      
+      <div class="header-actions">
+        <div class="export-dropdown">
+          <button class="export-btn">
+            <i class="bi bi-download"></i>
+            Export
+          </button>
+          <div class="dropdown-menu">
+            <button (click)="exportChartData('csv')" class="dropdown-item">
+              <i class="bi bi-file-earmark-spreadsheet"></i>
+              CSV Data
+            </button>
+            <button (click)="exportChartData('pdf')" class="dropdown-item">
+              <i class="bi bi-file-pdf"></i>
+              PDF Report
+            </button>
+            <button (click)="exportChartData('png')" class="dropdown-item">
+              <i class="bi bi-image"></i>
+              PNG Image
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Tabs -->
+    <div class="analytics-tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'overview'"
+        (click)="setActiveTab('overview')">
+        <i class="bi bi-speedometer2"></i>
+        Overview
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'performance'"
+        (click)="setActiveTab('performance')">
+        <i class="bi bi-graph-up"></i>
+        Performance
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'departments'"
+        (click)="setActiveTab('departments')">
+        <i class="bi bi-building"></i>
+        Departments
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="analytics-content">
+      
+      <!-- Overview Tab -->
+      <div *ngIf="activeTab === 'overview'" class="tab-pane active">
+        <div class="row g-4">
+          <!-- Task Distribution -->
+          <div class="col-lg-6">
+            <app-chart-container
+              [chartId]="'task-distribution-chart'"
+              title="Task Distribution"
+              subtitle="Current status of all tasks"
+              [height]="350"
+              [chartOptions]="taskDistributionChart">
+            </app-chart-container>
+          </div>
+          
+          <!-- Performance Insights -->
+          <div class="col-lg-6">
+            <div class="insights-card">
+              <h4 class="insights-title">Performance Insights</h4>
+              <div class="insights-content">
+                <div class="performance-metric">
+                  <div class="metric-value">
+                    {{ getPerformanceInsights().currentPerformance }}%
+                  </div>
+                  <div class="metric-label">Current Completion Rate</div>
+                  <div class="metric-trend" [class]="'trend-' + getPerformanceInsights().trend">
+                    <i class="bi" [class]="getPerformanceInsights().trend === 'up' ? 'bi-arrow-up-right' : 'bi-arrow-down-right'"></i>
+                    {{ getPerformanceInsights().growth >= 0 ? '+' : '' }}{{ getPerformanceInsights().growth.toFixed(1) }}%
+                  </div>
+                </div>
+                <p class="insight-message">{{ getPerformanceInsights().message }}</p>
+                
+                <div class="insight-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">24.5%</div>
+                    <div class="stat-label">Avg. Efficiency</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">18.2</div>
+                    <div class="stat-label">Tasks/User</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">92%</div>
+                    <div class="stat-label">On Time</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Tab -->
+      <div *ngIf="activeTab === 'performance'" class="tab-pane active">
+        <app-chart-container
+          [chartId]="'performance-trend-chart'"
+          title="Performance Trend"
+          subtitle="Monthly task completion and creation rates"
+          [height]="400"
+          [chartOptions]="performanceTrendChart">
+        </app-chart-container>
+      </div>
+
+      <!-- Departments Tab -->
+      <div *ngIf="activeTab === 'departments'" class="tab-pane active">
+        <app-chart-container
+          [chartId]="'department-comparison-chart'"
+          title="Department Comparison"
+          subtitle="Efficiency vs Workload across departments"
+          [height]="400"
+          [chartOptions]="departmentComparisonChart">
+        </app-chart-container>
+      </div>
+    </div>
+
+    <!-- Quick Metrics -->
+    <div class="analytics-footer">
+      <div class="quick-metrics">
+        <div class="metric-card">
+          <div class="metric-icon primary">
+            <i class="bi bi-lightning-charge"></i>
+          </div>
+          <div class="metric-info">
+            <div class="metric-value">2.4s</div>
+            <div class="metric-label">Avg. Response</div>
+          </div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-icon success">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="metric-info">
+            <div class="metric-value">98.7%</div>
+            <div class="metric-label">Uptime</div>
+          </div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-icon warning">
+            <i class="bi bi-activity"></i>
+          </div>
+          <div class="metric-info">
+            <div class="metric-value">1.2K</div>
+            <div class="metric-label">Active Sessions</div>
+          </div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-icon info">
+            <i class="bi bi-database"></i>
+          </div>
+          <div class="metric-info">
+            <div class="metric-value">45.6GB</div>
+            <div class="metric-label">Data Processed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </app-gradient-card>
+</div>

@@ -1,0 +1,75 @@
+.chart-container {
+  background: white;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f3f4f6;
+  transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.chart-header {
+  margin-bottom: 1.5rem;
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.chart-subtitle {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+.chart-element {
+  width: 100%;
+  position: relative;
+}
+
+/* ApexCharts customizations */
+:host ::ng-deep .apexcharts-tooltip {
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+:host ::ng-deep .apexcharts-tooltip-title {
+  background: linear-gradient(135deg, #6366f1, #a855f7) !important;
+  color: white !important;
+  border-bottom: none !important;
+  font-weight: 600 !important;
+}
+
+:host ::ng-deep .apexcharts-menu {
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+:host ::ng-deep .apexcharts-menu-item:hover {
+  background: #f8fafc !important;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+  
+  .chart-title {
+    font-size: 1.125rem;
+  }
+}

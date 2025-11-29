@@ -1,0 +1,12 @@
+<div 
+  class="gradient-card"
+  [class]="gradientClass"
+  [class.hoverable]="hoverable"
+  [class.clickable]="clickable"
+  [style]="gradientStyle"
+  [style.padding]="padding"
+  [style.border-radius]="borderRadius"
+  (click)="onClick()"
+>
+  <ng-content></ng-content>
+</div>

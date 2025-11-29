@@ -1,0 +1,162 @@
+<div class="department-stats">
+  <app-gradient-card variant="warning" padding="0" borderRadius="1.25rem">
+    <div class="department-header">
+      <div class="header-content">
+        <h3 class="department-title">Department Performance</h3>
+        <p class="department-subtitle">Efficiency and workload metrics across departments</p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="export-btn" (click)="exportDepartmentReport()">
+          <i class="bi bi-download"></i>
+          Export Report
+        </button>
+      </div>
+    </div>
+
+    <div class="department-content">
+      <div class="row g-4">
+        <!-- Performance Radar Chart -->
+        <div class="col-lg-6">
+          <app-chart-container
+            [chartId]="'performance-radar-chart'"
+            title="Department Performance"
+            subtitle="Efficiency scores across departments"
+            [height]="350"
+            [chartOptions]="performanceChart">
+          </app-chart-container>
+        </div>
+
+        <!-- Workload Chart -->
+        <div class="col-lg-6">
+          <app-chart-container
+            [chartId]="'workload-chart'"
+            title="Workload Distribution"
+            subtitle="Current workload percentage by department"
+            [height]="350"
+            [chartOptions]="workloadChart">
+          </app-chart-container>
+        </div>
+      </div>
+
+      <!-- Department Details Table -->
+      <div class="department-table">
+        <div class="table-header">
+          <div class="table-row header-row">
+            <div class="table-cell">Department</div>
+            <div class="table-cell">Manager</div>
+            <div class="table-cell">Team Size</div>
+            <div class="table-cell">Tasks</div>
+            <div class="table-cell">Efficiency</div>
+            <div class="table-cell">Workload</div>
+            <div class="table-cell">Budget</div>
+            <div class="table-cell">Trend</div>
+          </div>
+        </div>
+        
+        <div class="table-body">
+          <div *ngFor="let dept of departments" class="table-row dept-row" (click)="viewDepartmentDetails(dept)">
+            <div class="table-cell dept-info">
+              <div class="dept-color" [style.background]="dept.color"></div>
+              <div class="dept-details">
+                <div class="dept-name">{{ dept.name }}</div>
+              </div>
+            </div>
+            
+            <div class="table-cell">
+              <span class="manager-name">{{ dept.manager }}</span>
+            </div>
+            
+            <div class="table-cell">
+              <div class="team-size">
+                <i class="bi bi-people"></i>
+                {{ dept.employeeCount }}
+              </div>
+            </div>
+            
+            <div class="table-cell">
+              <div class="task-stats">
+                <span class="completed">{{ dept.completedTasks }}/{{ dept.taskCount }}</span>
+                <div class="completion-rate">
+                  {{ getCompletionRate(dept) }}%
+                </div>
+              </div>
+            </div>
+            
+            <div class="table-cell">
+              <div class="efficiency-score" [class]="getEfficiencyClass(dept.efficiency)">
+                <div class="score-value">{{ dept.efficiency }}%</div>
+                <div class="score-bar">
+                  <div class="score-fill" [style.width.%]="dept.efficiency"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="table-cell">
+              <div class="workload-score" [class]="getWorkloadClass(dept.workload)">
+                <div class="score-value">{{ dept.workload }}%</div>
+                <div class="score-bar">
+                  <div class="score-fill" [style.width.%]="dept.workload"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="table-cell">
+              <span class="budget-amount">{{ formatBudget(dept.budget) }}</span>
+            </div>
+            
+            <div class="table-cell">
+              <span class="trend-indicator" [class]="'trend-' + dept.trend">
+                <i class="bi" [class]="getTrendIcon(dept.trend)"></i>
+                {{ dept.trend }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <div class="summary-card">
+          <div class="summary-icon primary">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">78%</div>
+            <div class="summary-label">Avg. Efficiency</div>
+          </div>
+        </div>
+        
+        <div class="summary-card">
+          <div class="summary-icon success">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">68</div>
+            <div class="summary-label">Total Teams</div>
+          </div>
+        </div>
+        
+        <div class="summary-card">
+          <div class="summary-icon warning">
+            <i class="bi bi-lightning-charge"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">63%</div>
+            <div class="summary-label">Avg. Workload</div>
+          </div>
+        </div>
+        
+        <div class="summary-card">
+          <div class="summary-icon info">
+            <i class="bi bi-cash-coin"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">$1.32M</div>
+            <div class="summary-label">Total Budget</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </app-gradient-card>
+</div>

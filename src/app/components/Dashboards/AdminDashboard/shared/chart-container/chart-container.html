@@ -1,0 +1,8 @@
+<div class="chart-container">
+  <div class="chart-header" *ngIf="title || subtitle">
+    <h4 class="chart-title" *ngIf="title">{{ title }}</h4>
+    <p class="chart-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+  </div>
+  
+  <div [id]="chartId" #chartElement class="chart-element"></div>
+</div>

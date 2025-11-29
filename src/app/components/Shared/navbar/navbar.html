@@ -23,11 +23,7 @@
       <!-- Home -->
       <li><a style="cursor:pointer" (click)="onHomeClick()">Home</a></li>
 
-      <!-- About -->
-      <li><a routerLink="/about" (click)="closeMenu()">About</a></li>
-
-      <!-- Contact -->
-      <li><a routerLink="/contact" (click)="closeMenu()">Contact</a></li>
+   
 
       <!-- Auth -->
       <li *ngIf="!(isLoggedIn$ | async)">

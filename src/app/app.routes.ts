@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './components/Auth/login/login';
-import { AdminDashboard } from './components/Dashboards/admin-dashboard/admin-dashboard';
+import { AdminDashboardComponent } from './components/Dashboards/admin-dashboard/admin-dashboard';
 import { FacultysDashboard } from './components/Dashboards/facultys-dashboard/facultys-dashboard';
 import { HodsDashboard } from './components/Dashboards/hods-dashboard/hods-dashboard';
 import { About } from './components/HomeAssets/about/about';
@@ -20,13 +20,11 @@ import { UpdateTaskComponent } from './components/Tasks/update-task/update-task'
 import { EditUser } from './components/Users/edit-user/edit-user';
 import { GetDepartment } from './components/Department/get-deprtment/get-deprtment';
 import { ViewAllRequests } from './components/Requests/view-all-requests/view-all-requests';
-import { LandingPage } from './components/LandingPageComponents/landing-page/landing-page';
-import { Test } from './components/Test/test/test';
 
 export const routes: Routes = [
 
   { path: '', component: Home },
-  {path:'test',component:Test },
+  // {path:'test',component:Test },
   { path: 'login', component: LoginComponent },
   { path: 'about', component: About },
   { path: 'contact', component: Contact },
@@ -34,7 +32,7 @@ export const routes: Routes = [
   // 🔒 Protected route (requires JWT)
   {
     path: 'admin',
-    component: AdminDashboard,
+    component: AdminDashboardComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN'] } // ✅ Only these roles allowed
   },
