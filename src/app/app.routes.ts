@@ -24,7 +24,6 @@ import { ViewAllRequests } from './components/Requests/view-all-requests/view-al
 export const routes: Routes = [
 
   { path: '', component: Home },
-  // {path:'test',component:Test },
   { path: 'login', component: LoginComponent },
   { path: 'about', component: About },
   { path: 'contact', component: Contact },
