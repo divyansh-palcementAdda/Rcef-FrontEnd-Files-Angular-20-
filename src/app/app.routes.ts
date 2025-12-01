@@ -3,8 +3,6 @@ import { LoginComponent } from './components/Auth/login/login';
 import { AdminDashboardComponent } from './components/Dashboards/admin-dashboard/admin-dashboard';
 import { FacultysDashboard } from './components/Dashboards/facultys-dashboard/facultys-dashboard';
 import { HodsDashboard } from './components/Dashboards/hods-dashboard/hods-dashboard';
-import { About } from './components/HomeAssets/about/about';
-import { Contact } from './components/HomeAssets/contact/contact';
 import { Home } from './components/HomeAssets/home/home';
 import { ViewAllUserss } from './components/Users/view-all-userss/view-all-userss';
 import { AuthGuard } from './Guards/auth-guard';
@@ -20,13 +18,14 @@ import { UpdateTaskComponent } from './components/Tasks/update-task/update-task'
 import { EditUser } from './components/Users/edit-user/edit-user';
 import { GetDepartment } from './components/Department/get-deprtment/get-deprtment';
 import { ViewAllRequests } from './components/Requests/view-all-requests/view-all-requests';
+import { Test } from './components/Test/test/test';
 
 export const routes: Routes = [
 
   { path: '', component: Home },
+  {path: 'test', component: Test},
   { path: 'login', component: LoginComponent },
-  { path: 'about', component: About },
-  { path: 'contact', component: Contact },
+ 
 
   // 🔒 Protected route (requires JWT)
   {

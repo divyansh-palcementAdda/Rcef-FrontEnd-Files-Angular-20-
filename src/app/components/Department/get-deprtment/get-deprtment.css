@@ -1,7 +1,7 @@
 /* Same as view-user.css – copy/paste the whole file */
 /* 🌈 Header Gradient */
 .user-header {
-  background: linear-gradient(135deg, #16a34a, #22d3ee);
+  background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
 }
 
 /* 🪄 User Card */
@@ -27,7 +27,7 @@
 
 /* 🧭 Table */
 .table_head {
-  background: linear-gradient(135deg, #16a34a, #22d3ee);
+  background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
   color: #fff;
 }
 .table tbody tr {

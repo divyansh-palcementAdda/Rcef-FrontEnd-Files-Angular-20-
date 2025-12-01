@@ -3,7 +3,7 @@
   <aside id="sidebarMenu" class="sidebar">
     <div class="sidebar-profile p-4 text-center">
       <div class="avatar-placeholder mb-3">
-        <i class="bi bi-person-circle fs-1 text-dark"></i>
+        <i class="bi bi-person-circle fs-1 text-black-50"></i>
       </div>
       <h6 class="mb-1 fw-bold text-black">Admin Dashboard</h6>
       <small class="text-black-50 d-block">{{ dashboardData?.email }}</small>
@@ -11,13 +11,12 @@
 
     <ul class="nav flex-column px-3">
       <li class="nav-item mb-2" *ngFor="let link of sidebarLinks">
-        <a class="nav-link d-flex align-items-center rounded-pill px-4 py-3 transition" 
-           [routerLink]="link.route" 
-           [queryParams]="link.queryParams"
-           routerLinkActive="active">
+        <a class="nav-link d-flex align-items-center rounded-pill px-4 py-3 transition" [routerLink]="link.route"
+          [queryParams]="link.queryParams" routerLinkActive="active">
           <i class="bi {{ link.icon }} me-3 fs-5"></i>
           <span class="fw-medium">{{ link.label }}</span>
-          <span class="badge bg-danger rounded-pill ms-auto" *ngIf="link.label.includes('Approval') && dashboardData?.requestForExtension">
+          <span class="badge bg-danger rounded-pill ms-auto"
+            *ngIf="link.label.includes('Approval') && dashboardData?.requestForExtension">
             {{ (dashboardData?.requestForExtension || 0) + (dashboardData?.requestForClosure || 0) }}
           </span>
         </a>
@@ -25,7 +24,8 @@
     </ul>
 
     <div class="border-top mt-4 pt-4 px-4">
-      <a class="nav-link text-white d-flex align-items-center fw-semibold px-4 py-3 rounded-pill hover-bg-danger-light" (click)="logout()">
+      <a class="nav-link text-white d-flex align-items-center fw-semibold px-4 py-3 rounded-pill hover-bg-danger-light"
+        (click)="logout()">
         <i class="bi bi-box-arrow-right me-3 fs-5"></i>
         Logout
       </a>
@@ -40,7 +40,9 @@
       <div class="welcome-banner mb-5">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
           <div>
-            <h2 class="display-5 fw-bold mb-2">Welcome Back, {{ dashboardData.userName }}! <span class="wave">👋</span></h2>
+            <h2 class="display-5 fw-bold mb-2">Welcome Back, {{ dashboardData.userName }}!
+              <!-- <span class="wave">👋</span> -->
+            </h2>
             <p class="lead mb-0 opacity-90">
               {{ currentDate | date: 'fullDate' }} • Here's what's happening in your system today.
             </p>
@@ -52,14 +54,13 @@
       </div>
       <!-- Bulletin Alert -->
       <app-bulletin-banner class="mb-5"></app-bulletin-banner>
-<br><br>
+      <br><br>
 
       <!-- Stat Cards Grid -->
       <div class="row g-4 mb-5" @fadeInUpStagger>
         <div class="col-xl-3 col-lg-4 col-md-6" *ngFor="let card of statCards(dashboardData); let i = index">
-          <div class="stat-card h-100 position-relative overflow-hidden rounded-4 shadow-sm" 
-               (click)="goToTaskPage(card)" 
-               style="cursor: pointer;">
+          <div class="stat-card h-100 position-relative overflow-hidden rounded-4 shadow-sm"
+            (click)="goToTaskPage(card)" style="cursor: pointer;">
             <div class="card-accent-bar"></div>
             <div class="card-glow-effect"></div>
             <div class="p-4 position-relative z-2">
@@ -75,10 +76,10 @@
                 </div>
               </div>
               <div class="d-flex align-items-center small">
-                <span [class]="'text-' + (card.delta > 0 ? 'success' : card.delta < 0 ? 'danger' : 'muted') + ' fw-semibold'">
-                  <i class="bi me-1" [class.bi-arrow-up-right]="card.delta > 0" 
-                     [class.bi-arrow-down-right]="card.delta < 0" 
-                     [class.bi-dash]="card.delta === 0"></i>
+                <span
+                  [class]="'text-' + (card.delta > 0 ? 'success' : card.delta < 0 ? 'danger' : 'muted') + ' fw-semibold'">
+                  <i class="bi me-1" [class.bi-arrow-up-right]="card.delta > 0"
+                    [class.bi-arrow-down-right]="card.delta < 0" [class.bi-dash]="card.delta === 0"></i>
                   {{ card.delta > 0 ? '+' : '' }}{{ card.delta }}%
                 </span>
                 <span class="text-muted ms-2">vs last week</span>
@@ -89,7 +90,7 @@
       </div>
 
       <!-- Charts Section -->
-      <div class="row g-4">
+      <div class="row g-4 g-4 mb-5" @fadeInUpStagger>
         <!-- Donut Chart -->
         <div class="col-lg-4">
           <div class="chart-card h-100 rounded-4 shadow-sm">

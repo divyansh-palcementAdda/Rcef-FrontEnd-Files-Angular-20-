@@ -20,6 +20,7 @@
   display: flex;
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-color: white;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   position: relative;
 }
@@ -44,7 +45,7 @@
   position: fixed;
   top: 75px;
   left: 0;
-  width: 311px;
+  width: 300px;
   height: 92vh;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);
@@ -78,6 +79,7 @@
   background: linear-gradient(45deg, rgba(255,255,255,0.15) 0%, transparent 50%);
   pointer-events: none;
 }
+
 
 .avatar-placeholder {
   width: 80px;
@@ -160,11 +162,11 @@
 
 /* Welcome Banner - Premium Glass Effect */
 .welcome-banner {
-  background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(255, 124, 190, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
   color: white;
   padding: 3rem 2.5rem;
-  border-radius: var(--radius-xl);
-  margin-bottom: 2rem;
+ border-radius: 130px;
+   margin-bottom: 2rem;
   box-shadow: var(--shadow-premium);
   position: relative;
   overflow: hidden;
@@ -236,7 +238,7 @@
   box-shadow: var(--shadow-soft);
   transition: var(--transition);
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 3px solid rgba(255, 255, 255, 0.5);
   cursor: pointer;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -351,9 +353,9 @@
   font-size: 1.2rem;
 }
 
-.bg-gradient-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6) !important; }
-.bg-gradient-purple { background: linear-gradient(135deg, #8b5cf6, #ec4899) !important; }
-.bg-gradient-success { background: linear-gradient(135deg, #10b981, #06b6d4) !important; }
+.bg-gradient-primary { background: linear-gradient(135deg, #7779e2, #a88fe0) !important; }
+.bg-gradient-purple { background: linear-gradient(135deg, #af91f3, #ec99c3) !important; }
+.bg-gradient-success { background: linear-gradient(135deg, #80f3cd, #8ed7e4) !important; }
 
 /* Typography */
 .display-5 {

@@ -54,7 +54,8 @@ interface FooterSection {
 export class Home {
   // Hero Section - Using placeholder image for demo
   // Replace with your actual dashboard mockup path
-  heroDashboardImage = 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=800&fit=crop';
+  heroDashboardImage = 'assets/images/hero_dashboard_mockup_illustration.png';
+  dashboardAnalyticsPreview = 'assets/images/dashboard_analytics_preview_mockup.png';
     constructor(private router: Router, private authService: AuthApiService) {}
 
   // Stats Section

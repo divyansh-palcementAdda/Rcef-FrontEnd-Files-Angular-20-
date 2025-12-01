@@ -48,20 +48,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { 
-        position: 'bottom', 
-        labels: { 
+      legend: {
+        position: 'bottom',
+        labels: {
           padding: 25,
-          font: { 
+          font: {
             size: 12,
             family: "'Inter', sans-serif"
           },
           color: '#4b5563',
           usePointStyle: true,
           pointStyle: 'circle'
-        } 
+        }
       },
-      tooltip: { 
+      tooltip: {
         enabled: true,
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         titleColor: '#1f2937',
@@ -77,8 +77,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         usePointStyle: true
       }
     },
-    animation: { 
-      duration: 1500, 
+    animation: {
+      duration: 1500,
       easing: 'easeInOutQuart'
     },
     cutout: '65%'
@@ -88,9 +88,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   barChartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { 
-      legend: { display: false }, 
-      tooltip: { 
+    plugins: {
+      legend: { display: false },
+      tooltip: {
         enabled: true,
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         titleColor: '#1f2937',
@@ -101,33 +101,33 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         padding: 16,
         titleFont: { size: 14, family: "'Inter', sans-serif" },
         bodyFont: { size: 13, family: "'Inter', sans-serif" }
-      } 
+      }
     },
-    scales: { 
-      y: { 
+    scales: {
+      y: {
         beginAtZero: true,
-        grid: { 
+        grid: {
           color: 'rgba(99, 102, 241, 0.08)'
         },
-        ticks: { 
-          color: '#6b7280', 
+        ticks: {
+          color: '#6b7280',
           font: { family: "'Inter', sans-serif", size: 11 },
           padding: 8
         }
       },
       x: {
-        grid: { 
-          display: false 
+        grid: {
+          display: false
         },
-        ticks: { 
-          color: '#6b7280', 
+        ticks: {
+          color: '#6b7280',
           font: { family: "'Inter', sans-serif", size: 11 },
           padding: 8
         }
       }
     },
-    animation: { 
-      duration: 1500, 
+    animation: {
+      duration: 1500,
       easing: 'easeInOutQuart'
     }
   };
@@ -136,16 +136,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   lineChartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { 
-      legend: { 
+    plugins: {
+      legend: {
         display: true,
         labels: {
           font: { family: "'Inter', sans-serif", size: 12 },
           color: '#4b5563',
           usePointStyle: true
         }
-      }, 
-      tooltip: { 
+      },
+      tooltip: {
         enabled: true,
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         titleColor: '#1f2937',
@@ -156,33 +156,33 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         padding: 16,
         titleFont: { size: 14, family: "'Inter', sans-serif" },
         bodyFont: { size: 13, family: "'Inter', sans-serif" }
-      } 
+      }
     },
-    scales: { 
-      y: { 
+    scales: {
+      y: {
         beginAtZero: true,
-        grid: { 
+        grid: {
           color: 'rgba(99, 102, 241, 0.08)'
         },
-        ticks: { 
-          color: '#6b7280', 
+        ticks: {
+          color: '#6b7280',
           font: { family: "'Inter', sans-serif", size: 11 },
           padding: 8
         }
       },
       x: {
-        grid: { 
+        grid: {
           color: 'rgba(99, 102, 241, 0.05)'
         },
-        ticks: { 
-          color: '#6b7280', 
+        ticks: {
+          color: '#6b7280',
           font: { family: "'Inter', sans-serif", size: 11 },
           padding: 8
         }
       }
     },
-    animation: { 
-      duration: 1500, 
+    animation: {
+      duration: 1500,
       easing: 'easeInOutQuart'
     },
     elements: {
@@ -264,7 +264,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
     return [
       // Core Totals
-      { title: 'Total Tasks', value: d.totalTask, color: c('dark'), icon: 'bi-clipboard-list', route: '/view-tasks', delta: 5 },
+      { title: 'Total Tasks', value: d.totalTask, color: c('dark'), icon: 'bi-clipboard2-data', route: '/view-tasks', delta: 5 },
       { title: 'Total Users', value: d.totalUsers, color: c('dark'), icon: 'bi-people', route: '/viewAllUsers', delta: 2 },
       { title: 'Total Departments', value: d.totalDepartments, color: c('dark'), icon: 'bi-building', route: '/departments', delta: 0 },
       { title: 'Active Users', value: d.activeUsers, color: c('info'), icon: 'bi-person-check-fill', route: '/viewAllUsers', queryParams: { status: 'ACTIVE' }, delta: 6 },
@@ -284,7 +284,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       { title: 'Closure Requests', value: d.requestForClosure, color: c('secondary'), icon: 'bi-lock-fill', route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_CLOSURE' }, delta: -2 },
     ];
   }
-  
+
   goToTaskPage(card: any): void {
     this.router.navigate([card.route], { queryParams: card.queryParams || {} });
   }
@@ -335,7 +335,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           ],
           backgroundColor: [
             '#6366f1',
-            '#8b5cf6', 
+            '#8b5cf6',
             '#06b6d4',
             '#10b981'
           ],
