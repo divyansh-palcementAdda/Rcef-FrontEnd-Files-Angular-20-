@@ -89,40 +89,137 @@
         </div>
       </div>
 
-      <!-- Charts Section -->
-      <div class="row g-4 g-4 mb-5" @fadeInUpStagger>
-        <!-- Donut Chart -->
-        <div class="col-lg-4">
-          <div class="chart-card h-100 rounded-4 shadow-sm">
-            <div class="card-header bg-gradient-primary text-white rounded-top-4">
-              <h5 class="mb-0 fw-bold"><i class="bi bi-pie-chart-fill me-2"></i> Task Distribution</h5>
+      <!-- Charts Section - New Pattern -->
+      <div class="charts-container mb-5" @fadeInUpStagger>
+        <!-- Large Line Chart - Full Width Top -->
+       
+
+        <!-- Two Charts Row -->
+        <div class="row g-4 mb-4">
+          <!-- Donut Chart -->
+          <div class="col-lg-6">
+            <div class="chart-card h-100 rounded-4 shadow-sm">
+              <div class="card-header bg-gradient-primary text-white rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-pie-chart-fill me-2"></i> Task Distribution</h5>
+              </div>
+              <div class="card-body p-4">
+                <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie" height="320"></canvas>
+              </div>
             </div>
-            <div class="card-body p-4">
-              <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie" height="280"></canvas>
+          </div>
+
+          <!-- Bar Chart -->
+          <div class="col-lg-6">
+            <div class="chart-card h-100 rounded-4 shadow-sm">
+              <div class="card-header bg-gradient-purple text-white rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-bar-chart-fill me-2"></i> System Overview</h5>
+              </div>
+              <div class="card-body p-4">
+                <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar" height="320"></canvas>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Bar Chart -->
-        <div class="col-lg-4">
-          <div class="chart-card h-100 rounded-4 shadow-sm">
-            <div class="card-header bg-gradient-purple text-white rounded-top-4">
-              <h5 class="mb-0 fw-bold"><i class="bi bi-bar-chart-fill me-2"></i> System Overview</h5>
+        <!-- Department Performance & Task Priority Row
+        <div class="row g-4 mb-4">
+          Horizontal Bar Chart - Department Performance
+          <div class="col-lg-6">
+            <div class="chart-card h-100 rounded-4 shadow-sm">
+              <div class="card-header bg-gradient-info text-white rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-building me-2"></i> Department Performance</h5>
+              </div>
+              <div class="card-body p-4">
+                <canvas baseChart [data]="departmentChartData" [options]="departmentChartOptions" type="bar" height="320"></canvas>
+              </div>
             </div>
-            <div class="card-body p-4">
-              <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar" height="280"></canvas>
+          </div>
+
+          Radar Chart - Task Priority Distribution
+          <div class="col-lg-6">
+            <div class="chart-card h-100 rounded-4 shadow-sm">
+              <div class="card-header bg-gradient-warning text-white rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-target me-2"></i> Task Priority Matrix</h5>
+              </div>
+              <div class="card-body p-4">
+                <canvas baseChart [data]="radarChartData" [options]="radarChartOptions" type="radar" height="320"></canvas>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Line Chart -->
-        <div class="col-lg-4">
-          <div class="chart-card h-100 rounded-4 shadow-sm">
+        User Activity & Task Completion Row
+        <div class="row g-4 mb-4">
+          Bubble Chart - User Activity
+          <div class="col-lg-4">
+            <div class="chart-card h-100 rounded-4 shadow-sm">
+              <div class="card-header bg-gradient-danger text-white rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-people-fill me-2"></i> User Engagement</h5>
+              </div>
+              <div class="card-body p-4">
+                <canvas baseChart [data]="bubbleChartData" [options]="bubbleChartOptions" type="bubble" height="300"></canvas>
+              </div>
+            </div>
+          </div>
+
+          Horizontal Bar - Task Completion Rate
+          <div class="col-lg-4">
+            <div class="chart-card h-100 rounded-4 shadow-sm">
+              <div class="card-header bg-gradient-secondary text-white rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-percent me-2"></i> Completion Rate</h5>
+              </div>
+              <div class="card-body p-4">
+                <canvas baseChart [data]="completionChartData" [options]="completionChartOptions" type="bar" height="300"></canvas>
+              </div>
+            </div>
+          </div>
+
+          Doughnut - Status Breakdown
+          <div class="col-lg-4">
+            <div class="chart-card h-100 rounded-4 shadow-sm">
+              <div class="card-header bg-gradient-teal text-white rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2"></i> Status Breakdown</h5>
+              </div>
+              <div class="card-body p-4">
+                <canvas baseChart [data]="doughnutChartData" [options]="doughnutChartOptions" type="doughnut" height="300"></canvas>
+              </div>
+            </div>
+          </div>
+        </div> -->
+
+        <!-- Additional Stats - Top Performers & Quick Stats -->
+        <!-- <div class="row g-4 mb-4"> -->
+          <!-- Polar Chart - Performance Metrics -->
+          <!-- <div class="col-lg-6">
+            <div class="chart-card h-100 rounded-4 shadow-sm">
+              <div class="card-header bg-gradient-pink text-white rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-asterisk me-2"></i> Performance Metrics</h5>
+              </div>
+              <div class="card-body p-4">
+                <canvas baseChart [data]="polarChartData" [options]="polarChartOptions" type="polarArea" height="320"></canvas>
+              </div>
+            </div>
+          </div> -->
+
+          <!-- Mixed Area & Line Chart -->
+          <!-- <div class="col-lg-6">
+            <div class="chart-card h-100 rounded-4 shadow-sm">
+              <div class="card-header bg-gradient-mint text-white rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2"></i> Growth Metrics</h5>
+              </div>
+              <div class="card-body p-4">
+                <canvas baseChart [data]="mixedChartData" [options]="mixedChartOptions" type="line" height="320"></canvas>
+              </div>
+            </div>
+          </div> -->
+        <!-- </div> -->
+         <div class="chart-row mb-4">
+          <div class="chart-card-large h-100 rounded-4 shadow-sm">
             <div class="card-header bg-gradient-success text-white rounded-top-4">
               <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up-arrow me-2"></i> Activity Trends</h5>
             </div>
             <div class="card-body p-4">
-              <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" type="line" height="280"></canvas>
+              <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" type="line" height="350"></canvas>
             </div>
           </div>
         </div>

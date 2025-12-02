@@ -1,85 +1,64 @@
-<!-- Enhanced Login Component HTML -->
-<div class="login-wrapper">
-  <!-- Enhanced Background with Animated Elements -->
-  <div class="background-container">
-    <div class="floating-shapes">
-      <div class="shape shape-1"></div>
-      <div class="shape shape-2"></div>
-      <div class="shape shape-3"></div>
-      <div class="shape shape-4"></div>
-      <div class="shape shape-5"></div>
-      <div class="shape shape-6"></div>
-    </div>
-    <div class="particles-container">
-      <div class="particle" *ngFor="let particle of particles"></div>
-    </div>
-  </div>
+<div class="login-wrapper" @fadeIn>
+  <!-- Login Card -->
+  <div class="login-card-container" @slideUp>
+    <div class="login-card">
 
-  <!-- ✅ Login Form -->
-  <div class="login-container d-flex justify-content-center align-items-center">
-    <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
-      <div class="card login-card shadow-lg">
-        <div class="card-body p-4 p-md-5">
-          <div class="text-center mb-4">
-            <div class="logo-container mb-3">
-              <img src="images/AreYouReportingLogo.png" alt="User Login Icon" class="login-logo">
-              <div class="logo-glow"></div>
-            </div>
-            <h2 class="fw-bold mb-2">Welcome Back</h2>
-            <p class="text-muted">Sign in to access your RCEF account</p>
-          </div>
+      <!-- Logo -->
+      <div class="text-center mb-4">
+        <div class="logo-wrapper">
+          <img src="assets/images/AreYouReportingLogo.png" alt="AreYouReporting" class="login-logo">
+          <div class="logo-glow"></div>
+        </div>
+        <!-- Gradient Title -->
+        <h1 class="brand-title">AreYouReporting</h1>
+        <p class="text-muted mb-3">Sign in to access your premium dashboard</p>
 
-          <div *ngIf="validationErrors.length" class="alert alert-danger small py-2 mb-3 rounded-3 shadow-sm">
-            <div *ngFor="let error of validationErrors">{{ error }}</div>
-          </div>
-            
-          <!-- ✅ Reactive form -->
-          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <!-- Email/Username -->
-            <div class="mb-4">
-              <label class="form-label fw-semibold text-dark">Email or Username</label>
-              <div class="input-group input-group-lg">
-                <span class="input-group-text bg-light"><i class="bi bi-person text-success"></i></span>
-                <input type="text" formControlName="emailOrUsername" class="form-control"
-                  placeholder="Enter your email or username"
-                  [ngClass]="{'is-invalid': loginForm.get('emailOrUsername')?.touched && loginForm.get('emailOrUsername')?.invalid}">
-              </div>
-              <div *ngIf="loginForm.get('emailOrUsername')?.touched && loginForm.get('emailOrUsername')?.invalid"
-                class="text-danger small mt-1">
-                <div *ngIf="loginForm.get('emailOrUsername')?.errors?.['required']">Email or Username is required</div>
-              </div>
-            </div>
-
-            <!-- Password -->
-            <div class="mb-4">
-              <label class="form-label fw-semibold text-dark">Password</label>
-              <div class="input-group input-group-lg">
-                <span class="input-group-text bg-light"><i class="bi bi-lock text-success"></i></span>
-                <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="form-control"
-                  placeholder="Enter your password"
-                  [ngClass]="{'is-invalid': loginForm.get('password')?.touched && loginForm.get('password')?.invalid}">
-                <button class="btn btn-outline-secondary" type="button" (click)="togglePasswordVisibility()">
-                  <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
-                </button>
-              </div>
-
-              <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
-                class="text-danger small mt-1">
-                <div *ngIf="loginForm.get('password')?.errors?.['required']">Password is required</div>
-                <div *ngIf="loginForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters
-                </div>
-              </div>
-            </div>
-            
-            <!-- Submit -->
-            <button class="btn btn-primary w-100 py-3 fw-semibold shadow-sm mb-3 login-btn" type="submit"
-              [disabled]="loginForm.invalid || isLoading">
-              <span *ngIf="!isLoading">Login</span>
-              <span *ngIf="isLoading"><span class="spinner-border spinner-border-sm me-2"></span> Logging in...</span>
-            </button>
-          </form>
+        <!-- Badge -->
+        <div class="badge-glass">
+          <i class="bi bi-shield-lock me-2"></i>
+          Secure Task Management Portal
         </div>
       </div>
+
+      <!-- Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="mt-5">
+
+        <!-- Username -->
+        <div class="input-group mb-4">
+          <i class="bi bi-person input-icon"></i>
+          <input type="text" 
+                 formControlName="emailOrUsername"
+                 class="form-input"
+                 placeholder="Enter your email or username"
+                 [class.error]="f['emailOrUsername'].touched && f['emailOrUsername'].invalid">
+          <div class="input-line"></div>
+        </div>
+
+        <!-- Password -->
+        <div class="input-group mb-4">
+          <i class="bi bi-lock input-icon"></i>
+          <input [type]="showPassword ? 'text' : 'password'"
+                 formControlName="password"
+                 class="form-input"
+                 placeholder="Enter your password">
+          <button type="button" class="eye-toggle" (click)="togglePasswordVisibility()">
+            <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+          </button>
+          <div class="input-line"></div>
+        </div>
+
+        <!-- Gradient Login Button - NOW VISIBLE & GORGEOUS -->
+        <button type="submit" class="btn-gradient" [disabled]="isLoading || loginForm.invalid">
+          <span *ngIf="!isLoading">
+            <i class="bi bi-box-arrow-in-right me-2"></i>
+            Sign In
+          </span>
+          <span *ngIf="isLoading" class="d-flex align-items-center">
+            <span class="spinner me-2"></span> Signing in...
+          </span>
+          <div class="shine"></div>
+        </button>
+      </form>
     </div>
   </div>
 </div>
