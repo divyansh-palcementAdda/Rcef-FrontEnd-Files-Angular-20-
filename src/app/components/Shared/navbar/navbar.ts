@@ -33,7 +33,17 @@ export class Navbar {
   }
 
   onHomeClick() {
-    this.authService.goToDashboard();
+    console.log("Home clicked");
+    if (!this.isLoggedIn$) {
+      console.log("Not logged in, navigating to /home");
+      this.router.navigate(['/home']);
+    }
+
+    else {
+      console.log("Logged in, navigating to /dashboard");
+      this.authService.goToDashboard();
+    }
+
   }
 
   toggleMenu() {

@@ -2,29 +2,21 @@
   <div class="container d-flex justify-content-between align-items-center">
 
     <!-- Brand -->
-    <a class="navbar-brand fw-bold fs-3 d-flex align-items-center"
-       routerLink="/" (click)="closeMenu()">
-      <!-- <img src="/assets/images/renaissance-logo.png"
-           alt="RCEF Logo"
-           class="me-2 rounded shadow-sm pulse-logo"> -->
-          <span class="gradient-text">AreYouReporting</span>
+    <a class="navbar-brand fw-bold fs-3 d-flex align-items-center" routerLink="/" (click)="closeMenu()">
+      <img src="/assets/images/renaissance-logo.png" alt="RCEF Logo" class="me-2 rounded shadow-sm pulse-logo">
+      <span class="gradient-text">AreYouReporting</span>
     </a>
 
     <!-- Mobile toggle -->
-    <button class="menu-toggle d-lg-none"
-            (click)="toggleMenu()">
+    <button class="menu-toggle d-lg-none" (click)="toggleMenu()">
       <i class="bi" [ngClass]="isMenuOpen ? 'bi-x-lg' : 'bi-list'"></i>
     </button>
 
     <!-- Nav Links (desktop + mobile) -->
-    <ul class="nav-links d-lg-flex"
-        [ngClass]="{ 'active': isMenuOpen }">
+    <ul class="nav-links d-lg-flex" [ngClass]="{ 'active': isMenuOpen }">
 
       <!-- Home -->
       <li><a style="cursor:pointer" (click)="onHomeClick()">Home</a></li>
-
-   
-
       <!-- Auth -->
       <li *ngIf="!(isLoggedIn$ | async)">
         <a routerLink="/login" (click)="closeMenu()">Login</a>
@@ -35,9 +27,9 @@
       </li>
 
       <!-- ***** NOTIFICATION BELL ***** -->
-    <li *ngIf="isLoggedIn$ | async" class="d-flex align-items-center">
-      <app-notification-bell></app-notification-bell>
-    </li>
+      <li *ngIf="isLoggedIn$ | async" class="d-flex align-items-center">
+        <app-notification-bell></app-notification-bell>
+      </li>
     </ul>
   </div>
 </nav>

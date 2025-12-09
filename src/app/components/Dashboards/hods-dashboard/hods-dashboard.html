@@ -1,104 +1,301 @@
 <div class="dashboard-wrapper">
-  <!-- 🔹 Sidebar -->
-  <nav id="sidebarMenu" class="sidebar shadow-sm">
-    <div class="sidebar-profile">
-      <h4 class="mb-0 text-dark">HOD</h4>
-      <h6 class="mb-0 text-dark">{{dashboardData?.departmentName}}</h6>
-      <small class="text-muted">{{ dashboardData?.email }}</small>
+  <!-- Premium Glass Sidebar -->
+  <aside id="sidebarMenu" class="sidebar">
+    <div class="sidebar-profile p-4 text-center">
+      <div class="avatar-placeholder mb-3">
+        <i class="bi bi-person-circle fs-1 text-white"></i>
+      </div>
+      <h6 class="mb-1 fw-bold text-white">HOD Dashboard</h6>
+      <small class="text-white-75 d-block">{{ dashboardData?.email }}</small>
+      <small class="text-white-75 d-block">{{ dashboardData?.departmentName || 'Department' }}</small>
     </div>
 
-    <ul class="nav flex-column mb-auto">
-      <li class="nav-item mb-1" *ngFor="let link of sidebarLinks">
-        <a class="nav-link d-flex align-items-center" [routerLink]="link.route" [queryParams]="link.queryParams"
-          routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
-          <i class="bi {{ link.icon }} me-2 text-{{ link.color }}"></i>
-          {{ link.label }}
+    <ul class="nav flex-column px-3">
+      <li class="nav-item mb-2" *ngFor="let link of sidebarLinks">
+        <a class="nav-link d-flex align-items-center rounded-pill px-4 py-3" 
+           [routerLink]="link.route"
+           [queryParams]="link.queryParams" 
+           routerLinkActive="active"
+           [title]="link.tooltip || link.label">
+          <i class="bi {{ link.icon }} me-3 fs-5"></i>
+          <span class="fw-medium">{{ link.label }}</span>
+          <!-- <span class="ms-auto badge-pulse" *ngIf="link.badge">{{ link.badge }}</span> -->
         </a>
       </li>
     </ul>
 
-    <div class="border-top pt-3 mt-auto">
-      <a class="nav-link text-danger d-flex align-items-center" (click)="logout()">
-        <i class="bi bi-box-arrow-right me-2"></i> Logout
+    <div class="sidebar-footer px-3">
+      <a class="nav-link logout-btn d-flex align-items-center fw-semibold px-4 py-3 rounded-pill" 
+         (click)="logout()">
+        <i class="bi bi-box-arrow-right me-3 fs-5"></i> 
+        <span>Logout</span>
+        <span class="ms-auto"><i class="bi bi-arrow-right-short"></i></span>
       </a>
     </div>
-  </nav>
-
-  <!-- 🔹 Main Content -->
+  </aside>
+  <!-- Main Content Area -->
   <main class="main-content">
+    <br><br><br>
     <ng-container *ngIf="dashboardData; else loading">
-      <div class="welcome-banner">
-        <div class="row align-items-center">
-          <div class="col-md-8">
-            <h2 class="mb-1">Welcome Back, {{ dashboardData.userName }}!</h2>
-            <p class="mb-0" style="color: black;">
-              Today's date: {{ currentDate | date: 'mediumDate' }}
+      <!-- Enhanced Header Section -->
+      <header class="dashboard-header mb-5">
+        <div class="header-content">
+          <div class="header-text">
+            <div class="greeting">
+              <span class="greeting-time">{{ getGreetingTime() }}</span>
+              <h1 class="display-5 fw-bold mb-2 text-white">
+                Welcome, <span class="text-white-75">{{ dashboardData.userName }}</span>
+              </h1>
+            </div>
+            <p class="text-white lead mb-0 ">
+              <i class="bi bi-calendar-event me-2"></i>
+              {{ currentDate | date: 'fullDate' }} 
+              <span class="mx-2">•</span>
+              <i class="bi bi-building me-2"></i>
+              {{ dashboardData.departmentName }}
             </p>
           </div>
-          <div class="col-md-4 text-end">
-            <span class="department-badge">HOD's Dashboard</span>
-          </div>
-        </div>
-      </div>
-   
-      <app-bulletin-banner></app-bulletin-banner>
-      <br><br>
-
-      <!-- Stat Cards -->
-      <div class="row mb-4">
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-4" *ngFor="let card of statCards(dashboardData); let i = index"
-          [@fadeInUpStagger]="i * 0.1">
-          <div class="text-decoration-none d-block" (click)="goToTaskPage(card)" style="cursor: pointer;">
-            <div class="card stat-card" [style.--card-color]="card.color">
-              <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="text-xs fw-bold text-uppercase mb-1" [class]="'text-' + card.color">
-                    {{ card.title }}
-                  </div>
-                  <div class="h4 mb-1 fw-bold text-dark">{{ card.value || 0 }}</div>
-                  <div class="delta text-muted" [class]="'text-' + ((card.delta ?? 0) > 0 ? 'success' : 'danger')">
-                    {{ (card.delta ?? 0) > 0 ? '+' : '' }}{{ card.delta ?? 0 }}% from last week
-                  </div>
-                </div>
-                <i class="bi {{ card.icon }} fs-1" [class]="'text-' + card.color"></i>
+          
+          <div class="header-actions">
+            <div class="role-badge">
+              <i class="bi bi-award-fill me-2"></i>
+              Head of Department
+            </div>
+            <div class="quick-stats">
+              <div class="quick-stat">
+                <span class="stat-label">Active Tasks</span>
+                <span class="stat-value">{{ dashboardData.activeTask || 0 }}</span>
+              </div>
+              <div class="quick-stat">
+                <span class="stat-label">Team Members</span>
+                <span class="stat-value">{{ dashboardData.activeUsers || 0 }}</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
+        
+        <!-- Progress Indicator -->
+        <div class="progress-indicator mt-4">
+          <div class="progress-label">
+            <span class="text-white">Department Performance</span>
+            <span class="progress-percentage">
+              {{ calculatePerformance() }}%
+            </span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="calculatePerformance()"></div>
+          </div>
+        </div>
+      </header>
 
-      <!-- Charts -->
-      <div class="row mb-4">
-        <div class="col-lg-6 mb-4">
-          <div class="card chart-card h-100">
-            <div class="card-header">
-              <h5 class="mb-0">Task Distribution</h5>
+      <!-- Bulletin Banner -->
+      <app-bulletin-banner class="mb-5 glass-card"></app-bulletin-banner>
+      <br>
+
+      <!-- Stats Grid with Improved Visual Hierarchy -->
+      <section class="stats-section mb-5" @fadeInUpStagger>
+  <div class="row g-4">
+    <div class="col-xl-3 col-lg-4 col-md-6" *ngFor="let card of statCards(dashboardData); let i = index">
+      <div class="stat-card h-100 position-relative overflow-hidden"
+           (click)="goToTaskPage(card)">
+
+        <!-- Top Accent Bar -->
+        <div class="card-accent-bar"></div>
+
+        <!-- Glow Overlay -->
+        <div class="card-glow-effect"></div>
+
+        <!-- Main Content -->
+        <div class="p-4 position-relative z-2">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <p class="text-muted small fw-semibold text-uppercase tracking-wider mb-1 opacity-80">
+                {{ card.title }}
+              </p>
+              <h3 class="fw-black mb-0 gradient-text-dark">
+                {{ card.value || 0 }}
+              </h3>
             </div>
-            <div class="card-body">
-              <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie"></canvas>
+
+            <!-- Icon Circle -->
+            <div class="icon-circle bg-{{card.color}}-subtle text-{{card.color}}">
+              <i class="bi {{ card.icon }} fs-3"></i>
+            </div>
+          </div>
+
+          <!-- Delta + Badge Row -->
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center small" *ngIf="card.delta !== undefined">
+              <span [class]="'text-' + (card.delta > 0 ? 'success' : card.delta < 0 ? 'danger' : 'muted') + ' fw-semibold'">
+                <i class="bi me-1"
+                   [class.bi-arrow-up-right]="card.delta > 0"
+                   [class.bi-arrow-down-right]="card.delta < 0"
+                   [class.bi-dash]="card.delta === 0"></i>
+                {{ card.delta > 0 ? '+' : '' }}{{ card.delta }}%
+              </span>
+              <span class="text-muted ms-2">vs last week</span>
+            </div>
+
+            <!-- Optional Badge -->
+            <span class="card-badge" *ngIf="card.badge">
+              {{ card.badge }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+      <!-- Analytics Dashboard -->
+      <section class="analytics-section mb-5" @fadeInUpStagger>
+        <div class="section-header mb-4">
+          <h2 class="section-title">
+            <i class="bi bi-graph-up me-3"></i>
+            Performance Analytics
+          </h2>
+        </div>
+
+        <!-- Main Trend Chart -->
+       
+
+        <!-- Secondary Charts -->
+        <div class="row g-4">
+          <!-- Task Distribution -->
+          <div class="col-lg-6">
+            <div class="chart-card glass-card h-100">
+              <div class="chart-header">
+                <h5 class="chart-title">
+                  <i class="bi bi-pie-chart-fill me-2"></i>
+                  Task Distribution
+                </h5>
+              </div>
+              <div class="chart-body">
+                <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" 
+                        type="pie" height="280"></canvas>
+              </div>
+              <div class="chart-footer">
+                <div class="chart-stat">
+                  <span class="stat-value">{{ dashboardData.totalTask || 0 }}</span>
+                  <span class="stat-label">Total Tasks</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Department Overview -->
+          <div class="col-lg-6">
+            <div class="chart-card glass-card h-100">
+              <div class="chart-header">
+                <h5 class="chart-title">
+                  <i class="bi bi-bar-chart-fill me-2"></i>
+                  Workload Overview
+                </h5>
+              </div>
+              <div class="chart-body">
+                <canvas baseChart [data]="barChartData" [options]="barChartOptions" 
+                        type="bar" height="280"></canvas>
+              </div>
+              <div class="chart-footer">
+                <div class="chart-stat">
+                  <span class="stat-value">{{ dashboardData.activeUsers || 0 }}</span>
+                  <span class="stat-label">Active Team Members</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-lg-6 mb-4">
-          <div class="card chart-card h-100">
-            <div class="card-header">
-              <h5 class="mb-0">System Statistics</h5>
+
+        <div class="chart-container mb-4">
+          <div class="chart-card glass-card">
+            <div class="chart-header">
+              <div>
+                <h5 class="chart-title">
+                  <i class="bi bi-activity me-2"></i>
+                  Department Activity Trends
+                </h5>
+                <p class="chart-subtitle">Task completion rate & productivity</p>
+              </div>
+              <div class="chart-legends">
+                <div class="legend-item">
+                  <span class="legend-color" style="background-color: #10b981;"></span>
+                  <span>Tasks Completed</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color" style="background-color: #6366f1;"></span>
+                  <span>Tasks Assigned</span>
+                </div>
+              </div>
             </div>
-            <div class="card-body">
-              <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar"></canvas>
+            <div class="chart-body">
+              <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" 
+                      type="line" height="320"></canvas>
             </div>
           </div>
         </div>
+      </section>
 
-      </div>
+      <!-- Quick Actions Panel -->
+      <section class="quick-actions-section mb-5">
+        <div class="section-header mb-4">
+          <h2 class="section-title">
+            <i class="bi bi-lightning-charge-fill me-3"></i>
+            Quick Actions
+          </h2>
+        </div>
+        
+        <div class="actions-grid">
+          <div class="action-card" (click)="goToTaskPage({route: '/add-task'})">
+            <div class="action-icon bg-primary">
+              <i class="bi bi-plus-lg"></i>
+            </div>
+            <h6 class="action-title">Create New Task</h6>
+            <p class="action-description">Assign tasks to team members</p>
+          </div>
+          
+          <div class="action-card" (click)="goToTaskPage({route: '/task-requests', queryParams: {status: 'PENDING'}})">
+            <div class="action-icon bg-warning">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            <h6 class="action-title">Review Requests</h6>
+            <p class="action-description">{{ dashboardData.pendingRequests || 0 }} pending approvals</p>
+          </div>
+          
+          <div class="action-card" (click)="goToTaskPage({route: '/view-tasks', queryParams: {status: 'DELAYED'}})">
+            <div class="action-icon bg-danger">
+              <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <h6 class="action-title">Urgent Tasks</h6>
+            <p class="action-description">{{ dashboardData.delayedTask || 0 }} delayed items</p>
+          </div>
+          
+          <div class="action-card" (click)="goToTaskPage({route: '/viewAllUsers'})">
+            <div class="action-icon bg-success">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <h6 class="action-title">Team Management</h6>
+            <p class="action-description">View and manage team members</p>
+          </div>
+        </div>
+      </section>
     </ng-container>
 
+    <!-- Enhanced Loading State -->
     <ng-template #loading>
-      <div class="text-center my-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
+      <div class="loading-state">
+        <div class="loading-content">
+          <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-dot"></div>
+          </div>
+          <h4 class="loading-title">Preparing Your Dashboard</h4>
+          <p class="loading-subtitle">Loading department insights...</p>
+          <div class="loading-progress">
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
         </div>
-        <p class="mt-2 text-muted">Loading dashboard...</p>
       </div>
     </ng-template>
   </main>
