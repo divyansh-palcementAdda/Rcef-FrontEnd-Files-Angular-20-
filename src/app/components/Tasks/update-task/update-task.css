@@ -10,6 +10,8 @@
   --primary-light: #34d399;
 }
 
+body { background: var(--bg); color: var(--text); }
+
 /* ============================================================= */
 /*  DARK MODE – overrides only what needs to change            */
 /* ============================================================= */
@@ -21,20 +23,18 @@
     --border: #334155;
   }
 
-  body { background: var(--bg); color: var(--text); }
-
   .card-body { background: var(--card-bg) !important; }
 
   .form-control,
   .form-select {
     background: #334155;
-    color: white;
+    color: var(--text);
     border-color: #475569;
   }
 
   .accordion-button {
     background: #334155;
-    color: white;
+    color: var(--text);
   }
 
   .alert-success {
@@ -85,6 +85,7 @@
   padding: 0.75rem 1rem;
   transition: all 0.3s ease;
   background: white;
+  color: var(--text);
 }
 .form-control:focus,
 .form-select:focus {
