@@ -493,14 +493,6 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   /* ---------- DATE VALIDATION ---------- */
   private validateDates(start: string | null, due: string): { valid: boolean; msg?: string } {
     if (!due) return { valid: false, msg: 'Due date is required.' };
-    const d = new Date(due);
-    const today = new Date(this.minDate);
-    if (d < today) return { valid: false, msg: 'Due date cannot be in the past.' };
-    if (start) {
-      // const s = new Date(start);
-      // if (s >= d) return { valid: false, msg: 'Start date must be before Due date.' };
-      // if (s < today) return { valid: false, msg: 'Start date cannot be in the past.' };
-    }
     return { valid: true };
   }
 

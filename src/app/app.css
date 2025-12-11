@@ -8,6 +8,10 @@
 body {
   padding-top: var(--navbar-height);
   padding-bottom: var(--footer-height);
+  transform: scale(0.75);
+  transform-origin: top center;
+  width: 133.33%; /* 1 / 0.75 to prevent cutoff */
+  overflow-x: hidden;
 }
 
 /* small helper to avoid horizontal overflow when sidebar shows */
