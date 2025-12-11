@@ -172,6 +172,7 @@
                     <th>Department</th>
                     <th>Role</th>
                     <th>Status</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -191,7 +192,12 @@
                         {{ formatStatus(u.status) }}
                       </span>
                     </td>
+                    <td data-label="Action" class="text-center">
+                      <button class="btn btn-sm btn-outline-primary" (click)="viewUserProfile(u.userId)">
+                        <i class="bi bi-eye me-1"></i> View
+                      </button>
                   </tr>
+                 
                   <tr *ngIf="!assignedUsers.length">
                     <td colspan="7" class="text-center text-muted py-4">
                       <i class="bi bi-inbox fs-4"></i><br>No users assigned.

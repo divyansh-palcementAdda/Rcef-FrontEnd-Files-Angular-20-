@@ -36,6 +36,9 @@ interface CollapsedState {
   styleUrls: ['./view-task.css']
 })
 export class ViewTask implements OnInit, OnDestroy {
+  viewUserProfile(userId: number) {
+    this.router.navigate(['/user', userId]);
+  }
   task?: TaskDto;
   isStarting = false;
   isLoading = true;

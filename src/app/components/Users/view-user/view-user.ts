@@ -117,7 +117,7 @@ export class ViewUserComponent implements OnInit {
           // Verify user belongs to HOD's departments
           this.verifyHODAccess();
         } else {
-          console.log('Admin - '+this.isHOD)
+          console.log('Admin -  '+this.isHOD ,this.currentUserRole)
           // Admin/SuperAdmin can view all
           this.loadUserDetails();
         }

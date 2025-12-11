@@ -113,7 +113,7 @@
               <div class="form-check mb-2">
                 <input type="checkbox" class="form-check-input custom-checkbox" id="selectAllDepts"
                   [checked]="selectAllDepts" (change)="toggleSelectAllDepts()"
-                  [disabled]="taskForm.value.assignToSelf" />
+                  [disabled]="taskForm.value.assignToSelf && !((currentUser?.role?.toString() ?? '').toUpperCase().includes('ADMIN'))" />
                 <label class="form-check-label fw-bold text-emerald-700" for="selectAllDepts">Select All</label>
               </div>
 
@@ -126,10 +126,10 @@
                 </div>
                 <div *ngFor="let dept of filteredDepartments" class="form-check mb-2">
                   <input type="checkbox" class="form-check-input custom-checkbox"
-                    [id]="'dept-' + dept.departmentId"
-                    [checked]="taskForm.value.departmentIds.includes(dept.departmentId)"
-                    (change)="updateDepartmentSelection(dept.departmentId, $event.target.checked)"
-                    [disabled]="taskForm.value.assignToSelf && !currentUser?.departmentIds?.includes(dept.departmentId)" />
+                      [id]="'dept-' + dept.departmentId"
+                      [checked]="(taskForm.value.departmentIds || []).includes(dept.departmentId)"
+                      (change)="updateDepartmentSelection(dept.departmentId, $event.target.checked)"
+                      [disabled]="taskForm.value.assignToSelf && !(((currentUser?.role?.toString() ?? '').toUpperCase().includes('ADMIN')) || (currentUser?.departmentIds || []).includes(dept.departmentId))" />
                   <label class="form-check-label" [for]="'dept-' + dept.departmentId">
                     {{ dept.name }}
                   </label>
@@ -150,7 +150,7 @@
                 <span class="small">
                   {{ currentUser.fullName }}
                   <span class="badge bg-emerald-100 text-emerald-700 ms-1">{{ currentUser.role }}</span>
-                  <span *ngIf="currentUser.departmentIds?.length" class="text-muted">
+                  <span *ngIf="currentUser.departmentIds.length" class="text-muted">
                     — {{ getDepartmentNames(currentUser.departmentIds) }}
                   </span>
                 </span>
@@ -182,16 +182,15 @@
                       </button>
                     </div>
 
-                    <div class="form-check mb-2">
-                      <input type="checkbox" class="form-check-input custom-checkbox"
-                        [id]="'selectAllUsers-' + deptId" [checked]="selectAllUsersByDept[deptId]"
-                        (change)="toggleSelectAllUsers(deptId)"
-                        [disabled]="taskForm.value.assignToSelf" />
-                      <label class="form-check-label fw-bold text-emerald-700" [for]="'selectAllUsers-' + deptId">
-                        Select All
-                      </label>
-                    </div>
-
+<div class="form-check mb-2">
+  <input type="checkbox" class="form-check-input custom-checkbox"
+    [id]="'selectAllUsers-' + deptId" [checked]="selectAllUsersByDept[deptId]"
+    (change)="toggleSelectAllUsers(deptId)"
+    [disabled]="taskForm.value.assignToSelf && !((currentUser?.role?.toString() ?? '').toUpperCase().includes('ADMIN'))" />
+  <label class="form-check-label fw-bold text-emerald-700" [for]="'selectAllUsers-' + deptId">
+    Select All
+  </label>
+</div>
                     <div class="max-h-48 overflow-y-auto">
                       <div *ngFor="let user of filteredUsersByDept.get(deptId)" class="form-check mb-2"
                         [ngClass]="{ 'hod-highlight': user.role === 'HOD' }">
@@ -199,7 +198,9 @@
                           [id]="'user-' + user.userId"
                           [checked]="selectedUsersByDeptObj[deptId]?.includes(user.userId)"
                           (change)="updateUserSelection(deptId, user.userId, $event.target.checked)"
-                          [disabled]="taskForm.value.assignToSelf ? (user.userId !== currentUser?.userId) : isUserSelectionDisabled(user)" />
+                          [disabled]="taskForm.value.assignToSelf
+  ? (!((currentUser?.role?.toString() ?? '').toUpperCase().includes('ADMIN')) && user.userId !== currentUser?.userId)
+  : isUserSelectionDisabled(user)" />
                         <label class="form-check-label fw-medium" [for]="'user-' + user.userId">
                           {{ user.fullName }}
                           <small class="text-muted ms-1">({{ user.role }})</small>
