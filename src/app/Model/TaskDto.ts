@@ -9,7 +9,7 @@ export interface TaskDto {
   taskId: number;
   title: string;
   description?: string;
-  startDate?: string; // ISO 8601 date string
+  startDate: string; // ISO 8601 date string
   dueDate: string; // ISO 8601 date string
   status: TaskStatus;
 

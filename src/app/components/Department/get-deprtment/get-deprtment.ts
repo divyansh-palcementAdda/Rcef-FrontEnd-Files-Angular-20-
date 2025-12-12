@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
@@ -14,7 +14,7 @@ interface Stat { label: string; count: number; color: string; }
 @Component({
   selector: 'app-get-department',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,RouterLink],
   templateUrl: './get-deprtment.html',
   styleUrl: './get-deprtment.css'
 })
@@ -54,18 +54,20 @@ export class GetDepartment implements OnInit {
   get userTotalPages() { return Math.ceil(this.userFiltered.length / this.userPageSize) || 1; }
 
   get deptTaskStats(): Stat[] {
-    const counts = { PENDING: 0, UPCOMING: 0, DELAYED: 0, CLOSED: 0 };
+    const counts = { PENDING: 0, UPCOMING: 0, DELAYED: 0, CLOSED: 0,IN_PROGRESS:0 };
     this.allDeptTasks.forEach(t => {
       if (t.status === TaskStatus.PENDING) counts.PENDING++;
       else if (t.status === TaskStatus.UPCOMING) counts.UPCOMING++;
       else if (t.status === TaskStatus.DELAYED) counts.DELAYED++;
       else if (t.status === TaskStatus.CLOSED) counts.CLOSED++;
+      else if (t.status === TaskStatus.IN_PROGRESS) counts.IN_PROGRESS++;
     });
     return [
       { label: 'Pending', count: counts.PENDING, color: 'warning' },
       { label: 'Upcoming', count: counts.UPCOMING, color: 'info' },
       { label: 'Delayed', count: counts.DELAYED, color: 'danger' },
-      { label: 'Closed', count: counts.CLOSED, color: 'success' }
+      { label: 'Closed', count: counts.CLOSED, color: 'success' },
+      { label: 'IN_PROGRESS', count: counts.IN_PROGRESS, color: 'primary' },
     ];
   }
 

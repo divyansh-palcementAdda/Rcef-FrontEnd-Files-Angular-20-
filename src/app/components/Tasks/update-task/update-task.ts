@@ -55,16 +55,16 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   filteredUsersByDept = new Map<number, userDto[]>();
   selectedUsersByDeptObj: Record<number, number[]> = {};
 
- allowedStatuses: TaskStatus[] = [
-  TaskStatus.PENDING,
-  TaskStatus.UPCOMING,
-  TaskStatus.IN_PROGRESS,
-  TaskStatus.CLOSED,
-];
+  allowedStatuses: TaskStatus[] = [
+    TaskStatus.PENDING,
+    TaskStatus.UPCOMING,
+    TaskStatus.IN_PROGRESS,
+    TaskStatus.CLOSED,
+  ];
 
- statuses = [...this.allowedStatuses];
+  statuses = [...this.allowedStatuses];
 
- currentUser: userDto | null = null;
+  currentUser: userDto | null = null;
 
   /* ---------- UI STATE ---------- */
   isSubmitting = false;
@@ -96,7 +96,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     private departmentService: DepartmentApiService,
     private userService: UserApiService,
     private jwtService: JwtService,
-    private cdr: ChangeDetectorRef  // ← Required for OnPush
+    private cdr: ChangeDetectorRef
   ) {
     this.initForm();
   }
@@ -159,6 +159,16 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /* ---------- HELPER: Local Date Formatting ---------- */
+  private formatDateForInput(dateStr: string | null): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   /* ---------- LOAD USER + TASK ---------- */
   private loadCurrentUserAndTask(): void {
     this.isLoadingTask = true;
@@ -198,6 +208,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     this.taskService.getTaskById(this.taskId).subscribe({
       next: (res) => {
         if (res.success && res.data) {
+          console.log('Loaded Task:', res.data);
           this.populateForm(res.data);
           this.loadDepartments();
         } else {
@@ -216,8 +227,8 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   }
 
   private populateForm(task: TaskDto): void {
-    const start = task.startDate ? new Date(task.startDate).toISOString().split('T')[0] : '';
-    const due = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
+    const start = this.formatDateForInput(task.startDate);
+    const due = this.formatDateForInput(task.dueDate);
 
     this.taskForm.patchValue({
       title: task.title,
@@ -340,7 +351,6 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     this.updateSelectAllDepts();
     this.cdr.markForCheck();
   }
-
   clearDeptSearch(): void {
     this.deptSearch = '';
     this.onDeptSearch();
@@ -384,40 +394,39 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-updateDepartmentSelection(deptId: number, checked: boolean): void {
-  // allow admins to change departments even when assignToSelf is true
-  const role = (this.currentUser?.role ?? '').toString().toUpperCase();
-  const isAdmin = role.includes('ADMIN');
-  if (this.taskForm.value.assignToSelf && !isAdmin) return;
+  updateDepartmentSelection(deptId: number, checked: boolean): void {
+    const role = (this.currentUser?.role ?? '').toString().toUpperCase();
+    const isAdmin = role.includes('ADMIN');
+    if (this.taskForm.value.assignToSelf && !isAdmin) return;
 
-  let ids = [...this.taskForm.value.departmentIds];
-  if (checked && !ids.includes(deptId)) ids.push(deptId);
-  else if (!checked) {
-    ids = ids.filter(id => id !== deptId);
-    delete this.selectedUsersByDeptObj[deptId];
+    let ids = [...this.taskForm.value.departmentIds];
+    if (checked && !ids.includes(deptId)) ids.push(deptId);
+    else if (!checked) {
+      ids = ids.filter(id => id !== deptId);
+      delete this.selectedUsersByDeptObj[deptId];
+    }
+    this.taskForm.patchValue({ departmentIds: ids });
+    this.updateAssignedToIds();
+    this.updateSelectAllDepts();
+    this.cdr.markForCheck();
   }
-  this.taskForm.patchValue({ departmentIds: ids });
-  this.updateAssignedToIds();
-  this.updateSelectAllDepts();
-  this.cdr.markForCheck();
-}
 
-updateUserSelection(deptId: number, userId: number, checked: boolean): void {
-  const role = (this.currentUser?.role ?? '').toString().toUpperCase();
-  const isAdmin = role.includes('ADMIN');
+  updateUserSelection(deptId: number, userId: number, checked: boolean): void {
+    const role = (this.currentUser?.role ?? '').toString().toUpperCase();
+    const isAdmin = role.includes('ADMIN');
 
-  if (this.taskForm.value.assignToSelf && !isAdmin && userId !== this.currentUser?.userId) return;
+    if (this.taskForm.value.assignToSelf && !isAdmin && userId !== this.currentUser?.userId) return;
 
-  this.selectedUsersByDeptObj[deptId] ??= [];
-  if (checked && !this.selectedUsersByDeptObj[deptId].includes(userId)) {
-    this.selectedUsersByDeptObj[deptId].push(userId);
-  } else if (!checked) {
-    this.selectedUsersByDeptObj[deptId] = this.selectedUsersByDeptObj[deptId].filter(id => id !== userId);
+    this.selectedUsersByDeptObj[deptId] ??= [];
+    if (checked && !this.selectedUsersByDeptObj[deptId].includes(userId)) {
+      this.selectedUsersByDeptObj[deptId].push(userId);
+    } else if (!checked) {
+      this.selectedUsersByDeptObj[deptId] = this.selectedUsersByDeptObj[deptId].filter(id => id !== userId);
+    }
+    this.updateAssignedToIds();
+    this.updateSelectAllUsersForDept(deptId);
+    this.cdr.markForCheck();
   }
-  this.updateAssignedToIds();
-  this.updateSelectAllUsersForDept(deptId);
-  this.cdr.markForCheck();
-}
 
   private updateAssignedToIds(): void {
     const all = Object.values(this.selectedUsersByDeptObj).flat();
@@ -464,23 +473,21 @@ updateUserSelection(deptId: number, userId: number, checked: boolean): void {
   }
 
   isUserSelectionDisabled(user: userDto): boolean {
-  console.log('Current User Role - ' + this.currentUser?.role);
-  if (!this.currentUser) return true;
+    if (!this.currentUser) return true;
 
-  const role = (this.currentUser.role ?? '').toString().toUpperCase();
+    const role = (this.currentUser.role ?? '').toString().toUpperCase();
 
-  // Treat any role that contains 'ADMIN' as admin (e.g., 'ROLE_ADMIN', 'admin')
-  if (role.includes('ADMIN')) return false;
+    if (role.includes('ADMIN')) return false;
 
-  if (role.includes('HOD')) {
-    const sameDept = user.departmentIds?.some(id =>
-      this.currentUser?.departmentIds?.includes(id)
-    );
-    return !(user.userId === this.currentUser.userId || sameDept);
+    if (role.includes('HOD')) {
+      const sameDept = user.departmentIds?.some(id =>
+        this.currentUser?.departmentIds?.includes(id)
+      );
+      return !(user.userId === this.currentUser.userId || sameDept);
+    }
+
+    return true;
   }
-
-  return true;
-}
 
   private assignToSelfLogic(): void {
     if (!this.currentUser) return;
@@ -556,8 +563,8 @@ updateUserSelection(deptId: number, userId: number, checked: boolean): void {
 
     const payload = {
       ...this.taskForm.value,
-      startDate: startDate ? new Date(startDate).toISOString() : null,
-      dueDate: new Date(dueDate).toISOString(),
+      startDate: startDate ? `${startDate}T00:00:00` : null,
+      dueDate: `${dueDate}T00:00:00`,
       departmentIds: this.taskForm.value.departmentIds,
       assignedToIds: this.taskForm.value.assignedToIds,
       requiresApproval: this.currentUser?.role === 'HOD',

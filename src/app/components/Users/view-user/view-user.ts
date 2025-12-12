@@ -30,6 +30,13 @@ interface TableSection {
   styleUrls: ['./view-user.css']
 })
 export class ViewUserComponent implements OnInit {
+viewDepartment(deptId: any) {
+    this.router.navigate(['/department', deptId]);
+  }
+
+viewTask(taskId: number) {
+    this.router.navigate(['/task', taskId]);
+  }
   userId!: number;
   user?: userDto;
   isLoading = true;
@@ -62,7 +69,8 @@ export class ViewUserComponent implements OnInit {
     { label: 'Pending', count: 0, color: 'warning' },
     { label: 'Upcoming', count: 0, color: 'info' },
     { label: 'Delayed', count: 0, color: 'danger' },
-    { label: 'Closed', count: 0, color: 'success' }
+    { label: 'Closed', count: 0, color: 'success' },
+    { label: 'IN_PROGRESS', count: 0, color: 'primary' }
   ];
 
   enrichedDepartments: any[] = [];
@@ -208,7 +216,8 @@ export class ViewUserComponent implements OnInit {
       { label: 'Pending', count: this.userTasks.filter(t => t.status === 'PENDING').length, color: 'warning' },
       { label: 'Upcoming', count: this.userTasks.filter(t => t.status === 'UPCOMING').length, color: 'info' },
       { label: 'Delayed', count: this.userTasks.filter(t => t.status === 'DELAYED').length, color: 'danger' },
-      { label: 'Closed', count: this.userTasks.filter(t => t.status === 'CLOSED').length, color: 'success' }
+      { label: 'Closed', count: this.userTasks.filter(t => t.status === 'CLOSED').length, color: 'success' },
+      { label: 'IN_PROGRESS', count: this.userTasks.filter(t => t.status === 'IN_PROGRESS').length, color: 'primary' }
     ];
   }
 

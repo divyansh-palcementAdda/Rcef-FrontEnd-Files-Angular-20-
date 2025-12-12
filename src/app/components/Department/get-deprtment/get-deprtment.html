@@ -130,6 +130,7 @@
               <th>Assigned To</th>
               <th>Status</th>
               <th>Due Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -150,6 +151,10 @@
                 </span>
               </td>
               <td>{{ t.dueDate | date:'mediumDate' }}</td>
+              <td>
+                <a [routerLink]="['/task', t.taskId]" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  <i class="bi bi-eye me-1"></i>View
+                </a>
             </tr>
           </tbody>
         </table>
@@ -198,6 +203,7 @@
               <th>Username</th>
               <th>Email</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -212,11 +218,14 @@
                   {{ u.status }}
                 </span>
               </td>
+              <td>
+                <a [routerLink]="['/user', u.userId]" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                  <i class="bi bi-eye me-1"></i>View
+                </a>
             </tr>
           </tbody>
         </table>
       </div>
-
       <nav *ngIf="userFiltered.length > userPageSize" class="mt-4">
         <ul class="pagination justify-content-center">
           <li class="page-item" [class.disabled]="userPage===1">

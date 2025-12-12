@@ -224,6 +224,7 @@
                     <th>Name</th>
                     <th>HOD</th>
                     <th>User Count</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -233,6 +234,10 @@
                     <td data-label="Count">
                       <span class="badge bg-primary rounded-pill">{{ d.userCount }}</span>
                     </td>
+                    <td data-label="Action" class="text-center">
+                      <button class="btn btn-sm btn-outline-info" (click)="viewDepartmentDetails(d.id)">
+                        <i class="bi bi-eye me-1"></i> View
+                      </button>
                   </tr>
                   <tr *ngIf="!enrichedDepartments.length">
                     <td colspan="3" class="text-center text-muted py-4">

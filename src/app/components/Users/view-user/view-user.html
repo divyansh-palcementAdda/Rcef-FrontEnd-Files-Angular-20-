@@ -22,7 +22,7 @@
     <p class="mt-3 fw-medium text-muted">Loading user details…</p>
   </div>
 
-  <!-- 👤 User Card (EXACT ViewTask style) -->
+  <!-- 👤 User Card  -->
   <div *ngIf="user && !isLoading && !isForbidden" class="dept-card shadow-lg border-0 rounded-4 overflow-hidden animate__animated animate__fadeInUp">
 
     <!-- Gradient Header -->
@@ -115,6 +115,7 @@
                   <th>Title</th>
                   <th>Status</th>
                   <th>Due Date</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -125,13 +126,17 @@
                     <span class="badge rounded-pill px-3 py-2" [ngClass]="{
                       'bg-warning text-dark': task.status === TaskStatus.PENDING || task.status === TaskStatus.UPCOMING,
                       'bg-danger blink': task.status === TaskStatus.DELAYED,
-                      'bg-info text-dark': task.status === TaskStatus.REQUEST_FOR_CLOSURE || task.status === TaskStatus.REQUEST_FOR_EXTENSION,
+                      'bg-info text-dark': task.status === TaskStatus.REQUEST_FOR_CLOSURE || task.status === TaskStatus.REQUEST_FOR_EXTENSION || task.status === TaskStatus.IN_PROGRESS,
                       'bg-success': task.status === TaskStatus.CLOSED
                     }">
                       {{ task.status }}
                     </span>
                   </td>
                   <td>{{ task.dueDate | date: 'mediumDate' }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" (click)="viewTask(task.taskId)">
+                      <i class="bi bi-eye me-1"></i>View
+                    </button>
                 </tr>
               </tbody>
             </table>
@@ -172,6 +177,7 @@
                   <th>Name</th>
                   <th>HOD</th>
                   <th>Total Users</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,6 +185,11 @@
                   <td>{{ dept.name }}</td>
                   <td>{{ dept.hodName }}</td>
                   <td><span class="badge bg-primary rounded-pill">{{ dept.userCount }}</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" (click)="viewDepartment(dept.id)">
+                      <i class="bi bi-eye me-1"></i>View
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
