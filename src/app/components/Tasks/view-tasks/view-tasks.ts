@@ -25,24 +25,41 @@ interface ApiResponse<T> {
   styleUrls: ['./view-tasks.css']
 })
 export class ViewTasksComponent implements OnInit, OnDestroy {
+  // Task Data
   tasks: TaskDto[] = [];
   filteredTasks: TaskDto[] = [];
+  readonly Math = Math;
 
+  // UI States
   loading = false;
+  loadingMessage = 'Loading tasks...';
   errorMessage: string | null = null;
   isForbidden = false;
+  isEmpty = false;
 
+  // Filters
   searchTerm = '';
   statusFilter = '';
 
+  // Pagination
   currentPage = 1;
   pageSize = 8;
   totalPages = 1;
+  totalTasks = 0;
 
   // User Info
   currentUserId: number | null = null;
   currentUserRole: string | null = null;
   currentUserDeptIds: number[] = [];
+
+  // Stats
+  taskStats = {
+    total: 0,
+    pending: 0,
+    delayed: 0,
+    completed: 0,
+    In_PROGRESS: 0
+  };
 
   private subscriptions = new Subscription();
 
@@ -60,7 +77,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   /** Load current user → then decide which tasks to load */
-  private loadCurrentUserAndTasks(): void {
+   loadCurrentUserAndTasks(): void {
     const token = this.jwtService.getAccessToken();
     if (!token) {
       this.router.navigate(['/login']);
@@ -69,12 +86,13 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
     const userId = this.jwtService.getUserIdFromToken(token);
     if (!userId) {
-      this.errorMessage = 'Invalid session';
+      this.errorMessage = 'Invalid session. Please login again.';
       return;
     }
 
     this.currentUserId = userId;
     this.loading = true;
+    this.loadingMessage = 'Loading user profile...';
 
     this.subscriptions.add(
       this.userService.getUserById(userId).subscribe({
@@ -93,7 +111,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
               } else if (status?.toLowerCase() === 'selfassigned') {
                 this.loadTasksForSelf();
               } else if (status?.toLowerCase() === 'approval') {
-                this.loadTasksForApproval(); // Fixed typo
+                this.loadTasksForApproval();
               } else if (status) {
                 this.loadTasksByStatus(this.statusFilter);
               } else {
@@ -102,17 +120,30 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
             })
           );
         },
-        error: () => {
-          this.errorMessage = 'Failed to load user profile';
+        error: (err) => {
+          console.error('Failed to load user profile:', err);
+          this.errorMessage = 'Failed to load user profile. Please try again.';
           this.loading = false;
         }
       })
     );
   }
 
+  /** Calculate task statistics */
+  private calculateStats(tasks: TaskDto[]): void {
+    this.taskStats = {
+      total: tasks.length,
+      pending: tasks.filter(t => t.status === 'PENDING' || t.status === 'UPCOMING').length,
+      delayed: tasks.filter(t => t.status === 'DELAYED').length,
+      completed: tasks.filter(t => t.status === 'CLOSED').length,
+      In_PROGRESS: tasks.filter(t => t.status === 'IN_PROGRESS').length
+    };
+  }
+
   /** Load tasks requiring approval (requiresApproval=true && approved=false) */
   loadTasksForApproval(): void {
     this.loading = true;
+    this.loadingMessage = 'Loading approval tasks...';
     this.subscriptions.add(
       this.apiService.getAllTasksWhichRequriesApproval()
         .pipe(
@@ -124,7 +155,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         )
         .subscribe(res => {
           let tasks = this.extractTasks(res);
-          tasks = this.filterTasksByRole(tasks); // Apply HOD/ADMIN filter
+          tasks = this.filterTasksByRole(tasks);
           this.handleTaskResponse(tasks);
         })
     );
@@ -135,6 +166,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     if (!this.currentUserId) return;
 
     this.loading = true;
+    this.loadingMessage = 'Loading self-assigned tasks...';
     this.subscriptions.add(
       this.apiService.getTasksByUser(this.currentUserId)
         .pipe(
@@ -146,7 +178,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         )
         .subscribe(res => {
           const tasks = this.extractTasks(res);
-          this.handleTaskResponse(tasks); // Filtering done in applyFilters()
+          this.handleTaskResponse(tasks);
         })
     );
   }
@@ -161,6 +193,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       this.loadTasksForCurrentUser();
     } else {
       this.errorMessage = 'Unauthorized role';
+      this.isForbidden = true;
       this.loading = false;
     }
   }
@@ -168,6 +201,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   /** ADMIN: All tasks */
   private loadAllTasks(): void {
     this.loading = true;
+    this.loadingMessage = 'Loading all tasks...';
     this.subscriptions.add(
       this.apiService.getAllTasks()
         .pipe(
@@ -187,10 +221,12 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       this.tasks = [];
       this.applyFilters();
       this.loading = false;
+      this.isEmpty = true;
       return;
     }
 
     this.loading = true;
+    this.loadingMessage = 'Loading department tasks...';
     this.subscriptions.add(
       this.apiService.getTasksByDepartment(this.currentUserDeptIds[0])
         .pipe(
@@ -209,6 +245,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     if (!this.currentUserId) return;
 
     this.loading = true;
+    this.loadingMessage = 'Loading your tasks...';
     this.subscriptions.add(
       this.apiService.getTasksByUser(this.currentUserId)
         .pipe(
@@ -225,6 +262,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   /** Load by status (with role filter applied after) */
   private loadTasksByStatus(status: string): void {
     this.loading = true;
+    this.loadingMessage = `Loading ${status.toLowerCase()} tasks...`;
     this.subscriptions.add(
       this.apiService.getTasksByStatus(status)
         .pipe(
@@ -275,14 +313,19 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   private handleTaskResponse(tasks: TaskDto[]): void {
     this.errorMessage = null;
     this.isForbidden = false;
+    this.isEmpty = tasks.length === 0;
     this.tasks = tasks || [];
+    this.totalTasks = tasks.length;
+    this.calculateStats(tasks);
     this.applyFilters();
   }
 
   /** Centralized error */
   private handleError(err: any, fallback: string): void {
-    console.error(err);
+    console.error('Task loading error:', err);
     this.errorMessage = err?.message || err?.error?.message || fallback;
+    this.isForbidden = err?.status === 403;
+    this.isEmpty = true;
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -294,16 +337,10 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
     const assigned = task.assignedToIds || [];
     const isAssignedToMe = assigned.includes(this.currentUserId);
-    const createdByMe = task.createdById === this.currentUserId;
+    // const createdByMe = task.createdById === this.currentUserId;
 
     // Must be assigned to me
     if (!isAssignedToMe) return false;
-
-    // If created by me → only show if no one else is assigned
-    if (createdByMe) {
-      return assigned.length === 1;
-    }
-
     // If created by someone else → show if assigned to me
     return true;
   }
@@ -313,9 +350,9 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     const assigned = task.assignedToIds || [];
     const isAssignedToMe = assigned.includes(this.currentUserId);
     const createdByMe = task.createdById === this.currentUserId;
-    const assigneeCountIsOne = assigned.length === 1;
+    // const assigneeCountIsOne = assigned.length === 1;
 
-    return createdByMe && isAssignedToMe && assigneeCountIsOne;
+    return createdByMe && isAssignedToMe ;
   }
 
   applyFilters(): void {
@@ -358,11 +395,23 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   changePage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) this.currentPage = page;
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   getPageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    const maxVisiblePages = 5;
+    const half = Math.floor(maxVisiblePages / 2);
+    let start = Math.max(this.currentPage - half, 1);
+    let end = Math.min(start + maxVisiblePages - 1, this.totalPages);
+
+    if (end - start + 1 < maxVisiblePages) {
+      start = Math.max(end - maxVisiblePages + 1, 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
   get paginatedTasks(): TaskDto[] {
@@ -381,14 +430,17 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   viewTaskDetails(taskId?: number): void {
-    if (taskId) this.router.navigate(['/task', taskId]);
+    if (taskId) {
+      this.router.navigate(['/task', taskId]);
+    }
   }
 
   deleteTask(event: Event, taskId?: number): void {
     event.stopPropagation();
-    if (!taskId || !confirm('Are you sure you want to delete this task?')) return;
+    if (!taskId || !confirm('Are you sure you want to delete this task? This action cannot be undone.')) return;
 
     this.loading = true;
+    this.loadingMessage = 'Deleting task...';
     this.subscriptions.add(
       this.apiService.deleteTask(taskId)
         .pipe(
@@ -402,6 +454,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
           if (res?.success) {
             this.tasks = this.tasks.filter(t => t.taskId !== taskId);
             this.applyFilters();
+            this.calculateStats(this.tasks);
           } else {
             this.handleError(res, res?.message || 'Delete failed');
           }
@@ -412,13 +465,111 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   getStatusClass(status?: string): string {
     switch (status?.toUpperCase()) {
       case 'PENDING':
-      case 'UPCOMING': return 'bg-warning text-dark';
-      case 'DELAYED': return 'bg-danger blink';
+      case 'UPCOMING': return 'status-pending';
+      case 'DELAYED': return 'status-delayed blink';
       case 'REQUEST_FOR_CLOSURE':
-      case 'REQUEST_FOR_EXTENSION': return 'bg-info';
-      case 'CLOSED': return 'bg-success';
-      default: return 'bg-secondary';
+      case 'REQUEST_FOR_EXTENSION': return 'status-request';
+      case 'CLOSED': return 'status-closed';
+      case 'EXTENDED': return 'status-extended';
+      default: return 'status-default';
     }
+  }
+
+
+// Add these methods to your component class
+
+/** TrackBy function for better Angular performance */
+trackByTaskId(index: number, task: TaskDto): number {
+  return task.taskId || index;
+}
+
+/** Get display name for filter */
+getFilterDisplayName(filter: string): string {
+  const filterMap: { [key: string]: string } = {
+    'SELF': 'My Tasks',
+    'SELFASSIGNED': 'Self Assigned',
+    'APPROVAL': 'Awaiting Approval',
+    'REQUEST_FOR_CLOSURE': 'Request Closure',
+    'REQUEST_FOR_EXTENSION': 'Request Extension'
+  };
+  return filterMap[filter] || filter.split('_').map(word => 
+    word.charAt(0) + word.slice(1).toLowerCase()
+  ).join(' ');
+}
+
+/** Get display name for status */
+getStatusDisplayName(status?: string): string {
+  if (!status) return 'Unknown';
+  
+  const statusMap: { [key: string]: string } = {
+    'PENDING': 'Pending',
+    'UPCOMING': 'Upcoming',
+    'DELAYED': 'Delayed',
+    'REQUEST_FOR_CLOSURE': 'Closure Req',
+    'REQUEST_FOR_EXTENSION': 'Extension Req',
+    'CLOSED': 'Completed',
+    'EXTENDED': 'Extended'
+  };
+  
+  return statusMap[status.toUpperCase()] || 
+    status.split('_').map(word => 
+      word.charAt(0) + word.slice(1).toLowerCase()
+    ).join(' ');
+}
+
+/** Enhanced date formatting with relative time */
+formatDate(date: any): string {
+  if (!date) return 'N/A';
+  
+  const d = new Date(date);
+  const now = new Date();
+  const diffMs = d.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  
+  const formatted = d.toLocaleDateString('en-US', { 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric' 
+  });
+  
+  // Add relative time indicator for due dates
+  if (diffDays >= -1 && diffDays <= 7) {
+    if (diffDays === 0) return `${formatted} (Today)`;
+    if (diffDays === 1) return `${formatted} (Tomorrow)`;
+    if (diffDays === -1) return `${formatted} (Yesterday)`;
+    if (diffDays > 0) return `${formatted} (in ${diffDays} days)`;
+    if (diffDays < 0) return `${formatted} (${Math.abs(diffDays)} days ago)`;
+  }
+  
+  return formatted;
+}
+
+/** Add a method to show task importance visually */
+getPriorityClass(priority?: string): string {
+  switch (priority?.toUpperCase()) {
+    case 'HIGH': return 'priority-high';
+    case 'MEDIUM': return 'priority-medium';
+    case 'LOW': return 'priority-low';
+    default: return 'priority-default';
+  }
+}
+
+
+  getStatusIcon(status?: string): string {
+    switch (status?.toUpperCase()) {
+      case 'PENDING': return '⏳';
+      case 'UPCOMING': return '📅';
+      case 'DELAYED': return '⚠️';
+      case 'REQUEST_FOR_CLOSURE': return '📝';
+      case 'REQUEST_FOR_EXTENSION': return '⏱️';
+      case 'CLOSED': return '✅';
+      case 'EXTENDED': return '🔁';
+      default: return '📋';
+    }
+  }
+
+  canDeleteTask(): boolean {
+    return this.currentUserRole === 'ADMIN';
   }
 
   ngOnDestroy(): void {
