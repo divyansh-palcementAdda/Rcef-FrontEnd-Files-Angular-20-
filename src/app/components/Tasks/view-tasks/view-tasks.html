@@ -109,8 +109,8 @@
                 <ng-template #noDeptOrUser>—</ng-template>
               </td>
 
-              <td>{{ task.startDate | date: 'short' }}</td>
-              <td>{{ task.dueDate | date: 'short' }}</td>
+             <td>{{ task.startDate | date: 'dd/MM/yyyy' }}</td>
+<td>{{ task.dueDate | date: 'dd/MM/yyyy' }}</td>
               <td>
                 <span class="badge rounded-pill" [ngClass]="getStatusClass(task.status)">
                   {{ task.status }}
