@@ -14,18 +14,23 @@ interface Stat { label: string; count: number; color: string; }
 @Component({
   selector: 'app-get-department',
   standalone: true,
-  imports: [CommonModule, FormsModule,RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './get-deprtment.html',
   styleUrl: './get-deprtment.css'
 })
 export class GetDepartment implements OnInit {
+  addNewUser() {
+    this.router.navigate(['/add-user'], {
+      queryParams: { departmentId: this.departmentId }
+    });
+  }
 
   departmentId!: number;
   department!: Department;
   allDeptTasks: TaskDto[] = [];
   hodUser!: userDto | null;
   userCount = 0;
-  taskCount=0;
+  taskCount = 0;
 
   loading = true;
   loadingTasks = false;
@@ -41,6 +46,11 @@ export class GetDepartment implements OnInit {
     const s = (this.taskPage - 1) * this.taskPageSize;
     return this.taskFiltered.slice(s, s + this.taskPageSize);
   }
+  assignNewTask() {
+    this.router.navigate(['/add-task'], {
+      queryParams: { departmentId: this.departmentId }
+    });
+  }
   get taskTotalPages() { return Math.ceil(this.taskFiltered.length / this.taskPageSize) || 1; }
 
   userSearch = '';
@@ -54,7 +64,7 @@ export class GetDepartment implements OnInit {
   get userTotalPages() { return Math.ceil(this.userFiltered.length / this.userPageSize) || 1; }
 
   get deptTaskStats(): Stat[] {
-    const counts = { PENDING: 0, UPCOMING: 0, DELAYED: 0, CLOSED: 0,IN_PROGRESS:0 };
+    const counts = { PENDING: 0, UPCOMING: 0, DELAYED: 0, CLOSED: 0, IN_PROGRESS: 0 };
     this.allDeptTasks.forEach(t => {
       if (t.status === TaskStatus.PENDING) counts.PENDING++;
       else if (t.status === TaskStatus.UPCOMING) counts.UPCOMING++;
@@ -96,14 +106,14 @@ export class GetDepartment implements OnInit {
       next: (res) => {
         this.department = res;
         this.userCount = this.department.users?.length || 0;
-        
+
         // 🔍 Find and set HOD from the user list if not already provided
         if (!this.department.hod && this.department.users?.length) {
           this.hodUser = this.department.users.find(u => u.role === 'HOD') || null;
         } else {
           this.hodUser = this.department.hod || null;
         }
-        
+
         this.loading = false;
         this.loadDepartmentTasks();
         this.initUserFilter();
@@ -114,7 +124,7 @@ export class GetDepartment implements OnInit {
       }
     });
   }
-   goBack(): void {
+  goBack(): void {
     this.router.navigate(['/departments']);
   }
   loadDepartmentTasks(): void {

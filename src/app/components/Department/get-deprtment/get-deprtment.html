@@ -88,10 +88,17 @@
         <button class="btn btn-outline-info px-4 py-2" (click)="toggleCollapse('users')">
           <i class="bi bi-people me-2"></i>{{ collapsed.users ? 'Show' : 'Hide' }} Users ({{ department.users?.length || 0 }})
         </button>
+         <button class="btn btn-outline-primary px-4 py-2" (click)="assignNewTask()">
+          <i class="bi bi-plus-circle me-2"></i>Assign New Task
+        </button>
+        <button class="btn btn-outline-primary px-4 py-2" (click)="addNewUser()">
+          <i class="bi bi-plus-circle me-2"></i>Add New User
+        </button>
       </div>
       <button class="btn btn-outline-secondary px-4 py-2" (click)="goBack()">
           <i class="bi bi-arrow-left-circle me-2"></i>Back
         </button>
+        
     </div>
   </div>
 

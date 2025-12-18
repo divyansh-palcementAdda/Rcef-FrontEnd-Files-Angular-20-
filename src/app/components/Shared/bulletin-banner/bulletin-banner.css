@@ -15,7 +15,7 @@
   align-items: center;
   gap: 16px;
   white-space: nowrap;
-  animation: slide 20s linear infinite;
+  animation: slide 30s linear infinite;
 }
 
 .bulletin-ticker .icon {

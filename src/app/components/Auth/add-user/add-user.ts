@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { DepartmentApiService } from '../../../Services/department-api-service';
@@ -33,14 +33,16 @@ export class AddUserComponent implements OnInit {
   otpValidated = false;
   otpInput = '';
   verifiedEmail: string | null = null;
+  departmentId: string | null = null;
+
 
   constructor(
     private fb: FormBuilder,
     private departmentApiService: DepartmentApiService,
     private apiService: ApiService,
     private userApiService: UserApiService,
-    private router: Router,
-    private authApiService: AuthApiService
+    private authApiService: AuthApiService,
+    private route : ActivatedRoute
   ) {
     this.userForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(80), Validators.pattern(/^[a-zA-Z0-9._-]+$/)]],
@@ -53,6 +55,10 @@ export class AddUserComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      this.departmentId = params.get('departmentId');
+    });
+    console.log('Preselected Department ID:', this.departmentId);
     this.loadDepartments();
     this.userForm.get('password')?.valueChanges.subscribe(value => {
       this.passwordStrength = this.evaluatePasswordStrength(value || '');

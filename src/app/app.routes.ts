@@ -18,12 +18,12 @@ import { UpdateTaskComponent } from './components/Tasks/update-task/update-task'
 import { EditUser } from './components/Users/edit-user/edit-user';
 import { GetDepartment } from './components/Department/get-deprtment/get-deprtment';
 import { ViewAllRequests } from './components/Requests/view-all-requests/view-all-requests';
-// import { Test } from './components/Test/test/test';
+import { Test } from './components/Test/test/test';
 
 export const routes: Routes = [
 
   { path: '', component: Home },
-  // {path: 'test', component: Test},
+  {path: 'test', component: Test},
   { path: 'login', component: LoginComponent },
  
 
@@ -65,10 +65,10 @@ export const routes: Routes = [
   },
   {
     path: 'edit-task', component: UpdateTaskComponent, canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'HOD'] }
+    data: { roles: ['ADMIN'] }
   }, {
     path: 'edit-user/:id', component: EditUser, canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'HOD', 'TEACHER'] }
+    data: { roles: ['ADMIN'] }
   }, {
     path: 'view-tasks', component: ViewTasksComponent,
     canActivate: [AuthGuard, RoleGuard],

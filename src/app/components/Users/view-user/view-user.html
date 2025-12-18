@@ -51,17 +51,16 @@
       <!-- Basic Info -->
       <div class="row gy-4 mb-5">
         <div class="col-md-6">
-          <p><i class="bi bi-person-circle me-2 text-primary"></i><strong>Username:</strong> {{ user.username }}</p>
-          <p><i class="bi bi-envelope me-2 text-primary"></i><strong>Email:</strong> {{ user.email }}</p>
-          <p><i class="bi bi-telephone me-2 text-primary"></i><strong>Departments:</strong> {{ user.departmentNames || 'N/A' }}</p>
+          <p><i class="bi bi-person-circle me-2 text-primary"></i><strong>Username : </strong> {{ user.username }}</p>
+          <p><i class="bi bi-envelope me-2 text-primary"></i><strong>Email : </strong> {{ user.email }}</p>
+          <p><i class="bi bi-telephone me-2 text-primary"></i><strong>Departments : </strong> {{ user.departmentNames || 'N/A' }}</p>
         </div>
         <div class="col-md-6">
-          <p><i class="bi bi-shield-check me-2 text-primary"></i><strong>Email Verified:</strong>
+          <p><i class="bi bi-shield-check me-2 text-primary"></i><strong>Email Verified : </strong>
             <span [ngClass]="user.emailVerified ? 'text-success fw-semibold' : 'text-danger fw-semibold'">
               {{ user.emailVerified ? 'Yes' : 'No' }}
             </span>
           </p>
-          <!-- <p><i class="bi bi-calendar-check me-2 text-primary"></i><strong>Created:</strong> {{ user.createdAt | date:'mediumDate' }}</p> -->
         </div>
       </div>
 
@@ -209,10 +208,14 @@
                 class="btn btn-outline-danger px-4 py-2" (click)="deleteUser()">
           <i class="bi bi-trash me-2"></i>Delete User
         </button>
-         <button *ngIf="canEditDelete() && user?.status === 'INACTIVE'" 
+         <button *ngIf="canEditDelete() && user.status === 'INACTIVE'" 
                 class="btn btn-outline-success px-4 py-2" (click)="toggleUserStatus()">
           <i class="bi bi-trash me-2"></i>Active User
         </button>
+         <button class="btn btn-primary px-4 py-2 shadow-sm" (click)="assignNewTask()">
+  <i class="bi bi-plus-circle me-2"></i>
+  Assign New Task
+</button>
         <button class="btn btn-outline-secondary px-4 py-2" (click)="goBack()">
           <i class="bi bi-arrow-left-circle me-2"></i>Back
         </button>

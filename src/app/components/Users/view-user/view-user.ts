@@ -30,6 +30,11 @@ interface TableSection {
   styleUrls: ['./view-user.css']
 })
 export class ViewUserComponent implements OnInit {
+assignNewTask() {
+  this.router.navigate(['/add-task'], { 
+    queryParams: { userId: this.userId } 
+  });
+}
 viewDepartment(deptId: any) {
     this.router.navigate(['/department', deptId]);
   }

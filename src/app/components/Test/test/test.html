@@ -1,0 +1,235 @@
+<div class="view-tasks-container" [class.loading]="loading">
+<br><br><br><br>
+  <!-- Loading Overlay -->
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner-container">
+        <div class="spinner"></div>
+        <div class="spinner-inner"></div>
+      </div>
+      <p class="loading-text">{{ loadingMessage }}</p>
+    </div>
+  </div>
+
+  <!-- Header Section - Made Compact -->
+  <!-- <div class="header-section">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <span class="gradient-text">Task Management</span>
+          <span *ngIf="statusFilter" class="filter-badge">
+            {{ getFilterDisplayName(statusFilter) }}
+          </span>
+        </h1>
+        <p class="page-description">
+          {{ currentUserRole | titlecase }} Dashboard
+        </p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn-back" (click)="goBackToDashboard()">
+          <span class="icon">←</span>
+          <span>Dashboard</span>
+        </button>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- Error States -->
+  <div *ngIf="errorMessage" class="error-state">
+    <div class="error-content">
+      <div class="error-icon">❌</div>
+      <h3>Unable to Load Tasks</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="btn-retry" (click)="loadCurrentUserAndTasks()">
+        🔄 Retry
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isForbidden" class="error-state">
+    <div class="error-content">
+      <div class="error-icon">🔒</div>
+      <h3>Access Restricted</h3>
+      <p>You don't have permission to view these tasks.</p>
+      <button class="btn-back" (click)="goBackToDashboard()">
+        ← Return to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading && !errorMessage && !isForbidden" class="main-content">
+    
+    <!-- Compact Filters Section -->
+    <div class="filters-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          class="search-input"
+          placeholder="Search tasks..."
+          [(ngModel)]="searchTerm"
+          (input)="applyFilters()"
+          aria-label="Search tasks"
+        />
+        <span *ngIf="searchTerm" 
+              class="clear-search" 
+              (click)="searchTerm = ''; applyFilters()"
+              title="Clear search">
+          ✕
+        </span>
+      </div>
+      
+      <div class="filter-controls">
+        <select class="status-filter" 
+                [(ngModel)]="statusFilter" 
+                (change)="applyFilters()"
+                aria-label="Filter by status">
+          <option value="">All Statuses</option>
+          <option value="PENDING">Pending</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="DELAYED">Delayed</option>
+          <option value="CLOSED">Closed</option>
+          <option value="SELF">My Tasks</option>
+        </select>
+        
+        <button class="btn-reset" (click)="resetFilters()">
+          <span class="icon">🔄</span>
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Tasks List - Optimized for Maximum Visibility -->
+    <div *ngIf="!isEmpty && filteredTasks.length > 0" class="tasks-section">
+      
+      <!-- Desktop Table - Compact and Efficient -->
+      <div class="tasks-table desktop-view">
+        <div class="table-header">
+          <div class="table-row">
+            <div class="col-task-id">ID</div>
+            <div class="col-title">Task Details</div>
+            <div class="col-info">Dept & Assignee</div>
+            <div class="col-dates">Timeline</div>
+            <div class="col-status">Status</div>
+            <div class="col-actions">Actions</div>
+          </div>
+        </div>
+        
+        <div class="table-body">
+          <div *ngFor="let task of paginatedTasks; trackBy: trackByTaskId" 
+               class="table-row task-row"
+               (click)="viewTaskDetails(task.taskId)"
+               [attr.aria-label]="'Task: ' + task.title">
+            
+            <div class="col-task-id">
+              <span class="task-id">#{{ task.taskId }}</span>
+            </div>
+            
+            <div class="col-title">
+              <h4 class="task-title">{{ task.title }}</h4>
+              <p *ngIf="task.description" class="task-description">
+                {{ task.description | slice:0:60 }}{{ task.description.length > 60 ? '...' : '' }}
+              </p>
+            </div>
+            
+            <div class="col-info">
+              <div class="department-info">
+                <span class="info-icon">🏢</span>
+                <span *ngIf="task.departmentNames?.length === 1">
+                  {{ (task.departmentNames?.[0] | slice:0:15) }}{{ task.departmentNames?.[0]?.length??0 > 15 ? '...' : '' }}
+                </span>
+                <span *ngIf="(task.departmentNames?.length ?? 0) > 1" class="multiple">
+                  {{ task.departmentNames?.length }} Depts
+                </span>
+              </div>
+              
+              <div class="assignee-info">
+                <span class="info-icon">👤</span>
+                <span *ngIf="task.assignedToNames?.length === 1">
+                  {{ (task.assignedToNames?.[0] | slice:0:12) }}{{ task.assignedToNames?.[0]?.length??0 > 12 ? '...' : '' }}
+                </span>
+                <span *ngIf="(task.assignedToNames?.length ?? 0) > 1" class="multiple">
+                  {{ task.assignedToNames?.length }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="col-dates">
+              <div class="date-item">
+                <span class="date-label">Due:</span>
+                <span class="date-value">{{ formatDate(task.dueDate) }}</span>
+              </div>
+            </div>
+            
+            <div class="col-status">
+              <span class="status-badge" [ngClass]="getStatusClass(task.status)">
+                {{ getStatusIcon(task.status) }}
+              </span>
+            </div>
+            
+            <div class="col-actions">
+              <div class="action-buttons">
+                <button class="btn-action btn-view" 
+                        (click)="viewTaskDetails(task.taskId); $event.stopPropagation()"
+                        aria-label="View task details">
+                  👁️
+                </button>
+                
+                <button *ngIf="canDeleteTask() && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'" 
+                        class="btn-action btn-delete"
+                        (click)="deleteTask($event, task.taskId)"
+                        aria-label="Delete task">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination - Compact -->
+      <div *ngIf="filteredTasks.length > pageSize" class="pagination-section">
+        <div class="pagination-controls">
+          <button class="btn-pagination" 
+                  [class.disabled]="currentPage === 1"
+                  (click)="changePage(currentPage - 1)"
+                  [attr.aria-label]="'Previous page'">
+            ←
+          </button>
+          
+          <div class="page-numbers">
+            <span class="pagination-info">
+              Page {{ currentPage }} of {{ totalPages }}
+            </span>
+          </div>
+          
+          <button class="btn-pagination" 
+                  [class.disabled]="currentPage === totalPages"
+                  (click)="changePage(currentPage + 1)"
+                  [attr.aria-label]="'Next page'">
+            →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="isEmpty || filteredTasks.length === 0" class="empty-state">
+      <div class="empty-content">
+        <div class="empty-icon">📭</div>
+        <h3>No Tasks Found</h3>
+        <p *ngIf="searchTerm || statusFilter">
+          No tasks match your current filters.
+        </p>
+        <p *ngIf="!searchTerm && !statusFilter">
+          No tasks available.
+        </p>
+        <button *ngIf="searchTerm || statusFilter" class="btn-reset" (click)="resetFilters()">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
