@@ -1,5 +1,4 @@
 <div class="view-tasks-container" [class.loading]="loading">
-<br><br><br><br>
   <!-- Loading Overlay -->
   <div *ngIf="loading" class="loading-overlay">
     <div class="loading-spinner">
@@ -10,30 +9,6 @@
       <p class="loading-text">{{ loadingMessage }}</p>
     </div>
   </div>
-
-  <!-- Header Section - Made Compact -->
-  <!-- <div class="header-section">
-    <div class="header-content">
-      <div class="title-section">
-        <h1 class="page-title">
-          <span class="gradient-text">Task Management</span>
-          <span *ngIf="statusFilter" class="filter-badge">
-            {{ getFilterDisplayName(statusFilter) }}
-          </span>
-        </h1>
-        <p class="page-description">
-          {{ currentUserRole | titlecase }} Dashboard
-        </p>
-      </div>
-      
-      <div class="header-actions">
-        <button class="btn-back" (click)="goBackToDashboard()">
-          <span class="icon">←</span>
-          <span>Dashboard</span>
-        </button>
-      </div>
-    </div>
-  </div> -->
 
   <!-- Error States -->
   <div *ngIf="errorMessage" class="error-state">
@@ -60,7 +35,7 @@
 
   <!-- Main Content -->
   <div *ngIf="!loading && !errorMessage && !isForbidden" class="main-content">
-    
+    <br><br><br><br>
     <!-- Compact Filters Section -->
     <div class="filters-section">
       <div class="search-box">
@@ -108,7 +83,7 @@
       <div class="tasks-table desktop-view">
         <div class="table-header">
           <div class="table-row">
-            <div class="col-task-id">ID</div>
+            <div class="col-task-id">S.No</div>
             <div class="col-title">Task Details</div>
             <div class="col-info">Dept & Assignee</div>
             <div class="col-dates">Timeline</div>
@@ -118,13 +93,14 @@
         </div>
         
         <div class="table-body">
-          <div *ngFor="let task of paginatedTasks; trackBy: trackByTaskId" 
+          <div *ngFor="let task of paginatedTasks;let i = index; trackBy: trackByTaskId" 
                class="table-row task-row"
                (click)="viewTaskDetails(task.taskId)"
                [attr.aria-label]="'Task: ' + task.title">
             
             <div class="col-task-id">
-              <span class="task-id">#{{ task.taskId }}</span>
+              <!-- <span class="task-id">#{{ task.taskId }}</span> -->
+               <span class="task-id">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
             </div>
             
             <div class="col-title">
@@ -165,7 +141,7 @@
             
             <div class="col-status">
               <span class="status-badge" [ngClass]="getStatusClass(task.status)">
-                {{ getStatusIcon(task.status) }}
+                {{ getStatusIcon(task.status) }} {{ getStatusDisplayName(task.status) }}
               </span>
             </div>
             
