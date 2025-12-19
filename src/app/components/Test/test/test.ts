@@ -1,83 +1,86 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService } from '../../../Services/UserApiService';
-import { TaskDto } from '../../../Model/TaskDto';
-import { JwtService } from '../../../Services/jwt-service';
-import { Subscription, of } from 'rxjs';
-import { finalize, catchError } from 'rxjs/operators';
+import { DepartmentApiService } from '../../../Services/department-api-service';
+import { AuditLogApiService } from '../../../Services/audit-log-api-service'; 
 import { userDto } from '../../../Model/userDto';
-import { AuthApiService } from '../../../Services/auth-api-service';
-
-interface ApiResponse<T> {
-  success: boolean;
-  message?: string;
-  data?: T;
-}
+import { TaskDto } from '../../../Model/TaskDto';
+import { Department } from '../../../Model/department';
+import { AuditLog } from '../../../Model/audit-log';
+import { forkJoin } from 'rxjs';
+import { TaskStatus } from '../../../Model/TaskStatus';
+import { JwtService } from '../../../Services/jwt-service';
 
 @Component({
-  selector: 'app-view-tasks',
+  selector: 'app-view-user',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './test.html',
   styleUrls: ['./test.css']
 })
-export class Test implements OnInit, OnDestroy {
-  // Task Data
-  tasks: TaskDto[] = [];
-  filteredTasks: TaskDto[] = [];
-  readonly Math = Math;
-
-  // UI States
-  loading = false;
-  loadingMessage = 'Loading tasks...';
-  errorMessage: string | null = null;
+export class Test implements OnInit {
+  userId!: number;
+  user?: userDto;
+  isLoading = true;
+  errorMessage = '';
   isForbidden = false;
-  isEmpty = false;
 
-  // Filters
+  currentUserRole = '';
+  currentUserDepartments: number[] = [];
+  isHOD = false;
+
+  userTasks: TaskDto[] = [];
+  filteredTasks: TaskDto[] = [];
   searchTerm = '';
   statusFilter = '';
-
-  // Pagination
   currentPage = 1;
   pageSize = 8;
   totalPages = 1;
-  totalTasks = 0;
+  TaskStatus = TaskStatus;
 
-  // User Info
-  currentUserId: number | null = null;
-  currentUserRole: string | null = null;
-  currentUserDeptIds: number[] = [];
+  userLogs: AuditLog[] = [];
+  filteredLogs: AuditLog[] = [];
+  searchTermLogs = '';
+  currentPageLogs = 1;
+  pageSizeLogs = 8;
+  totalPagesLogs = 1;
 
-  // Stats
-  taskStats = {
-    total: 0,
-    pending: 0,
-    delayed: 0,
-    completed: 0,
-    In_PROGRESS: 0
-  };
+  activeSection: 'tasks' | 'departments' | 'logs' | null = null;
 
-  private subscriptions = new Subscription();
+  taskStats = [
+    { label: 'Pending', count: 0, color: 'warning', icon: 'bi-clock', key: 'PENDING' },
+    { label: 'Upcoming', count: 0, color: 'info', icon: 'bi-calendar', key: 'UPCOMING' },
+    { label: 'Delayed', count: 0, color: 'danger', icon: 'bi-exclamation-triangle', key: 'DELAYED' },
+    { label: 'Closed', count: 0, color: 'success', icon: 'bi-check-circle', key: 'CLOSED' },
+    { label: 'In Progress', count: 0, color: 'primary', icon: 'bi-play-circle', key: 'IN_PROGRESS' }
+  ];
+
+  enrichedDepartments: any[] = [];
 
   constructor(
-    private apiService: TaskApiService,
-    private userService: UserApiService,
     private route: ActivatedRoute,
     private router: Router,
     private jwtService: JwtService,
-    private authApiService: AuthApiService
+    private userService: UserApiService,
+    private taskService: TaskApiService,
+    private deptService: DepartmentApiService,
+    private auditLogService: AuditLogApiService
   ) {}
 
   ngOnInit(): void {
-    this.loadCurrentUserAndTasks();
+    this.userId = Number(this.route.snapshot.paramMap.get('id'));
+    if (!this.userId) {
+      this.errorMessage = 'Invalid User ID';
+      this.isLoading = false;
+      return;
+    }
+    this.checkUserPermissions();
   }
 
-  /** Load current user → then decide which tasks to load */
-   loadCurrentUserAndTasks(): void {
+  private checkUserPermissions(): void {
     const token = this.jwtService.getAccessToken();
     if (!token) {
       this.router.navigate(['/login']);
@@ -85,308 +88,124 @@ export class Test implements OnInit, OnDestroy {
     }
 
     const userId = this.jwtService.getUserIdFromToken(token);
-    if (!userId) {
-      this.errorMessage = 'Invalid session. Please login again.';
-      return;
-    }
+    if (!userId) return;
 
-    this.currentUserId = userId;
-    this.loading = true;
-    this.loadingMessage = 'Loading user profile...';
+    this.userService.getUserById(userId).subscribe({
+      next: (currentUser) => {
+        this.currentUserRole = currentUser.role;
+        this.isHOD = this.currentUserRole === 'HOD';
 
-    this.subscriptions.add(
-      this.userService.getUserById(userId).subscribe({
-        next: (user: userDto) => {
-          this.currentUserRole = user.role;
-          this.currentUserDeptIds = user.departmentIds || [];
-
-          // Subscribe to query params once user is loaded
-          this.subscriptions.add(
-            this.route.queryParams.subscribe(params => {
-              const status = params['status'];
-              this.statusFilter = status ? status.toUpperCase() : '';
-
-              if (status?.toLowerCase() === 'self') {
-                this.loadTasksForCurrentUser();
-              } else if (status?.toLowerCase() === 'selfassigned') {
-                this.loadTasksForSelf();
-              } else if (status?.toLowerCase() === 'approval') {
-                this.loadTasksForApproval();
-              } else if (status) {
-                this.loadTasksByStatus(this.statusFilter);
-              } else {
-                this.loadTasksByRole();
-              }
-            })
-          );
-        },
-        error: (err) => {
-          console.error('Failed to load user profile:', err);
-          this.errorMessage = 'Failed to load user profile. Please try again.';
-          this.loading = false;
+        if (this.isHOD) {
+          this.currentUserDepartments = currentUser.departmentIds || [];
+          this.verifyHODAccess();
+        } else {
+          this.loadUserDetails();
         }
-      })
-    );
+      },
+      error: () => {
+        this.errorMessage = 'Failed to verify permissions';
+        this.isLoading = false;
+      }
+    });
   }
 
-  /** Calculate task statistics */
-  private calculateStats(tasks: TaskDto[]): void {
-    this.taskStats = {
-      total: tasks.length,
-      pending: tasks.filter(t => t.status === 'PENDING' || t.status === 'UPCOMING').length,
-      delayed: tasks.filter(t => t.status === 'DELAYED').length,
-      completed: tasks.filter(t => t.status === 'CLOSED').length,
-      In_PROGRESS: tasks.filter(t => t.status === 'IN_PROGRESS').length
+  private verifyHODAccess(): void {
+    this.userService.getUserById(this.userId).subscribe({
+      next: (user) => {
+        const userDeptIds = user.departmentIds || [];
+        const hasAccess = userDeptIds.some(id => this.currentUserDepartments.includes(id));
+
+        if (!hasAccess) {
+          this.isForbidden = true;
+          this.isLoading = false;
+          return;
+        }
+
+        this.user = user;
+        this.loadUserTasksAndDepts();
+      },
+      error: () => {
+        this.isForbidden = true;
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadUserDetails(): void {
+    this.isLoading = true;
+    this.userService.getUserById(this.userId).subscribe({
+      next: (user) => {
+        this.user = user;
+        this.loadUserTasksAndDepts();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message || 'Failed to load user';
+      }
+    });
+  }
+
+  private loadUserTasksAndDepts(): void {
+    const taskObs = this.taskService.getTasksByUser(this.userId);
+    const deptObs = this.deptService.getDepartmentsByIds(this.user?.departmentIds || []);
+
+    forkJoin([taskObs, deptObs]).subscribe({
+      next: ([taskRes, depts]) => {
+        this.userTasks = taskRes.data || [];
+        this.enrichDepartments(depts);
+        this.updateTaskStats();
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private enrichDepartments(departments: Department[]): void {
+    this.enrichedDepartments = departments.map(dept => {
+      const users = dept.users || [];
+      const hod = users.find(u => u.role === 'HOD') || users[0];
+      return {
+        id: dept.departmentId,
+        name: dept.name,
+        hodName: hod ? hod.fullName : '—',
+        userCount: users.length,
+        description: dept.description || 'No description available'
+      };
+    });
+  }
+
+  private updateTaskStats(): void {
+    this.taskStats = this.taskStats.map(stat => ({
+      ...stat,
+      count: this.userTasks.filter(t => t.status === stat.key).length
+    }));
+  }
+
+  getTaskStatusClass(status: TaskStatus): string {
+    const statusMap: { [key in TaskStatus]?: string } = {
+      'PENDING': 'bg-warning',
+      'UPCOMING': 'bg-info text-dark',
+      'DELAYED': 'bg-danger',
+      'CLOSED': 'bg-success',
+      'IN_PROGRESS': 'bg-primary'
     };
-  }
-
-  /** Load tasks requiring approval (requiresApproval=true && approved=false) */
-  loadTasksForApproval(): void {
-    this.loading = true;
-    this.loadingMessage = 'Loading approval tasks...';
-    this.subscriptions.add(
-      this.apiService.getAllTasksWhichRequriesApproval()
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load approval tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => {
-          let tasks = this.extractTasks(res);
-          tasks = this.filterTasksByRole(tasks);
-          this.handleTaskResponse(tasks);
-        })
-    );
-  }
-
-  /** Load tasks where current user is the creator AND assignee (self-assigned) */
-  loadTasksForSelf(): void {
-    if (!this.currentUserId) return;
-
-    this.loading = true;
-    this.loadingMessage = 'Loading self-assigned tasks...';
-    this.subscriptions.add(
-      this.apiService.getTasksByUser(this.currentUserId)
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load self-assigned tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => {
-          const tasks = this.extractTasks(res);
-          this.handleTaskResponse(tasks);
-        })
-    );
-  }
-
-  /** Role-based task loading */
-  private loadTasksByRole(): void {
-    if (this.currentUserRole === 'ADMIN') {
-      this.loadAllTasks();
-    } else if (this.currentUserRole === 'HOD') {
-      this.loadTasksByHODDepartments();
-    } else if (this.currentUserRole === 'TEACHER') {
-      this.loadTasksForCurrentUser();
-    } else {
-      this.errorMessage = 'Unauthorized role';
-      this.isForbidden = true;
-      this.loading = false;
-    }
-  }
-
-  /** ADMIN: All tasks */
-  private loadAllTasks(): void {
-    this.loading = true;
-    this.loadingMessage = 'Loading all tasks...';
-    this.subscriptions.add(
-      this.apiService.getAllTasks()
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
-    );
-  }
-
-  /** HOD: Tasks in their departments */
-  private loadTasksByHODDepartments(): void {
-    if (!this.currentUserDeptIds.length) {
-      this.tasks = [];
-      this.applyFilters();
-      this.loading = false;
-      this.isEmpty = true;
-      return;
-    }
-
-    this.loading = true;
-    this.loadingMessage = 'Loading department tasks...';
-    this.subscriptions.add(
-      this.apiService.getTasksByDepartment(this.currentUserDeptIds[0])
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load department tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
-    );
-  }
-
-  /** TEACHER: Only tasks assigned to them */
-  private loadTasksForCurrentUser(): void {
-    if (!this.currentUserId) return;
-
-    this.loading = true;
-    this.loadingMessage = 'Loading your tasks...';
-    this.subscriptions.add(
-      this.apiService.getTasksByUser(this.currentUserId)
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load your tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
-    );
-  }
-
-  /** Load by status (with role filter applied after) */
-  private loadTasksByStatus(status: string): void {
-    this.loading = true;
-    this.loadingMessage = `Loading ${status.toLowerCase()} tasks...`;
-    this.subscriptions.add(
-      this.apiService.getTasksByStatus(status)
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, `Failed to load ${status} tasks.`);
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => {
-          let tasks = this.extractTasks(res);
-          tasks = this.filterTasksByRole(tasks);
-          this.handleTaskResponse(tasks);
-        })
-    );
-  }
-
-  /** Filter tasks client-side by role (used after status fetch) */
-  private filterTasksByRole(tasks: TaskDto[]): TaskDto[] {
-    if (this.currentUserRole === 'ADMIN') return tasks;
-    if (this.currentUserRole === 'HOD') {
-      return tasks.filter(t =>
-        t.departmentIds?.some(id => this.currentUserDeptIds.includes(id))
-      );
-    }
-    if (this.currentUserRole === 'TEACHER' && this.currentUserId) {
-      return tasks.filter(t =>
-        t.assignedToIds?.includes(this.currentUserId!)
-      );
-    }
-    return [];
-  }
-
-  /** Safely extract tasks */
-  private extractTasks(res: any): TaskDto[] {
-    if (!res) return [];
-    if (res.success === false) {
-      this.handleError(res, res.message || 'Error fetching tasks');
-      return [];
-    }
-    if (Array.isArray(res)) return res;
-    if (Array.isArray(res.data)) return res.data;
-    if (Array.isArray(res.tasks)) return res.tasks;
-    return [];
-  }
-
-  /** Handle success response */
-  private handleTaskResponse(tasks: TaskDto[]): void {
-    this.errorMessage = null;
-    this.isForbidden = false;
-    this.isEmpty = tasks.length === 0;
-    this.tasks = tasks || [];
-    this.totalTasks = tasks.length;
-    this.calculateStats(tasks);
-    this.applyFilters();
-  }
-
-  /** Centralized error */
-  private handleError(err: any, fallback: string): void {
-    console.error('Task loading error:', err);
-    this.errorMessage = err?.message || err?.error?.message || fallback;
-    this.isForbidden = err?.status === 403;
-    this.isEmpty = true;
-  }
-
-  // ──────────────────────────────────────────────────────────────
-  //  FILTER LOGIC – Updated for SELF, SELFASSIGNED, APPROVAL
-  // ──────────────────────────────────────────────────────────────
-
-  private isSelfTask(task: TaskDto): boolean {
-    if (!this.currentUserId) return false;
-
-    const assigned = task.assignedToIds || [];
-    const isAssignedToMe = assigned.includes(this.currentUserId);
-    // const createdByMe = task.createdById === this.currentUserId;
-
-    // Must be assigned to me
-    if (!isAssignedToMe) return false;
-    // If created by someone else → show if assigned to me
-    return true;
-  }
-
-  private isSelfAssignedTask(task: TaskDto): boolean {
-    if (!this.currentUserId) return false;
-    const assigned = task.assignedToIds || [];
-    const isAssignedToMe = assigned.includes(this.currentUserId);
-    const createdByMe = task.createdById === this.currentUserId;
-    // const assigneeCountIsOne = assigned.length === 1;
-
-    return createdByMe && isAssignedToMe ;
+    return statusMap[status] || 'bg-secondary';
   }
 
   applyFilters(): void {
-    const term = this.searchTerm.toLowerCase();
-
-    this.filteredTasks = this.tasks.filter(task => {
-      // ── Search Term ──
-      const matchesSearch =
-        !term ||
-        task.title?.toLowerCase().includes(term) ||
-        task.assignedToNames?.some(n => n?.toLowerCase().includes(term)) ||
-        task.departmentNames?.some(n => n?.toLowerCase().includes(term));
-
-      // ── Status Filter Logic ──
-      let matchesStatus = true;
-
-      if (this.statusFilter === 'SELF') {
-        matchesStatus = this.isSelfTask(task);
-      } else if (this.statusFilter === 'SELFASSIGNED') {
-        matchesStatus = this.isSelfAssignedTask(task);
-      } else if (this.statusFilter === 'APPROVAL') {
-        matchesStatus = task.requiresApproval === true && task.approved === false;
-      } else if (this.statusFilter) {
-        matchesStatus = task.status?.toUpperCase() === this.statusFilter;
-      }
-
+    this.filteredTasks = this.userTasks.filter(task => {
+      const matchesSearch = !this.searchTerm || 
+        task.title?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        task.description?.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesStatus = !this.statusFilter || task.status === this.statusFilter;
       return matchesSearch && matchesStatus;
     });
-
-    this.totalPages = Math.max(Math.ceil(this.filteredTasks.length / this.pageSize), 1);
+    this.totalPages = Math.ceil(this.filteredTasks.length / this.pageSize) || 1;
     this.currentPage = 1;
   }
-
-  // ──────────────────────────────────────────────────────────────
 
   resetFilters(): void {
     this.searchTerm = '';
@@ -395,22 +214,13 @@ export class Test implements OnInit, OnDestroy {
   }
 
   changePage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (page >= 1 && page <= this.totalPages) this.currentPage = page;
   }
 
   getPageNumbers(): number[] {
-    const maxVisiblePages = 5;
-    const half = Math.floor(maxVisiblePages / 2);
-    let start = Math.max(this.currentPage - half, 1);
-    let end = Math.min(start + maxVisiblePages - 1, this.totalPages);
-
-    if (end - start + 1 < maxVisiblePages) {
-      start = Math.max(end - maxVisiblePages + 1, 1);
-    }
-
+    const maxVisible = 5;
+    const start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    const end = Math.min(this.totalPages, start + maxVisible - 1);
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
@@ -419,160 +229,122 @@ export class Test implements OnInit, OnDestroy {
     return this.filteredTasks.slice(start, start + this.pageSize);
   }
 
-  goBackToDashboard() {
-    const token = this.jwtService.getAccessToken();
-    if (token) {
-      const payload = this.jwtService.decodeToken(token);
-      this.authApiService.goToDashboard();
+  applyFiltersLogs(): void {
+    this.filteredLogs = this.userLogs.filter(log => {
+      const matchesSearch = !this.searchTermLogs ||
+        log.action.toLowerCase().includes(this.searchTermLogs.toLowerCase()) ||
+        log.entity.toLowerCase().includes(this.searchTermLogs.toLowerCase()) ||
+        (log.details && log.details.toLowerCase().includes(this.searchTermLogs.toLowerCase()));
+      return matchesSearch;
+    });
+    this.totalPagesLogs = Math.ceil(this.filteredLogs.length / this.pageSizeLogs) || 1;
+    this.currentPageLogs = 1;
+  }
+
+  resetFiltersLogs(): void {
+    this.searchTermLogs = '';
+    this.applyFiltersLogs();
+  }
+
+  changePageLogs(page: number): void {
+    if (page >= 1 && page <= this.totalPagesLogs) this.currentPageLogs = page;
+  }
+
+  getPageNumbersLogs(): number[] {
+    const maxVisible = 5;
+    const start = Math.max(1, this.currentPageLogs - Math.floor(maxVisible / 2));
+    const end = Math.min(this.totalPagesLogs, start + maxVisible - 1);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
+  get paginatedLogs(): AuditLog[] {
+    const start = (this.currentPageLogs - 1) * this.pageSizeLogs;
+    return this.filteredLogs.slice(start, start + this.pageSizeLogs);
+  }
+
+  private loadUserLogs(): void {
+    this.auditLogService.getLogsByUser(this.userId).subscribe({
+      next: (logs) => {
+        this.userLogs = logs;
+        this.applyFiltersLogs();
+      },
+      error: (err) => console.error('Error loading logs:', err)
+    });
+  }
+
+  toggleSection(section: 'tasks' | 'departments' | 'logs'): void {
+    if (section === 'logs' && this.userLogs.length === 0) {
+      this.loadUserLogs();
+    }
+    
+    if (this.activeSection === section) {
+      this.activeSection = null;
     } else {
-      this.router.navigate(['/login']);
+      this.activeSection = section;
     }
   }
 
-  viewTaskDetails(taskId?: number): void {
-    if (taskId) {
-      this.router.navigate(['/task', taskId]);
+  goBack(): void {
+    this.router.navigate(['/viewAllUsers']);
+  }
+
+  canEditDelete(): boolean {
+    return !this.isHOD;
+  }
+
+  editUser(): void {
+    if (this.canEditDelete()) {
+      this.router.navigate(['/edit-user', this.userId]);
     }
   }
 
-  deleteTask(event: Event, taskId?: number): void {
-    event.stopPropagation();
-    if (!taskId || !confirm('Are you sure you want to delete this task? This action cannot be undone.')) return;
+  deleteUser(): void {
+    if (!this.canEditDelete() || !confirm('Are you sure you want to delete this user?')) return;
 
-    this.loading = true;
-    this.loadingMessage = 'Deleting task...';
-    this.subscriptions.add(
-      this.apiService.deleteTask(taskId)
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to delete task.');
-            return of({ success: false } as ApiResponse<null>);
-          })
-        )
-        .subscribe(res => {
-          if (res?.success) {
-            this.tasks = this.tasks.filter(t => t.taskId !== taskId);
-            this.applyFilters();
-            this.calculateStats(this.tasks);
-          } else {
-            this.handleError(res, res?.message || 'Delete failed');
-          }
-        })
-    );
+    this.userService.deleteUser(this.userId).subscribe({
+      next: () => {
+        alert('User deleted successfully.');
+        this.goBack();
+      },
+      error: (err) => alert(err?.error?.message || 'Delete failed')
+    });
   }
 
-  getStatusClass(status?: string): string {
-    switch (status?.toUpperCase()) {
-      case 'PENDING':
-      case 'UPCOMING': return 'status-pending';
-      case 'DELAYED': return 'status-delayed blink';
-      case 'REQUEST_FOR_CLOSURE':
-      case 'REQUEST_FOR_EXTENSION': return 'status-request';
-      case 'CLOSED': return 'status-closed';
-      case 'EXTENDED': return 'status-extended';
-      default: return 'status-default';
+  toggleUserStatus(): void {
+    if (this.userId) {
+      this.userService.toggleUserStatus(this.userId).subscribe({
+        next: () => {
+          this.loadUserDetails();
+        },
+        error: (err) => console.error('Failed to toggle status:', err)
+      });
     }
   }
 
-
-// Add these methods to your component class
-
-/** TrackBy function for better Angular performance */
-trackByTaskId(index: number, task: TaskDto): number {
-  return task.taskId || index;
-}
-
-/** Get display name for filter */
-getFilterDisplayName(filter: string): string {
-  const filterMap: { [key: string]: string } = {
-    'SELF': 'My Tasks',
-    'SELFASSIGNED': 'Self Assigned',
-    'APPROVAL': 'Awaiting Approval',
-    'REQUEST_FOR_CLOSURE': 'Request Closure',
-    'REQUEST_FOR_EXTENSION': 'Request Extension'
-  };
-  return filterMap[filter] || filter.split('_').map(word => 
-    word.charAt(0) + word.slice(1).toLowerCase()
-  ).join(' ');
-}
-
-/** Get display name for status */
-getStatusDisplayName(status?: string): string {
-  if (!status) return 'Unknown';
-  
-  const statusMap: { [key: string]: string } = {
-    'PENDING': 'Pending',
-    'UPCOMING': 'Upcoming',
-    'DELAYED': 'Delayed',
-    'REQUEST_FOR_CLOSURE': 'Closure Req',
-    'REQUEST_FOR_EXTENSION': 'Extension Req',
-    'CLOSED': 'Completed',
-    'EXTENDED': 'Extended'
-  };
-  
-  return statusMap[status.toUpperCase()] || 
-    status.split('_').map(word => 
-      word.charAt(0) + word.slice(1).toLowerCase()
-    ).join(' ');
-}
-
-/** Enhanced date formatting with relative time */
-formatDate(date: any): string {
-  if (!date) return 'N/A';
-  
-  const d = new Date(date);
-  const now = new Date();
-  const diffMs = d.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  
-  const formatted = d.toLocaleDateString('en-US', { 
-    day: '2-digit', 
-    month: 'short', 
-    year: 'numeric' 
-  });
-  
-  // Add relative time indicator for due dates
-  if (diffDays >= -1 && diffDays <= 7) {
-    if (diffDays === 0) return `${formatted} (Today)`;
-    if (diffDays === 1) return `${formatted} (Tomorrow)`;
-    if (diffDays === -1) return `${formatted} (Yesterday)`;
-    if (diffDays > 0) return `${formatted} (in ${diffDays} days)`;
-    if (diffDays < 0) return `${formatted} (${Math.abs(diffDays)} days ago)`;
-  }
-  
-  return formatted;
-}
-
-/** Add a method to show task importance visually */
-getPriorityClass(priority?: string): string {
-  switch (priority?.toUpperCase()) {
-    case 'HIGH': return 'priority-high';
-    case 'MEDIUM': return 'priority-medium';
-    case 'LOW': return 'priority-low';
-    default: return 'priority-default';
-  }
-}
-
-
-  getStatusIcon(status?: string): string {
-    switch (status?.toUpperCase()) {
-      case 'PENDING': return '⏳';
-      case 'UPCOMING': return '📅';
-      case 'DELAYED': return '⚠️';
-      case 'REQUEST_FOR_CLOSURE': return '📝';
-      case 'REQUEST_FOR_EXTENSION': return '⏱️';
-      case 'CLOSED': return '✅';
-      case 'EXTENDED': return '🔁';
-      default: return '📋';
-    }
+  assignNewTask(): void {
+    this.router.navigate(['/add-task'], { queryParams: { userId: this.userId } });
   }
 
-  canDeleteTask(): boolean {
-    return this.currentUserRole === 'ADMIN';
+  viewDepartment(deptId: any): void {
+    this.router.navigate(['/department', deptId]);
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+  viewTask(taskId: number): void {
+    this.router.navigate(['/task', taskId]);
+  }
+
+  filterByStatus(statusKey: string): void {
+    this.statusFilter = statusKey;
+    this.applyFilters();
+    this.activeSection = 'tasks';
+  }
+
+  getInitials(fullName: string): string {
+    return fullName
+      .split(' ')
+      .map(name => name[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   }
 }

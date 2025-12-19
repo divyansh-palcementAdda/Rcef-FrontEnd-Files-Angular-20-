@@ -23,7 +23,7 @@ import { Test } from './components/Test/test/test';
 export const routes: Routes = [
 
   { path: '', component: Home },
-  {path: 'test', component: Test},
+  {path: 'test/:id', component: Test},
   { path: 'login', component: LoginComponent },
  
 

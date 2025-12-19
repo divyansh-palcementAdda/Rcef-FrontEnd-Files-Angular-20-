@@ -5,22 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { DepartmentApiService } from '../../../Services/department-api-service';
+import { AuditLogApiService } from '../../../Services/audit-log-api-service'; 
 import { userDto } from '../../../Model/userDto';
 import { TaskDto } from '../../../Model/TaskDto';
 import { Department } from '../../../Model/department';
-import { forkJoin, of, Observable } from 'rxjs';
+import { AuditLog } from '../../../Model/audit-log'; // <-- Create this model
+import { forkJoin } from 'rxjs';
 import { TaskStatus } from '../../../Model/TaskStatus';
-import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
-
-interface TableSection {
-  id: string;
-  title: string;
-  icon: string;
-  data: any[];
-  columns: string[];
-  emptyMessage: string;
-}
 
 @Component({
   selector: 'app-view-user',
@@ -30,30 +22,31 @@ interface TableSection {
   styleUrls: ['./view-user.css']
 })
 export class ViewUserComponent implements OnInit {
-assignNewTask() {
-  this.router.navigate(['/add-task'], { 
-    queryParams: { userId: this.userId } 
-  });
+getTaskStatusClass(arg0: TaskStatus): string|string[]|Set<string>|{ [klass: string]: any; }|null|undefined {
+throw new Error('Method not implemented.');
 }
-viewDepartment(deptId: any) {
+  assignNewTask() {
+    this.router.navigate(['/add-task'], { queryParams: { userId: this.userId } });
+  }
+
+  viewDepartment(deptId: any) {
     this.router.navigate(['/department', deptId]);
   }
 
-viewTask(taskId: number) {
+  viewTask(taskId: number) {
     this.router.navigate(['/task', taskId]);
   }
+
   userId!: number;
   user?: userDto;
   isLoading = true;
   errorMessage = '';
   isForbidden = false;
 
-  // HOD Check
   currentUserRole = '';
   currentUserDepartments: number[] = [];
   isHOD = false;
 
-  // User Tasks
   userTasks: TaskDto[] = [];
   filteredTasks: TaskDto[] = [];
   searchTerm = '';
@@ -63,13 +56,20 @@ viewTask(taskId: number) {
   totalPages = 1;
   TaskStatus = TaskStatus;
 
-  // Collapsible Tables
+  // Logs
+  userLogs: AuditLog[] = [];
+  filteredLogs: AuditLog[] = [];
+  searchTermLogs = '';
+  currentPageLogs = 1;
+  pageSizeLogs = 8;
+  totalPagesLogs = 1;
+
   collapsed = {
     tasks: true,
-    departments: true
+    departments: true,
+    logs: true
   };
 
-  // Stats
   taskStats = [
     { label: 'Pending', count: 0, color: 'warning' },
     { label: 'Upcoming', count: 0, color: 'info' },
@@ -87,8 +87,8 @@ viewTask(taskId: number) {
     private userService: UserApiService,
     private taskService: TaskApiService,
     private deptService: DepartmentApiService,
-    private authService: AuthApiService // Your auth service
-  ) { }
+    private auditLogService: AuditLogApiService
+  ) {}
 
   ngOnInit(): void {
     this.userId = Number(this.route.snapshot.paramMap.get('id'));
@@ -96,12 +96,9 @@ viewTask(taskId: number) {
       this.errorMessage = 'Invalid User ID';
       return;
     }
-
-    // Check current user permissions FIRST
     this.checkUserPermissions();
   }
 
-  /** 🔒 Check if current user can view this user */
   private checkUserPermissions(): void {
     const token = this.jwtService.getAccessToken();
     if (!token) {
@@ -110,47 +107,32 @@ viewTask(taskId: number) {
     }
 
     const userId = this.jwtService.getUserIdFromToken(token);
+    if (!userId) return;
 
-    if (!userId) {
-      console.error('Failed to extract userId from token');
-      // Handle invalid token
-      return;
-    }
-
-    // Now safely use userId
-    // this.userId = userId;
     this.userService.getUserById(userId).subscribe({
       next: (currentUser) => {
         this.currentUserRole = currentUser.role;
         this.isHOD = this.currentUserRole === 'HOD';
 
         if (this.isHOD) {
-          console.log('Hod - '+this.isHOD)
           this.currentUserDepartments = currentUser.departmentIds || [];
-          // Verify user belongs to HOD's departments
           this.verifyHODAccess();
         } else {
-          console.log('Admin -  '+this.isHOD ,this.currentUserRole)
-          // Admin/SuperAdmin can view all
           this.loadUserDetails();
         }
       },
-      error: (err) => {
+      error: () => {
         this.errorMessage = 'Failed to verify permissions';
         this.isLoading = false;
       }
     });
   }
 
-  /** 🔐 HOD can only view users from their departments */
   private verifyHODAccess(): void {
     this.userService.getUserById(this.userId).subscribe({
       next: (user) => {
-        // Check if user belongs to HOD's departments
         const userDeptIds = user.departmentIds || [];
-        const hasAccess = userDeptIds.some(id =>
-          this.currentUserDepartments.includes(id)
-        );
+        const hasAccess = userDeptIds.some(id => this.currentUserDepartments.includes(id));
 
         if (!hasAccess) {
           this.isForbidden = true;
@@ -168,7 +150,6 @@ viewTask(taskId: number) {
     });
   }
 
-  /** Load user + tasks + departments */
   private loadUserDetails(): void {
     this.isLoading = true;
     this.userService.getUserById(this.userId).subscribe({
@@ -195,9 +176,8 @@ viewTask(taskId: number) {
         this.applyFilters();
         this.isLoading = false;
       },
-      error: (err) => {
+      error: () => {
         this.isLoading = false;
-        console.error('Error loading data:', err);
       }
     });
   }
@@ -210,8 +190,7 @@ viewTask(taskId: number) {
         id: dept.departmentId,
         name: dept.name,
         hodName: hod ? hod.fullName : '—',
-        userCount: users.length,
-        users
+        userCount: users.length
       };
     });
   }
@@ -226,11 +205,10 @@ viewTask(taskId: number) {
     ];
   }
 
-  // Filters & Pagination
+  // Task Filters & Pagination
   applyFilters(): void {
     this.filteredTasks = this.userTasks.filter(task => {
-      const matchesSearch = !this.searchTerm ||
-        task.title?.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesSearch = !this.searchTerm || task.title?.toLowerCase().includes(this.searchTerm.toLowerCase());
       const matchesStatus = !this.statusFilter || task.status === this.statusFilter;
       return matchesSearch && matchesStatus;
     });
@@ -257,17 +235,58 @@ viewTask(taskId: number) {
     return this.filteredTasks.slice(start, start + this.pageSize);
   }
 
-  // Collapse Toggle
-  toggleCollapse(section: 'tasks' | 'departments'): void {
+  // Logs Filters & Pagination
+  applyFiltersLogs(): void {
+    this.filteredLogs = this.userLogs.filter(log => {
+      const matchesSearch = !this.searchTermLogs ||
+        log.action.toLowerCase().includes(this.searchTermLogs.toLowerCase()) ||
+        log.entity.toLowerCase().includes(this.searchTermLogs.toLowerCase()) ||
+        (log.details && log.details.toLowerCase().includes(this.searchTermLogs.toLowerCase()));
+      return matchesSearch;
+    });
+    this.totalPagesLogs = Math.ceil(this.filteredLogs.length / this.pageSizeLogs) || 1;
+    this.currentPageLogs = 1;
+  }
+
+  resetFiltersLogs(): void {
+    this.searchTermLogs = '';
+    this.applyFiltersLogs();
+  }
+
+  changePageLogs(page: number): void {
+    if (page >= 1 && page <= this.totalPagesLogs) this.currentPageLogs = page;
+  }
+
+  getPageNumbersLogs(): number[] {
+    return Array.from({ length: this.totalPagesLogs }, (_, i) => i + 1);
+  }
+
+  get paginatedLogs(): AuditLog[] {
+    const start = (this.currentPageLogs - 1) * this.pageSizeLogs;
+    return this.filteredLogs.slice(start, start + this.pageSizeLogs);
+  }
+
+  private loadUserLogs(): void {
+    this.auditLogService.getLogsByUser(this.userId).subscribe({
+      next: (logs) => {
+        this.userLogs = logs;
+        this.applyFiltersLogs();
+      },
+      error: (err) => console.error('Error loading logs:', err)
+    });
+  }
+
+  toggleCollapse(section: 'tasks' | 'departments' | 'logs'): void {
+    if (section === 'logs' && this.collapsed.logs && this.userLogs.length === 0) {
+      this.loadUserLogs(); // Lazy load logs
+    }
     this.collapsed[section] = !this.collapsed[section];
   }
 
-  // Navigation
   goBack(): void {
     this.router.navigate(['/viewAllUsers']);
   }
 
-  // HOD can't edit/delete
   canEditDelete(): boolean {
     return !this.isHOD;
   }
@@ -289,18 +308,15 @@ viewTask(taskId: number) {
       error: (err) => alert(err?.error?.message || 'Delete failed')
     });
   }
-toggleUserStatus(): void {
-  if (this.userId) {
-    this.userService.toggleUserStatus(this.userId).subscribe({
-      next: (res) => {
-        console.log('Status toggled:', res.message);
-        this.loadUserDetails(); // Refresh user data
-      },
-      error: (err) => {
-        console.error('Failed to toggle status:', err);
-        // Optional: Show toast/notification
-      }
-    });
+
+  toggleUserStatus(): void {
+    if (this.userId) {
+      this.userService.toggleUserStatus(this.userId).subscribe({
+        next: () => {
+          this.loadUserDetails();
+        },
+        error: (err) => console.error('Failed to toggle status:', err)
+      });
+    }
   }
-}
 }
