@@ -1,0 +1,501 @@
+<div class="view-user-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-card">
+      <div class="loading-spinner">
+        <div class="spinner-circle"></div>
+      </div>
+      <h3>Loading User Profile</h3>
+      <p>Please wait while we fetch the user details...</p>
+    </div>
+  </div>
+
+  <!-- Forbidden State -->
+  <div *ngIf="isForbidden && !isLoading" class="forbidden-overlay">
+    <div class="forbidden-container">
+      <div class="forbidden-illustration">
+        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 8v4" stroke-width="2" stroke-linecap="round"/>
+          <path d="M12 16h.01" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2>Access Restricted</h2>
+      <p>You don't have the required permissions to view this user's profile.</p>
+      <button class="btn-back" (click)="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Return to Users
+      </button>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading && !isForbidden" class="error-overlay">
+    <div class="error-container">
+      <div class="error-icon">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+          <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h3>Something Went Wrong</h3>
+      <p>{{ errorMessage }}</p>
+      <div class="error-actions">
+        <button class="btn-secondary" (click)="goBack()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Go Back
+        </button>
+        <button class="btn-primary" (click)="ngOnInit()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Retry
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="user && !isLoading && !isForbidden" class="user-profile">
+    <!-- Header Section -->
+    <div class="profile-header">
+      <div class="breadcrumb">
+        <button class="btn-text" (click)="goBack()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          All Users
+        </button>
+        <span class="separator">/</span>
+        <span class="current">User Profile</span>
+      </div>
+
+      <div class="header-content">
+        <div class="user-identity">
+          <div class="avatar-large">
+            <div class="avatar-initials">{{ getInitials(user.fullName) }}</div>
+            <div class="avatar-status" [class]="user.status.toLowerCase()"></div>
+          </div>
+          <div class="user-details">
+            <h1 class="user-name">{{ user.fullName }}</h1>
+            <div class="user-meta">
+              <span class="user-role" [class]="'role-' + user.role.toLowerCase()">
+                {{ formatRole(user.role) }}
+              </span>
+              <span class="user-status-badge" [class]="'status-' + user.status.toLowerCase()">
+                <span class="status-dot"></span>
+                {{ user.status }}
+              </span>
+              <span class="user-id">ID: #{{ user.userId }}</span>
+            </div>
+            <div class="user-contact">
+              <span class="contact-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M22 6l-10 7L2 6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                {{ user.email }}
+                <span class="verification-badge" [class]="user.emailVerified ? 'verified' : 'not-verified'">
+                  {{ user.emailVerified ? '✓ Verified' : '✗ Not Verified' }}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions" *ngIf="canEditDelete()">
+          <button class="btn-icon" title="Assign Task" (click)="assignNewTask()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="btn-icon" title="Edit User" (click)="editUser()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="btn-icon btn-danger" title="Delete User" (click)="deleteUser()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button *ngIf="user.status === 'ACTIVE'" 
+                  class="btn-action btn-warning"
+                  (click)="toggleUserStatus()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Deactivate
+          </button>
+          <button *ngIf="user.status === 'INACTIVE'" 
+                  class="btn-action btn-success"
+                  (click)="toggleUserStatus()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Activate
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-section">
+      <div class="section-title">
+        <h2>Performance Overview</h2>
+        <p class="section-subtitle">Task distribution and completion metrics</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card" *ngFor="let stat of taskStats" 
+             [class.active]="statusFilter === stat.label"
+             (click)="statusFilter = statusFilter === stat.label ? '' : stat.label; applyFilters();">
+          <div class="stat-icon-wrapper" [style.background]="stat.bgColor + '20'">
+            <div class="stat-icon" [style.color]="stat.textColor">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path *ngIf="stat.label === 'PENDING'" d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path *ngIf="stat.label === 'UPCOMING'" d="M8 2v4M16 2v4M3 10h18M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zM16 18h4M12 18h4M8 18h4M8 14h12M8 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path *ngIf="stat.label === 'DELAYED'" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path *ngIf="stat.label === 'CLOSED'" d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path *ngIf="stat.label === 'IN_PROGRESS'" d="M23 12c0 6.075-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1s11 4.925 11 11z" stroke="currentColor" stroke-width="2"/>
+                <path *ngIf="stat.label === 'IN_PROGRESS'" d="M12 2v4.5M12 18v4.5M4.93 4.93l3.18 3.18M16.24 16.24l3.18 3.18M2 12h4.5M18 12h4.5M4.93 19.07l3.18-3.18M16.24 7.76l3.18-3.18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stat.count }}</div>
+            <div class="stat-label">{{ stat.label.replace('_', ' ') }}</div>
+          </div>
+          <div class="stat-trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M7 17l5-5 5 5M7 7l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        
+        <div class="stat-card summary-card">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M9 17l-5-5 3-3 1 1 4-4m0 0l3 3m-3-3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ userTasks.length }}</div>
+            <div class="stat-label">Total Tasks</div>
+          </div>
+          <div class="stat-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width]="getCompletionRate() + '%'"></div>
+            </div>
+            <span class="progress-text">{{ getCompletionRate() }}% complete</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="content-tabs">
+      <nav class="tabs-navigation">
+        <button class="tab-btn" [class.active]="activeTab === 'tasks'" (click)="activeTab = 'tasks'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Tasks ({{ filteredTasks.length }})
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'departments'" (click)="activeTab = 'departments'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Departments ({{ enrichedDepartments.length }})
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'activity'" (click)="activeTab = 'activity'; loadUserLogs()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Activity Logs ({{ userLogs.length }})
+        </button>
+      </nav>
+
+      <div class="tab-content">
+        <!-- Tasks Tab -->
+        <div *ngIf="activeTab === 'tasks'" class="tasks-tab">
+          <div class="tab-header">
+            <div class="search-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input type="text" 
+                     [(ngModel)]="searchTerm" 
+                     (input)="applyFilters()"
+                     placeholder="Search tasks by title or description...">
+              <button class="clear-btn" (click)="resetFilters()" *ngIf="searchTerm || statusFilter">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="filter-options">
+              <select [(ngModel)]="statusFilter" (change)="applyFilters()" class="status-select">
+                <option value="">All Status</option>
+                <option *ngFor="let stat of taskStats" [value]="stat.label">{{ stat.label.replace('_', ' ') }}</option>
+              </select>
+              <button class="btn-primary" (click)="assignNewTask()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Assign Task
+              </button>
+            </div>
+          </div>
+
+          <div class="tasks-container">
+            <div *ngIf="filteredTasks.length === 0" class="empty-state">
+              <div class="empty-illustration">
+                <svg width="120" height="120" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h3>No Tasks Found</h3>
+              <p *ngIf="searchTerm || statusFilter">No tasks match your current filters. Try clearing them.</p>
+              <p *ngIf="!searchTerm && !statusFilter">This user doesn't have any assigned tasks yet.</p>
+              <button class="btn-primary" (click)="assignNewTask()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Assign First Task
+              </button>
+            </div>
+
+            <div *ngIf="filteredTasks.length > 0" class="tasks-grid">
+              <div *ngFor="let task of paginatedTasks" class="task-card" >
+                <div class="task-header">
+                  <div class="task-title">
+                    <h4>{{ task.title }}</h4>
+                    <span class="task-id">#{{ task.taskId }}</span>
+                  </div>
+                  <div class="task-status" [class]="'status-' + task.status.toLowerCase()">
+                    {{ task.status.replace('_', ' ') }}
+                  </div>
+                </div>
+                <p class="task-description" *ngIf="task.description">{{ task.description }}</p>
+                <div class="task-meta">
+                  <div class="meta-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>{{ task.dueDate | date:'MMM dd, yyyy' }}</span>
+                  </div>
+                </div>
+                <div class="task-actions">
+                  <button class="btn-view" (click)="viewTask(task.taskId)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div *ngIf="filteredTasks.length > 0" class="pagination">
+            <div class="pagination-info">
+              Showing {{ startIndex }} to {{ endIndex }} of {{ filteredTasks.length }} tasks
+            </div>
+            <div class="pagination-controls">
+              <button class="pagination-btn" [disabled]="currentPage === 1" (click)="changePage(1)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button class="pagination-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <div class="page-numbers">
+                <button *ngFor="let page of getPageNumbers()" 
+                        class="page-number" 
+                        [class.active]="currentPage === page"
+                        (click)="changePage(page)">
+                  {{ page }}
+                </button>
+              </div>
+              <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M13 17l5-5-5-5M6 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Departments Tab -->
+        <div *ngIf="activeTab === 'departments'" class="departments-tab">
+          <div *ngIf="enrichedDepartments.length === 0" class="empty-state">
+            <div class="empty-illustration">
+              <svg width="120" height="120" viewBox="0 0 24 24" fill="none">
+                <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3>No Departments Assigned</h3>
+            <p>This user is not assigned to any departments.</p>
+          </div>
+
+          <div *ngIf="enrichedDepartments.length > 0" class="departments-grid">
+            <div *ngFor="let dept of enrichedDepartments" class="department-card">
+              <div class="dept-header">
+                <div class="dept-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div class="dept-info">
+                  <h4>{{ dept.name }}</h4>
+                  <span class="dept-id">ID: {{ dept.id }}</span>
+                </div>
+              </div>
+              <div class="dept-details">
+                <div class="detail-row">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="detail-label">Head of Department:</span>
+                  <span class="detail-value">{{ dept.hodName }}</span>
+                </div>
+                <div class="detail-row">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="detail-label">Total Members:</span>
+                  <span class="detail-value">{{ dept.userCount }}</span>
+                </div>
+              </div>
+              <button class="btn-view-dept" (click)="viewDepartment(dept.id)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                View Department
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Logs Tab -->
+        <div *ngIf="activeTab === 'activity'" class="activity-tab">
+          <div class="tab-header">
+            <div class="search-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input type="text" 
+                     [(ngModel)]="searchTermLogs" 
+                     (input)="applyFiltersLogs()"
+                     placeholder="Search activity logs...">
+              <button class="clear-btn" (click)="resetFiltersLogs()" *ngIf="searchTermLogs">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="filter-options">
+              <select [(ngModel)]="logsFilter" (change)="applyFiltersLogs()" class="logs-filter">
+                <option value="">All Actions</option>
+                <option value="CREATE">Create</option>
+                <option value="UPDATE">Update</option>
+                <option value="DELETE">Delete</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="activity-timeline">
+            <div *ngIf="filteredLogs.length === 0" class="empty-state">
+              <div class="empty-illustration">
+                <svg width="120" height="120" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h3>No Activity Logs</h3>
+              <p *ngIf="searchTermLogs || logsFilter">No logs match your current filters.</p>
+              <p *ngIf="!searchTermLogs && !logsFilter">No activity recorded for this user yet.</p>
+            </div>
+
+            <div *ngIf="filteredLogs.length > 0" class="timeline">
+              <div *ngFor="let log of paginatedLogs" class="timeline-item">
+                <div class="timeline-marker" [class]="'marker-' + log.action.toLowerCase()"></div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="log-action" [class]="'action-' + log.action.toLowerCase()">
+                      {{ log.action }}
+                    </span>
+                    <span class="log-timestamp">{{ log.timestamp | date:'MMM dd, yyyy HH:mm' }}</span>
+                  </div>
+                  <div class="log-details">
+                    <div class="log-entity">
+                      <strong>{{ log.entity }} #{{ log.entityId }}</strong>
+                    </div>
+                    <p class="log-description" *ngIf="log.details">{{ log.details }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logs Pagination -->
+          <div *ngIf="filteredLogs.length > 0" class="pagination">
+            <div class="pagination-info">
+              Showing {{ (currentPageLogs - 1) * pageSizeLogs + 1 }} to {{ Math.min(currentPageLogs * pageSizeLogs, filteredLogs.length) }} of {{ filteredLogs.length }} logs
+            </div>
+            <div class="pagination-controls">
+              <button class="pagination-btn" [disabled]="currentPageLogs === 1" (click)="changePageLogs(1)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button class="pagination-btn" [disabled]="currentPageLogs === 1" (click)="changePageLogs(currentPageLogs - 1)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <div class="page-numbers">
+                <button *ngFor="let page of getPageNumbersLogs()" 
+                        class="page-number" 
+                        [class.active]="currentPageLogs === page"
+                        (click)="changePageLogs(page)">
+                  {{ page }}
+                </button>
+              </div>
+              <button class="pagination-btn" [disabled]="currentPageLogs === totalPagesLogs" (click)="changePageLogs(currentPageLogs + 1)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button class="pagination-btn" [disabled]="currentPageLogs === totalPagesLogs" (click)="changePageLogs(totalPagesLogs)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M13 17l5-5-5-5M6 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

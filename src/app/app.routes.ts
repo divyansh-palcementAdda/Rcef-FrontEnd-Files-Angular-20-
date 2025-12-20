@@ -19,11 +19,13 @@ import { EditUser } from './components/Users/edit-user/edit-user';
 import { GetDepartment } from './components/Department/get-deprtment/get-deprtment';
 import { ViewAllRequests } from './components/Requests/view-all-requests/view-all-requests';
 import { Test } from './components/Test/test/test';
+import { Test2 } from './components/Test/test2/test2';
 
 export const routes: Routes = [
 
   { path: '', component: Home },
   {path: 'test/:id', component: Test},
+  {path: 'test2/:id', component: Test2},
   { path: 'login', component: LoginComponent },
  
 

@@ -15,10 +15,6 @@
           [queryParams]="link.queryParams" routerLinkActive="active">
           <i class="bi {{ link.icon }} me-3 fs-5"></i>
           <span class="fw-medium">{{ link.label }}</span>
-          <span class="badge bg-danger rounded-pill ms-auto"
-            *ngIf="link.label.includes('Approval') && dashboardData?.requestForExtension">
-            {{ (dashboardData?.requestForExtension || 0) + (dashboardData?.requestForClosure || 0) }}
-          </span>
         </a>
       </li>
     </ul>
