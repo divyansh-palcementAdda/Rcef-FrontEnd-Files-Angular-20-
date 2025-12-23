@@ -3,7 +3,7 @@ import { TaskProofDto } from './TaskProofDto';
 import { TaskRequestDto } from './TaskRequestDto';
 import { TaskStatus } from './TaskStatus';
 import { userDto } from './userDto';
-
+export type RecurrenceType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | null;
 
 export interface TaskDto {
   taskId: number;
@@ -26,6 +26,11 @@ export interface TaskDto {
   startedAt?: string;
   startedById?: number;              // WHO started
   startedByName?: string;
+
+  isRecurring?: boolean;
+recurrenceType?: RecurrenceType; // 'DAILY' | 'WEEKLY' | 'MONTHLY'
+interval?: number;
+endDate?: string; // ISO 8601 date string
 
 
   // ✅ Task lifecycle flags

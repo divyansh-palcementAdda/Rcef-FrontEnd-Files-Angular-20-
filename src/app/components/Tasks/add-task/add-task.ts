@@ -508,7 +508,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
         setTimeout(() => {
           this.resetForm();
-          this.router.navigate(['/view-tasks']);
+          this.authApiService.goToDashboard();
         }, 1500);
       },
       error: (err: HttpErrorResponse) => {
