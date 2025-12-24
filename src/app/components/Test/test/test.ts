@@ -24,7 +24,7 @@ interface ApiResponse<T> {
   templateUrl: './test.html',
   styleUrls: ['./test.css']
 })
-export class ViewTasksComponent implements OnInit, OnDestroy {
+export class Test implements OnInit, OnDestroy {
   // Task Data
   tasks: TaskDto[] = [];
   filteredTasks: TaskDto[] = [];
