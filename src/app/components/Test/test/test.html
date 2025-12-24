@@ -1,513 +1,341 @@
-<br><br><br>
-<div class="user-profile-container">
+<div class="view-tasks-container" [class.loading]="loading">
+
   <!-- Loading Overlay -->
-  <div *ngIf="isLoading" class="loading-overlay">
-    <div class="loading-content">
-      <div class="spinner"></div>
-      <p class="loading-text">Loading user profile...</p>
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner-container">
+        <div class="spinner"></div>
+        <div class="spinner-inner"></div>
+      </div>
+      <p class="loading-text">{{ loadingMessage }}</p>
     </div>
   </div>
-
-  <!-- Forbidden State -->
-  <div *ngIf="isForbidden && !isLoading" class="forbidden-container">
-    <div class="forbidden-card">
-      <div class="forbidden-icon">
-        <i class="bi bi-shield-fill-exclamation"></i>
+<br><br><br><br>
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <span class="gradient-text">Task Management</span>
+          <span *ngIf="statusFilter" class="filter-badge">
+            {{ getFilterDisplayName(statusFilter) }}
+          </span>
+        </h1>
+        <p class="page-description">
+          {{ currentUserRole | titlecase }} Dashboard • 
+          <span class="role-badge">{{ currentUserRole }}</span>
+          • Manage and track tasks efficiently
+        </p>
       </div>
-      <h2>Access Restricted</h2>
-      <p>You don't have sufficient permissions to view this user's details.</p>
-      <button class="btn-back" (click)="goBack()">
-        <i class="bi bi-arrow-left"></i> Return to Users
+      
+      <div class="header-actions">
+        <button class="btn-back" (click)="goBackToDashboard()">
+          <span class="icon">←</span>
+          <span>Back to Dashboard</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <br>
+  <!-- Error States -->
+  <div *ngIf="errorMessage" class="error-state">
+    <div class="error-content">
+      <div class="error-icon">❌</div>
+      <h3>Unable to Load Tasks</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="btn-retry" (click)="loadCurrentUserAndTasks()">
+        🔄 Retry Loading
       </button>
     </div>
   </div>
 
-  <!-- Error State -->
-  <div *ngIf="errorMessage && !isLoading && !isForbidden" class="error-container">
-    <div class="error-alert">
-      <i class="bi bi-exclamation-octagon"></i>
-      <div class="error-content">
-        <h3>Error Loading Profile</h3>
-        <p>{{ errorMessage }}</p>
-      </div>
-      <button class="btn-error-close" (click)="errorMessage = ''">
-        <i class="bi bi-x"></i>
+  <div *ngIf="isForbidden" class="error-state">
+    <div class="error-content">
+      <div class="error-icon">🔒</div>
+      <h3>Access Restricted</h3>
+      <p>You don't have permission to view these tasks.</p>
+      <button class="btn-back" (click)="goBackToDashboard()">
+        ← Return to Dashboard
       </button>
     </div>
   </div>
 
   <!-- Main Content -->
-  <div *ngIf="user && !isLoading && !isForbidden" class="main-content">
+  <div *ngIf="!loading && !errorMessage && !isForbidden" class="main-content">
     
-    <!-- Top Header -->
-    <div class="top-header">
-      <div class="breadcrumb">
-        <button class="breadcrumb-back" (click)="goBack()">
-          <i class="bi bi-chevron-left"></i>
-          <span>All Users</span>
-        </button>
-        <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-current">User Profile</span>
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          class="search-input"
+          placeholder="Search tasks by title, assignee, or department..."
+          [(ngModel)]="searchTerm"
+          (input)="applyFilters()"
+          aria-label="Search tasks"
+        />
+        <span *ngIf="searchTerm" 
+              class="clear-search" 
+              (click)="searchTerm = ''; applyFilters()"
+              title="Clear search">
+          ✕
+        </span>
       </div>
       
-      <div class="header-actions">
-        <button class="btn-icon" title="Refresh" (click)="loadUserDetails()">
-          <i class="bi bi-arrow-clockwise"></i>
-        </button>
-        <button class="btn-action assign-task" (click)="assignNewTask()">
-          <i class="bi bi-plus-lg"></i>
-          <span>Assign Task</span>
+      <div class="filter-controls">
+        <select class="status-filter" 
+                [(ngModel)]="statusFilter" 
+                (change)="applyFilters()"
+                aria-label="Filter by status">
+          <option value="">📊 All Statuses</option>
+          <option value="PENDING">⏳ Pending</option>
+          <option value="IN_PROGRESS">⏳ In Progress</option>
+          <option value="UPCOMING">📅 Upcoming</option>
+          <option value="DELAYED">⚠️ Delayed</option>
+          <option value="REQUEST_FOR_CLOSURE">📝 Request for Closure</option>
+          <option value="REQUEST_FOR_EXTENSION">⏱️ Request for Extension</option>
+          <option value="CLOSED">✅ Closed</option>
+          <option value="EXTENDED">🔁 Extended</option>
+          <option value="SELF">👤 My Tasks</option>
+          <option value="SELFASSIGNED">🎯 Self Assigned</option>
+          <option value="APPROVAL">⏳ Awaiting Approval</option>
+        </select>
+        
+        <button class="btn-reset" (click)="resetFilters()">
+          <span class="icon">🔄</span>
+          Reset Filters
         </button>
       </div>
     </div>
 
-    <!-- Profile Header -->
-    <div class="profile-header">
-      <div class="profile-avatar">
-        <div class="avatar-wrapper">
-          <div class="avatar-circle">
-            {{ user.fullName.charAt(0) }}
+    <!-- Tasks List -->
+    <div *ngIf="!isEmpty && filteredTasks.length > 0" class="tasks-section">
+      
+      <!-- Desktop Table -->
+      <div class="tasks-table desktop-view">
+        <div class="table-header">
+          <div class="table-row">
+            <div class="col-task-id">ID</div>
+            <div class="col-title">Task Details</div>
+            <div class="col-info">Department & Assignees</div>
+            <div class="col-dates">Timeline</div>
+            <div class="col-status">Status</div>
+            <div class="col-actions">Actions</div>
           </div>
-          <div class="status-indicator" [ngClass]="'status-' + user.status.toLowerCase()"></div>
         </div>
         
-        <div class="profile-info">
-          <div class="profile-name-section">
-            <h1 class="profile-name">{{ user.fullName }}</h1>
-            <div class="profile-badges">
-              <span class="badge-role" [ngClass]="'role-' + user.role.toLowerCase()">
-                <i class="bi bi-person-badge"></i>
-                {{ user.role.replace('_', ' ') }}
-              </span>
-              <span class="badge-status" [ngClass]="'badge-' + user.status.toLowerCase()">
-                <i class="bi bi-circle-fill"></i>
-                {{ user.status }}
-              </span>
+        <div class="table-body">
+          <div *ngFor="let task of paginatedTasks; trackBy: trackByTaskId" 
+               class="table-row task-row"
+               (click)="viewTaskDetails(task.taskId)"
+               [attr.aria-label]="'Task: ' + task.title">
+            
+            <div class="col-task-id">
+              <span class="task-id">#{{ task.taskId }}</span>
             </div>
-          </div>
-          
-          <div class="profile-meta">
-            <div class="meta-item">
-              <i class="bi bi-person"></i>
-              <div>
-                <span class="meta-label">Username</span>
-                <span class="meta-value">@{{ user.username }}</span>
+            
+            <div class="col-title">
+              <h4 class="task-title">{{ task.title }}</h4>
+              <p *ngIf="task.description" class="task-description">
+                {{ task.description | slice:0:80 }}{{ task.description.length > 80 ? '...' : '' }}
+              </p>
+              <p *ngIf="!task.description" class="task-description no-description">
+                No description provided
+              </p>
+            </div>
+            
+            <div class="col-info">
+              <div class="department-info">
+                <span class="info-icon">🏢</span>
+                <span *ngIf="task.departmentNames?.length === 1">
+                  {{ task.departmentNames?.[0] }}
+                </span>
+                <span *ngIf="(task.departmentNames?.length ?? 0) > 1" class="multiple">
+                  {{ task.departmentNames?.length }} Departments
+                </span>
+                <span *ngIf="!task.departmentNames?.length" class="unassigned">
+                  No Department
+                </span>
               </div>
-            </div>
-            <div class="meta-item">
-              <i class="bi bi-envelope"></i>
-              <div>
-                <span class="meta-label">Email</span>
-                <span class="meta-value">{{ user.email }}</span>
-              </div>
-            </div>
-            <div class="meta-item">
-              <i class="bi bi-shield-check"></i>
-              <div>
-                <span class="meta-label">Verification</span>
-                <span class="meta-value" [ngClass]="user.emailVerified ? 'verified' : 'not-verified'">
-                  {{ user.emailVerified ? 'Verified' : 'Pending' }}
+              
+              <div class="assignee-info">
+                <span class="info-icon">👤</span>
+                <span *ngIf="task.assignedToNames?.length === 1">
+                  {{ task.assignedToNames?.[0] }}
+                </span>
+                <span *ngIf="(task.assignedToNames?.length ?? 0) > 1" class="multiple">
+                  {{ task.assignedToNames?.length }} Assignees
+                </span>
+                <span *ngIf="!task.assignedToNames?.length" class="unassigned">
+                  Unassigned
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="profile-actions">
-        <div class="action-group">
-          <button class="btn-action edit" (click)="editUser()" *ngIf="canEditDelete()">
-            <i class="bi bi-pencil"></i>
-            <span>Edit Profile</span>
-          </button>
-          <button class="btn-action status-toggle" 
-                  (click)="toggleUserStatus()" 
-                  *ngIf="canEditDelete()"
-                  [ngClass]="user.status === 'ACTIVE' ? 'deactivate' : 'activate'">
-            <i class="bi" [ngClass]="user.status === 'ACTIVE' ? 'bi-person-dash' : 'bi-person-check'"></i>
-            <span>{{ user.status === 'ACTIVE' ? 'Deactivate' : 'Activate' }}</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="stats-section">
-      <h2 class="section-title">Performance Overview</h2>
-      <div class="stats-grid">
-        <div *ngFor="let stat of taskStats" 
-             class="stat-card" 
-             [ngClass]="stat.gradient"
-             (click)="statusFilter = stat.label; setActiveTab('tasks'); applyFilters()">
-          <div class="stat-icon-wrapper">
-            <i class="bi" [ngClass]="stat.icon"></i>
-          </div>
-          <div class="stat-content">
-            <h3 class="stat-count">{{ stat.count }}</h3>
-            <p class="stat-label">{{ stat.label.replace('_', ' ') }} Tasks</p>
-          </div>
-          <div class="stat-trend">
-            <i class="bi bi-arrow-right"></i>
-          </div>
-        </div>
-        
-        <div class="stat-card total-tasks bg-gradient-to-r from-slate-700 to-slate-900">
-          <div class="stat-icon-wrapper">
-            <i class="bi bi-clipboard-data"></i>
-          </div>
-          <div class="stat-content">
-            <h3 class="stat-count">{{ userTasks.length }}</h3>
-            <p class="stat-label">Total Tasks</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Dashboard -->
-    <div class="dashboard-grid">
-      <!-- Left Column -->
-      <div class="dashboard-left">
-        <!-- Tasks Card -->
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">
-              <i class="bi bi-list-task"></i>
-              <h3>Assigned Tasks</h3>
+            
+            <div class="col-dates">
+              <div class="date-item">
+                <span class="date-label">Start:</span>
+                <span class="date-value">{{ formatDate(task.startDate) }}</span>
+              </div>
+              <div class="date-item">
+                <span class="date-label">Due:</span>
+                <span class="date-value">{{ formatDate(task.dueDate) }}</span>
+              </div>
             </div>
-            <div class="card-actions">
-              <button class="btn-tab" [class.active]="activeTab === 'tasks'" (click)="setActiveTab('tasks')">
-                Tasks
-              </button>
-              <button class="btn-tab" [class.active]="activeTab === 'departments'" (click)="setActiveTab('departments')">
-                Departments
-              </button>
-              <button class="btn-tab" [class.active]="activeTab === 'logs'" (click)="setActiveTab('logs')">
-                Activity
-              </button>
+            
+            <div class="col-status">
+              <span class="status-badge" [ngClass]="getStatusClass(task.status)">
+                <span class="status-icon">{{ getStatusIcon(task.status) }}</span>
+                {{ getStatusDisplayName(task.status) }}
+              </span>
+            </div>
+            
+            <div class="col-actions">
+              <div class="action-buttons">
+                <button  *ngIf=" ! canDeleteTask()" class="btn-action btn-view" 
+                        (click)="viewTaskDetails(task.taskId); $event.stopPropagation()"
+                        aria-label="View task details">
+                  👁️ View
+                </button>
+                
+                <button *ngIf="canDeleteTask() && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'" 
+                        class="btn-action btn-delete"
+                        (click)="deleteTask($event, task.taskId)"
+                        aria-label="Delete task">
+                  🗑️ Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="tasks-cards mobile-view">
+        <div *ngFor="let task of paginatedTasks; trackBy: trackByTaskId" 
+             class="task-card"
+             (click)="viewTaskDetails(task.taskId)"
+             [attr.aria-label]="'Task: ' + task.title">
+          
+          <div class="card-header">
+            <div class="task-id">#{{ task.taskId }}</div>
+            <span class="status-badge" [ngClass]="getStatusClass(task.status)">
+              {{ getStatusIcon(task.status) }} {{ getStatusDisplayName(task.status) }}
+            </span>
+          </div>
+          
+          <div class="card-body">
+            <h4 class="task-title">{{ task.title }}</h4>
+            
+            <div class="task-info">
+              <div class="info-item">
+                <span class="info-icon">🏢</span>
+                <span *ngIf="task.departmentNames?.length === 1">
+                  {{ task.departmentNames?.[0] }}
+                </span>
+                <span *ngIf="(task.departmentNames?.length ?? 0) > 1">
+                  {{ task.departmentNames?.length }} Depts
+                </span>
+                <span *ngIf="!task.departmentNames?.length">
+                  No Department
+                </span>
+              </div>
+
+              <div class="info-item">
+                <span class="info-icon">👤</span>
+                <span *ngIf="task.assignedToNames?.length === 1">
+                  {{ task.assignedToNames?.[0] ?? 'Unassigned' }}
+                </span>
+                <span *ngIf="(task.assignedToNames?.length ?? 0) > 1">
+                  {{ task.assignedToNames?.length }} People
+                </span>
+                <span *ngIf="!task.assignedToNames?.length">
+                  Unassigned
+                </span>
+              </div>
+            </div>
+            
+            <div class="task-dates">
+              <div class="date-item">
+                <strong>Start:</strong> {{ formatDate(task.startDate) }}
+              </div>
+              <div class="date-item">
+                <strong>Due:</strong> {{ formatDate(task.dueDate) }}
+              </div>
             </div>
           </div>
           
-          <div class="card-content">
-            <!-- Tasks Tab -->
-            <div *ngIf="activeTab === 'tasks'" class="tab-content">
-              <div class="table-filters">
-                <div class="search-box">
-                  <i class="bi bi-search"></i>
-                  <input type="text" 
-                         [(ngModel)]="searchTerm" 
-                         (input)="applyFilters()"
-                         placeholder="Search tasks...">
-                  <button class="btn-clear" (click)="resetFilters()" *ngIf="searchTerm || statusFilter">
-                    <i class="bi bi-x"></i>
-                  </button>
-                </div>
-                <div class="filter-options">
-                  <select class="filter-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
-                    <option value="">All Status</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="UPCOMING">Upcoming</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="DELAYED">Delayed</option>
-                    <option value="CLOSED">Closed</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div class="table-wrapper">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Task</th>
-                      <th>Status</th>
-                      <th>Due Date</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let task of paginatedTasks">
-                      <td class="task-cell">
-                        <div class="task-info">
-                          <div class="task-title">{{ task.title }}</div>
-                          <div class="task-id">#{{ task.taskId }}</div>
-                        </div>
-                      </td>
-                      <td>
-                        <span class="status-tag" [ngClass]="getTaskStatusClass(task.status)">
-                          {{ task.status.replace('_', ' ') }}
-                        </span>
-                      </td>
-                      <td class="due-date">
-                        {{ formatDate(task.dueDate) }}
-                      </td>
-                      <!-- <td>
-                        <span class="priority-tag" [ngClass]="'priority-' + (task.priority || 'medium')?.toLowerCase()">
-                          {{ task.priority || 'MEDIUM' }}
-                        </span>
-                      </td> -->
-                      <td>
-                        <button class="btn-table-action" (click)="viewTask(task.taskId)">
-                          <i class="bi bi-eye"></i>
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                
-                <div *ngIf="filteredTasks.length === 0" class="empty-table">
-                  <i class="bi bi-clipboard-x"></i>
-                  <p>No tasks found</p>
-                  <button class="btn-empty-action" (click)="assignNewTask()">
-                    Assign First Task
-                  </button>
-                </div>
-              </div>
-              
-              <div class="table-footer" *ngIf="filteredTasks.length > 0">
-               <div class="pagination-info">
-  Showing {{ startIndex }}-{{ endIndex }} of {{ filteredTasks.length }} tasks
-</div>
-
-                <div class="pagination">
-                  <button class="pagination-btn" [disabled]="currentPage === 1" (click)="changePage(1)">
-                    <i class="bi bi-chevron-double-left"></i>
-                  </button>
-                  <button class="pagination-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
-                    <i class="bi bi-chevron-left"></i>
-                  </button>
-                  <div class="page-numbers">
-                    <button *ngFor="let page of getPageNumbers()" 
-                            class="page-number" 
-                            [class.active]="currentPage === page"
-                            (click)="changePage(page)">
-                      {{ page }}
-                    </button>
-                  </div>
-                  <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
-                    <i class="bi bi-chevron-right"></i>
-                  </button>
-                  <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)">
-                    <i class="bi bi-chevron-double-right"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div class="card-actions">
+            <button class="btn-action btn-view" 
+                    (click)="viewTaskDetails(task.taskId); $event.stopPropagation()">
+              👁️ View
+            </button>
             
-            <!-- Departments Tab -->
-            <div *ngIf="activeTab === 'departments'" class="tab-content">
-              <div class="departments-grid">
-                <div *ngFor="let dept of enrichedDepartments" class="department-card">
-                  <div class="dept-header" [ngClass]="dept.color">
-                    <i class="bi bi-building"></i>
-                    <h4>{{ dept.name }}</h4>
-                  </div>
-                  <div class="dept-content">
-                    <div class="dept-info">
-                      <div class="info-item">
-                        <i class="bi bi-person-badge"></i>
-                        <div>
-                          <span class="info-label">Head</span>
-                          <span class="info-value">{{ dept.hodName }}</span>
-                        </div>
-                      </div>
-                      <div class="info-item">
-                        <i class="bi bi-people"></i>
-                        <div>
-                          <span class="info-label">Members</span>
-                          <span class="info-value">{{ dept.userCount }}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <button class="btn-view-dept" (click)="viewDepartment(dept.id)">
-                      View Department
-                      <i class="bi bi-arrow-right"></i>
-                    </button>
-                  </div>
-                </div>
-                
-                <div *ngIf="enrichedDepartments.length === 0" class="empty-departments">
-                  <i class="bi bi-building-x"></i>
-                  <p>No departments assigned</p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Activity Tab -->
-            <div *ngIf="activeTab === 'logs'" class="tab-content">
-              <div class="activity-filters">
-                <div class="search-box">
-                  <i class="bi bi-search"></i>
-                  <input type="text" 
-                         [(ngModel)]="searchTermLogs" 
-                         (input)="applyFiltersLogs()"
-                         placeholder="Search activities...">
-                  <button class="btn-clear" (click)="resetFiltersLogs()" *ngIf="searchTermLogs">
-                    <i class="bi bi-x"></i>
-                  </button>
-                </div>
-              </div>
-              
-              <div class="activity-list">
-                <div *ngFor="let log of paginatedLogs" class="activity-item">
-                  <div class="activity-icon" [ngClass]="getActivityColor(log.action)">
-                    <i class="bi" [ngClass]="getActivityIcon(log.action)"></i>
-                  </div>
-                  <div class="activity-content">
-                    <div class="activity-header">
-                      <span class="activity-action">{{ log.action }}</span>
-                      <span class="activity-entity">{{ log.entity }}</span>
-                    </div>
-                    <div class="activity-details">
-                      {{ log.details || 'No additional details' }}
-                    </div>
-                    <div class="activity-time">
-  {{ formatDate(log.timestamp) }} • {{ formatTime(log.timestamp) }}
-</div>
-
-                  </div>
-                </div>
-                
-                <div *ngIf="filteredLogs.length === 0" class="empty-activity">
-                  <i class="bi bi-journal-x"></i>
-                  <p>No activity logs found</p>
-                </div>
-              </div>
-              
-              <div class="table-footer" *ngIf="filteredLogs.length > 0">
-                <div class="pagination-info">
-  Showing {{ startIndex }}-{{ endIndex }} of {{ filteredTasks.length }} logs
-</div>
-
-                <div class="pagination">
-                  <button class="pagination-btn" [disabled]="currentPageLogs === 1" (click)="changePageLogs(1)">
-                    <i class="bi bi-chevron-double-left"></i>
-                  </button>
-                  <button class="pagination-btn" [disabled]="currentPageLogs === 1" (click)="changePageLogs(currentPageLogs - 1)">
-                    <i class="bi bi-chevron-left"></i>
-                  </button>
-                  <div class="page-numbers">
-                    <button *ngFor="let page of getPageNumbersLogs()" 
-                            class="page-number" 
-                            [class.active]="currentPageLogs === page"
-                            (click)="changePageLogs(page)">
-                      {{ page }}
-                    </button>
-                  </div>
-                  <button class="pagination-btn" [disabled]="currentPageLogs === totalPagesLogs" (click)="changePageLogs(currentPageLogs + 1)">
-                    <i class="bi bi-chevron-right"></i>
-                  </button>
-                  <button class="pagination-btn" [disabled]="currentPageLogs === totalPagesLogs" (click)="changePageLogs(totalPagesLogs)">
-                    <i class="bi bi-chevron-double-right"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
+            <button *ngIf="canDeleteTask() && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'" 
+                    class="btn-action btn-delete"
+                    (click)="deleteTask($event, task.taskId)">
+              🗑️ Delete
+            </button>
           </div>
         </div>
       </div>
-      
-      <!-- Right Column -->
-      <div class="dashboard-right">
-        <!-- Quick Actions Card -->
-        <div class="dashboard-card quick-actions-card">
-          <div class="card-header">
-            <i class="bi bi-lightning-charge"></i>
-            <h3>Quick Actions</h3>
-          </div>
-          <div class="card-content">
-            <button class="quick-action-btn primary" (click)="assignNewTask()">
-              <i class="bi bi-plus-circle"></i>
-              <span>Assign New Task</span>
-            </button>
-            <button class="quick-action-btn" (click)="editUser()" *ngIf="canEditDelete()">
-              <i class="bi bi-pencil-square"></i>
-              <span>Edit Profile</span>
-            </button>
-            <button class="quick-action-btn" (click)="loadUserDetails()">
-              <i class="bi bi-arrow-clockwise"></i>
-              <span>Refresh Data</span>
-            </button>
-            <button class="quick-action-btn danger" (click)="deleteUser()" *ngIf="canEditDelete() && user.status === 'ACTIVE'">
-              <i class="bi bi-trash"></i>
-              <span>Delete User</span>
-            </button>
-          </div>
+
+      <!-- Pagination -->
+      <div *ngIf="filteredTasks.length > pageSize" class="pagination-section">
+        <div class="pagination-info">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} to 
+          {{ Math.min(currentPage * pageSize, filteredTasks.length) }} of 
+          {{ filteredTasks.length }} tasks
         </div>
         
-        <!-- Recent Activity Card -->
-        <div class="dashboard-card activity-card">
-          <div class="card-header">
-            <i class="bi bi-clock-history"></i>
-            <h3>Recent Activity</h3>
-          </div>
-          <div class="card-content">
-            <div *ngIf="loadingLogs" class="loading-mini">
-              <div class="spinner-mini"></div>
-              <span>Loading activity...</span>
-            </div>
-            
-            <div *ngIf="!loadingLogs && recentActivity.length > 0" class="recent-activity">
-              <div *ngFor="let activity of recentActivity" class="recent-item">
-                <div class="recent-icon" [ngClass]="activity.color">
-                  <i class="bi" [ngClass]="activity.icon"></i>
-                </div>
-                <div class="recent-details">
-                  <div class="recent-title">{{ activity.action }} • {{ activity.entity }}</div>
-                  <div class="recent-time">{{ formatDate(activity.timestamp) }}</div>
-                </div>
-              </div>
-            </div>
-            
-            <div *ngIf="!loadingLogs && recentActivity.length === 0" class="no-activity">
-              <i class="bi bi-journal-x"></i>
-              <p>No recent activity</p>
-            </div>
-            
-            <button class="view-all-btn" (click)="setActiveTab('logs')" *ngIf="!loadingLogs && recentActivity.length > 0">
-              View All Activity
-              <i class="bi bi-arrow-right"></i>
+        <div class="pagination-controls">
+          <button class="btn-pagination" 
+                  [class.disabled]="currentPage === 1"
+                  (click)="changePage(currentPage - 1)"
+                  [attr.aria-label]="'Previous page'">
+            ← Previous
+          </button>
+          
+          <div class="page-numbers">
+            <button *ngFor="let page of getPageNumbers()" 
+                    class="page-number"
+                    [class.active]="currentPage === page"
+                    (click)="changePage(page)"
+                    [attr.aria-label]="'Page ' + page"
+                    [attr.aria-current]="currentPage === page ? 'page' : null">
+              {{ page }}
             </button>
           </div>
-        </div>
-        
-        <!-- User Info Card -->
-        <div class="dashboard-card info-card">
-          <div class="card-header">
-            <i class="bi bi-info-circle"></i>
-            <h3>User Information</h3>
-          </div>
-          <div class="card-content">
-            <div class="info-item">
-              <span class="info-label">User ID</span>
-              <span class="info-value">{{ user.userId || 'N/A' }}</span>
-            </div>
-            <!-- <div class="info-item">
-              <span class="info-label">Account Created</span>
-              <span class="info-value">{{ formatDate(user.createdAt || '') || 'Unknown' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Last Updated</span>
-              <span class="info-value">{{ formatDate(user.updatedAt || '') || 'Unknown' }}</span>
-            </div> -->
-            <div class="info-item">
-              <span class="info-label">Total Departments</span>
-              <span class="info-value">{{ enrichedDepartments.length }}</span>
-            </div>
-          </div>
+          
+          <button class="btn-pagination" 
+                  [class.disabled]="currentPage === totalPages"
+                  (click)="changePage(currentPage + 1)"
+                  [attr.aria-label]="'Next page'">
+            Next →
+          </button>
         </div>
       </div>
     </div>
-    
-    <!-- Bottom Action Bar -->
-    <div class="action-bar">
-      <button class="btn-secondary" (click)="goBack()">
-        <i class="bi bi-arrow-left"></i>
-        Back to Users
-      </button>
-      <div class="action-group">
-        <button class="btn-action print" onclick="window.print()">
-          <i class="bi bi-printer"></i>
-          Print
+
+    <!-- Empty State -->
+    <div *ngIf="isEmpty || filteredTasks.length === 0" class="empty-state">
+      <div class="empty-content">
+        <div class="empty-icon">📭</div>
+        <h3>No Tasks Found</h3>
+        <p *ngIf="searchTerm || statusFilter">
+          No tasks match your current filters. Try adjusting your search criteria.
+        </p>
+        <p *ngIf="!searchTerm && !statusFilter">
+          {{ currentUserRole === 'TEACHER' ? 'No tasks are assigned to you yet.' : 
+             currentUserRole === 'HOD' ? 'No tasks found in your departments.' : 
+             'No tasks available in the system.' }}
+        </p>
+        <button *ngIf="searchTerm || statusFilter" class="btn-reset" (click)="resetFilters()">
+          🗑️ Clear All Filters
+        </button>
+        <button *ngIf="!searchTerm && !statusFilter" class="btn-back" (click)="goBackToDashboard()">
+          ← Return to Dashboard
         </button>
       </div>
     </div>
