@@ -6,15 +6,42 @@ import { Department } from '../Model/department';
 import { environment } from '../environment/environment';
 
 
+export interface MonthlyTrend {
+  month: string;           // e.g. "Jan 2025", "January", "2025-01"
+  taskCompletion: number;
+  userActivity: number;
+  // Optional extra fields you might add later
+  newUsers?: number;
+  activeSessions?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
+  
   private apiUrl = `${environment.apiUrl}`;
 
 
   constructor(private http: HttpClient) { }
  
+
+  /**
+   * Fetches monthly trends data for the activity line chart
+   * @param year Optional - defaults to current year
+   * @returns Observable of array of monthly stats
+   */
+  getMonthlyTrends(year?: number): Observable<MonthlyTrend[]> {
+    const currentYear = new Date().getFullYear();
+    const requestedYear = year || currentYear;
+
+    return this.http.get<MonthlyTrend[]>(
+      `${this.apiUrl}/dashboard/monthly-trends`,
+      {
+        params: { year: requestedYear.toString() }
+      }
+    );
+  }
   // ---------------- Dashboard ----------------
   getDashboardData(): Observable<DashboardDto> {
     // console.log('Fetching dashboard data from:', `${this.apiUrl}/dashboard`);

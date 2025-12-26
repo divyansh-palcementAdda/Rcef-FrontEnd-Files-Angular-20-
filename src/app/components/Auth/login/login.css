@@ -179,6 +179,11 @@ body, html { height: 100%; font-family: 'Inter', sans-serif; background: #f8fafc
   box-shadow: 0 0 0 5px rgba(99,102,241,0.15);
 }
 
+.form-input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239,68,68,0.1);
+}
+
 .input-icon {
   position: absolute;
   left: 18px;
@@ -349,3 +354,46 @@ body, html { height: 100%; font-family: 'Inter', sans-serif; background: #f8fafc
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Alerts */
+.error-alert {
+  background: rgba(239, 68, 68, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  color: #ef4444;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1);
+}
+
+.error-alert ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.error-alert li {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.error-alert li:before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #ef4444;
+}
+
+.success-alert {
+  background: rgba(34, 197, 94, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  color: #22c55e;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);
+}

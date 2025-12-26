@@ -34,18 +34,18 @@ import { NotificationService } from '../../../Services/notification-service';
     trigger('slideUp', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(30px)' }),
-        animate('0.6s cubic-bezier(0.34, 1.56, 0.64, 1)', 
+        animate('0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
           style({ opacity: 1, transform: 'translateY(0)' }))
       ])
     ]),
     trigger('slideDown', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(-20px)', height: 0 }),
-        animate('0.3s ease-out', 
+        animate('0.3s ease-out',
           style({ opacity: 1, transform: 'translateY(0)', height: '*' }))
       ]),
       transition(':leave', [
-        animate('0.3s ease-in', 
+        animate('0.3s ease-in',
           style({ opacity: 0, transform: 'translateY(-20px)', height: 0 }))
       ])
     ])
@@ -58,6 +58,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly renderer = inject(Renderer2);
   private readonly destroy$ = new Subject<void>();
+  errorMessage = '';
 
   @ViewChild('loginFormElement') loginFormElement!: ElementRef;
 
@@ -68,10 +69,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   validationErrors: string[] = [];
   successMessage = '';
   showShortcutsHint = true;
-  
+
   // Animation Particles
   private readonly particleCount = 20;
-  
+
   // Logo fallback
   logoLoaded = false;
   logoError = false;
@@ -89,12 +90,12 @@ export class LoginComponent implements OnInit, OnDestroy {
   private buildForm(): void {
     this.loginForm = this.fb.group({
       emailOrUsername: ['', [
-        Validators.required, 
+        Validators.required,
         Validators.minLength(3),
         Validators.maxLength(150)
       ]],
       password: ['', [
-        Validators.required, 
+        Validators.required,
         Validators.minLength(6),
         Validators.maxLength(128)
       ]],
@@ -118,7 +119,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     const formState = sessionStorage.getItem('loginFormState');
-    
+
     if (rememberedEmail) {
       this.loginForm.patchValue({
         emailOrUsername: rememberedEmail,
@@ -139,13 +140,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     sessionStorage.setItem('loginFormState', JSON.stringify({ emailOrUsername, rememberMe }));
   }
 
- 
+
   /* --------------------------------------------------------------------- */
   /* FORM SUBMISSION */
   /* --------------------------------------------------------------------- */
   onSubmit(): void {
     this.validationErrors = [];
-    
+
     if (this.loginForm.invalid) {
       this.markFormGroupTouched();
       this.collectValidationErrors();
@@ -202,25 +203,25 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   private handleLoginError(error: any): void {
-    let errorMessage = 'Login failed. Please check your credentials.';
-    
+    this.errorMessage = 'Login failed. Please check your credentials.';
+
     if (error.status === 401) {
-      errorMessage = 'Invalid email/username or password.';
+      this.errorMessage = 'Invalid email/username or password.';
     } else if (error.status === 403) {
-      errorMessage = 'Account is disabled. Please contact support.';
+      this.errorMessage = 'Account is disabled. Please contact support.';
     } else if (error.status === 429) {
-      errorMessage = 'Too many attempts. Please try again in 15 minutes.';
+      this.errorMessage = 'Too many attempts. Please try again in 15 minutes.';
     } else if (error.status === 0) {
-      errorMessage = 'Network error. Please check your connection.';
+      this.errorMessage = 'Network error. Please check your connection.';
     } else if (error.message) {
-      errorMessage = error.message;
+      this.errorMessage = error.message;
     }
 
-    this.validationErrors = [errorMessage];
+    this.validationErrors = [this.errorMessage];
     this.shakeForm();
   }
 
- 
+
 
   /* --------------------------------------------------------------------- */
   /* UI INTERACTIONS */
@@ -271,13 +272,6 @@ export class LoginComponent implements OnInit, OnDestroy {
       }, 500);
     }
   }
-
- 
-
-
-
- 
-
 
   /* --------------------------------------------------------------------- */
   /* LOGO HANDLING */

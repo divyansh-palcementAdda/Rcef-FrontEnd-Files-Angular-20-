@@ -42,13 +42,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   pieChartData!: ChartConfiguration<'pie'>['data'];
   barChartData!: ChartConfiguration<'bar'>['data'];
   lineChartData!: ChartConfiguration<'line'>['data'];
-  departmentChartData!: ChartConfiguration<'bar'>['data'];
-  radarChartData!: ChartConfiguration<'radar'>['data'];
-  bubbleChartData!: ChartConfiguration<'bubble'>['data'];
-  completionChartData!: ChartConfiguration<'bar'>['data'];
-  doughnutChartData!: ChartConfiguration<'doughnut'>['data'];
-  polarChartData!: ChartConfiguration<'polarArea'>['data'];
-  mixedChartData!: ChartConfiguration<'line'>['data'];
+
 
   // Fixed Pie Chart Options
   pieChartOptions: ChartConfiguration<'pie'>['options'] = {
@@ -202,231 +196,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       }
     }
   };
-
-  // Department Chart Options
-  departmentChartOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        enabled: true,
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: 'rgba(99, 102, 241, 0.2)',
-        borderWidth: 1,
-        cornerRadius: 12,
-        padding: 16,
-        titleFont: { size: 14, family: "'Inter', sans-serif" },
-        bodyFont: { size: 13, family: "'Inter', sans-serif" }
-      }
-    },
-    scales: {
-      x: {
-        beginAtZero: true,
-        grid: { color: 'rgba(99, 102, 241, 0.08)' },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 11 } }
-      },
-      y: {
-        grid: { display: false },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 11 } }
-      }
-    },
-    animation: { duration: 1500, easing: 'easeInOutQuart' }
-  };
-
-  // Radar Chart Options
-  radarChartOptions: ChartConfiguration<'radar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        labels: { font: { family: "'Inter', sans-serif", size: 11 }, color: '#4b5563' }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: 'rgba(99, 102, 241, 0.2)',
-        borderWidth: 1,
-        cornerRadius: 12,
-        padding: 12,
-        titleFont: { size: 13, family: "'Inter', sans-serif" }
-      }
-    },
-    scales: {
-      r: {
-        grid: { color: 'rgba(99, 102, 241, 0.1)' },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 10 } }
-      }
-    },
-    animation: { duration: 1500, easing: 'easeInOutQuart' }
-  };
-
-  // Bubble Chart Options
-  bubbleChartOptions: ChartConfiguration<'bubble'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: true, labels: { font: { family: "'Inter', sans-serif", size: 11 }, color: '#4b5563' } },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: 'rgba(99, 102, 241, 0.2)',
-        borderWidth: 1,
-        cornerRadius: 12,
-        padding: 16,
-        titleFont: { size: 13, family: "'Inter', sans-serif" }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: { color: 'rgba(99, 102, 241, 0.08)' },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 11 } }
-      },
-      x: {
-        beginAtZero: true,
-        grid: { color: 'rgba(99, 102, 241, 0.08)' },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 11 } }
-      }
-    },
-    animation: { duration: 1500, easing: 'easeInOutQuart' }
-  };
-
-  // Completion Rate Chart Options
-  completionChartOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: 'rgba(99, 102, 241, 0.2)',
-        borderWidth: 1,
-        cornerRadius: 12,
-        padding: 16,
-        titleFont: { size: 13, family: "'Inter', sans-serif" }
-      }
-    },
-    scales: {
-      x: {
-        beginAtZero: true,
-        max: 100,
-        grid: { color: 'rgba(99, 102, 241, 0.08)' },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 11 }, callback: (value) => value + '%' }
-      },
-      y: {
-        grid: { display: false },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 11 } }
-      }
-    },
-    animation: { duration: 1500, easing: 'easeInOutQuart' }
-  };
-
-  // Doughnut Chart Options
-  doughnutChartOptions: ChartConfiguration<'doughnut'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          padding: 20,
-          font: { size: 11, family: "'Inter', sans-serif" },
-          color: '#4b5563',
-          usePointStyle: true
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: 'rgba(99, 102, 241, 0.2)',
-        borderWidth: 1,
-        cornerRadius: 12,
-        padding: 12,
-        titleFont: { size: 13, family: "'Inter', sans-serif" }
-      }
-    },
-    animation: { duration: 1500, easing: 'easeInOutQuart' },
-    cutout: '70%'
-  };
-
-  // Polar Chart Options
-  polarChartOptions: ChartConfiguration<'polarArea'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        labels: { font: { family: "'Inter', sans-serif", size: 11 }, color: '#4b5563' }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: 'rgba(99, 102, 241, 0.2)',
-        borderWidth: 1,
-        cornerRadius: 12,
-        padding: 12,
-        titleFont: { size: 13, family: "'Inter', sans-serif" }
-      }
-    },
-    scales: {
-      r: {
-        grid: { color: 'rgba(99, 102, 241, 0.1)' },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 10 } }
-      }
-    },
-    animation: { duration: 1500, easing: 'easeInOutQuart' }
-  };
-
-  // Mixed Chart Options
-  mixedChartOptions: ChartConfiguration<'line'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        labels: { font: { family: "'Inter', sans-serif", size: 12 }, color: '#4b5563', usePointStyle: true }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: 'rgba(99, 102, 241, 0.2)',
-        borderWidth: 1,
-        cornerRadius: 12,
-        padding: 16,
-        titleFont: { size: 14, family: "'Inter', sans-serif" }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: { color: 'rgba(99, 102, 241, 0.08)' },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 11 }, padding: 8 }
-      },
-      x: {
-        grid: { color: 'rgba(99, 102, 241, 0.05)' },
-        ticks: { color: '#6b7280', font: { family: "'Inter', sans-serif", size: 11 }, padding: 8 }
-      }
-    },
-    animation: { duration: 1500, easing: 'easeInOutQuart' },
-    elements: {
-      line: { tension: 0.4 },
-      point: { radius: 5, hoverRadius: 7 }
-    }
-  };
-
   currentDate = new Date();
 
   sidebarLinks = [
@@ -442,6 +211,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       icon: 'bi-bell',
       color: 'danger'
     }];
+  trendsLoading: boolean = false;
+  trendsError: string | null = '';
 
   constructor(
     private router: Router,
@@ -456,6 +227,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         if (data) {
           this.dashboardData = data;
           this.updateCharts(data);
+          this.loadTrendsData();   // ← new: load dynamic trends separately
         }
       },
       error: (err) => console.error('Error fetching dashboard data:', err)
@@ -590,7 +362,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
     // Modern Line Chart Data for Trends
     this.lineChartData = {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       datasets: [
         {
           label: 'Task Completion',
@@ -622,205 +394,75 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         }
       ]
     };
+  }
+  /** New method - fetches and updates monthly trends dynamically */
+  private loadTrendsData(): void {
+    this.trendsLoading = true;
+    this.trendsError = null;
 
-    // Department Performance Chart
-    this.departmentChartData = {
-      labels: ['HR', 'IT', 'Finance', 'Operations', 'Marketing'],
-      datasets: [
-        {
-          label: 'Completed Tasks',
-          data: [
-            (data.completedTask ?? 0) * 0.2,
-            (data.completedTask ?? 0) * 0.25,
-            (data.completedTask ?? 0) * 0.18,
-            (data.completedTask ?? 0) * 0.22,
-            (data.completedTask ?? 0) * 0.15
-          ],
-          backgroundColor: '#6366f1',
-          borderRadius: 8,
-          hoverBackgroundColor: 'rgba(99, 102, 241, 0.8)'
-        }
-      ]
-    };
+    // Assuming your ApiService has a method for monthly stats
+    // Example endpoint: /api/dashboard/monthly-trends
+    this.apiService.getMonthlyTrends().subscribe({
+      next: (response: { month: string; taskCompletion: number; userActivity: number }[]) => {
+        this.updateLineChart(response);
+        this.trendsLoading = false;
+      },
+      error: (err) => {
+        this.trendsError = 'Failed to load activity trends';
+        console.error('Trends fetch error:', err);
+        this.trendsLoading = false;
+      }
+    });
+  }
 
-    // Radar Chart - Task Priority Matrix
-    this.radarChartData = {
-      labels: ['High Priority', 'Medium Priority', 'Low Priority', 'Urgent', 'Normal', 'Flexible'],
-      datasets: [
-        {
-          label: 'Current Tasks',
-          data: [
-            (data.totalTask ?? 0) * 0.25,
-            (data.totalTask ?? 0) * 0.35,
-            (data.totalTask ?? 0) * 0.2,
-            (data.totalTask ?? 0) * 0.1,
-            (data.totalTask ?? 0) * 0.07,
-            (data.totalTask ?? 0) * 0.03
-          ],
-          borderColor: '#8b5cf6',
-          backgroundColor: 'rgba(139, 92, 246, 0.15)',
-          borderWidth: 2,
-          pointBackgroundColor: '#8b5cf6',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 5
-        }
-      ]
-    };
+  private updateLineChart(stats: { month: string; taskCompletion: number; userActivity: number }[]): void {
+    if (!stats || stats.length === 0) {
+      // Fallback if no data
+      this.lineChartData = {
+        labels: ['No Data'],
+        datasets: [
+          { label: 'Task Completion', data: [0], borderColor: '#f082e7ff', backgroundColor: 'rgba(99, 102, 241, 0.1)' },
+          { label: 'User Activity', data: [0], borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.1)' }
+        ]
+      };
+    } else {
+      const months = stats.map(item => item.month);
+      const taskCompletion = stats.map(item => item.taskCompletion);
+      const userActivity = stats.map(item => item.userActivity);
 
-    // Bubble Chart - User Engagement
-    this.bubbleChartData = {
-      datasets: [
-        {
-          label: 'Department A',
-          data: [
-            { x: 10, y: (data.activeUsers ?? 0) * 0.3, r: 15 },
-            { x: 20, y: (data.activeUsers ?? 0) * 0.25, r: 12 }
-          ],
-          backgroundColor: 'rgba(99, 102, 241, 0.6)',
-          borderColor: '#6366f1',
-          borderWidth: 2
-        },
-        {
-          label: 'Department B',
-          data: [
-            { x: 30, y: (data.activeUsers ?? 0) * 0.35, r: 18 },
-            { x: 40, y: (data.activeUsers ?? 0) * 0.2, r: 10 }
-          ],
-          backgroundColor: 'rgba(139, 92, 246, 0.6)',
-          borderColor: '#8b5cf6',
-          borderWidth: 2
-        },
-        {
-          label: 'Department C',
-          data: [
-            { x: 50, y: (data.activeUsers ?? 0) * 0.28, r: 14 }
-          ],
-          backgroundColor: 'rgba(236, 72, 153, 0.6)',
-          borderColor: '#ec4899',
-          borderWidth: 2
-        }
-      ]
-    };
-
-    // Completion Rate Chart
-    this.completionChartData = {
-      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-      datasets: [
-        {
-          label: 'Completion Rate %',
-          data: [
-            Math.round(((data.completedTask ?? 0) / (data.totalTask ?? 1)) * 100),
-            Math.round(((data.completedTask ?? 0) / (data.totalTask ?? 1)) * 100) + 5,
-            Math.round(((data.completedTask ?? 0) / (data.totalTask ?? 1)) * 100) + 8,
-            Math.round(((data.completedTask ?? 0) / (data.totalTask ?? 1)) * 100) + 10
-          ],
-          backgroundColor: ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981'],
-          borderRadius: 8,
-          hoverBackgroundColor: ['rgba(99, 102, 241, 0.8)', 'rgba(139, 92, 246, 0.8)', 'rgba(6, 182, 212, 0.8)', 'rgba(16, 185, 129, 0.8)']
-        }
-      ]
-    };
-
-    // Doughnut Chart - Status Breakdown
-    this.doughnutChartData = {
-      labels: ['Completed', 'In Progress', 'Pending', 'Delayed', 'Extended'],
-      datasets: [
-        {
-          data: [
-            data.completedTask ?? 0,
-            data.activeTask ?? 0,
-            data.pendingTask ?? 0,
-            data.delayedTask ?? 0,
-            data.extendedTask ?? 0
-          ],
-          backgroundColor: [
-            '#10b981',
-            '#6366f1',
-            '#f59e0b',
-            '#ef4444',
-            '#8b5cf6'
-          ],
-          borderColor: 'rgba(255, 255, 255, 0.9)',
-          borderWidth: 2,
-          hoverBorderColor: 'rgba(255, 255, 255, 1)',
-          hoverBorderWidth: 3
-        }
-      ]
-    };
-
-    // Polar Chart - Performance Metrics
-    this.polarChartData = {
-      labels: ['Productivity', 'Quality', 'Efficiency', 'Timeliness', 'Collaboration', 'Innovation'],
-      datasets: [
-        {
-          label: 'Current Performance',
-          data: [78, 82, 75, 88, 80, 72],
-          backgroundColor: [
-            'rgba(99, 102, 241, 0.3)',
-            'rgba(139, 92, 246, 0.3)',
-            'rgba(236, 72, 153, 0.3)',
-            'rgba(16, 185, 129, 0.3)',
-            'rgba(6, 182, 212, 0.3)',
-            'rgba(245, 158, 11, 0.3)'
-          ],
-          borderColor: [
-            '#6366f1',
-            '#8b5cf6',
-            '#ec4899',
-            '#10b981',
-            '#06b6d4',
-            '#f59e0b'
-          ],
-          borderWidth: 2
-        }
-      ]
-    };
-
-    // Mixed Chart - Growth Metrics
-    this.mixedChartData = {
-      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
-      datasets: [
-        {
-          label: 'User Growth',
-          data: [5, 12, 8, 15, 22],
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99, 102, 241, 0.1)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#6366f1',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 5
-        },
-        {
-          label: 'Task Growth',
-          data: [20, 28, 32, 40, 48],
-          borderColor: '#ec4899',
-          backgroundColor: 'rgba(236, 72, 153, 0.1)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#ec4899',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 5
-        },
-        {
-          label: 'Completion Rate',
-          data: [65, 70, 75, 80, 85],
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#10b981',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 5
-        }
-      ]
-    };
+      this.lineChartData = {
+        labels: months,
+        datasets: [
+          {
+            label: 'Task Completion',
+            data: taskCompletion,
+            borderColor: '#f082e7ff',
+            backgroundColor: 'rgba(99, 102, 241, 0.12)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#f082e7ff',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 8
+          },
+          {
+            label: 'User Activity',
+            data: userActivity,
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.12)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#8b5cf6',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 8
+          }
+        ]
+      };
+    }
   }
 }

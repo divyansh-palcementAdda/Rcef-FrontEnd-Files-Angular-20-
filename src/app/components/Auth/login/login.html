@@ -19,6 +19,21 @@
           Secure Task Management Portal
         </div>
       </div>
+      <div>
+        <!-- Error Alert -->
+        <div *ngIf="validationErrors.length > 0" class="error-alert" @slideDown>
+          <div class="d-flex align-items-start">
+            <i class="bi bi-exclamation-triangle-fill me-3 mt-1"></i>
+            <ul class="mb-0 ps-0">
+              <li *ngFor="let err of validationErrors">{{ err }}</li>
+            </ul>
+          </div>
+        </div>
+        <!-- Success Alert -->
+        <div *ngIf="successMessage" class="success-alert d-flex align-items-center" @slideDown>
+          <i class="bi bi-check-circle-fill me-2"></i>
+          {{ successMessage }}
+        </div>
 
       <!-- Form -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="mt-5">
@@ -40,7 +55,8 @@
           <input [type]="showPassword ? 'text' : 'password'"
                  formControlName="password"
                  class="form-input"
-                 placeholder="Enter your password">
+                 placeholder="Enter your password"
+                 [class.error]="f['password'].touched && f['password'].invalid">
           <button type="button" class="eye-toggle" (click)="togglePasswordVisibility()">
             <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
           </button>
