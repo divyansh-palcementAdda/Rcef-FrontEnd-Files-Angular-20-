@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -20,6 +20,7 @@ import { TaskDto } from '../../../Model/TaskDto';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { Modal } from 'bootstrap';
+import { Subscription } from 'rxjs';
 
 interface TaskFormControls {
   title: any;
@@ -44,9 +45,7 @@ interface TaskFormControls {
   styleUrls: ['./test2.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-
-
-export class Test2 implements OnInit, AfterViewInit {
+export class Test2 implements OnInit, AfterViewInit, OnDestroy {
   taskForm!: FormGroup;
   departments: Department[] = [];
   filteredDepartments: Department[] = [];
@@ -64,6 +63,7 @@ export class Test2 implements OnInit, AfterViewInit {
   errorMessage: string | null = null;
   dueDateErrorMessage: string | null = null;
   startDateErrorMessage: string | null = null;
+  showQuickAssign = false;
 
   // Search
   deptSearch = '';
@@ -84,6 +84,14 @@ export class Test2 implements OnInit, AfterViewInit {
   tempEndDate: string = '';
   wasNewRecurring = true;
 
+  // Form subscriptions
+  private formSubscriptions: Subscription[] = [];
+
+  // UI State
+  activeStep = 1;
+  showHelpText = false;
+  characterCount = 0;
+
   constructor(
     private fb: FormBuilder,
     private taskService: TaskApiService,
@@ -92,7 +100,6 @@ export class Test2 implements OnInit, AfterViewInit {
     private jwtService: JwtService,
     private router: Router,
     private authApiService: AuthApiService
-
   ) {
     this.initForm();
   }
@@ -107,21 +114,70 @@ export class Test2 implements OnInit, AfterViewInit {
         next: (res) => {
           this.currentUser = res;
           this.loadDepartments();
+          this.setupFormListeners();
         },
-        // ... error ...
+        error: (err) => {
+          console.error('Failed to load current user:', err);
+          this.loadDepartments();
+          this.setupFormListeners();
+        }
       });
     } else {
       this.loadDepartments();
+      this.setupFormListeners();
     }
 
-    // NEW: Listen to "Assign to Self"
-    this.taskForm.get('assignToSelf')?.valueChanges.subscribe((assignToSelf) => {
+    // Listen for form changes to update step validation
+    this.taskForm.valueChanges.subscribe(() => {
+      this.updateStepValidation();
+    });
+  }
+
+  private setupFormListeners(): void {
+    // Listen to "Assign to Self" changes
+    const assignToSelfSub = this.taskForm.get('assignToSelf')?.valueChanges.subscribe((assignToSelf) => {
       if (assignToSelf && this.currentUser) {
         this.assignToSelfLogic();
       } else {
         this.clearAssignToSelfLogic();
       }
     });
+    if (assignToSelfSub) this.formSubscriptions.push(assignToSelfSub);
+
+    // Listen to description changes for character count
+    const descSub = this.taskForm.get('description')?.valueChanges.subscribe(value => {
+      this.characterCount = value?.length || 0;
+    });
+    if (descSub) this.formSubscriptions.push(descSub);
+
+    // Listen to department selection changes
+    const deptSub = this.taskForm.get('departmentIds')?.valueChanges.subscribe(() => {
+      this.updateStepValidation();
+    });
+    if (deptSub) this.formSubscriptions.push(deptSub);
+
+    // Listen to status changes
+    const statusSub = this.taskForm.get('status')?.valueChanges.subscribe(() => {
+      this.updateStepValidation();
+    });
+    if (statusSub) this.formSubscriptions.push(statusSub);
+  }
+
+  private updateStepValidation(): void {
+    // Step 1 validation (Basic Info)
+    if (this.taskForm.get('title')?.valid && this.taskForm.get('status')?.valid) {
+      this.activeStep = Math.max(this.activeStep, 2);
+    }
+
+    // Step 2 validation (Departments)
+    if (this.taskForm.get('departmentIds')?.value?.length > 0) {
+      this.activeStep = Math.max(this.activeStep, 3);
+    }
+
+    // Step 3 validation (Due Date)
+    if (this.taskForm.get('dueDate')?.valid) {
+      this.activeStep = Math.max(this.activeStep, 4);
+    }
   }
 
   private assignToSelfLogic(): void {
@@ -130,30 +186,28 @@ export class Test2 implements OnInit, AfterViewInit {
     const myDeptIds = this.currentUser.departmentIds || [];
     const myUserId = this.currentUser.userId;
 
-    // 1. Auto-select my departments
+    // Auto-select my departments
     this.taskForm.patchValue({ departmentIds: myDeptIds });
 
-    // 2. Auto-select myself in each department
+    // Auto-select myself in each department
     this.selectedUsersByDeptObj = {};
     myDeptIds.forEach(deptId => {
       this.selectedUsersByDeptObj[deptId] = [myUserId];
     });
 
-    // 3. Update assignedToIds
+    // Update assignedToIds
     this.updateAssignedToIds();
 
-    // 4. Update UI states
+    // Update UI states
     this.updateSelectAllDepts();
     myDeptIds.forEach(id => this.updateSelectAllUsersForDept(id));
 
-    // 5. Expand first accordion
+    // Expand first accordion
     this.expandFirstAccordion();
   }
 
   private clearAssignToSelfLogic(): void {
-    // Optional: keep departments selected, or clear them?
-    // Let's keep them — user may want to assign to others too
-    // But clear user selections
+    // Keep departments selected but clear user selections
     this.selectedUsersByDeptObj = {};
     this.updateAssignedToIds();
     Object.keys(this.selectAllUsersByDept).forEach(key => {
@@ -164,9 +218,35 @@ export class Test2 implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     // Focus search after view init
     setTimeout(() => {
-      const searchInput = document.querySelector('#dept-search') as HTMLInputElement;
+      const searchInput = document.querySelector('#taskTitle') as HTMLInputElement;
       searchInput?.focus();
     }, 300);
+
+    // Initialize modals
+    this.initModals();
+
+    // Add scroll listener for progress bar
+    this.setupScrollListener();
+  }
+
+  private setupScrollListener(): void {
+    window.addEventListener('scroll', this.onScroll.bind(this));
+  }
+
+  private onScroll(): void {
+    const formTop = document.querySelector('.task-form-body')?.getBoundingClientRect().top || 0;
+    if (formTop < 100) {
+      document.querySelector('.floating-progress')?.classList.add('active');
+    } else {
+      document.querySelector('.floating-progress')?.classList.remove('active');
+    }
+  }
+
+  private initModals(): void {
+    const modalElement = document.getElementById('recurringModal');
+    if (modalElement) {
+      this.recurringModal = new Modal(modalElement);
+    }
   }
 
   private initForm(): void {
@@ -195,18 +275,11 @@ export class Test2 implements OnInit, AfterViewInit {
       interval: [1],
       endDate: [''],
     });
-
-    this.taskForm.get('departmentIds')?.valueChanges.subscribe(() => {
-      this.updateFilteredUsers();
-      this.expandFirstAccordion();
-    });
-
-    this.taskForm.get('status')?.valueChanges.subscribe(() => {
-      if (this.taskForm.value.status !== 'UPCOMING') {
-        this.taskForm.patchValue({ startDate: '' });
-      }
-    });
   }
+getHodCount(departmentId: number): number {
+  const users = this.usersByDepartment.get(departmentId) || [];
+  return users.filter(u => u.role === 'HOD').length;
+}
 
   get f(): TaskFormControls {
     return this.taskForm.controls as unknown as TaskFormControls;
@@ -228,12 +301,12 @@ export class Test2 implements OnInit, AfterViewInit {
         this.filteredDepartments = [...filtered];
         this.isLoadingDepartments = false;
 
-        // Critical Fix: Trigger search to show list
         this.onDeptSearch();
         this.loadUsers();
       },
-      error: () => {
-        this.errorMessage = 'Failed to load departments.';
+      error: (err) => {
+        console.error('Failed to load departments:', err);
+        this.errorMessage = 'Failed to load departments. Please try again.';
         this.isLoadingDepartments = false;
       },
     });
@@ -261,7 +334,8 @@ export class Test2 implements OnInit, AfterViewInit {
         this.isLoadingUsers = false;
         this.updateFilteredUsers();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Failed to load users:', err);
         this.errorMessage = 'Failed to load users.';
         this.isLoadingUsers = false;
       },
@@ -436,30 +510,15 @@ export class Test2 implements OnInit, AfterViewInit {
     return true;
   }
 
-  validateDates(start: string, due: string): { valid: boolean; msg?: string } {
-    if (!due) return { valid: false, msg: 'Due date is required.' };
-
-    const startDate = start ? new Date(start) : new Date();
-    const dueDate = new Date(due);
-
-    const startOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    const dueOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-
-    if (dueOnly < startOnly) {
-      return { valid: false, msg: 'Due date cannot be before start date.' };
-    }
-
-    return { valid: true };
-  }
   focusInput(event: MouseEvent, inputEl: HTMLInputElement): void {
-    // Prevent the click from bubbling to the native picker twice
     event.preventDefault();
     inputEl.focus();
-    // For some browsers you also need to programmatically open the picker:
-    inputEl.showPicker?.();   // Chrome/Edge/Firefox (2025+)
+    inputEl.showPicker?.();
   }
+
   get dueDateCtrl() { return this.taskForm.get('dueDate') as FormControl; }
   get startDateCtrl() { return this.taskForm.get('startDate') as FormControl; }
+
   onStartDateChange(): void {
     const { startDate, dueDate, status } = this.taskForm.value;
     const validation = this.validateDatesClientSide(startDate, dueDate, status);
@@ -473,7 +532,7 @@ export class Test2 implements OnInit, AfterViewInit {
   }
 
   getDepartmentName(id: number): string {
-    return this.departments.find((d) => d.departmentId === id)?.name || `Dept ${id}`;
+    return this.departments.find((d) => d.departmentId === id)?.name || `Department ${id}`;
   }
 
   // Recurring Handlers
@@ -491,8 +550,7 @@ export class Test2 implements OnInit, AfterViewInit {
     this.tempRecurrenceType = this.taskForm.value.recurrenceType;
     this.tempInterval = this.taskForm.value.interval || 1;
     this.tempEndDate = this.taskForm.value.endDate;
-    this.recurringModal = new Modal(document.getElementById('recurringModal')!);
-    this.recurringModal.show();
+    this.recurringModal?.show();
   }
 
   onRecurringCancelAdd(): void {
@@ -504,7 +562,7 @@ export class Test2 implements OnInit, AfterViewInit {
 
   onRecurringSubmitAdd(): void {
     if (!this.tempRecurrenceType || this.tempInterval < 1) {
-      this.errorMessage = 'Invalid recurring details.';
+      this.errorMessage = 'Please select a recurrence type and enter a valid interval.';
       return;
     }
     this.taskForm.patchValue({
@@ -523,16 +581,54 @@ export class Test2 implements OnInit, AfterViewInit {
     });
   }
 
+  // New UI Methods
+  toggleHelpText(): void {
+    this.showHelpText = !this.showHelpText;
+  }
+
+  quickAssign(deptIds: number[], userIds: number[]): void {
+    this.taskForm.patchValue({ departmentIds: deptIds });
+    this.selectedUsersByDeptObj = {};
+    deptIds.forEach((deptId, index) => {
+      if (userIds[index]) {
+        this.selectedUsersByDeptObj[deptId] = [userIds[index]];
+      }
+    });
+    this.updateAssignedToIds();
+    this.updateFilteredUsers();
+  }
+
+  getFormProgress(): number {
+    const controls = Object.values(this.taskForm.controls);
+    const validCount = controls.filter(c => c.valid).length;
+    return Math.round((validCount / controls.length) * 100);
+  }
+
+  scrollToSection(sectionId: string): void {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   onSubmit(): void {
     if (this.taskForm.invalid) {
       this.errorMessage = 'Please fill all required fields correctly.';
       this.taskForm.markAllAsTouched();
+      
+      // Scroll to first error
+      setTimeout(() => {
+        const firstError = document.querySelector('.is-invalid');
+        if (firstError) {
+          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       return;
     }
 
     const { startDate, dueDate, departmentIds, assignedToIds, assignToSelf, status, isRecurring, recurrenceType, interval, endDate } = this.taskForm.value;
 
-    // === CLIENT-SIDE DATE VALIDATION (must match backend) ===
+    // Client-side date validation
     const dateValidation = this.validateDatesClientSide(startDate, dueDate, status);
     if (!dateValidation.valid) {
       this.dueDateErrorMessage = dateValidation.msg!;
@@ -570,15 +666,18 @@ export class Test2 implements OnInit, AfterViewInit {
     this.startDateErrorMessage = null;
 
     this.taskService.createTask(payload).subscribe({
-      next: (response: ApiResponse<TaskDto>) => {
+      next: (response: any) => {
         this.successMessage = response.message || 'Task created successfully!';
         this.isSubmitting = false;
-        this.authApiService.goToDashboard();
 
+        // Show success animation
+        this.showSuccessAnimation();
+
+        // Reset form after success
         setTimeout(() => {
           this.resetForm();
           this.authApiService.goToDashboard();
-        }, 1500);
+        }, 2500);
       },
       error: (err: HttpErrorResponse) => {
         const backendMsg = err.error?.message;
@@ -586,8 +685,24 @@ export class Test2 implements OnInit, AfterViewInit {
           ? backendMsg
           : 'Failed to create task. Please try again.';
         this.isSubmitting = false;
+        
+        // Scroll to error message
+        setTimeout(() => {
+          const errorEl = document.querySelector('.alert-danger');
+          if (errorEl) {
+            errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
       }
     });
+  }
+
+  private showSuccessAnimation(): void {
+    const successEl = document.querySelector('.success-animation');
+    if (successEl) {
+      successEl.classList.add('active');
+      setTimeout(() => successEl.classList.remove('active'), 2000);
+    }
   }
 
   private validateDatesClientSide(start: string, due: string, status: TaskStatus | null): { valid: boolean; msg?: string } {
@@ -646,9 +761,22 @@ export class Test2 implements OnInit, AfterViewInit {
     this.filteredUsersByDept.clear();
     this.dueDateErrorMessage = null;
     this.startDateErrorMessage = null;
+    this.activeStep = 1;
+    this.characterCount = 0;
   }
 
   cancel(): void {
-    this.authApiService.goToDashboard();
+    if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
+      this.authApiService.goToDashboard();
+    }
+  }
+hasDepartment(deptId: number): boolean {
+  return this.departments?.some(d => d.departmentId === deptId) ?? false;
+}
+
+  ngOnDestroy(): void {
+    // Clean up subscriptions
+    this.formSubscriptions.forEach(sub => sub.unsubscribe());
+    window.removeEventListener('scroll', this.onScroll.bind(this));
   }
 }

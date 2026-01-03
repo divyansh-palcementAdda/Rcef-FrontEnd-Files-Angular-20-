@@ -1,9 +1,9 @@
 export const environment = {
-  // production: false,
-  // apiUrl: 'http://192.168.0.194:8080/api',
-  // wsUrl: 'http://192.168.0.194:8080/ws-notifications',
+  production: false,
+  // apiUrl: 'http://192.168.0.191:8080/api',
+  // wsUrl: 'http://192.168.0.191:8080/ws-notifications',
   //  apiUrl:  'http://localhost:8080/api',
-  production: true,
+  // production: true,
   apiUrl: 'https://api.areyoureporting.com/api',
   wsUrl: 'https://api.areyoureporting.com/ws-notifications'
 };

@@ -25,7 +25,7 @@ import { Test3 } from './components/Test/test3/test3';
 export const routes: Routes = [
 
   { path: '', component: Home },
-  {path: 'test/:id', component: Test},
+  {path: 'test', component: Test},
   {path: 'test2', component: Test2},
   {path: 'test3/:id', component: Test3},
   { path: 'login', component: LoginComponent },
