@@ -676,7 +676,7 @@ getHodCount(departmentId: number): number {
         // Reset form after success
         setTimeout(() => {
           this.resetForm();
-          this.authApiService.goToDashboard();
+          // this.authApiService.goToDashboard();
         }, 2500);
       },
       error: (err: HttpErrorResponse) => {
