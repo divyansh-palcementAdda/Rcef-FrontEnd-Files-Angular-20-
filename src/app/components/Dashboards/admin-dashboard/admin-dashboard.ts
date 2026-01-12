@@ -262,35 +262,194 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  statCards(d: DashboardDto) {
-    const c = (color: string) => color;
+ statCards(d: DashboardDto) {
+  const c = (color: string) => color;
 
-    return [
-      // Core Totals
-      { title: 'Total Tasks', value: d.totalTask, color: c('dark'), icon: 'bi-clipboard2-data', route: '/view-tasks', delta: 5 },
-      { title: 'Total Users', value: d.totalUsers, color: c('dark'), icon: 'bi-people', route: '/viewAllUsers', delta: 2 },
-      { title: 'Total Departments', value: d.totalDepartments, color: c('dark'), icon: 'bi-building', route: '/departments', delta: 0 },
-      { title: 'Active Users', value: d.activeUsers, color: c('info'), icon: 'bi-person-check-fill', route: '/viewAllUsers', queryParams: { status: 'ACTIVE' }, delta: 6 },
+  return [
 
-      // Task Flow
-      { title: 'Active Tasks', value: d.activeTask, color: c('primary'), icon: 'bi-play-circle', route: '/view-tasks', queryParams: { status: 'IN_PROGRESS' }, delta: 7 },
-      { title: 'Pending Tasks', value: d.pendingTask, color: c('warning'), icon: 'bi-hourglass-split', route: '/view-tasks', queryParams: { status: 'PENDING' }, delta: -1 },
-      { title: 'Upcoming Tasks', value: d.upcomingTask, color: c('info'), icon: 'bi-calendar3', route: '/view-tasks', queryParams: { status: 'Upcoming' }, delta: 4 },
-      { title: 'Completed Tasks', value: d.completedTask, color: c('success'), icon: 'bi-check2-circle', route: '/view-tasks', queryParams: { status: 'CLOSED' }, delta: 8 },
-      { title: 'Recurring Tasks', value: d.upcomingTask, color: c('info'), icon: 'bi-calendar3', route: '/view-tasks', queryParams: { status: 'Upcoming' }, delta: 4 },
-      { title: 'Recurred Instance Tasks', value: d.upcomingTask, color: c('info'), icon: 'bi-calendar3', route: '/view-tasks', queryParams: { status: 'Upcoming' }, delta: 4 },
-      { title: 'My Tasks', value: d.upcomingTask, color: c('info'), icon: 'bi-calendar3', route: '/view-tasks', queryParams: { status: 'Self' }, delta: 4 },
-      { title: 'My Deprtmental Tasks', value: d.upcomingTask, color: c('info'), icon: 'bi-calendar3', route: '/view-tasks', queryParams: { status: 'Upcoming' }, delta: 4 },
+    /* =======================
+       CORE SUMMARY
+    ======================= */
+    { 
+      title: 'Total Tasks', 
+      value: d.totalTask, 
+      color: c('dark'), 
+      icon: 'bi-clipboard-check', 
+      route: '/view-tasks',
+      delta: d.totalTask ?? 0
+    },
 
-      // Issues & Extensions
-      { title: 'Delayed Tasks', value: d.delayedTask, color: c('danger'), icon: 'bi-exclamation-triangle-fill', route: '/view-tasks', queryParams: { status: 'Delayed' }, delta: 3 },
-      { title: 'Extended Tasks', value: d.extendedTask, color: c('warning'), icon: 'bi-arrow-repeat', route: '/view-tasks', queryParams: { status: 'Extended' }, delta: 2 },
+    { 
+      title: 'Total Users', 
+      value: d.totalUsers, 
+      color: c('dark'), 
+      icon: 'bi-people-fill', 
+      route: '/viewAllUsers',
+      delta: d.totalUsers ?? 0
+    },
 
-      // Requests
-      { title: 'Extension Requests', value: d.requestForExtension, color: c('secondary'), icon: 'bi-clock-history', route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_EXTENSION' }, delta: 1 },
-      { title: 'Closure Requests', value: d.requestForClosure, color: c('secondary'), icon: 'bi-lock-fill', route: '/view-tasks', queryParams: { status: 'REQUEST_FOR_CLOSURE' }, delta: -2 },
-    ];
-  }
+    { 
+      title: 'Total Departments', 
+      value: d.totalDepartments, 
+      color: c('dark'), 
+      icon: 'bi-building', 
+      route: '/departments',
+      delta: d.totalDepartments ?? 0
+    },
+
+    { 
+      title: 'Active Users', 
+      value: d.activeUsers, 
+      color: c('info'), 
+      icon: 'bi-person-check-fill', 
+      route: '/viewAllUsers', 
+      queryParams: { status: 'ACTIVE' },
+      delta: d.activeUsers ?? 0
+    },
+
+
+    /* =======================
+       TASK STATUS
+    ======================= */
+    { 
+      title: 'Active Tasks', 
+      value: d.activeTask, 
+      color: c('primary'), 
+      icon: 'bi-play-circle-fill', 
+      route: '/view-tasks', 
+      queryParams: { status: 'IN_PROGRESS' },
+      delta: d.activeTask ?? 0
+    },
+
+    { 
+      title: 'Pending Tasks', 
+      value: d.pendingTask, 
+      color: c('warning'), 
+      icon: 'bi-hourglass-split', 
+      route: '/view-tasks', 
+      queryParams: { status: 'PENDING' },
+      delta: d.pendingTask ?? 0
+    },
+
+    { 
+      title: 'Upcoming Tasks', 
+      value: d.upcomingTask, 
+      color: c('info'), 
+      icon: 'bi-calendar-event', 
+      route: '/view-tasks', 
+      queryParams: { status: 'UPCOMING' },
+      delta: d.upcomingTask ?? 0
+    },
+
+    { 
+      title: 'Completed Tasks', 
+      value: d.completedTask, 
+      color: c('success'), 
+      icon: 'bi-check-circle-fill', 
+      route: '/view-tasks', 
+      queryParams: { status: 'CLOSED' },
+      delta: d.completedTask ?? 0
+    },
+
+
+    /* =======================
+       RISK / EXCEPTIONS
+    ======================= */
+    { 
+      title: 'Delayed Tasks', 
+      value: d.delayedTask, 
+      color: c('danger'), 
+      icon: 'bi-exclamation-triangle-fill', 
+      route: '/view-tasks', 
+      queryParams: { status: 'DELAYED' },
+      delta: d.delayedTask ?? 0
+    },
+
+    { 
+      title: 'Extended Tasks', 
+      value: d.extendedTask, 
+      color: c('warning'), 
+      icon: 'bi-arrow-repeat', 
+      route: '/view-tasks', 
+      queryParams: { status: 'EXTENDED' },
+      delta: d.extendedTask ?? 0
+    },
+
+
+    /* =======================
+       REQUESTS
+    ======================= */
+    { 
+      title: 'Extension Requests', 
+      value: d.requestForExtension, 
+      color: c('secondary'), 
+      icon: 'bi-clock-history', 
+      route: '/view-tasks', 
+      queryParams: { status: 'REQUEST_FOR_EXTENSION' },
+      delta: d.requestForExtension ?? 0
+    },
+
+    { 
+      title: 'Closure Requests', 
+      value: d.requestForClosure, 
+      color: c('secondary'), 
+      icon: 'bi-lock-fill', 
+      route: '/view-tasks', 
+      queryParams: { status: 'REQUEST_FOR_CLOSURE' },
+      delta: d.requestForClosure ?? 0
+    },
+
+
+    /* =======================
+       RECURRING TASKS
+    ======================= */
+    { 
+      title: 'Recurring Parent Tasks', 
+      value: d.recurringParentTask, 
+      color: c('info'), 
+      icon: 'bi-arrow-clockwise', 
+      route: '/view-tasks', 
+      queryParams: { status: 'PARENT_RECURRING' },
+      delta: d.recurringParentTask ?? 0
+    },
+
+    { 
+      title: 'Recurred Instance Tasks', 
+      value: d.recurredInstanceTask, 
+      color: c('info'), 
+      icon: 'bi-arrow-repeat', 
+      route: '/view-tasks', 
+      queryParams: { status: 'RECURRED_INSTANCE' },
+      delta: d.recurredInstanceTask ?? 0
+    },
+
+
+    /* =======================
+       DEPARTMENTAL INSIGHTS
+    ======================= */
+    { 
+      title: 'Departments with Zero Due Tasks', 
+      value: d.zeroDueDepartments, 
+      color: c('success'), 
+      icon: 'bi-shield-check', 
+      route: '/departments', 
+      queryParams: { filter: 'ZERO_DUE' },
+      delta: d.zeroDueDepartments ?? 0
+    },
+
+    { 
+      title: 'My Department Tasks', 
+      value: d.myDepartmentTasks, 
+      color: c('primary'), 
+      icon: 'bi-diagram-3-fill', 
+      route: '/view-tasks', 
+      queryParams: { status : 'MY_DEPARTMENT' },
+      delta: d.myDepartmentTasks ?? 0
+    }
+
+  ];
+}
+
 
   goToTaskPage(card: any): void {
     this.router.navigate([card.route], { queryParams: card.queryParams || {} });

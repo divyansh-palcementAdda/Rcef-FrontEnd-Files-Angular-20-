@@ -1,4 +1,8 @@
 export interface DashboardDto {
+  recurringParentTask: any;
+  recurredInstanceTask: any;
+  zeroDueDepartments: any;
+  myDepartmentTasks: any;
   totalTask: number;
   pendingTask: number;
   delayedTask: number;

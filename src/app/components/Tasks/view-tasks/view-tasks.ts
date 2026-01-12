@@ -70,14 +70,14 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     private router: Router,
     private jwtService: JwtService,
     private authApiService: AuthApiService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadCurrentUserAndTasks();
   }
 
   /** Load current user → then decide which tasks to load */
-   loadCurrentUserAndTasks(): void {
+  loadCurrentUserAndTasks(): void {
     const token = this.jwtService.getAccessToken();
     if (!token) {
       this.router.navigate(['/login']);
@@ -112,7 +112,19 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
                 this.loadTasksForSelf();
               } else if (status?.toLowerCase() === 'approval') {
                 this.loadTasksForApproval();
-              } else if (status) {
+              } else if (status?.toLowerCase() === 'parent_recurring') {
+                console.log('PARENT_RECURRING filter selected');
+                this.loadReccuringParentTasks();
+              }
+              else if (status?.toLowerCase() === 'recurred_instance') {
+                console.log('RECURRED_INSTANCE filter selected');
+                this.loadRecurredInstanceTasks();
+              }
+              else if (status?.toLowerCase() === 'my_department') {
+                console.log('MY_DEPARTMENT filter selected');
+                this.loadTasksByDepartment();
+              }
+              else if (status) {
                 this.loadTasksByStatus(this.statusFilter);
               } else {
                 this.loadTasksByRole();
@@ -127,6 +139,37 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         }
       })
     );
+  }
+  loadTasksByDepartment(): void {
+    if (this.currentUserDeptIds.length === 0) {
+      this.tasks = [];
+      this.applyFilters();
+      this.loading = false;
+      this.isEmpty = true;
+      return;
+    }
+    this.loading = true;
+    this.loadingMessage = 'Loading department tasks...';
+    console.log('Loading tasks for departments:', this.currentUserDeptIds);
+    this.subscriptions.add(
+      this.apiService.getTasksByDepartment(this.currentUserDeptIds[0])
+        .pipe(
+          finalize(() => this.loading = false),
+          catchError(err => {
+            this.handleError(err, 'Failed to load department tasks.');
+            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
+          })
+        )
+        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
+    );
+  }
+  loadReccuringParentTasks(): void {
+    this.loading = true;
+    this.loadingMessage = 'Loading recurring parent tasks...';
+  }
+  loadRecurredInstanceTasks(): void {
+    this.loading = true;
+    this.loadingMessage = 'Loading recurred instance tasks...';
   }
 
   /** Calculate task statistics */
@@ -227,6 +270,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     this.loadingMessage = 'Loading department tasks...';
+    console.log('Loading tasks for departments:', this.currentUserDeptIds);
     this.subscriptions.add(
       this.apiService.getTasksByDepartment(this.currentUserDeptIds[0])
         .pipe(
@@ -303,6 +347,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       this.handleError(res, res.message || 'Error fetching tasks');
       return [];
     }
+    // console.log('API response for tasks:', res);
     if (Array.isArray(res)) return res;
     if (Array.isArray(res.data)) return res.data;
     if (Array.isArray(res.tasks)) return res.tasks;
@@ -313,8 +358,10 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   private handleTaskResponse(tasks: TaskDto[]): void {
     this.errorMessage = null;
     this.isForbidden = false;
+    console.log('Loaded tasks:', tasks);
     this.isEmpty = tasks.length === 0;
     this.tasks = tasks || [];
+    console.log('Total tasks loaded:', this.tasks.length);
     this.totalTasks = tasks.length;
     this.calculateStats(tasks);
     this.applyFilters();
@@ -352,7 +399,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     const createdByMe = task.createdById === this.currentUserId;
     // const assigneeCountIsOne = assigned.length === 1;
 
-    return createdByMe && isAssignedToMe ;
+    return createdByMe && isAssignedToMe;
   }
 
   applyFilters(): void {
@@ -375,6 +422,10 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         matchesStatus = this.isSelfAssignedTask(task);
       } else if (this.statusFilter === 'APPROVAL') {
         matchesStatus = task.requiresApproval === true && task.approved === false;
+      } else if (this.statusFilter === 'MY_DEPARTMENT') {
+        matchesStatus = task.departmentIds?.some(id =>
+          this.currentUserDeptIds.includes(id)
+        ) ?? false;
       } else if (this.statusFilter) {
         matchesStatus = task.status?.toUpperCase() === this.statusFilter;
       }
@@ -474,85 +525,81 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       default: return 'status-default';
     }
   }
+  /** TrackBy function for better Angular performance */
+  trackByTaskId(index: number, task: TaskDto): number {
+    return task.taskId || index;
+  }
 
-
-// Add these methods to your component class
-
-/** TrackBy function for better Angular performance */
-trackByTaskId(index: number, task: TaskDto): number {
-  return task.taskId || index;
-}
-
-/** Get display name for filter */
-getFilterDisplayName(filter: string): string {
-  const filterMap: { [key: string]: string } = {
-    'SELF': 'My Tasks',
-    'SELFASSIGNED': 'Self Assigned',
-    'APPROVAL': 'Awaiting Approval',
-    'REQUEST_FOR_CLOSURE': 'Request Closure',
-    'REQUEST_FOR_EXTENSION': 'Request Extension'
-  };
-  return filterMap[filter] || filter.split('_').map(word => 
-    word.charAt(0) + word.slice(1).toLowerCase()
-  ).join(' ');
-}
-
-/** Get display name for status */
-getStatusDisplayName(status?: string): string {
-  if (!status) return 'Unknown';
-  
-  const statusMap: { [key: string]: string } = {
-    'PENDING': 'Pending',
-    'UPCOMING': 'Upcoming',
-    'DELAYED': 'Delayed',
-    'REQUEST_FOR_CLOSURE': 'Closure Req',
-    'REQUEST_FOR_EXTENSION': 'Extension Req',
-    'CLOSED': 'Completed',
-    'EXTENDED': 'Extended'
-  };
-  
-  return statusMap[status.toUpperCase()] || 
-    status.split('_').map(word => 
+  /** Get display name for filter */
+  getFilterDisplayName(filter: string): string {
+    const filterMap: { [key: string]: string } = {
+      'SELF': 'My Tasks',
+      'SELFASSIGNED': 'Self Assigned',
+      'APPROVAL': 'Awaiting Approval',
+      'REQUEST_FOR_CLOSURE': 'Request Closure',
+      'REQUEST_FOR_EXTENSION': 'Request Extension'
+    };
+    return filterMap[filter] || filter.split('_').map(word =>
       word.charAt(0) + word.slice(1).toLowerCase()
     ).join(' ');
-}
-
-/** Enhanced date formatting with relative time */
-formatDate(date: any): string {
-  if (!date) return 'N/A';
-  
-  const d = new Date(date);
-  const now = new Date();
-  const diffMs = d.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  
-  const formatted = d.toLocaleDateString('en-US', { 
-    day: '2-digit', 
-    month: 'short', 
-    year: 'numeric' 
-  });
-  
-  // Add relative time indicator for due dates
-  if (diffDays >= -1 && diffDays <= 7) {
-    if (diffDays === 0) return `${formatted} (Today)`;
-    if (diffDays === 1) return `${formatted} (Tomorrow)`;
-    if (diffDays === -1) return `${formatted} (Yesterday)`;
-    if (diffDays > 0) return `${formatted} (in ${diffDays} days)`;
-    if (diffDays < 0) return `${formatted} (${Math.abs(diffDays)} days ago)`;
   }
-  
-  return formatted;
-}
 
-/** Add a method to show task importance visually */
-getPriorityClass(priority?: string): string {
-  switch (priority?.toUpperCase()) {
-    case 'HIGH': return 'priority-high';
-    case 'MEDIUM': return 'priority-medium';
-    case 'LOW': return 'priority-low';
-    default: return 'priority-default';
+  /** Get display name for status */
+  getStatusDisplayName(status?: string): string {
+    if (!status) return 'Unknown';
+
+    const statusMap: { [key: string]: string } = {
+      'PENDING': 'Pending',
+      'UPCOMING': 'Upcoming',
+      'DELAYED': 'Delayed',
+      'REQUEST_FOR_CLOSURE': 'Closure Req',
+      'REQUEST_FOR_EXTENSION': 'Extension Req',
+      'CLOSED': 'Completed',
+      'EXTENDED': 'Extended'
+    };
+
+    return statusMap[status.toUpperCase()] ||
+      status.split('_').map(word =>
+        word.charAt(0) + word.slice(1).toLowerCase()
+      ).join(' ');
   }
-}
+
+  /** Enhanced date formatting with relative time */
+  formatDate(date: any): string {
+    if (!date) return 'N/A';
+
+    const d = new Date(date);
+    const now = new Date();
+    const diffMs = d.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    const formatted = d.toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+
+    // Add relative time indicator for due dates
+    if (diffDays >= -1 && diffDays <= 7) {
+      if (diffDays === 0) return `${formatted} (Today)`;
+      if (diffDays === 1) return `${formatted} (Tomorrow)`;
+      if (diffDays === -1) return `${formatted} (Yesterday)`;
+      if (diffDays > 0) return `${formatted} (in ${diffDays} days)`;
+      if (diffDays < 0) return `${formatted} (${Math.abs(diffDays)} days ago)`;
+    }
+
+    return formatted;
+  }
+
+  /** Add a method to show task importance visually */
+  getPriorityClass(priority?: string): string {
+    switch (priority?.toUpperCase()) {
+      case 'HIGH': return 'priority-high';
+      case 'MEDIUM': return 'priority-medium';
+      case 'LOW': return 'priority-low';
+      default: return 'priority-default';
+    }
+  }
 
 
   getStatusIcon(status?: string): string {
