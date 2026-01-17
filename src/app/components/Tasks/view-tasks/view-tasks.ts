@@ -163,14 +163,52 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
     );
   }
-  loadReccuringParentTasks(): void {
-    this.loading = true;
-    this.loadingMessage = 'Loading recurring parent tasks...';
-  }
-  loadRecurredInstanceTasks(): void {
-    this.loading = true;
-    this.loadingMessage = 'Loading recurred instance tasks...';
-  }
+// Add these methods to your ViewTasksComponent class
+
+loadReccuringParentTasks(): void {
+  this.loading = true;
+  this.loadingMessage = 'Loading recurring parent tasks...';
+  this.errorMessage = null;
+  this.isEmpty = false;
+console.log('Loading recurring parent tasks...');
+  this.subscriptions.add(
+    this.apiService.getAllRecurringParentTasks()  // ← adjust method name to match your TaskApiService
+      .pipe(
+        finalize(() => this.loading = false),
+        catchError(err => {
+          this.handleError(err, 'Failed to load recurring parent tasks.');
+          return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
+        })
+      )
+      .subscribe(res => {
+        const tasks = this.extractTasks(res);
+        // Optional: extra client-side filtering if needed (rarely necessary here)
+        this.handleTaskResponse(tasks);
+      })
+  );
+}
+
+loadRecurredInstanceTasks(): void {
+  this.loading = true;
+  this.loadingMessage = 'Loading all recurring instance tasks...';
+  this.errorMessage = null;
+  this.isEmpty = false;
+
+  this.subscriptions.add(
+    this.apiService.getAllRecurredInstanceTasks()  // ← adjust method name to match your service
+      .pipe(
+        finalize(() => this.loading = false),
+        catchError(err => {
+          this.handleError(err, 'Failed to load recurring instance tasks.');
+          return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
+        })
+      )
+      .subscribe(res => {
+        const tasks = this.extractTasks(res);
+        this.handleTaskResponse(tasks);
+      })
+  );
+}
 
   /** Calculate task statistics */
   private calculateStats(tasks: TaskDto[]): void {
@@ -402,40 +440,66 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     return createdByMe && isAssignedToMe;
   }
 
-  applyFilters(): void {
-    const term = this.searchTerm.toLowerCase();
+applyFilters(): void {
+  const term = this.searchTerm.trim().toLowerCase();
 
-    this.filteredTasks = this.tasks.filter(task => {
-      // ── Search Term ──
-      const matchesSearch =
-        !term ||
-        task.title?.toLowerCase().includes(term) ||
-        task.assignedToNames?.some(n => n?.toLowerCase().includes(term)) ||
-        task.departmentNames?.some(n => n?.toLowerCase().includes(term));
+  this.filteredTasks = this.tasks.filter(task => {
+    // 1. Search term matching
+    const matchesSearch = !term || 
+      task.title?.toLowerCase().includes(term) ||
+      task.assignedToNames?.some(name => name?.toLowerCase().includes(term)) ||
+      task.departmentNames?.some(name => name?.toLowerCase().includes(term)) ||
+      // Optional: also search in description if you want broader search
+      task.description?.toLowerCase().includes(term) ||
+      false;
 
-      // ── Status Filter Logic ──
-      let matchesStatus = true;
+    // 2. Status / View Type filter
+    let matchesFilter = true;
 
-      if (this.statusFilter === 'SELF') {
-        matchesStatus = this.isSelfTask(task);
-      } else if (this.statusFilter === 'SELFASSIGNED') {
-        matchesStatus = this.isSelfAssignedTask(task);
-      } else if (this.statusFilter === 'APPROVAL') {
-        matchesStatus = task.requiresApproval === true && task.approved === false;
-      } else if (this.statusFilter === 'MY_DEPARTMENT') {
-        matchesStatus = task.departmentIds?.some(id =>
+    switch (this.statusFilter?.toUpperCase()) {
+      case 'SELF':
+        matchesFilter = this.isSelfTask(task);
+        break;
+
+      case 'SELFASSIGNED':
+        matchesFilter = this.isSelfAssignedTask(task);
+        break;
+
+      case 'APPROVAL':
+        matchesFilter = !!task.requiresApproval && !task.approved;
+        break;
+
+      case 'MY_DEPARTMENT':
+        matchesFilter = task.departmentIds?.some(id => 
           this.currentUserDeptIds.includes(id)
         ) ?? false;
-      } else if (this.statusFilter) {
-        matchesStatus = task.status?.toUpperCase() === this.statusFilter;
-      }
+        break;
 
-      return matchesSearch && matchesStatus;
-    });
+      // ── New recurring filters ──
+      case 'PARENT_RECURRING':
+        matchesFilter = !!task.isRecurring && task.parentTaskId == null;
+        break;
 
-    this.totalPages = Math.max(Math.ceil(this.filteredTasks.length / this.pageSize), 1);
-    this.currentPage = 1;
-  }
+      case 'RECURRED_INSTANCE':
+        matchesFilter = !task.isRecurring && task.parentTaskId != null;
+        break;
+
+      // Regular status filter (PENDING, IN_PROGRESS, CLOSED, etc.)
+      default:
+        if (this.statusFilter) {
+          matchesFilter = task.status?.toUpperCase() === this.statusFilter;
+        }
+        // If no statusFilter → show all (matchesFilter remains true)
+        break;
+    }
+
+    return matchesSearch && matchesFilter;
+  });
+
+  // Update pagination
+  this.totalPages = Math.max(1, Math.ceil(this.filteredTasks.length / this.pageSize));
+  this.currentPage = Math.min(this.currentPage, this.totalPages || 1); // prevent invalid page
+}
 
   // ──────────────────────────────────────────────────────────────
 

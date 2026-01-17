@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Department } from '../../../Model/department';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -22,42 +23,87 @@ export class ViewDepartmentsComponent implements OnInit {
 
   loading = false;
   errorMessage: string | null = null;
-
+  isZeroDueView = false;
   searchTerm = '';
   currentPage = 1;
   pageSize = 8;
   totalPages = 1;
+  private subscriptions = new Subscription();
 
   constructor(
     private apiService: DepartmentApiService,
     private router: Router,
     private jwtService: JwtService,
-    private authApiService: AuthApiService
+    private authApiService: AuthApiService,
+    private route: ActivatedRoute
   ) { }
 
-  ngOnInit(): void {
-    this.loadAllDepartments();
-  }
-  
-  goBackToDashboard() {
-  const token = this.jwtService.getAccessToken();
-  // console.log('User Token:', token);
+ ngOnInit(): void {
+    this.subscriptions.add(
+      this.route.queryParams.subscribe(params => {
+        const filter = params['filter'];
+        this.isZeroDueView = filter === 'ZERO_DUE';
 
-  if (token) {
-    const payload =this.jwtService.decodeToken(token)
-    this.authApiService.goToDashboard();
-  } else {
-    this.router.navigate(['/login']);
+        if (this.isZeroDueView) {
+          this.loadZeroDueDepartments();
+        } else {
+          this.loadAllDepartments();
+        }
+      })
+    );
   }
-}
+  private loadZeroDueDepartments(): void {
+    this.loading = true;
+    this.errorMessage = null;
+
+    this.subscriptions.add(
+      this.apiService.getZeroDueDepartmentsAsObjects().subscribe({
+        next: (response: any) => {   // ← use any temporarily
+          // Extract the real array
+          const departmentsArray = Array.isArray(response)
+            ? response
+            : Array.isArray(response?.data)
+              ? response.data
+              : [];
+
+          this.handleDepartmentResponseforZero(departmentsArray);
+          this.isZeroDueView = true;
+        },
+        error: err => {
+          this.handleError(err, 'Failed to load departments with zero due tasks.');
+        }
+      })
+    );
+  }
+  private handleDepartmentResponseforZero(depts: any): void {
+    let safeList: Department[] = [];
+    if (Array.isArray(depts)) {
+      safeList = depts;
+    } else if (depts && Array.isArray(depts.data)) {
+      safeList = depts.data;
+    }
+    this.departments = safeList;
+    this.applyFilters();
+    this.loading = false;
+  }
+
+  goBackToDashboard() {
+    const token = this.jwtService.getAccessToken();
+    if (token) {
+      const payload = this.jwtService.decodeToken(token)
+      this.authApiService.goToDashboard();
+    } else {
+      this.router.navigate(['/login']);
+    }
+  }
 
   private loadAllDepartments(): void {
-  this.loading = true;
-  this.apiService.getAllDepartments().subscribe({
-    next: (res: Department[]) => this.handleDepartmentResponse(res || []),
-    error: err => this.handleError(err, 'Failed to load departments.')
-  });
-}
+    this.loading = true;
+    this.apiService.getAllDepartments().subscribe({
+      next: (res: Department[]) => this.handleDepartmentResponse(res || []),
+      error: err => this.handleError(err, 'Failed to load departments.')
+    });
+  }
 
 
   private handleDepartmentResponse(depts: Department[]): void {

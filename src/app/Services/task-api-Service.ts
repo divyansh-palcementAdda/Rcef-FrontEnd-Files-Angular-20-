@@ -32,7 +32,23 @@ export class TaskApiService {
   startTask(taskId: number): Observable<ApiResponse<TaskDto>> {
     return this.http.patch<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}/start`, {});
   }
-  
+  // In TaskApiService.ts
+
+getAllRecurringParentTasks(): Observable<ApiResponse<TaskDto[]>> {
+  console.log('Fetching all recurring parent tasks from API...');
+  return this.http.get<ApiResponse<TaskDto[]>>(`${this.baseUrl}/parents`);
+}
+
+getAllRecurredInstanceTasks(): Observable<ApiResponse<TaskDto[]>> {
+  return this.http.get<ApiResponse<TaskDto[]>>(`${this.baseUrl}/instances/all`);
+}
+
+// Optional - for future parent → instances view
+getRecurredInstancesByParent(parentTaskId: number): Observable<ApiResponse<TaskDto[]>> {
+  return this.http.get<ApiResponse<TaskDto[]>>(
+    `${this.baseUrl}/instances/parent/${parentTaskId}`
+  );
+}
 
   // 3. Get Tasks by Department
   getTasksByDepartment(deptId: number): Observable<ApiResponse<TaskDto[]>> {

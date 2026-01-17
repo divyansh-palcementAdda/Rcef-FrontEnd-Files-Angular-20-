@@ -6,12 +6,12 @@ import { environment } from '../environment/environment';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
-  providedIn :'root'
+  providedIn: 'root'
 })
 export class DepartmentApiService {
   private apiUrl = `${environment.apiUrl}/departments`; // <-- fixed base path
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ---------------- Department APIs ----------------
   getAllDepartments(): Observable<Department[]> {
@@ -20,7 +20,10 @@ export class DepartmentApiService {
       catchError(err => this.handleError(err, 'fetch all departments'))
     );
   }
-
+ getZeroDueDepartmentsAsObjects(): Observable<Department[]> {
+  return this.http.get<Department[]>(`${this.apiUrl}/zero-due`)
+    .pipe(catchError(err => this.handleError(err, 'fetch zero due departments')));
+}
   createDepartment(payload: Department): Observable<any> {
     console.log('Creating department with payload:', payload);
     return this.http.post(this.apiUrl, payload).pipe(
@@ -44,7 +47,7 @@ export class DepartmentApiService {
       catchError(err => this.handleError(err, 'fetch departments by IDs'))
     );
   }
-getDepartmentById(id: number): Observable<Department> {
+  getDepartmentById(id: number): Observable<Department> {
     return this.http.get<Department>(`${this.apiUrl}/${id}`);
   }
   // -------------------------------------------------
