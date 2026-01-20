@@ -1,658 +1,402 @@
-<br><br><br>
-<div class="create-task-container">
-  <!-- Compact Header -->
-  <header class="page-header">
-    <div class="header-content">
-      <div class="d-flex align-items-center gap-3">
-        <button class="back-button" (click)="cancel()">
-          <i class="bi bi-arrow-left"></i>
-        </button>
-        <div class="header-title">
-          <h1 class="display-6 fw-semibold mb-1">Create New Task</h1>
-          <p class="text-muted mb-0">Define objectives, assign teams, and set deadlines</p>
-        </div>
-      </div>
-      
-      <div class="header-actions">
-        <div class="form-progress">
-          <div class="progress">
-            <div class="progress-bar" role="progressbar" [style.width.%]="getFormProgress()"></div>
-          </div>
-          <small class="text-muted">{{ getFormProgress() }}% Complete</small>
-        </div>
-        
-        <!-- <button class="btn btn-outline-primary btn-sm" (click)="toggleHelpText()">
-          <i class="bi bi-lightbulb"></i> {{ showHelpText ? 'Hide Tips' : 'Tips' }}
-        </button> -->
-      </div>
-    </div>
-  </header>
-
-  <!-- Floating Progress Steps -->
-  <!-- <div class="floating-progress">
-    <div class="steps-indicator">
-      <div class="step" [class.active]="activeStep >= 1" (click)="scrollToSection('basic-info')">
-        <span class="step-number">1</span>
-        <span class="step-label">Basic Info</span>
-      </div>
-      <div class="step" [class.active]="activeStep >= 2" (click)="scrollToSection('departments')">
-        <span class="step-number">2</span>
-        <span class="step-label">Departments</span>
-      </div>
-      <div class="step" [class.active]="activeStep >= 3" (click)="scrollToSection('assignment')">
-        <span class="step-number">3</span>
-        <span class="step-label">Assignment</span>
-      </div>
-      <div class="step" [class.active]="activeStep >= 4" (click)="scrollToSection('schedule')">
-        <span class="step-number">4</span>
-        <span class="step-label">Schedule</span>
-      </div>
-    </div>
-  </div> -->
-
-  <main class="main-content">
-    <!-- Success Animation -->
-    <div class="success-animation">
-      <div class="checkmark">✓</div>
-      <div class="success-text">Task Created Successfully!</div>
+<div class="container my-4 my-md-5">
+  <div class="card shadow-lg border-0 rounded-4 overflow-hidden animate_animated animate_fadeIn">
+    <!-- Sticky Gradient Header -->
+    <div class="card-header text-white text-center py-5 table_head sticky-top">
+      <h3 class="mb-1 fw-bold animate_animated animate_bounceInDown">
+        Create New Task
+      </h3>
+      <p class="mb-0 opacity-90">
+        Define task details, assign responsible teams and users, and set clear timelines.
+      </p>
     </div>
 
-    <!-- Help Panel -->
-    <!-- <div class="help-panel" *ngIf="showHelpText">
-      <div class="help-header">
-        <i class="bi bi-lightbulb"></i>
-        <span>Quick Tips</span>
-        <button class="btn-close" (click)="showHelpText = false"></button>
-      </div>
-      <div class="help-body">
-        <div class="tip-item">
-          <i class="bi bi-check-circle"></i>
-          <span>Use clear, action-oriented titles for better tracking</span>
-        </div>
-        <div class="tip-item">
-          <i class="bi bi-check-circle"></i>
-          <span>Assign relevant departments to ensure proper visibility</span>
-        </div>
-        <div class="tip-item">
-          <i class="bi bi-check-circle"></i>
-          <span>Set realistic deadlines to maintain workflow efficiency</span>
-        </div>
-      </div>
-    </div> -->
-
-    <!-- Success/Error Messages -->
-    <div *ngIf="successMessage" class="alert alert-success">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-check-circle-fill"></i>
-        <div class="ms-3">
-          <h6>Success!</h6>
-          <p class="mb-0">{{ successMessage }}</p>
-        </div>
+    <div class="card-body p-4 p-md-5">
+      <!-- Success/Error -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show shadow-sm">
+        {{ successMessage }}
         <button type="button" class="btn-close" (click)="successMessage = null"></button>
       </div>
-    </div>
-
-    <div *ngIf="errorMessage" class="alert alert-danger">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <div class="ms-3">
-          <h6>Attention Required</h6>
-          <p class="mb-0">{{ errorMessage }}</p>
-        </div>
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show shadow-sm">
+        {{ errorMessage }}
         <button type="button" class="btn-close" (click)="errorMessage = null"></button>
       </div>
-    </div>
 
-    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-form">
-      <div class="row g-4">
-        <!-- Left Column -->
-        <div class="col-lg-8">
-          <!-- Basic Information -->
-          <section class="form-section" id="basic-info">
-            <div class="section-header">
-              <div class="section-icon">
-                <i class="bi bi-card-text"></i>
-              </div>
-              <div>
-                <h3>Task Information</h3>
-                <p>Define the core details of your task</p>
-              </div>
+      <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="row g-3 g-md-4">
+          <!-- TITLE -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-dark">
+              Task Title <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-emerald-50 text-emerald-700">
+                <i class="bi bi-pencil"></i>
+              </span>
+              <input type="text" class="form-control" formControlName="title"
+                placeholder="e.g., Prepare Monthly Attendance Report"
+                [ngClass]="{ 'is-invalid': f['title'].touched && f['title'].errors }" />
             </div>
-
-            <div class="section-body">
-              <!-- Title -->
-              <div class="form-group">
-                <label for="taskTitle" class="form-label">
-                  <i class="bi bi-tag"></i>
-                  Task Title <span class="text-danger">*</span>
-                </label>
-                <div class="input-group">
-                  <span class="input-group-text">
-                    <i class="bi bi-pencil"></i>
-                  </span>
-                  <input type="text" class="form-control" id="taskTitle" formControlName="title"
-                    placeholder="Enter task title" [class.is-invalid]="f.title.touched && f.title.errors">
-                </div>
-                <div class="form-hint">
-                  <span>Keep it short and descriptive</span>
-                  <span class="char-count">{{ f.title.value?.length || 0 }}/255</span>
-                </div>
-                <div *ngIf="f.title.touched && f.title.errors" class="invalid-feedback">
-                  <i class="bi bi-exclamation-circle"></i>
-                  <span *ngIf="f.title.errors?.required">Title is required</span>
-                  <span *ngIf="f.title.errors?.maxlength">Maximum 255 characters</span>
-                </div>
-              </div>
-
-              <!-- Description -->
-              <div class="form-group">
-                <label for="taskDescription" class="form-label">
-                  <i class="bi bi-chat-left-text"></i>
-                  Description
-                </label>
-                <textarea class="form-control" id="taskDescription" rows="4" formControlName="description"
-                  placeholder="Provide detailed instructions, context, and expected outcomes..."></textarea>
-                <div class="form-hint">
-                  <span>Add clear instructions for better understanding</span>
-                  <span class="char-count" [class.text-danger]="characterCount > 1900">
-                    {{ characterCount }}/2000
-                  </span>
-                </div>
-              </div>
-
-              <!-- Status -->
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="bi bi-flag"></i>
-                  Task Status <span class="text-danger">*</span>
-                </label>
-                <div class="status-grid">
-                  <div class="status-card" [class.active]="f.status.value === 'UPCOMING'"
-                    (click)="taskForm.patchValue({ status: 'UPCOMING' })">
-                    <div class="status-icon">
-                      <i class="bi bi-calendar-plus"></i>
-                    </div>
-                    <div class="status-content">
-                      <h6>Upcoming</h6>
-                      <p>Planned for future execution</p>
-                    </div>
-                    <div class="status-check">
-                      <i class="bi bi-check"></i>
-                    </div>
-                  </div>
-                  <div class="status-card" [class.active]="f.status.value === 'PENDING'"
-                    (click)="taskForm.patchValue({ status: 'PENDING' })">
-                    <div class="status-icon">
-                      <i class="bi bi-clock-history"></i>
-                    </div>
-                    <div class="status-content">
-                      <h6>Pending</h6>
-                      <p>Active and ready for work</p>
-                    </div>
-                    <div class="status-check">
-                      <i class="bi bi-check"></i>
-                    </div>
-                  </div>
-                </div>
-                <div *ngIf="f.status.touched && f.status.errors" class="invalid-feedback">
-                  <i class="bi bi-exclamation-circle"></i>
-                  <span>Please select a task status</span>
-                </div>
-              </div>
+            <div class="field-hint">
+              Use a short, action-oriented title that clearly summarizes the task outcome.
             </div>
-          </section>
-
-          <!-- Departments -->
-          <section class="form-section" id="departments">
-            <div class="section-header">
-              <div class="d-flex align-items-center justify-content-between w-100">
-                <div class="d-flex align-items-center">
-                  <div class="section-icon">
-                    <i class="bi bi-building"></i>
-                  </div>
-                  <div>
-                    <h3>Departments</h3>
-                    <p>Select departments responsible for this task</p>
-                  </div>
-                </div>
-                <span class="badge">{{ taskForm.value.departmentIds?.length || 0 }}</span>
-              </div>
+            <div *ngIf="f['title'].touched && f['title'].errors" class="text-danger small mt-1">
+              <small *ngIf="f['title'].errors['required']">Title is required.</small>
+              <small *ngIf="f['title'].errors['maxlength']">Max 255 characters allowed.</small>
             </div>
+          </div>
 
-            <div class="section-body">
-              <!-- Quick Assign -->
-              <div class="quick-assign mb-4">
-                <label class="form-label mb-3">
-                  <i class="bi bi-lightning"></i>
-                  Quick Assign
+          <!-- DESCRIPTION -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-dark">
+              Description <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-emerald-50 text-emerald-700">
+                <i class="bi bi-chat-dots"></i>
+              </span>
+              <textarea class="form-control" rows="3" formControlName="description"
+                placeholder="Provide clear instructions, context, dependencies and expected outcomes..."
+                [ngClass]="{ 'is-invalid': f['description'].touched && f['description'].errors }"></textarea>
+            </div>
+            <div class="field-hint">
+              Add a concise but complete description so assignees understand scope and expectations.
+            </div>
+            <div *ngIf="f['description'].touched && f['description'].errors" class="text-danger small mt-1">
+              <small *ngIf="f['description'].errors['maxlength']">Max 2000 characters allowed.</small>
+            </div>
+          </div>
+
+          <!-- STATUS -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-dark">
+              Status <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-emerald-50 text-emerald-700">
+                <i class="bi bi-tag"></i>
+              </span>
+              <select class="form-select" formControlName="status"
+                [ngClass]="{ 'is-invalid': f['status'].touched && f['status'].errors }">
+                <option [ngValue]="null" disabled>Select status</option>
+                <option *ngFor="let s of statuses" [ngValue]="s">
+                  {{ s | titlecase }}
+                </option>
+              </select>
+            </div>
+            <div class="field-hint mt-1">
+              <strong>UPCOMING</strong> → planned future task (needs future start date)<br>
+              <strong>PENDING</strong> → active / start now (due date cannot be past)
+            </div>
+            <div *ngIf="f['status'].touched && f['status'].errors" class="text-danger small mt-1">
+              <small>Status is required.</small>
+            </div>
+          </div>
+
+          <!-- START DATE (only for UPCOMING) -->
+          <div class="col-md-6" *ngIf="f['status'].value === 'UPCOMING'">
+            <label class="form-label fw-semibold text-dark">Start Date</label>
+            <div class="input-group clickable" (click)="focusInput($event, startDateInput)">
+              <span class="input-group-text bg-emerald-50 text-emerald-700">
+                <i class="bi bi-calendar-plus"></i>
+              </span>
+              <input #startDateInput type="date" class="form-control" formControlName="startDate" [min]="minDate"
+                (change)="onStartDateChange()"
+                [ngClass]="{ 'is-invalid': startDateCtrl.touched && (startDateCtrl.errors || startDateErrorMessage) }" />
+            </div>
+            <div class="field-hint">
+              Must be a future working day (Monday–Saturday, no Sundays).
+            </div>
+            <div *ngIf="startDateErrorMessage" class="text-danger small mt-1">
+              {{ startDateErrorMessage }}
+            </div>
+          </div>
+
+          <!-- DUE DATE -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-dark">
+              Due Date <span class="text-danger">*</span>
+            </label>
+            <div class="input-group clickable" (click)="focusInput($event, dueDateInput)">
+              <span class="input-group-text bg-emerald-50 text-emerald-700">
+                <i class="bi bi-calendar-check"></i>
+              </span>
+              <input #dueDateInput type="date" class="form-control" formControlName="dueDate" [min]="minDate"
+                (change)="onDueDateChange()"
+                [ngClass]="{ 'is-invalid': dueDateCtrl.touched && (dueDateCtrl.errors || dueDateErrorMessage) }" />
+            </div>
+            <div class="field-hint">
+              Final completion date. Cannot be Sunday, past, or before start date.
+            </div>
+            <div *ngIf="dueDateCtrl.touched && dueDateCtrl.errors?.['required']" class="text-danger small mt-1">
+              <small>Due date is required.</small>
+            </div>
+            <div *ngIf="dueDateErrorMessage" class="text-danger small mt-1">
+              {{ dueDateErrorMessage }}
+            </div>
+          </div>
+
+          <!-- DEPARTMENTS -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-dark">
+              Departments <span class="text-danger">*</span>
+            </label>
+            <div class="border rounded-3 p-3 bg-white shadow-sm department-wrapper">
+              <div class="input-group mb-2">
+                <span class="input-group-text bg-emerald-50 text-emerald-700">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input #deptSearchInput id="dept-search" type="text" class="form-control border-0"
+                  placeholder="Search departments..." [(ngModel)]="deptSearch" (ngModelChange)="onDeptSearch()"
+                  [ngModelOptions]="{standalone: true}" />
+                <button *ngIf="deptSearch" type="button" class="btn btn-outline-secondary border-0"
+                  (click)="clearDeptSearch()">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+              <!-- <div class="field-hint mb-2">
+                Filter the department list by name to quickly find the teams that should be responsible for this task.
+              </div> -->
+
+              <!-- Select All Depts -->
+              <div class="form-check mb-2">
+                <input type="checkbox" class="form-check-input custom-checkbox" id="selectAllDepts"
+                  [checked]="selectAllDepts" (change)="toggleSelectAllDepts()"
+                  [disabled]="taskForm.value.assignToSelf" />
+                <label class="form-check-label fw-bold text-emerald-700" for="selectAllDepts">
+                  Select All
                 </label>
-                <div class="quick-buttons">
-                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="quickAssign([1], [2])"
-                    *ngIf="hasDepartment(1)">
-                    <i class="bi bi-gear"></i> Administration
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-success" (click)="quickAssign([2], [3])"
-                    *ngIf="hasDepartment(2)">
-                    <i class="bi bi-cash-coin"></i> Finance
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-info" (click)="quickAssign([3], [4])"
-                    *ngIf="hasDepartment(3)">
-                    <i class="bi bi-megaphone"></i> Marketing
-                  </button>
-                </div>
               </div>
+              <!-- <div class="field-hint mb-2">
+                Use “Select All” to assign the task to every listed department, or choose only those that are directly involved.
+              </div> -->
 
-              <!-- Department Search -->
-              <div class="search-box mb-4">
-                <div class="input-group">
-                  <span class="input-group-text">
-                    <i class="bi bi-search"></i>
-                  </span>
-                  <input type="text" class="form-control" placeholder="Search departments..."
-                    [(ngModel)]="deptSearch" (ngModelChange)="onDeptSearch()" [ngModelOptions]="{standalone: true}">
-                  <button *ngIf="deptSearch" class="btn btn-outline-secondary" type="button"
-                    (click)="clearDeptSearch()">
-                    <i class="bi bi-x"></i>
-                  </button>
+              <div class="department-list">
+                <div *ngIf="isLoadingDepartments" class="p-3">
+                  <div class="skeleton-item mb-2" *ngFor="let _ of [1, 2, 3, 4]"></div>
                 </div>
-              </div>
-
-              <!-- Select All -->
-              <div class="select-all-toggle mb-4">
-                <div class="form-check form-switch">
-                  <input type="checkbox" class="form-check-input" id="selectAllDepts" [checked]="selectAllDepts"
-                    (change)="toggleSelectAllDepts()" [disabled]="taskForm.value.assignToSelf">
-                  <label class="form-check-label" for="selectAllDepts">
-                    <i class="bi bi-check2-all"></i>
-                    Select All Departments
+                <div *ngIf="!isLoadingDepartments && filteredDepartments.length === 0"
+                  class="text-muted small text-center py-3">
+                  No departments found
+                </div>
+                <div *ngFor="let dept of filteredDepartments" class="form-check mb-2">
+                  <input type="checkbox" class="form-check-input custom-checkbox" [id]="'dept-' + dept.departmentId"
+                    [checked]="taskForm.value.departmentIds.includes(dept.departmentId)"
+                    (change)="updateDepartmentSelection(dept.departmentId, $event.target.checked)" [disabled]="
+                      taskForm.value.assignToSelf &&
+                      !currentUser?.departmentIds?.includes(dept.departmentId)
+                    " />
+                  <label class="form-check-label" [for]="'dept-' + dept.departmentId">
+                    {{ dept.name }}
                   </label>
                 </div>
               </div>
 
-              <!-- Department List -->
-              <div class="department-list">
-                <div *ngIf="isLoadingDepartments" class="loading-skeleton">
-                  <div class="skeleton-item" *ngFor="let _ of [1, 2, 3, 4]"></div>
-                </div>
-
-                <div *ngIf="!isLoadingDepartments && filteredDepartments.length === 0" class="empty-state">
-                  <i class="bi bi-building-slash"></i>
-                  <h5>No departments found</h5>
-                  <p>Try adjusting your search criteria</p>
-                </div>
-
-                <div class="department-grid">
-                  <div class="department-card" *ngFor="let dept of filteredDepartments"
-                    [class.selected]="taskForm.value.departmentIds.includes(dept.departmentId)"
-                    [class.disabled]="taskForm.value.assignToSelf && !currentUser?.departmentIds?.includes(dept.departmentId)">
-                    <div class="department-card-body">
-                      <input type="checkbox" class="form-check-input" [id]="'dept-' + dept.departmentId"
-                        [checked]="taskForm.value.departmentIds.includes(dept.departmentId)"
-                        (change)="updateDepartmentSelection(dept.departmentId, $event.target.checked)"
-                        [disabled]="taskForm.value.assignToSelf && !currentUser?.departmentIds?.includes(dept.departmentId)">
-                      <label [for]="'dept-' + dept.departmentId" class="department-label">
-                        <div class="department-content">
-                          <div class="department-icon">
-                            <i class="bi bi-building"></i>
-                          </div>
-                          <div class="department-info">
-                            <h6>{{ dept.name }}</h6>
-                            <p>{{ (usersByDepartment.get(dept.departmentId) || []).length }} members</p>
-                          </div>
-                          <div class="department-badge">
-                            <span class="badge">{{ getHodCount(dept.departmentId) }} HOD</span>
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+              <div class="field-hint mt-2">
+                Select at least one department. Tasks will be visible to and assignable within the departments you
+                choose.
               </div>
-            </div>
-          </section>
-        </div>
-
-        <!-- Right Column -->
-        <div class="col-lg-4">
-          <!-- Assignment -->
-          <section class="form-section" id="assignment" *ngIf="taskForm.value.departmentIds?.length">
-            <div class="section-header">
-              <div class="d-flex align-items-center justify-content-between w-100">
-                <div class="d-flex align-items-center">
-                  <div class="section-icon">
-                    <i class="bi bi-people"></i>
-                  </div>
-                  <div>
-                    <h3>Assignment</h3>
-                    <p>Assign users to the task</p>
-                  </div>
-                </div>
-                <span class="badge">{{ taskForm.value.assignedToIds?.length || 0 }}</span>
-              </div>
-            </div>
-
-            <div class="section-body">
-              <!-- Self Assignment -->
-              <div *ngIf="taskForm.value.assignToSelf && currentUser" class="self-assign-card mb-4">
-                <div class="card">
-                  <div class="card-body">
-                    <div class="d-flex align-items-center">
-                      <div class="avatar me-3">
-                        <i class="bi bi-person"></i>
-                      </div>
-                      <div>
-                        <h6>Assigned to You</h6>
-                        <p class="mb-0">{{ currentUser.fullName }}</p>
-                        <small class="badge">{{ currentUser.role }}</small>
-                      </div>
-                      <i class="bi bi-check-circle-fill text-success ms-auto"></i>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- User Accordions -->
-              <div class="user-accordion">
-                <div class="accordion">
-                  <div *ngFor="let deptId of taskForm.value.departmentIds; let i = index" class="accordion-item">
-                    <h2 class="accordion-header">
-                      <button class="accordion-button" type="button" [class.collapsed]="i !== 0"
-                        data-bs-toggle="collapse" [attr.data-bs-target]="'#collapse-' + deptId">
-                        <div class="d-flex align-items-center w-100">
-                          <div class="avatar me-3">
-                            <i class="bi bi-building"></i>
-                          </div>
-                          <div>
-                            <h6 class="mb-0">{{ getDepartmentName(deptId) }}</h6>
-                            <small>{{ (filteredUsersByDept.get(deptId) || []).length }} users</small>
-                          </div>
-                          <span class="badge ms-auto">{{ selectedUsersByDeptObj[deptId]?.length || 0 }}</span>
-                        </div>
-                      </button>
-                    </h2>
-                    <div [id]="'collapse-' + deptId" class="accordion-collapse collapse" [class.show]="i === 0">
-                      <div class="accordion-body">
-                        <!-- User Search -->
-                        <div class="search-box mb-3">
-                          <div class="input-group input-group-sm">
-                            <span class="input-group-text">
-                              <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" class="form-control" placeholder="Search users..."
-                              [(ngModel)]="userSearchByDept[deptId]" (ngModelChange)="onUserSearch(deptId)"
-                              [ngModelOptions]="{standalone: true}">
-                          </div>
-                        </div>
-
-                        <!-- Select All Users -->
-                        <div class="form-check mb-3">
-                          <input type="checkbox" class="form-check-input" [id]="'selectAllUsers-' + deptId"
-                            [checked]="selectAllUsersByDept[deptId]" (change)="toggleSelectAllUsers(deptId)"
-                            [disabled]="taskForm.value.assignToSelf">
-                          <label class="form-check-label" [for]="'selectAllUsers-' + deptId">
-                            Select All Users
-                          </label>
-                        </div>
-
-                        <!-- Users List -->
-                        <div class="users-list">
-                          <div *ngFor="let user of filteredUsersByDept.get(deptId)" class="user-item">
-                            <input type="checkbox" class="form-check-input" [id]="'user-' + user.userId"
-                              [checked]="selectedUsersByDeptObj[deptId]?.includes(user.userId)"
-                              (change)="updateUserSelection(deptId, user.userId, $event.target.checked)"
-                              [disabled]="taskForm.value.assignToSelf ? (user.userId !== currentUser?.userId) : isUserSelectionDisabled(user)">
-                            <label [for]="'user-' + user.userId" class="user-label">
-                              <div class="user-info">
-                                <div class="avatar-sm me-2">
-                                  {{ user.fullName.charAt(0) }}
-                                </div>
-                                <div>
-                                  <span class="user-name">{{ user.fullName }}</span>
-                                  <small class="user-role">{{ user.role }}</small>
-                                </div>
-                              </div>
-                            </label>
-                          </div>
-
-                          <div *ngIf="!(filteredUsersByDept.get(deptId)?.length)" class="empty-state-sm">
-                            <i class="bi bi-person-x"></i>
-                            <p>No users found</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Quick Actions -->
-              <div class="quick-actions">
-                <div class="row g-2">
-                  <div class="col-6">
-                    <div class="form-check form-switch">
-                      <input type="checkbox" class="form-check-input" id="assignToSelf" formControlName="assignToSelf">
-                      <label class="form-check-label" for="assignToSelf">
-                        <i class="bi bi-person-check"></i>
-                        Assign to Myself
-                      </label>
-                    </div>
-                  </div>
-                  <div class="col-6">
-                    <div class="form-check form-switch">
-                      <input type="checkbox" class="form-check-input" id="isRecurring" formControlName="isRecurring"
-                        (change)="onRecurringToggle($event)">
-                      <label class="form-check-label" for="isRecurring">
-                        <i class="bi bi-arrow-repeat"></i>
-                        Recurring
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Schedule -->
-          <section class="form-section" id="schedule">
-            <div class="section-header">
-              <div class="d-flex align-items-center">
-                <div class="section-icon">
-                  <i class="bi bi-calendar-week"></i>
-                </div>
-                <div>
-                  <h3>Schedule</h3>
-                  <p>Set timelines for your task</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="section-body">
-              <!-- Start Date -->
-              <div class="form-group mb-4" *ngIf="f.status.value === 'UPCOMING'">
-                <label class="form-label">
-                  <i class="bi bi-calendar-plus"></i>
-                  Start Date
-                </label>
-                <div class="date-picker">
-                  <input type="date" class="form-control" formControlName="startDate" [min]="minDate"
-                    (change)="onStartDateChange()" [class.is-invalid]="startDateCtrl.touched && (startDateCtrl.errors || startDateErrorMessage)">
-                  <i class="bi bi-calendar3"></i>
-                </div>
-                <div *ngIf="startDateErrorMessage" class="invalid-feedback">
-                  <i class="bi bi-exclamation-circle"></i>
-                  {{ startDateErrorMessage }}
-                </div>
-              </div>
-
-              <!-- Due Date -->
-              <div class="form-group mb-4">
-                <label class="form-label">
-                  <i class="bi bi-calendar-check"></i>
-                  Due Date <span class="text-danger">*</span>
-                </label>
-                <div class="date-picker">
-                  <input type="date" class="form-control" formControlName="dueDate" [min]="minDate"
-                    (change)="onDueDateChange()" [class.is-invalid]="dueDateCtrl.touched && (dueDateCtrl.errors || dueDateErrorMessage)">
-                  <i class="bi bi-calendar3"></i>
-                </div>
-                <div *ngIf="dueDateCtrl.touched && dueDateCtrl.errors?.['required']" class="invalid-feedback">
-                  <i class="bi bi-exclamation-circle"></i>
-                  Due date is required
-                </div>
-                <div *ngIf="dueDateErrorMessage" class="invalid-feedback">
-                  <i class="bi bi-exclamation-circle"></i>
-                  {{ dueDateErrorMessage }}
-                </div>
-              </div>
-
-              <!-- Info Box -->
-              <div class="info-box">
-                <i class="bi bi-info-circle"></i>
-                <div>
-                  <strong>Note:</strong> Sundays are automatically excluded from scheduling.
-                  For <strong>Pending</strong> status, due dates cannot be in the past.
-                  For <strong>Upcoming</strong> status, start dates must be in the future.
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Empty State -->
-          <div *ngIf="!taskForm.value.departmentIds?.length" class="empty-card">
-            <i class="bi bi-people"></i>
-            <h5>Select Departments First</h5>
-            <p>Choose departments from the left panel to enable user assignment</p>
-            <!-- <button type="button" class="btn btn-outline-primary" (click)="scrollToSection('departments')">
-              <i class="bi bi-arrow-up-left"></i>
-              Go to Departments
-            </button> -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Form Actions -->
-      <div class="form-actions">
-        <div class="row align-items-center">
-          <div class="col-md-6 mb-3 mb-md-0">
-            <div class="validation-status">
-              <div *ngIf="taskForm.invalid && taskForm.touched" class="text-danger">
-                <i class="bi bi-exclamation-triangle"></i>
-                Please fix the errors above before submitting
-              </div>
-              <div *ngIf="taskForm.valid" class="text-success">
-                <i class="bi bi-check-circle"></i>
-                All requirements satisfied. Ready to create task!
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="d-flex gap-3 justify-content-md-end">
-              <button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="isSubmitting">
-                <i class="bi bi-x-circle"></i>
-                Cancel
-              </button>
-              <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || taskForm.invalid"
-                [class.loading]="isSubmitting">
-                <span *ngIf="!isSubmitting">
-                  <i class="bi bi-plus-circle"></i>
-                  Create Task
-                </span>
-                <span *ngIf="isSubmitting">
-                  <span class="spinner-border spinner-border-sm"></span>
-                  Creating...
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </form>
-  </main>
-</div>
-
-<!-- Recurring Modal -->
-<div class="modal fade" id="recurringModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-icon">
-          <i class="bi bi-arrow-repeat"></i>
-        </div>
-        <div>
-          <h5>Configure Recurring Task</h5>
-          <p>Set up automatic task repetition</p>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <div class="recurring-options">
-          <div class="option" [class.active]="tempRecurrenceType === 'DAILY'" (click)="tempRecurrenceType = 'DAILY'">
-            <div class="option-icon">
-              <i class="bi bi-sun"></i>
-            </div>
-            <div>
-              <h6>Daily</h6>
-              <small>Repeat every X days</small>
-            </div>
-          </div>
-          <div class="option" [class.active]="tempRecurrenceType === 'WEEKLY'" (click)="tempRecurrenceType = 'WEEKLY'">
-            <div class="option-icon">
-              <i class="bi bi-calendar-week"></i>
-            </div>
-            <div>
-              <h6>Weekly</h6>
-              <small>Repeat every X weeks</small>
-            </div>
-          </div>
-          <div class="option" [class.active]="tempRecurrenceType === 'MONTHLY'"
-            (click)="tempRecurrenceType = 'MONTHLY'">
-            <div class="option-icon">
-              <i class="bi bi-calendar-month"></i>
-            </div>
-            <div>
-              <h6>Monthly</h6>
-              <small>Repeat every X months</small>
             </div>
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">
-            <i class="bi bi-arrow-repeat"></i>
-            Interval
+        <!-- USERS ASSIGNMENT -->
+        <div class="col-md-6" *ngIf="taskForm.value.departmentIds?.length">
+          <label class="form-label fw-semibold text-dark">
+            Assign Users
           </label>
-          <div class="input-group">
-            <input type="number" class="form-control" [(ngModel)]="tempInterval" min="1" max="365" placeholder="Enter interval">
-            <span class="input-group-text">
-              {{ tempRecurrenceType === 'DAILY' ? 'days' : tempRecurrenceType === 'WEEKLY' ? 'weeks' : 'months' }}
-            </span>
+          <div class="field-hint mb-2">
+            Choose specific users within the selected departments who will be responsible for completing this task.
+          </div>
+
+          <!-- SELF-ASSIGN SUCCESS MESSAGE -->
+          <div *ngIf="taskForm.value.assignToSelf && currentUser"
+            class="alert alert-success d-flex align-items-center gap-2 p-3 mb-3 rounded-3 shadow-sm animate_animated animate_fadeIn">
+            <i class="bi bi-person-check-fill fs-5 text-emerald-600"></i>
+            <div>
+              <strong>Task assigned to you:</strong><br />
+              <span class="small">
+                {{ currentUser.fullName }}
+                <span class="badge bg-emerald-100 text-emerald-700 ms-1">
+                  {{ currentUser.role }}
+                </span>
+                <span *ngIf="currentUser.departmentIds.length" class="text-muted">
+                  — {{ getDepartmentNames(currentUser.departmentIds) }}
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <div class="accordion" id="userAccordion">
+            <div *ngFor="let deptId of taskForm.value.departmentIds; let i = index"
+              class="accordion-item border-0 shadow-sm mb-3 rounded-3 overflow-hidden">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold text-dark" type="button" data-bs-toggle="collapse"
+                  [attr.data-bs-target]="'#collapse-' + deptId">
+                  {{ getDepartmentName(deptId) }}
+                  <span class="badge bg-emerald-100 text-emerald-700 ms-2">
+                    {{ (filteredUsersByDept.get(deptId) || []).length }}
+                  </span>
+                </button>
+              </h2>
+              <div [id]="'collapse-' + deptId" class="accordion-collapse collapse" [class.show]="i === 0"
+                data-bs-parent="#userAccordion">
+                <div class="accordion-body p-3 bg-slate-50">
+                  <div class="input-group mb-2">
+                    <span class="input-group-text bg-white">
+                      <i class="bi bi-search text-emerald-600"></i>
+                    </span>
+                    <input type="text" class="form-control border-0" placeholder="Search users by name or username..."
+                      [(ngModel)]="userSearchByDept[deptId]" (ngModelChange)="onUserSearch(deptId)"
+                      [ngModelOptions]="{standalone: true}" />
+                    <button *ngIf="userSearchByDept[deptId]" type="button" class="btn btn-outline-secondary border-0"
+                      (click)="clearUserSearch(deptId)">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                  <!-- <div class="field-hint mb-2">
+                      Start typing to quickly locate users within this department. Only active users are listed.
+                    </div> -->
+
+                  <!-- Select All Users in Dept -->
+                  <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input custom-checkbox" [id]="'selectAllUsers-' + deptId"
+                      [checked]="selectAllUsersByDept[deptId]" (change)="toggleSelectAllUsers(deptId)"
+                      [disabled]="taskForm.value.assignToSelf" />
+                    <label class="form-check-label fw-bold text-emerald-700" [for]="'selectAllUsers-' + deptId">
+                      Select All
+                    </label>
+                  </div>
+                  <!-- <div class="field-hint mb-2">
+                      Use “Select All” to assign the task to all eligible users in this department. When “Assign to Myself” is enabled, only your own user record can be selected.
+                    </div> -->
+
+                  <div class="max-h-48 overflow-y-auto">
+                    <div *ngFor="let user of filteredUsersByDept.get(deptId)" class="form-check mb-2"
+                      [ngClass]="{ 'hod-highlight': user.role === 'HOD' }">
+                      <input type="checkbox" class="form-check-input custom-checkbox" [id]="'user-' + user.userId"
+                        [checked]="selectedUsersByDeptObj[deptId]?.includes(user.userId)"
+                        (change)="updateUserSelection(deptId, user.userId, $event.target.checked)" [disabled]="
+                            taskForm.value.assignToSelf
+                              ? (user.userId !== currentUser?.userId)
+                              : isUserSelectionDisabled(user)
+                          " />
+                      <label class="form-check-label fw-medium" [for]="'user-' + user.userId">
+                        {{ user.fullName }}
+                        <small class="text-muted ms-1">({{ user.role }})</small>
+                      </label>
+                    </div>
+                    <div *ngIf="!(filteredUsersByDept.get(deptId)?.length)" class="text-muted small text-center py-2">
+                      No users found
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assign to Self Checkbox -->
+          <div class="form-check mt-4">
+            <input type="checkbox" class="form-check-input custom-checkbox" id="assignToSelf"
+              formControlName="assignToSelf" />
+            <label class="form-check-label text-emerald-700 fw-medium" for="assignToSelf">
+              Assign to Myself
+            </label>
+          </div>
+          <div class="field-hint mt-1">
+            Enable this option to automatically assign the task to you in your own departments. Other user selections
+            will be restricted accordingly.
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">
-            <i class="bi bi-calendar-x"></i>
-            End Date (Optional)
-          </label>
-          <input type="date" class="form-control" [(ngModel)]="tempEndDate" [min]="minDate">
+        <!-- ──────────────────────────────────────────────── -->
+        <!--               NEW: RECURRING SECTION             -->
+        <!-- ──────────────────────────────────────────────── -->
+        <div class="col-12 mt-4 pt-3 border-top">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input custom-checkbox" id="isRecurring"
+              formControlName="isRecurring" />
+            <label class="form-check-label fw-medium text-emerald-700" for="isRecurring">
+              Make this task recurring
+            </label>
+          </div>
+          <div class="field-hint mt-1 text-muted">
+            The task will repeat automatically according to the selected pattern.
+          </div>
         </div>
 
-        <div class="alert alert-info">
-          <i class="bi bi-info-circle"></i>
-          Recurring tasks will be automatically created based on this schedule
+        <!-- FORM BUTTONS -->
+        <div class="d-flex flex-column flex-md-row justify-content-end gap-3 mt-5">
+          <button type="button" class="btn btn-outline-secondary px-4 py-2 order-2 order-md-1" (click)="cancel()"
+            [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary px-5 py-2 d-flex align-items-center gap-2 order-1 order-md-2"
+            [disabled]="isSubmitting || taskForm.invalid">
+            <span *ngIf="!isSubmitting">Create Task</span>
+            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
+          </button>
         </div>
-      </div>
+      </form>
+    </div>
+  </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" (click)="onRecurringCancelAdd()">
-          Cancel
-        </button>
-        <button type="button" class="btn btn-primary" (click)="onRecurringSubmitAdd()"
-          [disabled]="!tempRecurrenceType || tempInterval < 1">
-          <i class="bi bi-check-lg"></i>
-          Save Settings
-        </button>
+  <!-- ──────────────────────────────────────────────── -->
+  <!--             RECURRENCE SETTINGS MODAL             -->
+  <!-- ──────────────────────────────────────────────── -->
+  <div class="modal fade" id="recurrenceModal" tabindex="-1" aria-labelledby="recurrenceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-xl rounded-4 overflow-hidden">
+        <div class="modal-header border-0 pb-0 pt-4 px-4 px-md-5">
+          <h5 class="modal-title fw-bold fs-4" id="recurrenceModalLabel">
+            Recurrence Settings
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body px-4 px-md-5 pb-4">
+          <div class="row g-4">
+            <!-- RECURRENCE TYPE -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Repeat every</label>
+              <div class="input-group">
+                <input type="number" class="form-control" formControlName="recurrenceInterval" min="1"
+                  placeholder="1" />
+                <select class="form-select" formControlName="recurrenceType">
+                  <option [ngValue]="'DAILY'">Day(s)</option>
+                  <option [ngValue]="'WEEKLY'">Week(s)</option>
+                  <option [ngValue]="'MONTHLY'">Month(s)</option>
+                </select>
+              </div>
+              <div class="field-hint mt-1">
+                e.g., every <strong>2</strong> weeks
+              </div>
+            </div>
+
+            <!-- END DATE (optional) -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">End after</label>
+              <div class="input-group">
+                <span class="input-group-text bg-emerald-50 text-emerald-700">
+                  <i class="bi bi-calendar-x"></i>
+                </span>
+                <input type="date" class="form-control" formControlName="recurrenceEndDate" [min]="minDate" />
+              </div>
+              <div class="field-hint mt-1 text-muted">
+                Leave empty for no end date (continues indefinitely)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 pt-0 px-4 px-md-5 pb-5">
+          <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary px-5 d-flex align-items-center gap-2" data-bs-dismiss="modal"
+            (click)="onRecurrenceConfirmed()">
+            Apply Recurrence
+          </button>
+        </div>
       </div>
     </div>
   </div>
