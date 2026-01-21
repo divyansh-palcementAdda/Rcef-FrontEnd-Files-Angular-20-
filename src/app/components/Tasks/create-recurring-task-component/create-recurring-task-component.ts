@@ -856,7 +856,7 @@ private async loadUsersForSelectedDepartments(deptIds: number[]): Promise<void> 
         
         setTimeout(() => {
           this.resetForm();
-          // this.authApiService.goToDashboard();
+          this.authApiService.goToDashboard();
         }, 1500);
         
         this.cdr.markForCheck();
