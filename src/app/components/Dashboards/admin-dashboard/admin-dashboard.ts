@@ -204,6 +204,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle', color: 'success' },
     { label: 'Add User', route: '/add-user', icon: 'bi-person-plus', color: 'info' },
     { label: 'Add Department', route: '/add-department', icon: 'bi-building-gear', color: 'warning' },
+{ 
+  label: 'Add Recurring Task', 
+  route: '/createRecurring', 
+  icon: 'bi-arrow-repeat', 
+  color: 'dark' 
+},
     {
       label: 'New Tasks Requiring Approval',
       route: '/view-tasks',

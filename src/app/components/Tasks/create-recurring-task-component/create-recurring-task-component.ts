@@ -53,16 +53,15 @@ interface TaskFormControls {
   recurrenceInterval: AbstractControl;
   recurrenceEndDate: AbstractControl;
 }
-
 @Component({
   selector: 'app-add-task',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, TitleCasePipe],
-  templateUrl: './test2.html',
-  styleUrls: ['./test2.css'],
+  templateUrl: './create-recurring-task-component.html',
+  styleUrls: ['./create-recurring-task-component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Test2 implements OnInit, AfterViewInit, OnDestroy {
+export class CreateRecurringTaskComponent implements OnInit, AfterViewInit, OnDestroy {
   // Services
   private fb = inject(FormBuilder);
   private taskService = inject(TaskApiService);

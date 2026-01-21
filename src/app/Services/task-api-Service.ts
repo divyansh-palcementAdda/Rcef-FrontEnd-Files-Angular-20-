@@ -6,6 +6,7 @@ import { environment } from '../environment/environment';
 import { TaskDto } from '../Model/TaskDto';
 import { TaskPayload } from '../Model/TaskPayload';
 import { ToggleRecurringPayload } from '../Model/ToggleRecurringPayload'; // ← new model (create it)
+import { TaskCreatePayload } from '../Model/TaskCreatePayload';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -28,6 +29,9 @@ export class TaskApiService {
     return this.http.post<ApiResponse<TaskDto>>(this.baseUrl, payload);
   }
 
+    createTaskRecurring(payload: TaskCreatePayload): Observable<ApiResponse<TaskDto>> {
+    return this.http.post<ApiResponse<TaskDto>>(this.baseUrl, payload);
+  }
   // 2. Start Task
   startTask(taskId: number): Observable<ApiResponse<TaskDto>> {
     return this.http.patch<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}/start`, {});

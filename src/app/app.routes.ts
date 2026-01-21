@@ -21,6 +21,7 @@ import { ViewAllRequests } from './components/Requests/view-all-requests/view-al
 import { Test } from './components/Test/test/test';
 import { Test2 } from './components/Test/test2/test2';
 import { Test3 } from './components/Test/test3/test3';
+import { CreateRecurringTaskComponent } from './components/Tasks/create-recurring-task-component/create-recurring-task-component';
 
 export const routes: Routes = [
 
@@ -29,6 +30,10 @@ export const routes: Routes = [
   {path: 'test2', component: Test2},
   {path: 'test3/:id', component: Test3},
   { path: 'login', component: LoginComponent },
+  {path: 'createRecurring', component: CreateRecurringTaskComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN'] }
+  },
  
 
   // 🔒 Protected route (requires JWT)
