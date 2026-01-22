@@ -29,8 +29,8 @@ export interface TaskDto {
 
   isRecurring?: boolean;
 recurrenceType?: RecurrenceType; // 'DAILY' | 'WEEKLY' | 'MONTHLY'
-interval?: number;
-endDate?: string; // ISO 8601 date string
+recurrenceInterval?: number;
+recurrenceEndDate?: string; // ISO 8601 date string
 parentTaskId?: number; // For recurring instances
 
 

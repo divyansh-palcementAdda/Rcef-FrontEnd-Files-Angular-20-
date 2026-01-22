@@ -24,16 +24,23 @@
 
   <!-- ==================== MAIN TASK CARD ==================== -->
   <div *ngIf="task && !isLoading && !isForbidden"
-       class="dept-card shadow-lg border-0 rounded-4 overflow-hidden animate__animated animate__fadeInUp">
+    class="dept-card shadow-lg border-0 rounded-4 overflow-hidden animate__animated animate__fadeInUp">
 
     <!-- Gradient Header -->
-    <div class="dept-header text-white text-center py-4">
+    <div class="dept-header text-white text-center py-4 position-relative">
       <h3 class="fw-bold mb-1">{{ task.title }}</h3>
       <p class="mb-0 text-light fs-6">
         <span class="badge rounded-pill px-3 py-2" [ngClass]="getStatusBadgeClass(task.status)">
           {{ formatStatus(task.status) }}
         </span>
       </p>
+      
+      <!-- Overdue indicator -->
+      <!-- <div *ngIf="isTaskOverdue()" class="position-absolute top-0 end-0 m-3">
+        <span class="badge bg-danger blink px-3 py-2">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i> Overdue
+        </span>
+      </div> -->
     </div>
 
     <!-- Card Body -->
@@ -43,13 +50,22 @@
       <div class="row gy-4 mb-5">
         <div class="col-md-6">
           <p><i class="bi bi-person-circle me-2 text-primary"></i>
-            <strong>Created By:</strong> {{ task.createdByName }}</p>
+            <strong>Created By:</strong> {{ task.createdByName }}
+          </p>
 
           <p><i class="bi bi-calendar-event me-2 text-primary"></i>
-            <strong>Start Date:</strong> {{ task.startDate | date:'mediumDate' }}</p>
+            <strong>Start Date:</strong> {{ task.startDate | date:'mediumDate' }}
+          </p>
 
           <p><i class="bi bi-calendar-check me-2 text-primary"></i>
-            <strong>Due Date:</strong> {{ task.dueDate | date:'mediumDate' }}</p>
+            <strong>Due Date:</strong> {{ task.dueDate | date:'mediumDate' }}
+            <span *ngIf="getDaysRemaining() > 0" class="ms-2 badge bg-info">
+              {{ getDaysRemaining() }} days left
+            </span>
+            <span *ngIf="getDaysRemaining() <= 0 && !isTaskOverdue()" class="ms-2 badge bg-warning">
+              Due today
+            </span>
+          </p>
 
           <!-- Started At – only for IN_PROGRESS or CLOSED -->
           <p *ngIf="task.status === 'IN_PROGRESS' || task.status === 'CLOSED'">
@@ -81,15 +97,56 @@
           </p>
 
           <p><i class="bi bi-chat-dots me-2 text-primary"></i>
-            <strong>Description:</strong></p>
-          <p class="text-muted medium fw-bold">{{ task.description || '—' }}</p>
+            <strong>Description:</strong>
+          </p>
+          <p class="text-muted medium fw-bold">{{ task.description || 'No description provided' }}</p>
+        </div>
+
+        <!-- Recurring Task Info -->
+        <div *ngIf="task.isRecurring" class="col-md-12 mt-4">
+          <div class="card border-info border-2">
+            <div class="card-header bg-info bg-opacity-10 d-flex justify-content-between align-items-center">
+              <h5 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Recurring Task Information</h5>
+              <span class="badge bg-info">{{ getRecurrenceTypeDisplay(task.recurrenceType || '') }}</span>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-3">
+                  <p><i class="bi bi-arrow-repeat me-2 text-primary"></i>
+                    <strong>Recurring:</strong> 
+                    <span class="badge bg-success">Yes</span>
+                  </p>
+                </div>
+                <div class="col-md-3">
+                  <p><i class="bi bi-calendar-event me-2 text-primary"></i>
+                    <strong>Recurrence Type:</strong> {{ getRecurrenceTypeDisplay(task.recurrenceType || '') }}
+                  </p>
+                </div>
+                <div class="col-md-3">
+                  <p><i class="bi bi-calendar-check me-2 text-primary"></i>
+                    <strong>Interval:</strong> Every {{ task.recurrenceInterval }} 
+                    {{ task.recurrenceInterval === 1 ? task.recurrenceType?.slice(0, -2) : task.recurrenceType?.toLowerCase() }}
+                  </p>
+                </div>
+                <div class="col-md-3">
+                  <p><i class="bi bi-calendar-x me-2 text-primary"></i>
+                    <strong>Recurrence End Date:</strong> 
+                    {{ task.recurrenceEndDate ? (task.recurrenceEndDate | date:'mediumDate') : 'No end date' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- ==================== STATS ==================== -->
+      <!-- ==================== ENHANCED STATS ==================== -->
       <div class="row text-center mb-5">
         <div class="col-6 col-md-3 mb-3" *ngFor="let s of getTaskStats()">
-          <div class="stat-card shadow-sm border-0 rounded-4 p-3 hover-zoom">
+          <div class="stat-card shadow-sm border-0 rounded-4 p-3 hover-zoom" [class]="'border-' + s.color + ' border-2'">
+            <div class="d-flex align-items-center justify-content-center mb-2">
+              <i [class]="'bi ' + s.icon + ' fs-4 text-' + s.color"></i>
+            </div>
             <h4 class="fw-bold text-{{ s.color }} mb-1">{{ s.count }}</h4>
             <small class="text-muted">{{ s.label }}</small>
           </div>
@@ -100,59 +157,75 @@
       <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
 
         <!-- Assigned Users -->
-        <button class="btn btn-outline-primary px-4 py-2 d-flex align-items-center"
-                (click)="toggleCollapse('users')" [attr.aria-expanded]="!collapsed.users">
+        <button class="btn btn-outline-primary px-4 py-2 d-flex align-items-center" 
+                (click)="toggleCollapse('users')"
+                [attr.aria-expanded]="!collapsed.users">
           <i class="bi bi-people me-2"></i>
           <span class="d-none d-sm-inline">{{ collapsed.users ? 'Show' : 'Hide' }}</span>
           Assigned Users ({{ assignedUsers.length }})
         </button>
 
         <!-- Departments -->
-        <button class="btn btn-outline-info px-4 py-2 d-flex align-items-center"
-                (click)="toggleCollapse('departments')" [attr.aria-expanded]="!collapsed.departments">
+        <button class="btn btn-outline-info px-4 py-2 d-flex align-items-center" 
+                (click)="toggleCollapse('departments')"
+                [attr.aria-expanded]="!collapsed.departments">
           <i class="bi bi-diagram-3 me-2"></i>
           <span class="d-none d-sm-inline">{{ collapsed.departments ? 'Show' : 'Hide' }}</span>
           Departments ({{ enrichedDepartments.length }})
         </button>
 
         <!-- Requests -->
-        <button class="btn btn-outline-warning px-4 py-2 d-flex align-items-center"
-                (click)="toggleCollapse('requests')" [attr.aria-expanded]="!collapsed.requests">
+        <button class="btn btn-outline-warning px-4 py-2 d-flex align-items-center" 
+                (click)="toggleCollapse('requests')"
+                [attr.aria-expanded]="!collapsed.requests">
           <i class="bi bi-journal-text me-2"></i>
           <span class="d-none d-sm-inline">{{ collapsed.requests ? 'Show' : 'Hide' }}</span>
           Requests ({{ task.requests?.length || 0 }})
         </button>
 
+        <!-- Recurred Instances (Admin only) -->
+        <button *ngIf="task.isRecurring && currentUserRole === 'ADMIN'" 
+                class="btn btn-outline-secondary px-4 py-2 d-flex align-items-center" 
+                (click)="toggleCollapse('instances')"
+                [attr.aria-expanded]="!collapsed.instances"
+                [disabled]="isLoadingInstances">
+          <i [class]="isLoadingInstances ? 'bi bi-hourglass-split spinner me-2' : 'bi bi-copy me-2'"></i>
+          <span class="d-none d-sm-inline">{{ collapsed.instances ? 'Show' : 'Hide' }}</span>
+          Recurred Instances ({{ recurredInstances.length }})
+        </button>
+
         <!-- Approve Task (Admin only) -->
         <button *ngIf="task.requiresApproval && currentUserRole === 'ADMIN' && !task.approved"
-                class="btn btn-success px-4 py-2 d-flex align-items-center"
-                (click)="approveTask()" [disabled]="isApproving">
+                class="btn btn-success px-4 py-2 d-flex align-items-center" 
+                (click)="approveTask()" 
+                [disabled]="isApproving">
           <i [class]="isApproving ? 'bi bi-hourglass-split spinner' : 'bi bi-check-circle'"></i>
           <span class="ms-2">{{ isApproving ? 'Approving...' : 'Approve Task' }}</span>
         </button>
-
+     
         <!-- Add Request (Assigned & IN_PROGRESS) -->
         <button *ngIf="isAssignedToCurrentUser && task.status === 'IN_PROGRESS'"
-                class="btn btn-primary px-4 py-2 d-flex align-items-center"
-                (click)="openAddRequestModal()" [disabled]="isAddingReq">
+                class="btn btn-primary px-4 py-2 d-flex align-items-center" 
+                (click)="openAddRequestModal()"
+                [disabled]="isAddingReq">
           <i [class]="isAddingReq ? 'bi bi-hourglass-split spinner' : 'bi bi-plus-circle'"></i>
           <span class="ms-2">{{ isAddingReq ? 'Submitting...' : 'Add Request' }}</span>
         </button>
 
         <!-- Start Task (PENDING / DELAYED) -->
-        <button *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED'|| task.status === 'EXTENDED')"
-                class="btn btn-primary px-4 py-2 d-flex align-items-center"
-                (click)="startTask()" [disabled]="isStarting">
+        <button *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')"
+                class="btn btn-primary px-4 py-2 d-flex align-items-center" 
+                (click)="startTask()" 
+                [disabled]="isStarting">
           <i [class]="isStarting ? 'bi bi-hourglass-split spinner' : 'bi bi-play-circle'"></i>
           <span class="ms-2">{{ isStarting ? 'Starting...' : 'Start Task' }}</span>
         </button>
- <button *ngIf="canEditDelete()" class="btn btn-outline-primary px-4 py-2" (click)="editTask()">
+        
+        <button *ngIf="canEditDelete()" class="btn btn-outline-primary px-4 py-2 d-flex align-items-center" (click)="editTask()">
           <i class="bi bi-pencil-square me-2"></i>Edit Task
         </button>
 
       </div>
-
-
 
       <!-- ==================== ASSIGNED USERS ==================== -->
       <ng-container *ngIf="!collapsed.users">
@@ -196,10 +269,11 @@
                       <button class="btn btn-sm btn-outline-primary" (click)="viewUserProfile(u.userId)">
                         <i class="bi bi-eye me-1"></i> View
                       </button>
+                    </td>
                   </tr>
-                 
+
                   <tr *ngIf="!assignedUsers.length">
-                    <td colspan="7" class="text-center text-muted py-4">
+                    <td colspan="8" class="text-center text-muted py-4">
                       <i class="bi bi-inbox fs-4"></i><br>No users assigned.
                     </td>
                   </tr>
@@ -238,9 +312,10 @@
                       <button class="btn btn-sm btn-outline-info" (click)="viewDepartmentDetails(d.id)">
                         <i class="bi bi-eye me-1"></i> View
                       </button>
+                    </td>
                   </tr>
                   <tr *ngIf="!enrichedDepartments.length">
-                    <td colspan="3" class="text-center text-muted py-4">
+                    <td colspan="4" class="text-center text-muted py-4">
                       <i class="bi bi-building-x fs-4"></i><br>No departments linked.
                     </td>
                   </tr>
@@ -275,7 +350,11 @@
                 <tbody>
                   <tr *ngFor="let r of task.requests">
                     <td data-label="ID">#{{ r.requestId }}</td>
-                    <td data-label="Type">{{ r.requestType }}</td>
+                    <td data-label="Type">
+                      <span class="badge" [ngClass]="r.requestType === 'CLOSURE' ? 'bg-danger' : 'bg-warning'">
+                        {{ r.requestType }}
+                      </span>
+                    </td>
                     <td data-label="RequestedBy">{{ r.requestedByName }}</td>
                     <td data-label="Date">{{ r.requestDate | date:'mediumDate' }}</td>
                     <td data-label="Status">
@@ -289,14 +368,17 @@
                         <i class="bi bi-eye me-1"></i> {{ r.proofs?.length || 0 }}
                       </button>
                     </td>
-                    <td *ngIf="currentUserRole === 'ADMIN' && r.status === 'PENDING'" data-label="Action" class="text-center">
-                      <div class="btn-group" role="group">
+                    <td *ngIf="currentUserRole === 'ADMIN'" data-label="Action" class="text-center">
+                      <div class="btn-group" role="group" *ngIf="r.status === 'PENDING'; else viewOnly">
                         <button *ngIf="r.requestType === 'CLOSURE'" class="btn btn-sm btn-success"
-                                (click)="approveClosureRequest(r.requestId)">Approve</button>
+                          (click)="approveClosureRequest(r.requestId)">Approve</button>
                         <button *ngIf="r.requestType === 'EXTENSION'" class="btn btn-sm btn-success"
-                                (click)="showExtensionApprovalModal(r)">Approve</button>
+                          (click)="showExtensionApprovalModal(r)">Approve</button>
                         <button class="btn btn-sm btn-danger" (click)="showRejectionModal(r)">Reject</button>
                       </div>
+                      <ng-template #viewOnly>
+                        <span class="text-muted small">Processed</span>
+                      </ng-template>
                     </td>
                   </tr>
                   <tr *ngIf="!task.requests?.length">
@@ -311,10 +393,103 @@
         </div>
       </ng-container>
 
+      <!-- ==================== RECURRED INSTANCES ==================== -->
+      <ng-container *ngIf="!collapsed.instances">
+        <div class="card shadow-lg border-0 rounded-4 mt-5 animate__animated animate__fadeIn">
+          <div class="card-header gradient-header text-white text-center py-3 fs-5 fw-bold table_head">
+            <i class="bi bi-copy me-2"></i>Recurred Instances ({{ recurredInstances.length }})
+            <span *ngIf="isLoadingInstances" class="ms-2 spinner-border spinner-border-sm"></span>
+          </div>
+          <div class="card-body p-4">
+            <div *ngIf="isLoadingInstances" class="text-center py-4">
+              <div class="spinner-border text-secondary"></div>
+              <p class="mt-3 text-muted">Loading recurred instances...</p>
+            </div>
+            
+            <div *ngIf="!isLoadingInstances">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table_head">
+                    <tr>
+                      <th>Sr. No.</th>
+                      <th>Title</th>
+                      <th>Description</th>
+                      <th>Due Date</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let instance of recurredInstances; let i = index">
+                      <td data-label="Sr. No.">{{ i + 1 }}</td>
+                      <td data-label="Title">
+                        <strong>{{ instance.title }}</strong>
+                        <small *ngIf="instance.taskId === taskId" class="ms-2 badge bg-info">Current</small>
+                      </td>
+                      <td data-label="Description">
+                        <small class="text-muted">{{ (instance.description || '—') | slice:0:100 }}{{ instance.description && instance.description.length > 100 ? '...' : '' }}</small>
+                      </td>
+                      <td data-label="Due Date">
+                        {{ instance.dueDate | date:'mediumDate' }}
+                        <!-- <span *ngIf="isInstanceOverdue(instance)" class="ms-2 badge bg-danger blink">Overdue</span> -->
+                      </td>
+                      <td data-label="Status">
+                        <span class="badge rounded-pill px-2 py-1" [ngClass]="getStatusBadgeClass(instance.status)">
+                          {{ formatStatus(instance.status) }}
+                        </span>
+                      </td>
+                      <td data-label="Action" class="text-center">
+                        <button class="btn btn-sm btn-outline-primary me-1" (click)="viewInstanceDetails(instance.taskId)">
+                          <i class="bi bi-eye me-1"></i> Quick View
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" (click)="viewTaskById(instance.taskId)">
+                          <i class="bi bi-box-arrow-up-right me-1"></i> Full View
+                        </button>
+                      </td>
+                    </tr>
+                    <tr *ngIf="!recurredInstances || recurredInstances.length === 0">
+                      <td colspan="6" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-4"></i><br>No recurred instances found.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Instance summary -->
+              <!-- <div *ngIf="recurredInstances.length > 0" class="mt-4 pt-3 border-top">
+                <div class="row text-center">
+                  <div class="col-md-3 mb-2">
+                    <span class="badge bg-success rounded-pill px-3 py-2">
+                      {{ getInstanceCountByStatus('CLOSED') }} Completed
+                    </span>
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <span class="badge bg-primary rounded-pill px-3 py-2">
+                      {{ getInstanceCountByStatus('IN_PROGRESS') }} In Progress
+                    </span>
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <span class="badge bg-warning rounded-pill px-3 py-2">
+                      {{ getInstanceCountByStatus('PENDING') }} Pending
+                    </span>
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <span class="badge bg-danger rounded-pill px-3 py-2">
+                      {{ getInstanceCountByStatus('DELAYED') }} Delayed
+                    </span>
+                  </div>
+                </div>
+              </div> -->
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
       <!-- ==================== BACK BUTTON ==================== -->
       <div class="text-center mt-5">
         <button class="btn btn-outline-secondary px-4 py-2" (click)="goBack()">
-          <i class="bi bi-arrow-left-circle me-2"></i>Back
+          <i class="bi bi-arrow-left-circle me-2"></i>Back to Tasks
         </button>
       </div>
 
@@ -323,7 +498,6 @@
 
 </div> <!-- End container -->
 
-
 <!-- ==================== MODALS (Outside Container) ==================== -->
 
 <!-- Proofs Modal -->
@@ -331,21 +505,28 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content rounded-4 shadow-lg">
       <div class="modal-header gradient-header text-white">
-        <h5 class="modal-title"><i class="bi bi-paperclip me-2"></i>Request Proofs</h5>
+        <h5 class="modal-title"><i class="bi bi-paperclip me-2"></i>Request Proofs ({{ selectedRequestProofs.length }})</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div *ngIf="selectedRequestProofs.length === 0" class="text-center py-4 text-muted">
           <i class="bi bi-inbox fs-3"></i><br>No proofs attached.
         </div>
-        <div *ngFor="let p of selectedRequestProofs" class="border rounded p-3 mb-3 d-flex justify-content-between align-items-center">
-          <div>
-            <strong>{{ getFileName(p.fileUrl) }}</strong><br>
-            <small class="text-muted">{{ p.fileType }} • {{ p.uploadedAt | date:'medium' }}</small>
+        <div class="row">
+          <div class="col-md-6 mb-3" *ngFor="let p of selectedRequestProofs">
+            <div class="border rounded p-3 h-100 d-flex flex-column justify-content-between">
+              <div>
+                <strong>{{ getFileName(p.fileUrl) }}</strong><br>
+                <small class="text-muted">{{ p.fileType }} • {{ (p.fileSize / 1024).toFixed(2) }} KB</small><br>
+                <small class="text-muted">Uploaded: {{ p.uploadedAt | date:'medium' }}</small>
+              </div>
+              <div class="mt-2">
+                <a [href]="p.fileUrl" target="_blank" class="btn btn-sm btn-outline-success w-100">
+                  <i class="bi bi-download me-1"></i> Download
+                </a>
+              </div>
+            </div>
           </div>
-          <a [href]="p.fileUrl" target="_blank" class="btn btn-sm btn-outline-success">
-            <i class="bi bi-box-arrow-up-right"></i> Open
-          </a>
         </div>
       </div>
       <div class="modal-footer">
@@ -360,17 +541,23 @@
   <div class="modal-dialog">
     <div class="modal-content rounded-4 shadow-lg">
       <div class="modal-header gradient-header text-white">
-        <h5>Reject Request</h5>
+        <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Reject Request</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <textarea [(ngModel)]="rejectionReason" class="form-control" rows="3"
-                  placeholder="Enter rejection reason..." required></textarea>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Rejection Reason <span class="text-danger">*</span></label>
+          <textarea [(ngModel)]="rejectionReason" class="form-control" rows="4" 
+                    placeholder="Please provide a reason for rejecting this request..." 
+                    required></textarea>
+          <div class="form-text">This reason will be shared with the requester.</div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-danger" [disabled]="!rejectionReason.trim()"
-                (click)="confirmRejection()">Reject</button>
+        <button class="btn btn-danger" [disabled]="!rejectionReason.trim()" (click)="confirmRejection()">
+          <i class="bi bi-x-circle me-1"></i> Reject Request
+        </button>
       </div>
     </div>
   </div>
@@ -381,18 +568,25 @@
   <div class="modal-dialog">
     <div class="modal-content rounded-4 shadow-lg">
       <div class="modal-header gradient-header text-white">
-        <h5>Approve Extension</h5>
+        <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Approve Extension</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <label class="form-label">New Due Date</label>
-        <input type="date" [(ngModel)]="extensionDueDate" class="form-control"
-               [min]="todayDate" required>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Current Due Date</label>
+          <input type="text" class="form-control" [value]="task?.dueDate | date:'mediumDate'" readonly>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">New Due Date <span class="text-danger">*</span></label>
+          <input type="date" [(ngModel)]="extensionDueDate" class="form-control" [min]="todayDate" required>
+          <div class="form-text">Select a date after the current due date.</div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-success" [disabled]="!extensionDueDate"
-                (click)="confirmExtensionApproval()">Approve</button>
+        <button class="btn btn-success" [disabled]="!extensionDueDate" (click)="confirmExtensionApproval()">
+          <i class="bi bi-check-circle me-1"></i> Approve Extension
+        </button>
       </div>
     </div>
   </div>
@@ -403,51 +597,97 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content rounded-4 shadow-lg">
       <div class="modal-header gradient-header text-white">
-        <h5 class="modal-title">Add Request</h5>
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Submit Request</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form #requestForm="ngForm">
+          <!-- Task Info -->
+          <div class="alert alert-info mb-4">
+            <h6 class="alert-heading">Task Information</h6>
+            <p class="mb-1"><strong>Task:</strong> {{ task?.title }}</p>
+            <p class="mb-0"><strong>Current Due Date:</strong> {{ task?.dueDate | date:'mediumDate' }}</p>
+          </div>
+
           <!-- Request Type -->
-          <div class="mb-3">
+          <div class="mb-4">
             <label class="form-label fw-bold">Request Type <span class="text-danger">*</span></label>
-            <div class="d-flex gap-4">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="requestType" id="closure"
-                       [(ngModel)]="newRequest.requestType" value="CLOSURE" required>
-                <label class="form-check-label" for="closure">Closure</label>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <div class="form-check card border h-100" [class.border-primary]="newRequest.requestType === 'EXTENSION'">
+                  <input class="form-check-input" type="radio" name="requestType" id="extension"
+                         [(ngModel)]="newRequest.requestType" value="EXTENSION" required>
+                  <label class="form-check-label card-body" for="extension">
+                    <h6 class="card-title"><i class="bi bi-calendar-plus text-warning me-2"></i>Extension Request</h6>
+                    <p class="card-text small">Request additional time to complete the task. Requires a valid reason.</p>
+                  </label>
+                </div>
               </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="requestType" id="extension"
-                       [(ngModel)]="newRequest.requestType" value="EXTENSION" required>
-                <label class="form-check-label" for="extension">Extension</label>
+              <div class="col-md-6 mb-2">
+                <div class="form-check card border h-100" [class.border-primary]="newRequest.requestType === 'CLOSURE'">
+                  <input class="form-check-input" type="radio" name="requestType" id="closure"
+                         [(ngModel)]="newRequest.requestType" value="CLOSURE" required>
+                  <label class="form-check-label card-body" for="closure">
+                    <h6 class="card-title"><i class="bi bi-check-circle text-success me-2"></i>Closure Request</h6>
+                    <p class="card-text small">Request to close the task. Requires proof of completion.</p>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Remarks -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Reason or Remark<span class="text-danger">*</span></label>
-            <textarea class="form-control" [(ngModel)]="newRequest.remarks" name="remarks"
-                      rows="3" placeholder="Why do you need an extension?" required></textarea>
+          <div class="mb-4">
+            <label class="form-label fw-bold">
+              {{ newRequest.requestType === 'EXTENSION' ? 'Extension Reason' : 'Completion Notes' }}
+              <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" [(ngModel)]="newRequest.remarks" name="remarks" rows="4"
+                      [placeholder]="newRequest.requestType === 'EXTENSION' 
+                                   ? 'Explain why you need an extension...' 
+                                   : 'Describe how the task was completed...'" 
+                      required></textarea>
+            <div class="form-text">
+              {{ newRequest.requestType === 'EXTENSION' 
+                 ? 'Be specific about the challenges and why you need more time.' 
+                 : 'Provide details about the completed work.' }}
+            </div>
           </div>
 
           <!-- Proofs -->
           <div class="mb-3">
             <label class="form-label fw-bold">
-              Proofs
+              <i class="bi bi-paperclip me-1"></i>
+              {{ newRequest.requestType === 'CLOSURE' ? 'Completion Proofs' : 'Supporting Documents' }}
               <span class="text-danger" *ngIf="newRequest.requestType === 'CLOSURE'">*</span>
-              <small class="text-muted d-block">(Max 10MB, optional for extension)</small>
+              <span class="text-muted small ms-2">(Max 10MB per file)</span>
             </label>
-            <input type="file" class="form-control" multiple (change)="onProofsSelected($event)" />
+            <div class="input-group">
+              <input type="file" class="form-control" multiple (change)="onProofsSelected($event)" 
+                     [accept]="'.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt'">
+              <button class="btn btn-outline-secondary" type="button" onclick="document.querySelector('input[type=file]').value='';">
+                <i class="bi bi-x-circle"></i>
+              </button>
+            </div>
+            
+            <!-- Selected files -->
             <div *ngIf="selectedProofs.length > 0" class="mt-3">
-              <p><strong>Selected ({{ selectedProofs.length }})</strong></p>
-              <div *ngFor="let f of selectedProofs; let i = index" class="d-flex align-items-center mb-1">
-                <span class="text-truncate me-2" style="max-width: 250px;">{{ f.name }}</span>
-                <small class="text-muted me-2">({{ (f.size/1024/1024).toFixed(2) }} MB)</small>
-                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeProof(i)">
-                  Remove
-                </button>
+              <div class="alert alert-light border">
+                <h6 class="alert-heading">Selected Files ({{ selectedProofs.length }})</h6>
+                <div class="mt-2">
+                  <div *ngFor="let f of selectedProofs; let i = index" class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
+                    <div class="d-flex align-items-center" style="max-width: 70%;">
+                      <i class="bi bi-file-earmark me-2 text-primary"></i>
+                      <div class="text-truncate">
+                        <div class="small">{{ f.name }}</div>
+                        <div class="text-muted extra-small">({{ (f.size/1024/1024).toFixed(2) }} MB)</div>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeProof(i)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -455,14 +695,92 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-success"
+        <button class="btn btn-success" 
                 [disabled]="isAddingReq || !requestForm.valid || 
                            (newRequest.requestType === 'CLOSURE' && selectedProofs.length === 0) ||
                            (newRequest.requestType === 'EXTENSION' && !newRequest.remarks.trim())"
                 (click)="addRequest()">
-          <span *ngIf="isAddingReq" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="isAddingReq" class="bi bi-hourglass-split spinner me-2"></i>
+          <i *ngIf="!isAddingReq" class="bi bi-send me-2"></i>
           {{ isAddingReq ? 'Submitting...' : 'Submit Request' }}
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Instance Details Modal -->
+<div class="modal fade" id="viewInstanceModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content rounded-4 shadow-lg">
+      <div class="modal-header gradient-header text-white">
+        <h5 class="modal-title"><i class="bi bi-eye me-2"></i>Instance Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" *ngIf="selectedInstance">
+        <!-- Instance Header -->
+        <div class="alert alert-light border mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">{{ selectedInstance.title }}</h6>
+            <span class="badge rounded-pill px-3 py-2" [ngClass]="getStatusBadgeClass(selectedInstance.status)">
+              {{ formatStatus(selectedInstance.status) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Instance Details -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+              <div class="card-body">
+                <h6 class="card-title border-bottom pb-2"><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
+                <p class="mb-2"><strong>Instance ID:</strong> {{ selectedInstance.taskId }}</p>
+                <p class="mb-2"><strong>Created By:</strong> {{ selectedInstance.createdByName }}</p>
+                <p class="mb-2"><strong>Start Date:</strong> {{ selectedInstance.startDate | date:'mediumDate' }}</p>
+                <p class="mb-0"><strong>Due Date:</strong> {{ selectedInstance.dueDate | date:'mediumDate' }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+              <div class="card-body">
+                <h6 class="card-title border-bottom pb-2"><i class="bi bi-graph-up me-2"></i>Statistics</h6>
+                <p class="mb-2"><strong>Assigned Users:</strong> {{ selectedInstance.assignedToIds?.length || 0 }}</p>
+                <p class="mb-2"><strong>Departments:</strong> {{ selectedInstance.departmentIds?.length || 0 }}</p>
+                <p class="mb-2"><strong>Requests:</strong> {{ selectedInstance.requests?.length || 0 }}</p>
+                <p class="mb-0"><strong>Proofs:</strong> {{ selectedInstance.proofs?.length || 0 }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4">
+          <h6><i class="bi bi-card-text me-2"></i>Description</h6>
+          <div class="border rounded p-3 bg-light">
+            <p class="mb-0">{{ selectedInstance.description || 'No description provided' }}</p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="alert alert-info">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <i class="bi bi-info-circle me-2"></i>
+              <small>You can view full details or return to the instance list.</small>
+            </div>
+            <div>
+              <button type="button" class="btn btn-primary me-2" 
+                      [disabled]="!selectedInstance || !selectedInstance.taskId" 
+                      (click)="viewTaskById(selectedInstance!.taskId)">
+                <i class="bi bi-box-arrow-up-right me-1"></i> View Full Details
+              </button>
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                <i class="bi bi-x-circle me-1"></i> Close
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

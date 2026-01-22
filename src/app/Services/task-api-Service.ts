@@ -32,6 +32,16 @@ export class TaskApiService {
     createTaskRecurring(payload: TaskCreatePayload): Observable<ApiResponse<TaskDto>> {
     return this.http.post<ApiResponse<TaskDto>>(this.baseUrl, payload);
   }
+  // In TaskApiService
+getRecurredInstances(taskId: number): Observable<ApiResponse<TaskDto[]>> {
+  return this.http.get<ApiResponse<TaskDto[]>>(
+    `${this.baseUrl}/instances/parent/${taskId}`
+  );
+}
+
+getInstanceDetails(instanceId: number): Observable<ApiResponse<TaskDto>> {
+     return this.http.get<ApiResponse<TaskDto>>(`${this.baseUrl}/${instanceId}`);
+}
   // 2. Start Task
   startTask(taskId: number): Observable<ApiResponse<TaskDto>> {
     return this.http.patch<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}/start`, {});
