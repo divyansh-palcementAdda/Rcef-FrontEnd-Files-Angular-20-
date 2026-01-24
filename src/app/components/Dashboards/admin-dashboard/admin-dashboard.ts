@@ -232,6 +232,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       next: (data) => {
         if (data) {
           this.dashboardData = data;
+          console.log('Dashboard data received:', data);
           this.updateCharts(data);
           this.loadTrendsData();   // ← new: load dynamic trends separately
         }

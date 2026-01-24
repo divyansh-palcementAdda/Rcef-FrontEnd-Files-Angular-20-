@@ -58,8 +58,8 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   allowedStatuses: TaskStatus[] = [
     TaskStatus.PENDING,
     TaskStatus.UPCOMING,
-    TaskStatus.IN_PROGRESS,
     TaskStatus.CLOSED,
+    TaskStatus.DELAYED,
   ];
 
   statuses = [...this.allowedStatuses];

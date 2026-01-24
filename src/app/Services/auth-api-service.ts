@@ -35,6 +35,7 @@ interface ApiResult<T> {
 /* --------------------------------------------------------------------- */
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
+  
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
