@@ -371,15 +371,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       queryParams: { status: 'DELAYED' },
       delta: d.delayedTask ?? 0
     },
-
     { 
-      title: 'Extended Tasks', 
-      value: d.extendedTask, 
+      title: 'New Tasks Requiring Approval', 
+      value: d.tasksRequireApproval, 
       color: c('warning'), 
-      icon: 'bi-arrow-repeat', 
+     icon: 'bi-bell',
       route: '/view-tasks', 
-      queryParams: { status: 'EXTENDED' },
-      delta: d.extendedTask ?? 0
+      queryParams: { status: 'Approval' },
+      delta: d.tasksRequireApproval ?? 0
     },
 
 

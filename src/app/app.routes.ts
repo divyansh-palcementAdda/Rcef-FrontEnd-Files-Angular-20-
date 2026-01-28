@@ -26,15 +26,16 @@ import { CreateRecurringTaskComponent } from './components/Tasks/create-recurrin
 export const routes: Routes = [
 
   { path: '', component: Home },
-  {path: 'test', component: Test},
-  {path: 'test2', component: Test2},
+  { path: 'test', component: Test },
+  { path: 'test2', component: Test2 },
   // {path: 'test3/:id', component: Test3},
   { path: 'login', component: LoginComponent },
-  {path: 'createRecurring', component: CreateRecurringTaskComponent,
+  {
+    path: 'createRecurring', component: CreateRecurringTaskComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN'] }
   },
- 
+
 
   // 🔒 Protected route (requires JWT)
   {
@@ -70,7 +71,7 @@ export const routes: Routes = [
     data: { roles: ['ADMIN'] }
   }, {
     path: 'add-task', component: AddTaskComponent, canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'HOD'] }
+    data: { roles: ['ADMIN', 'HOD',] }
   },
   {
     path: 'edit-task', component: UpdateTaskComponent, canActivate: [AuthGuard, RoleGuard],
@@ -92,7 +93,7 @@ export const routes: Routes = [
   },
 
   { path: 'task/:id', component: ViewTask, canActivate: [AuthGuard] },
-  {path: 'task-requests', component: ViewAllRequests, canActivate: [AuthGuard, RoleGuard], data: { roles: ['ADMIN', 'HOD','TEACHER'] }},
+  { path: 'task-requests', component: ViewAllRequests, canActivate: [AuthGuard, RoleGuard], data: { roles: ['ADMIN', 'HOD', 'TEACHER'] } },
 
   // Wildcard route for a 404 page
   { path: '**', redirectTo: '' },

@@ -20,7 +20,7 @@ export interface TaskRequestDto {
   remarks?: string;
 
   /** User who created the request */
-  requestedBy: number;               // userId
+  requestedById: number;               // userId
   requestedByName?: string;          // populated by backend for convenience
 
   /** Approver (only when status = APPROVED/REJECTED) */

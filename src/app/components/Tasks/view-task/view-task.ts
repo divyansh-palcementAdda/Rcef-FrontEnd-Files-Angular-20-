@@ -73,13 +73,13 @@ export class ViewTask implements OnInit, OnDestroy {
 
   assignedUsers: userDto[] = [];
   enrichedDepartments: EnrichedDepartment[] = [];
-  collapsed: CollapsedState = { 
-    users: true, 
-    departments: true, 
-    requests: true, 
-    instances: true 
+  collapsed: CollapsedState = {
+    users: true,
+    departments: true,
+    requests: true,
+    instances: true
   };
-  
+
   // Recurred Instances
   recurredInstances: TaskDto[] = [];
   selectedInstance?: TaskDto;
@@ -112,7 +112,7 @@ export class ViewTask implements OnInit, OnDestroy {
   ngOnInit(): void {
     const taskId = Number(this.route.snapshot.paramMap.get('id'));
     this.taskId = taskId;
-    
+
     if (!taskId || isNaN(taskId)) {
       this.errorMessage = 'Invalid Task ID';
       this.isLoading = false;
@@ -129,8 +129,8 @@ export class ViewTask implements OnInit, OnDestroy {
   editTask(): void {
     if (this.canEditDelete()) {
       console.log("Edit task");
-      this.router.navigate(['/edit-task'], { 
-        queryParams: { taskId: this.taskId } 
+      this.router.navigate(['/edit-task'], {
+        queryParams: { taskId: this.taskId }
       });
     }
   }
@@ -188,7 +188,7 @@ export class ViewTask implements OnInit, OnDestroy {
           this.isLoading = false;
           return;
         }
-        
+
         const assigned = res.data.assignedToIds || [];
         if (!assigned.includes(this.currentUserId)) {
           this.isForbidden = true;
@@ -253,7 +253,7 @@ export class ViewTask implements OnInit, OnDestroy {
           this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
           this.filterVisibleRequestsAndProofs();
           this.fetchRelatedEntities();
-          
+
           // Load recurred instances if task is recurring and user is admin
           if (this.task.isRecurring && this.currentUserRole === 'ADMIN') {
             this.loadRecurredInstances();
@@ -272,16 +272,16 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   // --- LOAD RECURRED INSTANCES ---
-  
+
   private loadRecurredInstances(): void {
     if (!this.taskId) return;
-    
+
     this.isLoadingInstances = true;
-    
+
     this.taskService.getRecurredInstances(this.taskId).subscribe({
       next: (res) => {
         if (res.success && res.data) {
-          this.recurredInstances = res.data.sort((a, b) => 
+          this.recurredInstances = res.data.sort((a, b) =>
             new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
           );
           console.log('Recurred instances loaded:', this.recurredInstances.length);
@@ -300,11 +300,11 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   // --- VIEW INSTANCE DETAILS ---
-  
+
   viewInstanceDetails(instanceId: number): void {
     // First try to find in cached instances
     const cachedInstance = this.recurredInstances.find(i => i.taskId === instanceId);
-    
+
     if (cachedInstance) {
       this.selectedInstance = cachedInstance;
       this.openViewInstanceModal();
@@ -332,17 +332,17 @@ export class ViewTask implements OnInit, OnDestroy {
 
   private openViewInstanceModal(): void {
     if (!this.selectedInstance) return;
-    
+
     this.viewInstanceModal = new Modal(document.getElementById('viewInstanceModal')!);
     this.viewInstanceModal.show();
   }
 
   viewTaskById(taskId: number): void {
     if (!taskId) return;
-    
+
     // Close modal first
     this.viewInstanceModal?.hide();
-    
+
     // Navigate to the instance task
     this.router.navigate(['/task', taskId]);
   }
@@ -353,9 +353,15 @@ export class ViewTask implements OnInit, OnDestroy {
     if (!this.task?.requests) return;
 
     if (this.currentUserRole === 'TEACHER') {
-      // Only show requests made by current user
-      this.task.requests = this.task.requests.filter(r => r.requestedBy === this.currentUserId);
-    } else if (this.isHOD) {
+      console.log('Filtering requests for TEACHER:', this.currentUserId);
+      console.log('Original requests:', this.task.requests);
+
+      this.task.requests = this.task.requests.filter(r => {
+        console.log('createdBy:', r.requestedById, 'currentUserId:', this.currentUserId);
+        return r.requestedById === this.currentUserId;
+      });
+    }
+    else if (this.isHOD) {
       // HOD sees requests for tasks in their dept
       const deptIds = this.currentUserDepartments;
       this.task.requests = this.task.requests.filter(r =>
@@ -424,7 +430,7 @@ export class ViewTask implements OnInit, OnDestroy {
   onProofsSelected(event: any): void {
     const files: FileList = event.target.files;
     const maxSize = 10 * 1024 * 1024; // 10MB
-    
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.size > maxSize) {
@@ -446,12 +452,12 @@ export class ViewTask implements OnInit, OnDestroy {
       alert('Please select request type.');
       return;
     }
-    
+
     if (this.newRequest.requestType === 'EXTENSION' && !this.newRequest.remarks?.trim()) {
       alert('Reason is required for extension.');
       return;
     }
-    
+
     if (this.newRequest.requestType === 'CLOSURE' && this.selectedProofs.length === 0) {
       alert('At least one proof is required for closure.');
       return;
@@ -461,11 +467,11 @@ export class ViewTask implements OnInit, OnDestroy {
 
     const formData = new FormData();
     formData.append('requestType', this.newRequest.requestType);
-    
+
     if (this.newRequest.remarks?.trim()) {
       formData.append('remarks', this.newRequest.remarks.trim());
     }
-    
+
     this.selectedProofs.forEach(file => {
       formData.append('proofs', file, file.name);
     });
@@ -520,42 +526,42 @@ export class ViewTask implements OnInit, OnDestroy {
 
   toggleCollapse(section: 'users' | 'departments' | 'requests' | 'instances') {
     this.collapsed[section] = !this.collapsed[section];
-    
+
     // Auto-load instances when section is opened
-    if (section === 'instances' && !this.collapsed.instances && 
-        this.task?.isRecurring && this.currentUserRole === 'ADMIN' &&
-        this.recurredInstances.length === 0) {
+    if (section === 'instances' && !this.collapsed.instances &&
+      this.task?.isRecurring && this.currentUserRole === 'ADMIN' &&
+      this.recurredInstances.length === 0) {
       this.loadRecurredInstances();
     }
   }
 
-  getTaskStats(): TaskStats[] { 
-    return this._stats; 
+  getTaskStats(): TaskStats[] {
+    return this._stats;
   }
 
   private computeStats() {
     this._stats = [
-      { 
-        label: 'Assigned Users', 
-        count: this.task?.assignedToIds?.length ?? 0, 
+      {
+        label: 'Assigned Users',
+        count: this.task?.assignedToIds?.length ?? 0,
         color: 'primary',
         icon: 'bi-people'
       },
-      { 
-        label: 'Departments', 
-        count: this.task?.departmentIds?.length ?? 0, 
+      {
+        label: 'Departments',
+        count: this.task?.departmentIds?.length ?? 0,
         color: 'info',
         icon: 'bi-diagram-3'
       },
-      { 
-        label: 'Requests', 
-        count: this.task?.requests?.length ?? 0, 
+      {
+        label: 'Requests',
+        count: this.task?.requests?.length ?? 0,
         color: 'warning',
         icon: 'bi-journal-text'
       },
-      { 
-        label: 'Proofs', 
-        count: this.task?.proofs?.length ?? 0, 
+      {
+        label: 'Proofs',
+        count: this.task?.proofs?.length ?? 0,
         color: 'success',
         icon: 'bi-paperclip'
       }
@@ -564,7 +570,7 @@ export class ViewTask implements OnInit, OnDestroy {
 
   formatStatus(status: string | undefined): string {
     if (!status) return '—';
-    
+
     const statusMap: Record<string, string> = {
       'PENDING': 'Pending',
       'APPROVED': 'Approved',
@@ -578,7 +584,7 @@ export class ViewTask implements OnInit, OnDestroy {
       'EXTENDED': 'Extended',
       'CANCELLED': 'Cancelled'
     };
-    
+
     return statusMap[status] || status.replace(/_/g, ' ');
   }
 
@@ -633,12 +639,12 @@ export class ViewTask implements OnInit, OnDestroy {
 
   showExtensionApprovalModal(request: any): void {
     this.extensionRequestId = request.requestId;
-    
+
     // Set default extension date to current due date + 7 days
     const currentDueDate = new Date(this.task?.dueDate || new Date());
     currentDueDate.setDate(currentDueDate.getDate() + 7);
     this.extensionDueDate = currentDueDate.toISOString().split('T')[0];
-    
+
     this.extensionModal = new Modal(document.getElementById('extensionApprovalModal')!);
     this.extensionModal.show();
   }
@@ -712,7 +718,7 @@ export class ViewTask implements OnInit, OnDestroy {
 
   approveTask(): void {
     if (!this.task?.taskId || this.isApproving) return;
-    
+
     if (!confirm('Are you sure you want to approve this entire task?')) return;
 
     this.isApproving = true;
@@ -735,7 +741,7 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   // --- NAVIGATION METHODS ---
-  
+
   goBack(): void {
     this.router.navigate(['/view-tasks']);
   }
@@ -749,7 +755,7 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   // --- UTILITY METHODS ---
-  
+
   getRecurrenceTypeDisplay(type: string): string {
     const typeMap: Record<string, string> = {
       'DAILY': 'Daily',
@@ -763,7 +769,7 @@ export class ViewTask implements OnInit, OnDestroy {
 
   isTaskOverdue(): boolean {
     if (!this.task?.dueDate) return false;
-    
+
     const dueDate = new Date(this.task.dueDate);
     const today = new Date();
     return dueDate < today && this.task.status !== 'CLOSED';
@@ -771,7 +777,7 @@ export class ViewTask implements OnInit, OnDestroy {
 
   getDaysRemaining(): number {
     if (!this.task?.dueDate) return 0;
-    
+
     const dueDate = new Date(this.task.dueDate);
     const today = new Date();
     const diffTime = dueDate.getTime() - today.getTime();
@@ -779,61 +785,61 @@ export class ViewTask implements OnInit, OnDestroy {
   }
   // Add these methods to your ViewTask class:
 
-// Check if a specific instance is overdue
-isInstanceOverdue(instance: TaskDto): boolean {
-  if (!instance?.dueDate || instance.status === 'CLOSED') return false;
-  
-  const dueDate = new Date(instance.dueDate);
-  const today = new Date();
-  
-  // Clear time for accurate day comparison
-  today.setHours(0, 0, 0, 0);
-  dueDate.setHours(0, 0, 0, 0);
-  
-  return dueDate < today;
-}
+  // Check if a specific instance is overdue
+  isInstanceOverdue(instance: TaskDto): boolean {
+    if (!instance?.dueDate || instance.status === 'CLOSED') return false;
 
-// Count instances by status
-getInstanceCountByStatus(status: string): number {
-  if (!this.recurredInstances || this.recurredInstances.length === 0) return 0;
-  
-  return this.recurredInstances.filter(instance => 
-    instance.status === status
-  ).length;
-}
+    const dueDate = new Date(instance.dueDate);
+    const today = new Date();
 
-// Calculate days remaining for an instance
-getInstanceDaysRemaining(instance: TaskDto): number {
-  if (!instance?.dueDate || instance.status === 'CLOSED') return 0;
-  
-  const dueDate = new Date(instance.dueDate);
-  const today = new Date();
-  
-  // Clear time for accurate day comparison
-  today.setHours(0, 0, 0, 0);
-  dueDate.setHours(0, 0, 0, 0);
-  
-  const diffTime = dueDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  return diffDays;
-}
+    // Clear time for accurate day comparison
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
 
-// Get instance status badge class (similar to getStatusBadgeClass but for instances)
-getInstanceStatusBadgeClass(instance: TaskDto): string {
-  if (this.isInstanceOverdue(instance)) {
-    return 'bg-danger text-white blink';
+    return dueDate < today;
   }
-  
-  return this.getStatusBadgeClass(instance.status);
-}
 
-// Filter instances by status
-getInstancesByStatus(status: string): TaskDto[] {
-  if (!this.recurredInstances) return [];
-  
-  return this.recurredInstances.filter(instance => 
-    instance.status === status
-  );
-}
+  // Count instances by status
+  getInstanceCountByStatus(status: string): number {
+    if (!this.recurredInstances || this.recurredInstances.length === 0) return 0;
+
+    return this.recurredInstances.filter(instance =>
+      instance.status === status
+    ).length;
+  }
+
+  // Calculate days remaining for an instance
+  getInstanceDaysRemaining(instance: TaskDto): number {
+    if (!instance?.dueDate || instance.status === 'CLOSED') return 0;
+
+    const dueDate = new Date(instance.dueDate);
+    const today = new Date();
+
+    // Clear time for accurate day comparison
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+  }
+
+  // Get instance status badge class (similar to getStatusBadgeClass but for instances)
+  getInstanceStatusBadgeClass(instance: TaskDto): string {
+    if (this.isInstanceOverdue(instance)) {
+      return 'bg-danger text-white blink';
+    }
+
+    return this.getStatusBadgeClass(instance.status);
+  }
+
+  // Filter instances by status
+  getInstancesByStatus(status: string): TaskDto[] {
+    if (!this.recurredInstances) return [];
+
+    return this.recurredInstances.filter(instance =>
+      instance.status === status
+    );
+  }
 }

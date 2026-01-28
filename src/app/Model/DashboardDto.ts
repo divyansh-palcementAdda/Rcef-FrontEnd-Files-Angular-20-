@@ -23,6 +23,7 @@ export interface DashboardDto {
   selfTask?: number;           // User only
   activeTask?:number;
   extendedTask?: number;           // Admin/HOD only
+  tasksRequireApproval?: number;           // Admin/HOD only
   email?: string;
 }
 

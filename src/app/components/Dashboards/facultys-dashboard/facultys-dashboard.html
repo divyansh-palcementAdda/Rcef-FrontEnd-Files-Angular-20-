@@ -1,1 +1,329 @@
-<p>facultys-dashboard works!</p>
+<div class="dashboard-wrapper">
+  <!-- Faculty Sidebar -->
+  <aside id="sidebarMenu" class="sidebar">
+    <div class="sidebar-profile p-4 text-center">
+      <div class="avatar-placeholder mb-3">
+        <i class="bi bi-person-badge fs-1 text-white"></i>
+      </div>
+      <h6 class="mb-1 fw-bold text-white">Faculty Dashboard</h6>
+      <small class="text-white-75 d-block">{{ dashboardData?.email }}</small>
+      <small class="text-white-75 d-block">{{ dashboardData?.departmentName || 'Department' }}</small>
+      <div class="role-tag mt-2">
+        <span class="badge bg-info">{{ dashboardData?.loggedInRole || 'TEACHER' }}</span>
+      </div>
+    </div>
+
+    <ul class="nav flex-column px-3">
+      <li class="nav-item mb-2" *ngFor="let link of sidebarLinks">
+        <a class="nav-link d-flex align-items-center rounded-pill px-4 py-3" 
+           [routerLink]="link.route"
+           [queryParams]="link.queryParams" 
+           routerLinkActive="active"
+           [title]="link.tooltip || link.label">
+          <i class="bi {{ link.icon }} me-3 fs-5"></i>
+          <span class="fw-medium">{{ link.label }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer px-3">
+      <a class="nav-link logout-btn d-flex align-items-center fw-semibold px-4 py-3 rounded-pill" 
+         (click)="logout()">
+        <i class="bi bi-box-arrow-right me-3 fs-5"></i> 
+        <span>Logout</span>
+        <span class="ms-auto"><i class="bi bi-arrow-right-short"></i></span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <br><br><br>
+    <ng-container *ngIf="dashboardData; else loading">
+      <!-- Header Section -->
+      <header class="dashboard-header mb-5">
+        <div class="header-content">
+          <div class="header-text">
+            <div class="greeting">
+              <span class="greeting-time">{{ getGreetingTime() }}</span>
+              <h1 class="display-5 fw-bold mb-2 text-white">
+                Welcome, <span class="text-white-75">{{ dashboardData.userName }}</span>
+              </h1>
+            </div>
+            <p class="text-white lead mb-0">
+              <i class="bi bi-person-workspace me-2"></i>
+              Faculty Dashboard 
+              <span class="mx-2">•</span>
+              <i class="bi bi-building me-2"></i>
+              {{ dashboardData.departmentName }}
+              <span class="mx-2">•</span>
+              <i class="bi bi-calendar-event me-2"></i>
+              {{ currentDate | date: 'fullDate' }}
+            </p>
+          </div>
+          
+          <div class="header-actions">
+            <div class="role-badge">
+              <i class="bi bi-person-badge me-2"></i>
+              Faculty Member
+            </div>
+            <div class="quick-stats">
+              <div class="quick-stat">
+                <span class="stat-label">Active Tasks</span>
+                <span class="stat-value">{{ dashboardData.activeTask || 0 }}</span>
+              </div>
+              <div class="quick-stat">
+                <span class="stat-label">Self Tasks</span>
+                <span class="stat-value">{{ dashboardData.selfTask || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Performance Indicator -->
+        <div class="progress-indicator mt-4">
+          <div class="progress-label">
+            <span class="text-white">Your Performance</span>
+            <div class="performance-status">
+              <span class="status-text">{{ getPerformanceStatus() }}</span>
+              <span class="progress-percentage">
+                {{ calculatePerformance() }}%
+              </span>
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" 
+                 [style.width.%]="calculatePerformance()"
+                 [class]="'bg-' + getPerformanceColor()"></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Stats Grid -->
+      <section class="stats-section mb-5" @fadeInUpStagger>
+        <div class="section-header mb-4">
+          <h2 class="section-title">
+            <i class="bi bi-card-checklist me-3"></i>
+            Task Overview
+          </h2>
+        </div>
+        
+        <div class="row g-4">
+          <div class="col-xl-3 col-lg-4 col-md-6" *ngFor="let card of statCards(dashboardData); let i = index">
+            <div class="stat-card h-100 position-relative overflow-hidden"
+                 (click)="goToPage(card)">
+              
+              <div class="card-accent-bar"></div>
+              <div class="card-glow-effect"></div>
+              
+              <div class="p-4 position-relative z-2">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <p class="text-muted small fw-semibold text-uppercase tracking-wider mb-1 opacity-80">
+                      {{ card.title }}
+                    </p>
+                    <h3 class="fw-black mb-0 gradient-text-dark">
+                      {{ card.value }}
+                    </h3>
+                    <p class="small text-muted mt-1 mb-0">{{ card.description }}</p>
+                  </div>
+                  
+                  <div class="icon-circle bg-{{card.color}}-subtle text-{{card.color}}">
+                    <i class="bi {{ card.icon }} fs-3"></i>
+                  </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center small" *ngIf="card.delta !== undefined">
+                    <span [class]="'text-' + (card.delta > 0 ? 'success' : card.delta < 0 ? 'danger' : 'muted') + ' fw-semibold'">
+                      <i class="bi me-1"
+                         [class.bi-arrow-up-right]="card.delta > 0"
+                         [class.bi-arrow-down-right]="card.delta < 0"
+                         [class.bi-dash]="card.delta === 0"></i>
+                      {{ card.delta > 0 ? '+' : '' }}{{ card.delta }}%
+                    </span>
+                    <span class="text-muted ms-2">vs last week</span>
+                  </div>
+                  
+                  <span class="card-badge" *ngIf="card.badge" [class]="getBadgeClass(card.badge)">
+                    {{ card.badge }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analytics Section -->
+      <section class="analytics-section mb-5" @fadeInUpStagger>
+        <div class="section-header mb-4">
+          <h2 class="section-title">
+            <i class="bi bi-graph-up me-3"></i>
+            Performance Analytics
+          </h2>
+        </div>
+        <!-- Secondary Charts -->
+        <div class="row g-4">
+          <!-- Task Distribution -->
+          <div class="col-lg-6">
+            <div class="chart-card glass-card h-100">
+              <div class="chart-header">
+                <h5 class="chart-title">
+                  <i class="bi bi-pie-chart-fill me-2"></i>
+                  Task Distribution
+                </h5>
+                <div class="chart-stat-badge">
+                  <span class="badge bg-primary">{{ dashboardData.totalTask || 0 }} Total</span>
+                </div>
+              </div>
+              <div class="chart-body">
+                <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" 
+                        type="pie" height="280"></canvas>
+              </div>
+              <div class="chart-footer">
+                <div class="d-flex justify-content-between">
+                  <div class="chart-stat">
+                    <span class="stat-value">{{ dashboardData.selfTask || 0 }}</span>
+                    <span class="stat-label">Self Tasks </span>
+                  </div>
+                  <div class="chart-stat">
+                    <span class="stat-value">{{ dashboardData.activeTask || 0 }}</span>
+                    <span class="stat-label"> Active</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Task Overview -->
+          <div class="col-lg-6">
+            <div class="chart-card glass-card h-100">
+              <div class="chart-header">
+                <h5 class="chart-title">
+                  <i class="bi bi-bar-chart-fill me-2"></i>
+                  Task Overview
+                </h5>
+              </div>
+              <div class="chart-body">
+                <canvas baseChart [data]="barChartData" [options]="barChartOptions" 
+                        type="bar" height="280"></canvas>
+              </div>
+              <div class="chart-footer">
+                <div class="d-flex justify-content-between">
+                  <div class="chart-stat">
+                    <span class="stat-value">{{ dashboardData.completedTask || 0 }}</span>
+                    <span class="stat-label">Completed</span>
+                  </div>
+                  <div class="chart-stat">
+                    <span class="stat-value">{{ dashboardData.pendingTask || 0 }}</span>
+                    <span class="stat-label">Pending</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions for Faculty -->
+      <section class="quick-actions-section mb-5">
+        <div class="section-header mb-4">
+          <h2 class="section-title">
+            <i class="bi bi-lightning-charge-fill me-3"></i>
+            Quick Actions
+          </h2>
+        </div>
+        
+        <div class="actions-grid">
+          <div class="action-card" (click)="goToPage({route: '/view-tasks', queryParams: {status: 'Self'}})">
+            <div class="action-icon bg-info">
+              <i class="bi bi-person-check"></i>
+            </div>
+            <h6 class="action-title">My Tasks</h6>
+            <p class="action-description">{{ dashboardData.selfTask || 0 }} My tasks</p>
+          </div>
+          
+          <div class="action-card" (click)="goToPage({route: '/view-tasks', queryParams: {status: 'DELAYED'}})">
+            <div class="action-icon bg-danger">
+              <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <h6 class="action-title">Urgent Tasks</h6>
+            <p class="action-description">{{ dashboardData.delayedTask || 0 }} delayed items</p>
+          </div>
+          
+          <div class="action-card" (click)="goToPage({route: '/task-requests'})">
+            <div class="action-icon bg-warning">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            <h6 class="action-title">Task Requests</h6>
+            <p class="action-description">Manage extension/closure requests</p>
+          </div>
+          
+          <div class="action-card" (click)="goToPage({route: '/view-tasks', queryParams: {status: 'PENDING'}})">
+            <div class="action-icon bg-warning">
+              <i class="bi bi-hourglass-split"></i>
+            </div>
+            <h6 class="action-title">Pending Tasks</h6>
+            <p class="action-description">{{ dashboardData.pendingTask || 0 }} awaiting action</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Performance Summary -->
+      <section class="performance-summary mb-5">
+        <div class="glass-card p-4">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <h5 class="mb-3">
+                <i class="bi bi-award me-2"></i>
+                Performance Summary
+              </h5>
+              <div class="performance-metrics">
+                <div class="metric-item">
+                  <span class="metric-label">Completion Rate</span>
+                  <span class="metric-value">{{ dashboardData.totalTask ? ((dashboardData.completedTask / dashboardData.totalTask) * 100).toFixed(1) : 0 }}%</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">On-Time Delivery</span>
+                  <span class="metric-value">{{ (100 - (dashboardData.delayedTask / dashboardData.totalTask * 100)).toFixed(1) || 100 }}%</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">Self-Initiative</span>
+                  <span class="metric-value">{{ dashboardData.selfTask || 0 }} tasks</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="performance-overview">
+                <div class="overview-circle" [style.--percentage]="calculatePerformance() / 100">
+                  <span class="overview-percentage">{{ calculatePerformance() }}%</span>
+                  <span class="overview-text">Overall Performance</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </ng-container>
+
+    <!-- Loading State -->
+    <ng-template #loading>
+      <div class="loading-state">
+        <div class="loading-content">
+          <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-dot"></div>
+          </div>
+          <h4 class="loading-title">Loading Faculty Dashboard</h4>
+          <p class="loading-subtitle">Preparing your task insights...</p>
+          <div class="loading-progress">
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </main>
+</div>

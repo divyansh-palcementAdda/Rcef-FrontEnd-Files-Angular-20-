@@ -157,7 +157,7 @@
       <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
 
         <!-- Assigned Users -->
-        <button class="btn btn-outline-primary px-4 py-2 d-flex align-items-center" 
+        <button *ngIf="currentUserRole!='TEACHER'" class="btn btn-outline-primary px-4 py-2 d-flex align-items-center" 
                 (click)="toggleCollapse('users')"
                 [attr.aria-expanded]="!collapsed.users">
           <i class="bi bi-people me-2"></i>
@@ -166,7 +166,7 @@
         </button>
 
         <!-- Departments -->
-        <button class="btn btn-outline-info px-4 py-2 d-flex align-items-center" 
+        <button *ngIf="currentUserRole!='TEACHER'" class="btn btn-outline-info px-4 py-2 d-flex align-items-center" 
                 (click)="toggleCollapse('departments')"
                 [attr.aria-expanded]="!collapsed.departments">
           <i class="bi bi-diagram-3 me-2"></i>
@@ -244,8 +244,8 @@
                     <th>Email</th>
                     <th>Department</th>
                     <th>Role</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th *ngIf="currentUserRole!='TEACHER'">Status</th>
+                    <th *ngIf="currentUserRole!='TEACHER'">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -260,12 +260,12 @@
                     <td data-label="Role">
                       <span class="badge bg-info text-dark">{{ u.role }}</span>
                     </td>
-                    <td data-label="Status">
+                    <td *ngIf="currentUserRole!='TEACHER'" data-label="Status">
                       <span class="badge rounded-pill px-2 py-1" [ngClass]="getStatusBadgeClass(u.status)">
                         {{ formatStatus(u.status) }}
                       </span>
                     </td>
-                    <td data-label="Action" class="text-center">
+                    <td *ngIf="currentUserRole!='TEACHER'" data-label="Action" class="text-center">
                       <button class="btn btn-sm btn-outline-primary" (click)="viewUserProfile(u.userId)">
                         <i class="bi bi-eye me-1"></i> View
                       </button>
@@ -298,7 +298,7 @@
                     <th>Name</th>
                     <th>HOD</th>
                     <th>User Count</th>
-                    <th>Action</th>
+                    <th *ngIf="currentUserRole!='TEACHER'">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -308,7 +308,7 @@
                     <td data-label="Count">
                       <span class="badge bg-primary rounded-pill">{{ d.userCount }}</span>
                     </td>
-                    <td data-label="Action" class="text-center">
+                    <td *ngIf="currentUserRole!='TEACHER'" data-label="Action" class="text-center">
                       <button class="btn btn-sm btn-outline-info" (click)="viewDepartmentDetails(d.id)">
                         <i class="bi bi-eye me-1"></i> View
                       </button>
