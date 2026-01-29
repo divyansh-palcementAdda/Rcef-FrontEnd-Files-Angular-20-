@@ -17,6 +17,25 @@
 
 
 }
+.announcement-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.announcement-box {
+  background: #fff;
+  padding: 20px;
+  width: 500px;
+  max-width: 90%;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+}
+
 
 /* Dashboard Layout */
 .dashboard-wrapper {

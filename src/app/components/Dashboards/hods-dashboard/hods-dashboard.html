@@ -36,6 +36,35 @@
   <!-- Main Content Area -->
   <main class="main-content">
     <br><br><br>
+    <div class="announcement-backdrop" *ngIf="showAnnouncement">
+      <div class="announcement-box">
+        <h5>📢 Important Update</h5>
+    
+        <p>
+          The <strong>Team Members Dashboard</strong> has been deployed successfully.
+        </p>
+    
+        <p>
+          All HODs are requested to contact the <strong>Administrator</strong> and
+          mark their teammates as <strong>TEACHER</strong> so dashboards can be
+          assigned and work can begin.
+        </p>
+    
+        <p>
+          If teammates are already marked as Teacher, please ask them to
+          <strong>logout and login again</strong>.
+        </p>
+    
+        <p class="mb-0">
+          If any issue persists, kindly contact the <strong>Administrator</strong>.
+        </p>
+    
+        <button class="btn btn-primary mt-3" (click)="closeAnnouncement()">
+          Got it
+        </button>
+      </div>
+    </div>
+    
     <ng-container *ngIf="dashboardData; else loading">
       <!-- Enhanced Header Section -->
       <header class="dashboard-header mb-5">

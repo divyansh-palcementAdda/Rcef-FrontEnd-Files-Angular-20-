@@ -488,8 +488,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
     const payload = {
       ...this.taskForm.value,
-      startDate: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
-      dueDate: new Date(dueDate).toISOString(),
+      startDate: startDate || null,
+      dueDate: dueDate,      
       departmentIds,
       assignedToIds: finalAssigned,
     };
@@ -499,7 +499,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     this.errorMessage = null;
     this.dueDateErrorMessage = null;
     this.startDateErrorMessage = null;
-
+    console.log(payload);
     this.taskService.createTask(payload).subscribe({
       next: (response: ApiResponse<TaskDto>) => {
         this.successMessage = response.message || 'Task created successfully!';

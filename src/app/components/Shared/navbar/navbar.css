@@ -27,10 +27,11 @@
 
 /* Logo */
 .pulse-logo {
-  width: 40px;
   height: 40px;
+  width: auto;          /* ✅ maintain aspect ratio */
   animation: pulse 2s infinite;
 }
+
 
 /* Menu Toggle */
 .menu-toggle {

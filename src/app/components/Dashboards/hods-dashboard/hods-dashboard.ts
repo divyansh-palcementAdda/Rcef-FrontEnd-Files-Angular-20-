@@ -21,7 +21,7 @@ import { BulletinBannerComponent } from '../../Shared/bulletin-banner/bulletin-b
         query(':enter', [
           stagger(80, [
             useAnimation(fadeInUp, {
-              params: { time: '300ms ease-out' }
+            params: { time: '300ms' }
             })
           ])
         ], { optional: true })
@@ -39,6 +39,7 @@ export class HodsDashboard {
   barChartData!: ChartConfiguration<'bar'>['data'];
   lineChartData!: ChartConfiguration<'line'>['data'];
   lineChartOptions = this.getLineChartOptions();
+  showAnnouncement = false;
 
   private getLineChartOptions(): ChartConfiguration<'line'>['options'] {
     return {
@@ -224,6 +225,11 @@ export class HodsDashboard {
   ) { }
 
   ngOnInit(): void {
+    const seen = localStorage.getItem('hod_dashboard_announcement_seen');
+
+  if (!seen) {
+    this.showAnnouncement = true;
+  }
     this.dataSub = this.apiService.getDashboardData().subscribe({
       next: (data) => {
         if (data) {
@@ -234,6 +240,10 @@ export class HodsDashboard {
       },
       error: (err) => console.error('Error fetching dashboard data:', err)
     });
+  }
+  closeAnnouncement(): void {
+    localStorage.setItem('hod_dashboard_announcement_seen', 'true');
+    this.showAnnouncement = false;
   }
 
   ngOnDestroy(): void {
@@ -347,7 +357,7 @@ export class HodsDashboard {
         route: '/view-tasks',
         queryParams: { status: 'UPCOMING' },
         delta: 4,
-        badge: 'Comming-soon'
+        badge: 'Coming-soon'
       },
       {
         title: 'Completed Tasks',

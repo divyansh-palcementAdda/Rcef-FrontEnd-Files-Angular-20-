@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { NotificationBellComponent } from '../notification-bell-component/notification-bell-component';
 import { ToastContainerComponent } from '../toast-container-component/toast-container-component';
+import { NgOptimizedImage } from '@angular/common';
+
 
 // ✅ ADD THESE
 
@@ -18,7 +20,8 @@ import { ToastContainerComponent } from '../toast-container-component/toast-cont
     RouterModule,
     CommonModule,
     NotificationBellComponent,   // ✅
-    ToastContainerComponent      // ✅
+    ToastContainerComponent,
+    NgOptimizedImage
   ]
 })
 export class Navbar {

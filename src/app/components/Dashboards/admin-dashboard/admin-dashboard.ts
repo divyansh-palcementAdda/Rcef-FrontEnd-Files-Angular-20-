@@ -26,7 +26,8 @@ Chart.register(...registerables);
         query(':enter', [
           stagger(80, [
             useAnimation(fadeInUp, {
-              params: { time: '300ms ease-out' }
+              params: { time: '300ms' }
+
             })
           ])
         ], { optional: true })
