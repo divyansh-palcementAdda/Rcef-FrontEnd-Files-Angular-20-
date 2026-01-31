@@ -12,6 +12,8 @@
         <span class="badge bg-info">{{ dashboardData?.loggedInRole || 'TEACHER' }}</span>
       </div>
     </div>
+    <br><br><br>
+    
 
     <ul class="nav flex-column px-3">
       <li class="nav-item mb-2" *ngFor="let link of sidebarLinks">
@@ -79,7 +81,6 @@
             </div>
           </div>
         </div>
-        
         <!-- Performance Indicator -->
         <div class="progress-indicator mt-4">
           <div class="progress-label">
@@ -98,7 +99,8 @@
           </div>
         </div>
       </header>
-
+      <app-bulletin-banner class="mb-5 glass-card"></app-bulletin-banner>
+      <br><br>
       <!-- Stats Grid -->
       <section class="stats-section mb-5" @fadeInUpStagger>
         <div class="section-header mb-4">

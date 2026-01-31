@@ -1,519 +1,761 @@
-<div class="container my-4 my-md-5">
-  <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-    <!-- Header -->
-    <div class="card-header text-white text-center py-5 table_head sticky-top">
-      <h3 class="mb-1 fw-bold">Create New Task</h3>
-      <p class="mb-0 opacity-90">
-        Define task details, assign responsible teams and users, and set clear timelines.
-      </p>
+<br><br><br>
+<div class="view-task-container fade-in">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-center"></div>
+      </div>
+      <p class="loading-text">Loading task details...</p>
     </div>
-
-    <div class="card-body p-4 p-md-5">
-      <!-- Messages -->
-      @if (successMessage) {
-      <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4 animate__animated">
-        <div class="d-flex align-items-center">
-          <i class="bi bi-check-circle-fill me-2"></i>
-          <span>{{ successMessage }}</span>
+  
+    <!-- Forbidden Access -->
+    <div *ngIf="isForbidden && !isLoading" class="access-denied-container">
+      <div class="access-denied-card">
+        <div class="access-denied-icon">
+          <i class="bi bi-shield-x"></i>
         </div>
-        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+        <h2 class="access-denied-title">Access Restricted</h2>
+        <p class="access-denied-message">
+          You are not authorized to view this task. Only assigned users, department HODs, or administrators have access.
+        </p>
+        <button class="btn-back" (click)="goBack()">
+          <i class="bi bi-arrow-left"></i>
+          Return to Tasks
+        </button>
       </div>
-      }
-
-      @if (errorMessage) {
-      <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4 animate__animated">
-        <div class="d-flex align-items-center">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i>
-          <span>{{ errorMessage }}</span>
-        </div>
-        <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+    </div>
+  
+    <!-- Error Message -->
+    <div *ngIf="errorMessage && !isForbidden && !isLoading" class="error-alert">
+      <div class="error-alert-content">
+        <i class="bi bi-exclamation-circle"></i>
+        <span>{{ errorMessage }}</span>
       </div>
-      }
-
-      <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" novalidate>
-        <div class="row g-4">
-          <!-- Title -->
-          <div class="col-12">
-            <label class="form-label fw-semibold">
-              Task Title
-              <span class="text-danger">*</span>
-            </label>
-            <div class="input-group">
-              <span class="input-group-text bg-emerald-50 text-emerald-700">
-                <i class="bi bi-pencil"></i>
-              </span>
-              <input type="text" class="form-control" formControlName="title"
-                placeholder="e.g., Prepare Monthly Attendance Report"
-                [class.is-invalid]="f['title'].touched && f['title'].invalid" />
+    </div>
+  
+    <!-- Main Content -->
+    <div *ngIf="task && !isLoading && !isForbidden" class="task-view">
+      <!-- Task Header -->
+      <div class="task-header">
+        <div class="header-content">
+          <div class="header-main">
+            <div class="task-breadcrumb">
+              <button class="breadcrumb-back" (click)="goBack()">
+                <i class="bi bi-arrow-left"></i>
+                Tasks
+              </button>
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-current">Task Details</span>
             </div>
-            <div class="field-hint">
-              Short, action-oriented title summarizing the outcome.
-            </div>
-            @if (f['title'].touched && f['title'].invalid) {
-            <div class="invalid-feedback d-block">
-              @if (f['title'].errors?.['required']) {
-              <small>Title is required.</small>
-              }
-              @if (f['title'].errors?.['maxlength']) {
-              <small>Maximum 255 characters.</small>
-              }
-            </div>
-            }
-          </div>
-
-          <!-- Description -->
-          <div class="col-12">
-            <label class="form-label fw-semibold">
-              Description
-              @if (!f['description'].hasError('required')) {
-              <span class="text-muted">(Optional)</span>
-              }
-            </label>
-            <div class="input-group">
-              <span class="input-group-text bg-emerald-50 text-emerald-700 align-items-start pt-3">
-                <i class="bi bi-chat-dots"></i>
-              </span>
-              <textarea class="form-control" rows="4" formControlName="description"
-                placeholder="Provide clear instructions, context, dependencies and expected outcomes..."
-                [class.is-invalid]="f['description'].touched && f['description'].invalid"></textarea>
-            </div>
-            <div class="field-hint">
-              Concise but complete — help assignees understand scope & expectations.
-              @if (f['description'].value) {
-              <span class="text-emerald-600 ms-2">
-                {{ f['description'].value.length }}/2000 characters
-              </span>
-              }
-            </div>
-            @if (f['description'].touched && f['description'].invalid) {
-            <div class="invalid-feedback d-block">
-              <small>Maximum 2000 characters allowed.</small>
-            </div>
-            }
-          </div>
-
-          <!-- Status -->
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">
-              Status
-              <span class="text-danger">*</span>
-            </label>
-            <div class="input-group">
-              <span class="input-group-text bg-emerald-50 text-emerald-700">
+            <h1 class="task-title">{{ task.title }}</h1>
+            <div class="task-meta">
+              <div class="meta-item">
+                <i class="bi bi-person"></i>
+                <span>Created by {{ task.createdByName }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="bi bi-calendar-event"></i>
+                <span>Created {{ task.startDate | date:'mediumDate' }}</span>
+              </div>
+              <div class="meta-item">
                 <i class="bi bi-tag"></i>
-              </span>
-              <select class="form-select" formControlName="status"
-                [class.is-invalid]="f['status'].touched && f['status'].invalid">
-                <option [ngValue]="null" disabled>Select status</option>
-                @for (status of statuses; track status) {
-                <option [value]="status">{{ status | titlecase }}</option>
-                }
-              </select>
-            </div>
-            <div class="field-hint mt-2">
-<!-- <strong>UPCOMING</strong> → future planned task (requires future start date)<br> -->
-              <strong>PENDING</strong> → can start now (due date cannot be in past)
-            </div>
-            @if (f['status'].touched && f['status'].invalid) {
-            <div class="invalid-feedback d-block">
-              <small>Status is required.</small>
-            </div>
-            }
-          </div>
-
-          <!-- Start Date (UPCOMING only) -->
-          @if (f['status'].value === 'UPCOMING') {
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">
-              Start Date
-              <span class="text-danger">*</span>
-            </label>
-            <div class="input-group clickable" (click)="focusInput($event, startDateInput)">
-              <span class="input-group-text bg-emerald-50 text-emerald-700">
-                <i class="bi bi-calendar-plus"></i>
-              </span>
-              <input #startDateInput type="date" class="form-control" formControlName="startDate" [min]="minDate"
-                (change)="onStartDateChange()"
-                [class.is-invalid]="startDateCtrl.touched && (startDateCtrl.invalid || startDateErrorMessage)" />
-            </div>
-            <div class="field-hint">Future working day (Mon–Sat, no Sundays).</div>
-            @if (startDateErrorMessage) {
-            <div class="invalid-feedback d-block">
-              <small>{{ startDateErrorMessage }}</small>
-            </div>
-            }
-          </div>
-          }
-
-          <!-- Due Date -->
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">
-              Due Date
-              <span class="text-danger">*</span>
-            </label>
-            <div class="input-group clickable" (click)="focusInput($event, dueDateInput)">
-              <span class="input-group-text bg-emerald-50 text-emerald-700">
-                <i class="bi bi-calendar-check"></i>
-              </span>
-              <input #dueDateInput type="date" class="form-control" formControlName="dueDate" [min]="minDate"
-                (change)="onDueDateChange()"
-                [class.is-invalid]="dueDateCtrl.touched && (dueDateCtrl.invalid || dueDateErrorMessage)" />
-            </div>
-            <div class="field-hint">Cannot be Sunday, in the past, or before start date.</div>
-            @if (dueDateCtrl.touched && dueDateCtrl.errors?.['required']) {
-            <div class="invalid-feedback d-block">
-              <small>Due date is required.</small>
-            </div>
-            }
-            @if (dueDateErrorMessage) {
-            <div class="invalid-feedback d-block">
-              <small>{{ dueDateErrorMessage }}</small>
-            </div>
-            }
-          </div>
-
-          <!-- Departments -->
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">
-              Departments
-              <span class="text-danger">*</span>
-            </label>
-            <div class="border rounded-3 p-3 bg-white shadow-sm department-wrapper">
-              <!-- Search -->
-              <div class="input-group mb-3">
-                <span class="input-group-text bg-emerald-50 text-emerald-700">
-                  <i class="bi bi-search"></i>
-                </span>
-                <input #deptSearchInput type="text" class="form-control border-0" placeholder="Search departments..."
-                  [(ngModel)]="deptSearch" (ngModelChange)="onDeptSearch()" [ngModelOptions]="{ standalone: true }" />
-                @if (deptSearch) {
-                <button type="button" class="btn btn-outline-secondary border-0" (click)="clearDeptSearch()">
-                  <i class="bi bi-x"></i>
-                </button>
-                }
-              </div>
-
-              <!-- Select All -->
-              <div class="form-check mb-3">
-                <input type="checkbox" class="form-check-input custom-checkbox" id="selectAllDepts"
-                  [checked]="selectAllDepts" (change)="toggleSelectAllDepts()"
-                  [disabled]="taskForm.value.assignToSelf || isLoadingDepartments" />
-                <label class="form-check-label fw-bold text-emerald-700" for="selectAllDepts">
-                  Select All Departments
-                </label>
-              </div>
-
-              <div class="department-list">
-                @if (isLoadingDepartments) {
-                <div class="p-3">
-                  @for (_ of [1,2,3,4]; track $index) {
-                  <div class="skeleton-item mb-2"></div>
-                  }
-                </div>
-                } @else if (filteredDepartments.length === 0) {
-                <div class="text-muted small text-center py-4">
-                  @if (deptSearch) {
-                  No departments found for "{{ deptSearch }}"
-                  } @else {
-                  No departments available
-                  }
-                </div>
-                } @else {
-                @for (dept of filteredDepartments; track dept.departmentId) {
-                <div class="form-check mb-2">
-                  <input type="checkbox" class="form-check-input custom-checkbox" [id]="'dept-' + dept.departmentId"
-                    [checked]="taskForm.value.departmentIds.includes(dept.departmentId)"
-                    (change)="updateDepartmentSelection(dept.departmentId, $event.target.checked)"
-                    [disabled]="taskForm.value.assignToSelf && !currentUser?.departmentIds?.includes(dept.departmentId)" />
-                  <label class="form-check-label" [for]="'dept-' + dept.departmentId">
-                    {{ dept.name }}
-                  </label>
-                </div>
-                }
-                }
-              </div>
-
-              <div class="field-hint mt-3">
-                Select at least one department. Task will be visible and assignable within chosen departments.
-                @if (taskForm.value.departmentIds?.length) {
-                <span class="text-emerald-600 ms-2">
-                  ({{ taskForm.value.departmentIds.length }} selected)
-                </span>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Users Assignment -->
-          @if (taskForm.value.departmentIds?.length > 0) {
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Assign Users</label>
-            <div class="field-hint mb-3">Choose specific responsible users in selected departments.</div>
-
-            <!-- Self-assign notice -->
-            @if (taskForm.value.assignToSelf && currentUser) {
-            <div class="alert alert-success d-flex align-items-center gap-3 p-3 mb-4 rounded-3 shadow-sm">
-              <i class="bi bi-person-check-fill fs-4 text-emerald-600"></i>
-              <div>
-                <strong>Assigned to you:</strong><br />
-                <span class="small">
-                  {{ currentUser.fullName }}
-                  <span class="badge bg-emerald-100 text-emerald-700 ms-2">{{ currentUser.role }}</span>
-                  @if (currentUser.departmentIds.length) {
-                  <span class="text-muted ms-2">
-                    — {{ getDepartmentNames(currentUser.departmentIds) }}
-                  </span>
-                  }
+                <span class="task-status" [ngClass]="getStatusBadgeClass(task.status)">
+                  {{ formatStatus(task.status) }}
                 </span>
               </div>
             </div>
-            }
-
-            <!-- Accordion users -->
-            <div class="accordion" id="userAccordion">
-              @for (deptId of taskForm.value.departmentIds; track deptId; let i = $index) {
-              <div class="accordion-item border-0 shadow-sm mb-3 rounded-3">
-                <h2 class="accordion-header">
-                  <button class="accordion-button fw-semibold" type="button" [attr.aria-expanded]="i === 0"
-                    [attr.aria-controls]="'collapse-' + deptId" [class.collapsed]="i !== 0"
-                    (click)="toggleAccordion(deptId)">
-                    {{ getDepartmentName(deptId) }}
-                    <span class="badge bg-emerald-100 text-emerald-700 ms-3">
-                      {{ (filteredUsersByDept.get(deptId) || []).length }}
+          </div>
+          <div class="header-actions">
+            <div class="action-buttons">
+              <!-- Start Task Button -->
+              <button *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')"
+                      class="btn-action btn-start" 
+                      (click)="startTask()" 
+                      [disabled]="isStarting">
+                <i [class]="isStarting ? 'bi bi-hourglass-split' : 'bi bi-play-circle'"></i>
+                {{ isStarting ? 'Starting...' : 'Start Task' }}
+              </button>
+  
+              <!-- Add Request Button -->
+              <button *ngIf="isAssignedToCurrentUser && task.status === 'IN_PROGRESS'"
+                      class="btn-action btn-request" 
+                      (click)="openAddRequestModal()"
+                      [disabled]="isAddingReq">
+                <i [class]="isAddingReq ? 'bi bi-hourglass-split' : 'bi bi-plus-circle'"></i>
+                {{ isAddingReq ? 'Submitting...' : 'Add Request' }}
+              </button>
+  
+              <!-- Edit Task Button -->
+              <button *ngIf="canEditDelete()" class="btn-action btn-edit" (click)="editTask()">
+                <i class="bi bi-pencil-square"></i>
+                Edit Task
+              </button>
+  
+              <!-- Approve Task Button -->
+              <button *ngIf="task.requiresApproval && currentUserRole === 'ADMIN' && !task.approved"
+                      class="btn-action btn-approve" 
+                      (click)="approveTask()" 
+                      [disabled]="isApproving">
+                <i [class]="isApproving ? 'bi bi-hourglass-split' : 'bi bi-check-circle'"></i>
+                {{ isApproving ? 'Approving...' : 'Approve Task' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Main Content Area -->
+      <div class="main-content">
+        <!-- Left Column - Task Details -->
+        <div class="content-left">
+          <!-- Task Overview Card -->
+          <div class="card task-overview">
+            <div class="card-header">
+              <h3><i class="bi bi-info-circle"></i> Task Overview</h3>
+            </div>
+            <div class="card-body">
+              <div class="overview-grid">
+                <div class="overview-item">
+                  <div class="overview-icon">
+                    <i class="bi bi-calendar-check"></i>
+                  </div>
+                  <div class="overview-content">
+                    <span class="overview-label">Due Date</span>
+                    <span class="overview-value">{{ task.dueDate | date:'mediumDate' }}</span>
+                    <span *ngIf="getDaysRemaining() > 0" class="overview-badge badge-remaining">
+                      {{ getDaysRemaining() }} days left
                     </span>
-                  </button>
-                </h2>
-                <div [id]="'collapse-' + deptId" class="accordion-collapse collapse" [class.show]="i === 0">
-                  <div class="accordion-body bg-light-subtle">
-                    <!-- User search -->
-                    <div class="input-group mb-3">
-                      <span class="input-group-text bg-white border-0">
-                        <i class="bi bi-search text-emerald-600"></i>
+                    <span *ngIf="getDaysRemaining() <= 0 && !isTaskOverdue()" class="overview-badge badge-today">
+                      Due today
+                    </span>
+                  </div>
+                </div>
+  
+                <div class="overview-item">
+                  <div class="overview-icon">
+                    <i class="bi bi-shield-check"></i>
+                  </div>
+                  <div class="overview-content">
+                    <span class="overview-label">Approval Status</span>
+                    <span class="overview-value" [ngClass]="task.requiresApproval ? (task.approved ? 'text-success' : 'text-warning') : 'text-info'">
+                      {{ task.requiresApproval ? (task.approved ? 'Approved' : 'Pending Approval') : 'Not Required' }}
+                    </span>
+                  </div>
+                </div>
+  
+                <div class="overview-item">
+                  <div class="overview-icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                  </div>
+                  <div class="overview-content">
+                    <span class="overview-label">Recurrence</span>
+                    <span class="overview-value">{{ task.isRecurring ? getRecurrenceTypeDisplay(task.recurrenceType || '') : 'Not Recurring' }}</span>
+                    <span *ngIf="task.isRecurring" class="overview-badge">
+                      Every {{ task.recurrenceInterval }} {{ task.recurrenceType?.toLowerCase() }}
+                    </span>
+                  </div>
+                </div>
+  
+                <div class="overview-item">
+                  <div class="overview-icon">
+                    <i class="bi bi-person-check"></i>
+                  </div>
+                  <div class="overview-content">
+                    <span class="overview-label">Started By</span>
+                    <span class="overview-value">{{ task.startedByName || 'Not started' }}</span>
+                    <span *ngIf="task.startedAt" class="overview-badge">
+                      {{ task.startedAt | date:'mediumDate' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Description Card -->
+          <div class="card description-card">
+            <div class="card-header">
+              <h3><i class="bi bi-card-text"></i> Description</h3>
+            </div>
+            <div class="card-body">
+              <p class="description-content">{{ task.description || 'No description provided' }}</p>
+            </div>
+          </div>
+  
+          <!-- Stats Cards -->
+          <div class="stats-grid">
+            <div class="stat-card" *ngFor="let s of getTaskStats()" [class]="'stat-' + s.color">
+              <div class="stat-icon">
+                <i [class]="'bi ' + s.icon"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-value">{{ s.count }}</span>
+                <span class="stat-label">{{ s.label }}</span>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Collapsible Sections -->
+          <div class="collapsible-sections">
+            <!-- Assigned Users Section -->
+            <div class="collapsible-section" *ngIf="currentUserRole!='TEACHER'">
+              <div class="section-header" (click)="toggleCollapse('users')">
+                <div class="header-left">
+                  <i class="bi bi-people"></i>
+                  <h3>Assigned Users ({{ assignedUsers.length }})</h3>
+                </div>
+                <div class="header-right">
+                  <i [class]="collapsed.users ? 'bi bi-chevron-down' : 'bi bi-chevron-up'"></i>
+                </div>
+              </div>
+              <div class="section-content" *ngIf="!collapsed.users">
+                <div class="users-grid">
+                  <div *ngFor="let u of assignedUsers" class="user-card">
+                    <div class="user-avatar">
+                      <div class="avatar-circle" [style.background]="'linear-gradient(135deg, #' + (u.userId % 16777215).toString(16).padStart(6,'0') + ', #6366f1)'">
+                        {{ u.fullName.charAt(0) }}
+                      </div>
+                    </div>
+                    <div class="user-info">
+                      <h4 class="user-name">{{ u.fullName }}</h4>
+                      <p class="user-email">{{ u.email }}</p>
+                      <div class="user-meta">
+                        <span class="user-role">{{ u.role }}</span>
+                        <span class="user-status" [ngClass]="getStatusBadgeClass(u.status)">
+                          {{ formatStatus(u.status) }}
+                        </span>
+                      </div>
+                    </div>
+                    <button class="btn-view-user" (click)="viewUserProfile(u.userId)" *ngIf="currentUserRole!='TEACHER'">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </div>
+                  <div *ngIf="!assignedUsers.length" class="empty-state">
+                    <i class="bi bi-people"></i>
+                    <p>No users assigned</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+  
+            <!-- Departments Section -->
+            <div class="collapsible-section" *ngIf="currentUserRole!='TEACHER'">
+              <div class="section-header" (click)="toggleCollapse('departments')">
+                <div class="header-left">
+                  <i class="bi bi-diagram-3"></i>
+                  <h3>Departments ({{ enrichedDepartments.length }})</h3>
+                </div>
+                <div class="header-right">
+                  <i [class]="collapsed.departments ? 'bi bi-chevron-down' : 'bi bi-chevron-up'"></i>
+                </div>
+              </div>
+              <div class="section-content" *ngIf="!collapsed.departments">
+                <div class="departments-grid">
+                  <div *ngFor="let d of enrichedDepartments" class="department-card">
+                    <div class="department-header">
+                      <h4>{{ d.name }}</h4>
+                      <span class="member-count">
+                        <i class="bi bi-people"></i>
+                        {{ d.userCount }}
                       </span>
-                      <input type="text" class="form-control border-0" placeholder="Search users..."
-                        [(ngModel)]="userSearchByDept[deptId]" (ngModelChange)="onUserSearch(deptId)"
-                        [ngModelOptions]="{ standalone: true }" />
-                      @if (userSearchByDept[deptId]) {
-                      <button type="button" class="btn btn-outline-secondary border-0"
-                        (click)="clearUserSearch(deptId)">
-                        <i class="bi bi-x"></i>
+                    </div>
+                    <div class="department-info">
+                      <div class="info-item">
+                        <i class="bi bi-person-badge"></i>
+                        <span>HOD: {{ d.hodName }}</span>
+                      </div>
+                    </div>
+                    <button class="btn-view-dept" (click)="viewDepartmentDetails(d.id)" *ngIf="currentUserRole!='TEACHER'">
+                      View Department
+                    </button>
+                  </div>
+                  <div *ngIf="!enrichedDepartments.length" class="empty-state">
+                    <i class="bi bi-building"></i>
+                    <p>No departments linked</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+  
+            <!-- Requests Section -->
+            <div class="collapsible-section">
+              <div class="section-header" (click)="toggleCollapse('requests')">
+                <div class="header-left">
+                  <i class="bi bi-journal-text"></i>
+                  <h3>Requests ({{ task.requests?.length || 0 }})</h3>
+                </div>
+                <div class="header-right">
+                  <i [class]="collapsed.requests ? 'bi bi-chevron-down' : 'bi bi-chevron-up'"></i>
+                </div>
+              </div>
+              <div class="section-content" *ngIf="!collapsed.requests">
+                <div class="requests-list">
+                  <div *ngFor="let r of task.requests" class="request-card">
+                    <div class="request-header">
+                      <div class="request-type" [ngClass]="r.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'">
+                        {{ r.requestType }}
+                      </div>
+                      <div class="request-status" [ngClass]="getStatusBadgeClass(r.status)">
+                        {{ formatStatus(r.status) }}
+                      </div>
+                    </div>
+                    <div class="request-body">
+                      <p class="request-remarks">{{ r.remarks || 'No remarks' }}</p>
+                      <div class="request-meta">
+                        <span class="requester">
+                          <i class="bi bi-person"></i>
+                          {{ r.requestedByName }}
+                        </span>
+                        <span class="date">
+                          <i class="bi bi-calendar"></i>
+                          {{ r.requestDate | date:'mediumDate' }}
+                        </span>
+                        <span class="proofs" (click)="openProofsModal(r)">
+                          <i class="bi bi-paperclip"></i>
+                          {{ r.proofs?.length || 0 }} proofs
+                        </span>
+                      </div>
+                    </div>
+                    <div *ngIf="currentUserRole === 'ADMIN' && r.status === 'PENDING'" class="request-actions">
+                      <button *ngIf="r.requestType === 'CLOSURE'" class="btn-approve" (click)="approveClosureRequest(r.requestId)">
+                        Approve
                       </button>
-                      }
+                      <button *ngIf="r.requestType === 'EXTENSION'" class="btn-approve" (click)="showExtensionApprovalModal(r)">
+                        Approve
+                      </button>
+                      <button class="btn-reject" (click)="showRejectionModal(r)">Reject</button>
                     </div>
-
-                    <!-- Select all in dept -->
-                    <div class="form-check mb-3">
-                      <input type="checkbox" class="form-check-input custom-checkbox" [id]="'selectAllUsers-' + deptId"
-                        [checked]="selectAllUsersByDept[deptId]" (change)="toggleSelectAllUsers(deptId)"
-                        [disabled]="taskForm.value.assignToSelf" />
-                      <label class="form-check-label fw-bold text-emerald-700" [for]="'selectAllUsers-' + deptId">
-                        Select All in this Department
-                      </label>
-                    </div>
-
-                    <div class="max-h-48 overflow-y-auto">
-                      @if (filteredUsersByDept.get(deptId)?.length) {
-                      @for (user of filteredUsersByDept.get(deptId)!; track user.userId) {
-                      <div class="form-check mb-2" [ngClass]="{'hod-highlight': user.role === 'HOD'}">
-                        <input type="checkbox" class="form-check-input custom-checkbox" [id]="'user-' + user.userId"
-                          [checked]="selectedUsersByDeptObj[deptId]?.includes(user.userId)"
-                          (change)="updateUserSelection(deptId, user.userId, $event.target.checked)"
-                          [disabled]="taskForm.value.assignToSelf ? (user.userId !== currentUser?.userId) : isUserSelectionDisabled(user)" />
-                        <label class="form-check-label" [for]="'user-' + user.userId">
-                          {{ user.fullName }}
-                          <small class="text-muted ms-2">({{ user.role }})</small>
-                          @if (user.role === 'HOD') {
-                          <span class="badge bg-warning text-dark ms-2">HOD</span>
-                          }
-                        </label>
-                      </div>
-                      }
-                      } @else {
-                      <div class="text-muted small text-center py-4">
-                        @if (userSearchByDept[deptId]) {
-                        No users found for "{{ userSearchByDept[deptId] }}"
-                        } @else {
-                        No active users in this department
-                        }
-                      </div>
-                      }
-                    </div>
+                  </div>
+                  <div *ngIf="!task.requests?.length" class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p>No requests yet</p>
                   </div>
                 </div>
               </div>
-              }
             </div>
-
-            <!-- Assign to self -->
-            <div class="form-check mt-4">
-              <input type="checkbox" class="form-check-input custom-checkbox" id="assignToSelf"
-                formControlName="assignToSelf" [disabled]="!currentUser" />
-              <label class="form-check-label text-emerald-700 fw-medium" for="assignToSelf">
-                Assign this task to myself
-              </label>
-            </div>
-            <div class="field-hint mt-1">
-              When enabled, task is auto-assigned to you and other selections are restricted.
-            </div>
-          </div>
-          }
-
-          <!-- Recurring -->
-          <div class="col-12 mt-5 pt-4 border-top">
-            <div class="form-check form-switch form-switch-lg">
-              <input type="checkbox" class="form-check-input custom-checkbox" id="isRecurring"
-                formControlName="isRecurring" />
-              <label class="form-check-label fw-semibold text-emerald-700 fs-5 ms-2" for="isRecurring">
-                Make this task recurring
-              </label>
-            </div>
-            <div class="field-hint mt-2">
-              Task will be automatically recreated according to the chosen recurrence pattern.
-              @if (taskForm.value.isRecurring) {
-              <span class="text-emerald-600 ms-2">
-                <i class="bi bi-info-circle"></i>
-                Configure recurrence settings
-              </span>
-              }
-            </div>
-
-            <!-- Recurrence Summary -->
-            @if (taskForm.value.isRecurring) {
-            <div class="alert alert-info mt-3">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-arrow-repeat me-2"></i>
-                <div>
-                  <strong>Recurrence Settings:</strong>
-                  <div class="small mt-1">
-                    Repeat every {{ taskForm.value.recurrenceInterval }}
-                    {{ taskForm.value.recurrenceType?.toLowerCase() }}
-                    @if (taskForm.value.recurrenceEndDate) {
-                    until {{ taskForm.value.recurrenceEndDate | date:'mediumDate' }}
-                    } @else {
-                    indefinitely
-                    }
-                  </div>
+  
+            <!-- Recurred Instances Section -->
+            <div class="collapsible-section" *ngIf="task.isRecurring && currentUserRole === 'ADMIN'">
+              <div class="section-header" (click)="toggleCollapse('instances')" [class.disabled]="isLoadingInstances">
+                <div class="header-left">
+                  <i class="bi bi-copy"></i>
+                  <h3>Recurred Instances ({{ recurredInstances.length }})</h3>
+                  <span *ngIf="isLoadingInstances" class="loading-indicator">
+                    <i class="bi bi-hourglass-split"></i>
+                  </span>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline ms-auto" (click)="openRecurrenceModal()">
-                  Edit
-                </button>
+                <div class="header-right">
+                  <i [class]="collapsed.instances ? 'bi bi-chevron-down' : 'bi bi-chevron-up'"></i>
+                </div>
               </div>
-            </div>
-            }
-          </div>
-        </div>
-
-        <!-- Form Error Summary -->
-        @if (formErrors.length > 0 && taskForm.touched) {
-        <div class="alert alert-warning mt-4">
-          <h6 class="alert-heading mb-2">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            Please fix the following issues:
-          </h6>
-          <ul class="mb-0">
-            @for (error of formErrors; track error) {
-            <li>{{ error }}</li>
-            }
-          </ul>
-        </div>
-        }
-
-        <!-- Buttons -->
-        <div class="d-flex flex-column flex-md-row justify-content-end gap-3 mt-5 pt-4 border-top">
-          <button type="button" class="btn btn-outline-secondary px-5 py-2" (click)="cancel()"
-            [disabled]="isSubmitting">
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-primary px-5 py-2 d-flex align-items-center gap-2"
-            [disabled]="isSubmitting || taskForm.invalid">
-            @if (!isSubmitting) {
-            <i class="bi bi-plus-circle"></i>
-            <span>Create Task</span>
-            } @else {
-            <span class="spinner-border spinner-border-sm" role="status"></span>
-            <span>Creating...</span>
-            }
-          </button>
-        </div>
-
-        <!-- Recurrence Modal -->
-        <div class="modal fade" id="recurrenceModal" tabindex="-1" aria-labelledby="recurrenceModalLabel"
-          aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content rounded-4 shadow-xl border-0 overflow-hidden">
-              <div class="modal-header border-0 py-4 px-5 bg-gradient-emerald text-white">
-                <h5 class="modal-title fw-bold fs-4" id="recurrenceModalLabel">Recurrence Settings</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                  aria-label="Close"></button>
-              </div>
-
-              <div class="modal-body px-5 py-4">
-                <div class="row g-4">
-                  <div class="col-md-7">
-                    <label class="form-label fw-semibold">Repeat every</label>
-                    <div class="input-group input-group-lg">
-                      <input type="number" class="form-control" formControlName="recurrenceInterval" min="1" max="365"
-                        placeholder="1" (input)="onRecurrenceIntervalChange($event)" />
-                      <select class="form-select" formControlName="recurrenceType" (change)="onRecurrenceTypeChange()">
-                        <option value="DAILY">Day(s)</option>
-                        <option value="WEEKLY">Week(s)</option>
-                        <option value="MONTHLY">Month(s)</option>
-                      </select>
+              <div class="section-content" *ngIf="!collapsed.instances">
+                <div *ngIf="isLoadingInstances" class="loading-instances">
+                  <div class="spinner"></div>
+                  <p>Loading recurred instances...</p>
+                </div>
+                <div *ngIf="!isLoadingInstances" class="instances-grid">
+                  <div *ngFor="let instance of recurredInstances" class="instance-card">
+                    <div class="instance-header">
+                      <h4>{{ instance.title }}</h4>
+                      <span *ngIf="instance.taskId === taskId" class="current-instance">Current</span>
                     </div>
-                    @if (recurrenceIntervalError) {
-                    <div class="invalid-feedback d-block">
-                      <small>{{ recurrenceIntervalError }}</small>
-                    </div>
-                    }
-                    <div class="field-hint mt-2">
-                      Example: <strong>2 Weeks</strong> = task repeats every 2 weeks
-                    </div>
-                  </div>
-
-                  <div class="col-md-5">
-                    <label class="form-label fw-semibold">End after</label>
-                    <div class="input-group input-group-lg">
-                      <span class="input-group-text bg-emerald-50 text-emerald-700">
-                        <i class="bi bi-calendar-x"></i>
-                      </span>
-                      <input type="date" class="form-control" formControlName="recurrenceEndDate"
-                        [min]="recurrenceEndDateMin" (change)="onRecurrenceEndDateChange()" />
-                    </div>
-                    <div class="field-hint mt-2 text-muted">
-                      Leave blank = repeats indefinitely
-                    </div>
-                  </div>
-
-                  <!-- Preview -->
-                  <div class="col-12 mt-4">
-                    <div class="card border-info bg-info-subtle">
-                      <div class="card-body">
-                        <h6 class="card-title text-info">
-                          <i class="bi bi-calendar-week me-2"></i>
-                          Recurrence Preview
-                        </h6>
-                        <p class="mb-0 small">
-                          {{ recurrencePreview }}
-                        </p>
+                    <div class="instance-body">
+                      <p class="instance-desc">{{ (instance.description || '—') | slice:0:100 }}{{ instance.description && instance.description.length > 100 ? '...' : '' }}</p>
+                      <div class="instance-meta">
+                        <span class="due-date">
+                          <i class="bi bi-calendar"></i>
+                          {{ instance.dueDate | date:'mediumDate' }}
+                        </span>
+                        <span class="instance-status" [ngClass]="getStatusBadgeClass(instance.status)">
+                          {{ formatStatus(instance.status) }}
+                        </span>
                       </div>
                     </div>
+                    <div class="instance-actions">
+                      <button class="btn-quick-view" (click)="viewInstanceDetails(instance.taskId)">
+                        <i class="bi bi-eye"></i> Quick View
+                      </button>
+                      <button class="btn-full-view" (click)="viewTaskById(instance.taskId)">
+                        <i class="bi bi-box-arrow-up-right"></i> Full View
+                      </button>
+                    </div>
+                  </div>
+                  <div *ngIf="!recurredInstances.length" class="empty-state">
+                    <i class="bi bi-copy"></i>
+                    <p>No recurred instances found</p>
                   </div>
                 </div>
-              </div>
-
-              <div class="modal-footer border-0 px-5 pb-5 pt-2">
-                <button type="button" class="btn btn-outline-secondary px-5 py-2" (click)="closeRecurrenceModal()">
-                  Cancel
-                </button>
-                <button type="button" class="btn btn-primary px-5 py-2 d-flex align-items-center gap-2"
-                  (click)="saveRecurrenceSettings()" [disabled]="recurrenceIntervalError">
-                  <i class="bi bi-check2-circle"></i> Apply Recurrence
-                </button>
               </div>
             </div>
           </div>
         </div>
-      </form>
+  
+        <!-- Right Column - Quick Actions & Timeline -->
+        <div class="content-right">
+          <!-- Quick Actions Card -->
+          <div class="card quick-actions">
+            <div class="card-header">
+              <h3><i class="bi bi-lightning"></i> Quick Actions</h3>
+            </div>
+            <div class="card-body">
+              <div class="actions-list">
+                <!-- Show/Hide Buttons -->
+                <button *ngIf="currentUserRole!='TEACHER'" class="btn-action-collapse" (click)="toggleCollapse('users')">
+                  <i class="bi bi-people"></i>
+                  {{ collapsed.users ? 'Show' : 'Hide' }} Users
+                </button>
+                
+                <button *ngIf="currentUserRole!='TEACHER'" class="btn-action-collapse" (click)="toggleCollapse('departments')">
+                  <i class="bi bi-diagram-3"></i>
+                  {{ collapsed.departments ? 'Show' : 'Hide' }} Departments
+                </button>
+                
+                <button class="btn-action-collapse" (click)="toggleCollapse('requests')">
+                  <i class="bi bi-journal-text"></i>
+                  {{ collapsed.requests ? 'Show' : 'Hide' }} Requests
+                </button>
+                
+                <button *ngIf="task.isRecurring && currentUserRole === 'ADMIN'" 
+                        class="btn-action-collapse" 
+                        (click)="toggleCollapse('instances')"
+                        [disabled]="isLoadingInstances">
+                  <i class="bi bi-copy"></i>
+                  {{ collapsed.instances ? 'Show' : 'Hide' }} Instances
+                </button>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Timeline Card -->
+          <div class="card timeline-card">
+            <div class="card-header">
+              <h3><i class="bi bi-clock-history"></i> Task Timeline</h3>
+            </div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="timeline-item completed">
+                  <div class="timeline-marker">
+                    <i class="bi bi-check-circle"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <span class="timeline-title">Task Created</span>
+                    <span class="timeline-date">{{ task.startDate | date:'mediumDate' }}</span>
+                  </div>
+                </div>
+                
+                <div class="timeline-item" [class.completed]="task.status !== 'PENDING'">
+                  <div class="timeline-marker">
+                    <i class="bi bi-play-circle"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <span class="timeline-title">Task Started</span>
+                    <span class="timeline-date">{{ task.startedAt ? (task.startedAt | date:'mediumDate') : 'Pending' }}</span>
+                  </div>
+                </div>
+                
+                <div class="timeline-item" [class.completed]="task.status === 'CLOSED'">
+                  <div class="timeline-marker">
+                    <i class="bi bi-flag"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <span class="timeline-title">Task Completed</span>
+                    <span class="timeline-date">{{ task.status === 'CLOSED' ? 'Completed' : 'In Progress' }}</span>
+                  </div>
+                </div>
+                
+                <div class="timeline-item">
+                  <div class="timeline-marker">
+                    <i class="bi bi-calendar-x"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <span class="timeline-title">Due Date</span>
+                    <span class="timeline-date">{{ task.dueDate | date:'mediumDate' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Urgency Card -->
+          <div class="card urgency-card" *ngIf="isTaskOverdue()">
+            <div class="card-header">
+              <h3><i class="bi bi-exclamation-triangle"></i> Urgent Attention Needed</h3>
+            </div>
+            <div class="card-body">
+              <div class="urgency-content">
+                <div class="urgency-icon">
+                  <i class="bi bi-alarm"></i>
+                </div>
+                <div class="urgency-text">
+                  <p>This task is overdue! Please take immediate action.</p>
+                  <small>Due date was {{ task.dueDate | date:'mediumDate' }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+  
+  <!-- Proofs Modal -->
+  <div class="modal fade" id="proofsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-paperclip"></i> Request Proofs ({{ selectedRequestProofs.length }})</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div *ngIf="selectedRequestProofs.length === 0" class="empty-proofs">
+            <i class="bi bi-inbox"></i>
+            <p>No proofs attached</p>
+          </div>
+          <div class="proofs-grid">
+            <div *ngFor="let p of selectedRequestProofs" class="proof-card">
+              <div class="proof-icon">
+                <i class="bi bi-file-earmark"></i>
+              </div>
+              <div class="proof-details">
+                <h6>{{ getFileName(p.fileUrl) }}</h6>
+                <p>{{ (p.fileSize / 1024).toFixed(2) }} KB • {{ p.fileType }}</p>
+                <small>Uploaded: {{ p.uploadedAt | date:'medium' }}</small>
+              </div>
+              <a [href]="p.fileUrl" target="_blank" class="btn-download">
+                <i class="bi bi-download"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Rejection Modal -->
+  <div class="modal fade" id="rejectionModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-x-circle"></i> Reject Request</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Rejection Reason <span class="required">*</span></label>
+            <textarea [(ngModel)]="rejectionReason" class="form-control" rows="4" 
+                      placeholder="Please provide a reason for rejecting this request..." 
+                      required></textarea>
+            <small class="form-text">This reason will be shared with the requester.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" [disabled]="!rejectionReason.trim()" (click)="confirmRejection()">
+            <i class="bi bi-x-circle"></i> Reject Request
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Extension Approval Modal -->
+  <div class="modal fade" id="extensionApprovalModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-calendar-plus"></i> Approve Extension</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Current Due Date</label>
+            <input type="text" class="form-control" [value]="task?.dueDate | date:'mediumDate'" readonly>
+          </div>
+          <div class="form-group">
+            <label>New Due Date <span class="required">*</span></label>
+            <input type="date" [(ngModel)]="extensionDueDate" class="form-control" [min]="todayDate" required>
+            <small class="form-text">Select a date after the current due date.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success" [disabled]="!extensionDueDate" (click)="confirmExtensionApproval()">
+            <i class="bi bi-check-circle"></i> Approve Extension
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Add Request Modal -->
+  <div class="modal fade" id="addRequestModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Submit Request</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form #requestForm="ngForm">
+            <!-- Task Info -->
+            <div class="alert alert-info">
+              <h6>Task Information</h6>
+              <p><strong>Task:</strong> {{ task?.title }}</p>
+              <p><strong>Current Due Date:</strong> {{ task?.dueDate | date:'mediumDate' }}</p>
+            </div>
+  
+            <!-- Request Type -->
+            <div class="form-group">
+              <label>Request Type <span class="required">*</span></label>
+              <div class="request-type-options">
+                <div class="option-card" [class.selected]="newRequest.requestType === 'EXTENSION'">
+                  <input type="radio" name="requestType" id="extension" 
+                         [(ngModel)]="newRequest.requestType" value="EXTENSION" required>
+                  <label for="extension">
+                    <i class="bi bi-calendar-plus"></i>
+                    <span>Extension Request</span>
+                    <small>Request additional time to complete the task</small>
+                  </label>
+                </div>
+                <div class="option-card" [class.selected]="newRequest.requestType === 'CLOSURE'">
+                  <input type="radio" name="requestType" id="closure" 
+                         [(ngModel)]="newRequest.requestType" value="CLOSURE" required>
+                  <label for="closure">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Closure Request</span>
+                    <small>Request to close the task with proof</small>
+                  </label>
+                </div>
+              </div>
+            </div>
+  
+            <!-- Remarks -->
+            <div class="form-group">
+              <label>
+                {{ newRequest.requestType === 'EXTENSION' ? 'Extension Reason' : 'Completion Notes' }}
+                <span class="required">*</span>
+              </label>
+              <textarea class="form-control" [(ngModel)]="newRequest.remarks" name="remarks" rows="4"
+                        [placeholder]="newRequest.requestType === 'EXTENSION' 
+                                     ? 'Explain why you need an extension...' 
+                                     : 'Describe how the task was completed...'" 
+                        required></textarea>
+            </div>
+  
+            <!-- Proofs -->
+            <div class="form-group">
+              <label>
+                <i class="bi bi-paperclip"></i>
+                {{ newRequest.requestType === 'CLOSURE' ? 'Completion Proofs' : 'Supporting Documents' }}
+                <span class="required" *ngIf="newRequest.requestType === 'CLOSURE'">*</span>
+              </label>
+              <div class="file-upload">
+                <input type="file" multiple (change)="onProofsSelected($event)" 
+                       [accept]="'.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt'">
+                <div class="upload-area">
+                  <i class="bi bi-cloud-upload"></i>
+                  <p>Drag & drop files or click to browse</p>
+                  <small>Max 10MB per file</small>
+                </div>
+              </div>
+              
+              <!-- Selected files -->
+              <div *ngIf="selectedProofs.length > 0" class="selected-files">
+                <h6>Selected Files ({{ selectedProofs.length }})</h6>
+                <div class="files-list">
+                  <div *ngFor="let f of selectedProofs; let i = index" class="file-item">
+                    <div class="file-info">
+                      <i class="bi bi-file-earmark"></i>
+                      <div>
+                        <strong>{{ f.name }}</strong>
+                        <small>{{ (f.size/1024/1024).toFixed(2) }} MB</small>
+                      </div>
+                    </div>
+                    <button type="button" class="btn-remove" (click)="removeProof(i)">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" 
+                  [disabled]="isAddingReq || !requestForm.valid || 
+                             (newRequest.requestType === 'CLOSURE' && selectedProofs.length === 0) ||
+                             (newRequest.requestType === 'EXTENSION' && !newRequest.remarks.trim())"
+                  (click)="addRequest()">
+            <i *ngIf="isAddingReq" class="bi bi-hourglass-split spinner"></i>
+            <i *ngIf="!isAddingReq" class="bi bi-send"></i>
+            {{ isAddingReq ? 'Submitting...' : 'Submit Request' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- View Instance Details Modal -->
+  <div class="modal fade" id="viewInstanceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-eye"></i> Instance Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedInstance">
+          <!-- Instance Header -->
+          <div class="instance-header">
+            <h4>{{ selectedInstance.title }}</h4>
+            <span class="instance-status" [ngClass]="getStatusBadgeClass(selectedInstance.status)">
+              {{ formatStatus(selectedInstance.status) }}
+            </span>
+          </div>
+  
+          <!-- Instance Details -->
+          <div class="instance-details-grid">
+            <div class="detail-card">
+              <h6><i class="bi bi-info-circle"></i> Basic Information</h6>
+              <p><strong>Instance ID:</strong> {{ selectedInstance.taskId }}</p>
+              <p><strong>Created By:</strong> {{ selectedInstance.createdByName }}</p>
+              <p><strong>Start Date:</strong> {{ selectedInstance.startDate | date:'mediumDate' }}</p>
+              <p><strong>Due Date:</strong> {{ selectedInstance.dueDate | date:'mediumDate' }}</p>
+            </div>
+            <div class="detail-card">
+              <h6><i class="bi bi-graph-up"></i> Statistics</h6>
+              <p><strong>Assigned Users:</strong> {{ selectedInstance.assignedToIds?.length || 0 }}</p>
+              <p><strong>Departments:</strong> {{ selectedInstance.departmentIds?.length || 0 }}</p>
+              <p><strong>Requests:</strong> {{ selectedInstance.requests?.length || 0 }}</p>
+              <p><strong>Proofs:</strong> {{ selectedInstance.proofs?.length || 0 }}</p>
+            </div>
+          </div>
+  
+          <!-- Description -->
+          <div class="instance-description">
+            <h6><i class="bi bi-card-text"></i> Description</h6>
+            <p>{{ selectedInstance.description || 'No description provided' }}</p>
+          </div>
+  
+          <!-- Action Buttons -->
+          <div class="instance-actions-modal">
+            <button type="button" class="btn btn-primary" 
+                    [disabled]="!selectedInstance || !selectedInstance.taskId" 
+                    (click)="viewTaskById(selectedInstance!.taskId)">
+              <i class="bi bi-box-arrow-up-right"></i> View Full Details
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="bi bi-x-circle"></i> Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

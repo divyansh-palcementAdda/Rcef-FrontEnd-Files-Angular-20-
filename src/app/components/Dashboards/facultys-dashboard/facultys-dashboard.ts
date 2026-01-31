@@ -5,7 +5,7 @@ import { ChartConfiguration } from 'chart.js';
 import { Subscription } from 'rxjs';
 import { trigger, transition, useAnimation, query, stagger } from '@angular/animations';
 import { BaseChartDirective } from 'ng2-charts';
-
+import { BulletinBannerComponent } from '../../Shared/bulletin-banner/bulletin-banner';
 import { ApiService } from '../../../Services/api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
@@ -20,7 +20,7 @@ import { fadeInUp } from '../../../Animations/fade-in-up.animation';
     RouterLink,
     RouterLinkActive,
     BaseChartDirective,
-    DatePipe
+    DatePipe,BulletinBannerComponent
   ],
   animations: [
     trigger('fadeInUpStagger', [

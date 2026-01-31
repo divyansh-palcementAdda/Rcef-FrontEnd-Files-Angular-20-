@@ -1,960 +1,843 @@
 import { CommonModule } from '@angular/common';
-import { 
-  Component, 
-  OnInit, 
-  AfterViewInit, 
-  ChangeDetectionStrategy,
-  OnDestroy,
-  ViewChild,
-  ElementRef,
-  ChangeDetectorRef,
-  inject 
-} from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import {
-  FormBuilder,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-  FormControl,
-  AbstractControl,
-  ValidationErrors,
-  ValidatorFn
-} from '@angular/forms';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
-import { JwtService } from '../../../Services/jwt-service';
-import { Department } from '../../../Model/department';
-import { TaskStatus } from '../../../Model/TaskStatus';
 import { UserApiService } from '../../../Services/UserApiService';
-import { userDto } from '../../../Model/userDto';
+import { RequestApiService } from '../../../Services/request-api-service';
 import { TaskDto } from '../../../Model/TaskDto';
-import { HttpErrorResponse } from '@angular/common/http';
-import { AuthApiService } from '../../../Services/auth-api-service';
-import { TitleCasePipe } from '@angular/common';
-import * as bootstrap from 'bootstrap';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Department } from '../../../Model/department';
+import { userDto } from '../../../Model/userDto';
+import { forkJoin, of, Subscription } from 'rxjs';
+import { JwtService } from '../../../Services/jwt-service';
+import { Modal } from 'bootstrap';
+import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
 
-type RecurrenceType = 'DAILY' | 'WEEKLY' | 'MONTHLY';
-
-interface TaskFormControls {
-  title: AbstractControl;
-  description: AbstractControl;
-  status: AbstractControl;
-  startDate: AbstractControl;
-  dueDate: AbstractControl;
-  departmentIds: AbstractControl;
-  assignedToIds: AbstractControl;
-  assignToSelf: AbstractControl;
-  isRecurring: AbstractControl;
-  recurrenceType: AbstractControl;
-  recurrenceInterval: AbstractControl;
-  recurrenceEndDate: AbstractControl;
+interface EnrichedDepartment {
+  id: number;
+  name: string;
+  hodName: string;
+  userCount: number;
+  users: userDto[];
+}
+interface CollapsedState {
+  users: boolean;
+  departments: boolean;
+  requests: boolean;
+  instances: boolean;
 }
 
+interface TaskStats {
+  label: string;
+  count: number;
+  color: string;
+  icon?: string;
+}
 @Component({
-  selector: 'app-add-task',
+  selector: 'app-test2',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, TitleCasePipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './test2.html',
   styleUrls: ['./test2.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Test2 implements OnInit, AfterViewInit, OnDestroy {
-  // Services
-  private fb = inject(FormBuilder);
-  private taskService = inject(TaskApiService);
-  private departmentService = inject(DepartmentApiService);
-  private userService = inject(UserApiService);
-  private jwtService = inject(JwtService);
-  private router = inject(Router);
-  private authApiService = inject(AuthApiService);
-  private cdr = inject(ChangeDetectorRef);
-  
-  // Form
-  taskForm!: FormGroup;
-  
-  // State
-  isLoadingDepartments = false;
-  isLoadingUsers = false;
-  isSubmitting = false;
-  
-  // Data
-  departments: Department[] = [];
-  filteredDepartments: Department[] = [];
-  usersByDepartment: Map<number, userDto[]> = new Map();
-  filteredUsersByDept: Map<number, userDto[]> = new Map();
-  selectedUsersByDeptObj: Record<number, number[]> = {};
-  statuses: TaskStatus[] = [TaskStatus.PENDING];
-  currentUser: userDto | null = null;
-  
-  // Messages
-  successMessage: string | null = null;
-  errorMessage: string | null = null;
-  dueDateErrorMessage: string | null = null;
-  startDateErrorMessage: string | null = null;
-  recurrenceIntervalError: string | null = null;
-  
-  // Search
-  deptSearch = '';
-  userSearchByDept: Record<number, string> = {};
-  
-  // Selection states
-  selectAllDepts = false;
-  selectAllUsersByDept: Record<number, boolean> = {};
-  
-  // UI state
-  token = '';
-  userId: number | null = null;
-  minDate = new Date().toISOString().split('T')[0];
-  recurrenceEndDateMin = this.minDate;
-  
-  // Modal
-  private recurrenceModal?: bootstrap.Modal;
-  
-  // Form errors
-  formErrors: string[] = [];
-  
-  // Preview
-  recurrencePreview = '';
-  
-  // Destroy subject
-  private destroy$ = new Subject<void>();
-  
-  // ViewChild
-  @ViewChild('recurrenceModal') modalElement?: ElementRef;
+export class Test2 implements OnInit, OnDestroy {
 
-  // Custom Validators
-  private noSundayValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      if (!control.value) return null;
-      
-      const date = new Date(control.value);
-      if (date.getDay() === 0) {
-        return { noSunday: true };
-      }
-      
-      return null;
-    };
-  }
-  
-  private futureDateValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      if (!control.value) return null;
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const inputDate = new Date(control.value);
-      inputDate.setHours(0, 0, 0, 0);
-      
-      if (inputDate < today) {
-        return { pastDate: true };
-      }
-      
-      return null;
-    };
-  }
+  task?: TaskDto;
+  isStarting = false;
+  isLoading = true;
+  isLoadingInstances = false;
+  isApproving = false;
+  isAssigned = false;
+  isAddingReq = false;
+  errorMessage = '';
+  isForbidden = false;
+  taskId!: number;
+  currentUserRole = '';
+  currentUserId = 0;
+  currentUserDepartments: number[] = [];
+  isHOD = false;
 
-  constructor() {
-    this.initForm();
-  }
+  todayDate = new Date().toISOString().split('T')[0];
+  rejectionReason = '';
+  rejectionRequestId?: number;
+  extensionRequestId?: number;
+  extensionDueDate?: string;
+
+  private rejectionModal?: Modal;
+  private extensionModal?: Modal;
+  private addRequestModal?: Modal;
+  private viewInstanceModal?: Modal;
+
+  assignedUsers: userDto[] = [];
+  enrichedDepartments: EnrichedDepartment[] = [];
+  collapsed: CollapsedState = {
+    users: true,
+    departments: true,
+    requests: true,
+    instances: true
+  };
+
+  // Recurred Instances
+  recurredInstances: TaskDto[] = [];
+  selectedInstance?: TaskDto;
+
+  selectedRequestProofs: any[] = [];
+  private proofsModal?: Modal;
+  private subscriptions = new Subscription();
+
+  // Add Request Modal State
+  newRequest: {
+    requestType: 'CLOSURE' | 'EXTENSION' | null;
+    remarks: string;
+  } = { requestType: null, remarks: '' };
+
+  selectedProofs: File[] = [];
+
+  // Enhanced stats with icons
+  private _stats: TaskStats[] = [];
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private taskService: TaskApiService,
+    private deptService: DepartmentApiService,
+    private userService: UserApiService,
+    private jwtService: JwtService,
+    private requestService: RequestApiService
+  ) { }
 
   ngOnInit(): void {
-    this.loadCurrentUser();
-    this.setupFormListeners();
+    const taskId = Number(this.route.snapshot.paramMap.get('id'));
+    this.taskId = taskId;
+
+    if (!taskId || isNaN(taskId)) {
+      this.errorMessage = 'Invalid Task ID';
+      this.isLoading = false;
+      return;
+    }
+
+    this.checkUserPermissions(taskId);
   }
 
-  ngAfterViewInit(): void {
-    const modalEl = document.getElementById('recurrenceModal');
-  if (modalEl) {
-    this.recurrenceModal = new bootstrap.Modal(modalEl, {
-      backdrop: 'static',
-      keyboard: false
-    });
+  canEditDelete(): boolean {
+    return !this.isHOD && this.currentUserRole !== "TEACHER";
   }
-    // this.initModal();
+
+  editTask(): void {
+    if (this.canEditDelete()) {
+      this.router.navigate(['/edit-task'], {
+        queryParams: { taskId: this.taskId }
+      });
+    }
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    this.subscriptions.unsubscribe();
   }
 
-  // Form initialization
-  private initForm(): void {
-    this.taskForm = this.fb.group({
-      title: ['', [
-        Validators.required, 
-        Validators.maxLength(255),
-        Validators.minLength(3)
-      ]],
-      description: ['', [
-        Validators.maxLength(2000)
-      ]],
-      status: [null, Validators.required],
-      startDate: [''],
-      dueDate: ['', [
-        Validators.required,
-        this.noSundayValidator(),
-        this.futureDateValidator()
-      ]],
-      departmentIds: [[], [
-        Validators.required,
-        Validators.minLength(1)
-      ]],
-      assignedToIds: [[]],
-      assignToSelf: [false],
-      isRecurring: [false],
-      recurrenceType: ['DAILY'],
-      recurrenceInterval: [1, [
-        Validators.required,
-        Validators.min(1),
-        Validators.max(365)
-      ]],
-      recurrenceEndDate: [''],
-    });
+  // --- USER PERMISSION & TASK LOADING ---
 
-    // Set initial validators for start date based on status
-    this.updateStartDateValidators();
-  }
-
-  private setupFormListeners(): void {
-    // Status changes
-    this.taskForm.get('status')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((status: TaskStatus) => {
-        this.updateStartDateValidators();
-        this.validateDates();
-        this.cdr.markForCheck();
-      });
-
-    // Date changes with debounce
-    this.taskForm.get('startDate')?.valueChanges
-      .pipe(
-        takeUntil(this.destroy$),
-        debounceTime(300),
-        distinctUntilChanged()
-      )
-      .subscribe(() => {
-        this.validateDates();
-        this.cdr.markForCheck();
-      });
-
-    this.taskForm.get('dueDate')?.valueChanges
-      .pipe(
-        takeUntil(this.destroy$),
-        debounceTime(300),
-        distinctUntilChanged()
-      )
-      .subscribe(() => {
-        this.validateDates();
-        this.cdr.markForCheck();
-      });
-
-    // Assign to self changes
-    this.taskForm.get('assignToSelf')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((assignToSelf: boolean) => {
-        if (assignToSelf && this.currentUser) {
-          this.assignToSelfLogic();
-        } else {
-          this.clearAssignToSelfLogic();
-        }
-        this.cdr.markForCheck();
-      });
-
-    // Recurring changes
-    this.taskForm.get('isRecurring')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((isRecurring: boolean) => {
-        if (isRecurring) {
-          setTimeout(() => this.openRecurrenceModal(), 50);
-        }
-        this.updateRecurrencePreview();
-        this.cdr.markForCheck();
-      });
-
-    // Recurrence interval changes
-    this.taskForm.get('recurrenceInterval')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.updateRecurrencePreview();
-        this.cdr.markForCheck();
-      });
-
-    this.taskForm.get('recurrenceType')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.updateRecurrencePreview();
-        this.cdr.markForCheck();
-      });
-
-    this.taskForm.get('recurrenceEndDate')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.updateRecurrencePreview();
-        this.cdr.markForCheck();
-      });
-
-    // Department changes
-    this.taskForm.get('departmentIds')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((deptIds: number[]) => {
-        this.updateSelectAllDepts();
-        this.loadUsersForSelectedDepartments(deptIds);
-        this.cdr.markForCheck();
-      });
-  }
-
-  private updateStartDateValidators(): void {
-    const startDateCtrl = this.taskForm.get('startDate');
-    const status = this.taskForm.get('status')?.value;
-    
-    if (status === 'UPCOMING') {
-      startDateCtrl?.setValidators([
-        Validators.required,
-        this.noSundayValidator(),
-        this.futureDateValidator()
-      ]);
-    } else {
-      startDateCtrl?.clearValidators();
+  private checkUserPermissions(taskId: number): void {
+    const token = this.jwtService.getAccessToken();
+    if (!token) {
+      this.router.navigate(['/login']);
+      return;
     }
-    
-    startDateCtrl?.updateValueAndValidity();
-  }
 
-  // User loading
-  private loadCurrentUser(): void {
-    this.token = this.jwtService.getAccessToken() || '';
-    this.userId = this.jwtService.getUserIdFromToken(this.token);
-    
-    if (this.userId) {
-      this.userService.getUserById(this.userId).subscribe({
+    const userId = this.jwtService.getUserIdFromToken(token);
+    if (!userId) {
+      this.errorMessage = 'Invalid session';
+      this.isLoading = false;
+      return;
+    }
+    this.currentUserId = userId;
+
+    this.subscriptions.add(
+      this.userService.getUserById(this.currentUserId).subscribe({
         next: (user) => {
-          this.currentUser = user;
-          this.loadDepartments();
+          this.currentUserRole = user.role;
+          this.isHOD = user.role === 'HOD';
+          this.currentUserDepartments = user.departmentIds || [];
+
+          if (this.currentUserRole === 'TEACHER') {
+            this.verifyTeacherAccess(taskId);
+          } else if (this.isHOD) {
+            this.verifyHODAccess(taskId);
+          } else {
+            this.loadTask(taskId);
+          }
         },
-        error: (err) => {
-          console.error('Failed to load current user:', err);
-          this.loadDepartments();
+        error: (error) => {
+          console.error('Failed to verify user:', error);
+          this.errorMessage = 'Failed to verify user';
+          this.isLoading = false;
+        }
+      })
+    );
+  }
+
+  private verifyTeacherAccess(taskId: number): void {
+    this.taskService.getTaskById(taskId).subscribe({
+      next: (res) => {
+        if (!res.success || !res.data) {
+          this.errorMessage = 'Task not found';
+          this.isLoading = false;
+          return;
+        }
+
+        const assigned = res.data.assignedToIds || [];
+        if (!assigned.includes(this.currentUserId)) {
+          this.isForbidden = true;
+          this.isLoading = false;
+          return;
+        }
+
+        this.isAssigned = true;
+        this.task = res.data;
+        this.computeStats();
+        this.filterVisibleRequestsAndProofs();
+        this.fetchRelatedEntities();
+      },
+      error: (error) => {
+        console.error('Teacher access verification failed:', error);
+        this.isForbidden = true;
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private verifyHODAccess(taskId: number): void {
+    this.taskService.getTaskById(taskId).subscribe({
+      next: (res) => {
+        if (!res.success || !res.data) {
+          this.errorMessage = 'Task not found';
+          this.isLoading = false;
+          return;
+        }
+
+        const taskDeptIds = res.data.departmentIds || [];
+        const hasAccess = taskDeptIds.some(id => this.currentUserDepartments.includes(id));
+        this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
+
+        if (!hasAccess) {
+          this.isForbidden = true;
+          this.isLoading = false;
+          return;
+        }
+
+        this.task = res.data;
+        this.computeStats();
+        this.filterVisibleRequestsAndProofs();
+        this.fetchRelatedEntities();
+      },
+      error: (error) => {
+        console.error('HOD access verification failed:', error);
+        this.isForbidden = true;
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadTask(taskId: number): void {
+    this.taskService.getTaskById(taskId).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.task = res.data;
+          console.log('Task loaded successfully:', this.task);
+
+          this.computeStats();
+          this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
+          this.filterVisibleRequestsAndProofs();
+          this.fetchRelatedEntities();
+
+          // Load recurred instances if task is recurring and user is admin
+          if (this.task.isRecurring && this.currentUserRole === 'ADMIN') {
+            this.loadRecurredInstances();
+          }
+        } else {
+          this.errorMessage = res.message ?? 'Task not found';
+          this.isLoading = false;
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load task:', error);
+        this.errorMessage = 'Failed to load task. Please try again.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // --- LOAD RECURRED INSTANCES ---
+
+  private loadRecurredInstances(): void {
+    if (!this.taskId) return;
+
+    this.isLoadingInstances = true;
+
+    this.taskService.getRecurredInstances(this.taskId).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.recurredInstances = res.data.sort((a, b) =>
+            new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+          );
+          console.log('Recurred instances loaded:', this.recurredInstances.length);
+        } else {
+          console.log('No recurred instances found:', res.message);
+          this.recurredInstances = [];
+        }
+        this.isLoadingInstances = false;
+      },
+      error: (error) => {
+        console.error('Failed to load recurred instances:', error);
+        this.recurredInstances = [];
+        this.isLoadingInstances = false;
+      }
+    });
+  }
+
+  // --- VIEW INSTANCE DETAILS ---
+
+  viewInstanceDetails(instanceId: number): void {
+    // First try to find in cached instances
+    const cachedInstance = this.recurredInstances.find(i => i.taskId === instanceId);
+
+    if (cachedInstance) {
+      this.selectedInstance = cachedInstance;
+      this.openViewInstanceModal();
+    } else {
+      // Fetch fresh data if not in cache
+      this.isLoading = true;
+      this.taskService.getTaskById(instanceId).subscribe({
+        next: (res) => {
+          if (res.success && res.data) {
+            this.selectedInstance = res.data;
+            this.openViewInstanceModal();
+          } else {
+            alert('Failed to load instance details');
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error loading instance details:', error);
+          alert('Failed to load instance details');
+          this.isLoading = false;
         }
       });
-    } else {
-      this.loadDepartments();
     }
   }
 
-  private loadDepartments(): void {
-    this.isLoadingDepartments = true;
-    this.departmentService.getAllDepartments().subscribe({
-      next: (departments) => {
-        let filtered = departments;
-        
-        // Filter for HOD users
-        if (this.currentUser?.role === 'HOD') {
-          filtered = departments.filter(
-            (dept) =>
-              this.currentUser?.departmentIds?.includes(dept.departmentId) &&
-              dept.name.toLowerCase() !== 'administration'
-          );
-        }
-        
-        this.departments = filtered;
-        this.filteredDepartments = [...filtered];
-        this.isLoadingDepartments = false;
-        
-        this.updateSelectAllDepts();
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('Failed to load departments:', err);
-        this.errorMessage = 'Failed to load departments. Please try again.';
-        this.isLoadingDepartments = false;
-        this.cdr.markForCheck();
-      }
-    });
+  private openViewInstanceModal(): void {
+    if (!this.selectedInstance) return;
+
+    this.viewInstanceModal = new Modal(document.getElementById('viewInstanceModal')!);
+    this.viewInstanceModal.show();
   }
 
+  viewTaskById(taskId: number): void {
+    if (!taskId) return;
 
-private async loadUsersForSelectedDepartments(deptIds: number[]): Promise<void> {
-  if (!deptIds?.length) return;
+    // Close modal first
+    this.viewInstanceModal?.hide();
 
-  this.isLoadingUsers = true;
-
-  try {
-    const loadPromises = deptIds.map(deptId =>
-      firstValueFrom(this.userService.getAllUsersByDepartment(deptId))
-    );
-    const results = await Promise.all(loadPromises);
-    results.forEach((users, index) => {
-      const deptId = deptIds[index];
-
-      if (users?.length) {
-        const activeUsers = users.filter(u => u.status === 'ACTIVE');
-
-        this.usersByDepartment.set(deptId, activeUsers);
-        this.filteredUsersByDept.set(deptId, [...activeUsers]);
-        this.userSearchByDept[deptId] = '';
-      }
-    });
-
-  } catch (err) {
-    console.error('Failed to load users:', err);
-  } finally {
-    this.isLoadingUsers = false;
-    this.cdr.markForCheck();
-  }
-}
-
-
-  // UI Helpers
-  focusInput(event: MouseEvent, inputEl: HTMLInputElement): void {
-    event.preventDefault();
-    inputEl.focus();
-    inputEl.showPicker?.();
+    // Navigate to the instance task
+    this.router.navigate(['/task', taskId]);
   }
 
-  // Department handling
-  onDeptSearch(): void {
-    const query = this.deptSearch.toLowerCase().trim();
-    this.filteredDepartments = this.departments.filter((d) =>
-      d.name.toLowerCase().includes(query)
-    );
-    this.updateSelectAllDepts();
-  }
+  // --- FILTER REQUESTS BASED ON ROLE ---
 
-  clearDeptSearch(): void {
-    this.deptSearch = '';
-    this.onDeptSearch();
-  }
+  private filterVisibleRequestsAndProofs(): void {
+    if (!this.task?.requests) return;
 
-  private updateSelectAllDepts(): void {
-    const selected = this.taskForm.value.departmentIds;
-    this.selectAllDepts =
-      this.filteredDepartments.length > 0 &&
-      this.filteredDepartments.every((d) => selected.includes(d.departmentId));
-  }
+    if (this.currentUserRole === 'TEACHER') {
+      console.log('Filtering requests for TEACHER:', this.currentUserId);
+      console.log('Original requests:', this.task.requests);
 
-  toggleSelectAllDepts(): void {
-    this.selectAllDepts = !this.selectAllDepts;
-    const ids = this.selectAllDepts
-      ? this.filteredDepartments.map((d) => d.departmentId)
-      : [];
-
-    this.taskForm.patchValue({ departmentIds: ids });
-    if (!this.selectAllDepts) {
-      this.selectedUsersByDeptObj = {};
-      this.taskForm.patchValue({ assignedToIds: [] });
+      this.task.requests = this.task.requests.filter(r => {
+        console.log('createdBy:', r.requestedById, 'currentUserId:', this.currentUserId);
+        return r.requestedById === this.currentUserId;
+      });
     }
-  }
-
-  updateDepartmentSelection(deptId: number, checked: boolean): void {
-    if (this.taskForm.value.assignToSelf) {
-      return; // Block changes when assign to self is enabled
-    }
-
-    let selected = [...this.taskForm.value.departmentIds];
-    if (checked && !selected.includes(deptId)) {
-      selected.push(deptId);
-    } else if (!checked) {
-      selected = selected.filter((id) => id !== deptId);
-      delete this.selectedUsersByDeptObj[deptId];
-    }
-    this.taskForm.patchValue({ departmentIds: selected });
-    this.updateAssignedToIds();
-    this.updateSelectAllDepts();
-  }
-
-  // User handling
-  onUserSearch(deptId: number): void {
-    const query = (this.userSearchByDept[deptId] || '').toLowerCase().trim();
-    const allUsers = this.usersByDepartment.get(deptId) || [];
-    const filtered = allUsers.filter(
-      (u) =>
-        u.fullName.toLowerCase().includes(query) ||
-        u.username.toLowerCase().includes(query) ||
-        u.email.toLowerCase().includes(query)
-    );
-    this.filteredUsersByDept.set(deptId, filtered);
-    this.updateSelectAllUsersForDept(deptId);
-  }
-
-  clearUserSearch(deptId: number): void {
-    this.userSearchByDept[deptId] = '';
-    this.onUserSearch(deptId);
-  }
-
-  toggleSelectAllUsers(deptId: number): void {
-    const users = this.filteredUsersByDept.get(deptId) || [];
-    const enabledUsers = users.filter((u) => !this.isUserSelectionDisabled(u));
-    const currentlySelected = this.selectedUsersByDeptObj[deptId] || [];
-
-    const allSelected = enabledUsers.every((u) =>
-      currentlySelected.includes(u.userId)
-    );
-
-    this.selectedUsersByDeptObj[deptId] = allSelected ? [] : enabledUsers.map((u) => u.userId);
-    this.updateAssignedToIds();
-    this.updateSelectAllUsersForDept(deptId);
-  }
-
-  private updateSelectAllUsersForDept(deptId: number): void {
-    const users = this.filteredUsersByDept.get(deptId) || [];
-    const selected = this.selectedUsersByDeptObj[deptId] || [];
-    const enabled = users.filter((u) => !this.isUserSelectionDisabled(u));
-    this.selectAllUsersByDept[deptId] =
-      enabled.length > 0 && enabled.every((u) => selected.includes(u.userId));
-  }
-
-  updateUserSelection(deptId: number, userId: number, checked: boolean): void {
-    if (this.taskForm.value.assignToSelf && userId !== this.currentUser?.userId) {
-      return; // Block changes when assign to self is enabled
-    }
-
-    this.selectedUsersByDeptObj[deptId] ??= [];
-    if (checked && !this.selectedUsersByDeptObj[deptId].includes(userId)) {
-      this.selectedUsersByDeptObj[deptId].push(userId);
-    } else if (!checked) {
-      this.selectedUsersByDeptObj[deptId] = this.selectedUsersByDeptObj[deptId].filter(
-        (id) => id !== userId
+    else if (this.isHOD) {
+      // HOD sees requests for tasks in their dept
+      const deptIds = this.currentUserDepartments;
+      this.task.requests = this.task.requests.filter(r =>
+        this.task?.departmentIds?.some(d => deptIds.includes(d))
       );
     }
-    this.updateAssignedToIds();
-    this.updateSelectAllUsersForDept(deptId);
+    // ADMIN sees all
   }
 
-  private updateAssignedToIds(): void {
-    const all = Object.values(this.selectedUsersByDeptObj).flat();
-    this.taskForm.patchValue({ assignedToIds: all });
-  }
+  // --- FETCH USERS & DEPARTMENTS ---
 
-  // Assign to self logic
-  private assignToSelfLogic(): void {
-    if (!this.currentUser) return;
+  private fetchRelatedEntities(): void {
+    if (!this.task) return;
 
-    const myDeptIds = this.currentUser.departmentIds || [];
-    const myUserId = this.currentUser.userId;
+    const deptObs = this.task.departmentIds?.length
+      ? this.deptService.getDepartmentsByIds(this.task.departmentIds)
+      : of([]);
 
-    // Auto-select my departments
-    this.taskForm.patchValue({ departmentIds: myDeptIds });
+    const userObs = this.task.assignedToIds?.length
+      ? this.userService.getUsersByIds(this.task.assignedToIds)
+      : of([]);
 
-    // Auto-select myself in each department
-    this.selectedUsersByDeptObj = {};
-    myDeptIds.forEach(deptId => {
-      this.selectedUsersByDeptObj[deptId] = [myUserId];
-    });
-
-    // Update assignedToIds
-    this.updateAssignedToIds();
-
-    // Update UI states
-    myDeptIds.forEach(id => this.updateSelectAllUsersForDept(id));
-
-    // Expand first accordion
-    this.expandFirstAccordion();
-  }
-
-  private clearAssignToSelfLogic(): void {
-    // Keep department selections but clear user selections
-    this.selectedUsersByDeptObj = {};
-    this.updateAssignedToIds();
-    Object.keys(this.selectAllUsersByDept).forEach(key => {
-      this.selectAllUsersByDept[+key] = false;
-    });
-  }
-
-  private expandFirstAccordion(): void {
-    setTimeout(() => {
-      const firstDeptId = this.taskForm.value.departmentIds[0];
-      if (firstDeptId) {
-        const el = document.getElementById(`collapse-${firstDeptId}`);
-        if (el && !el.classList.contains('show')) {
-          const btn = document.querySelector(`[data-bs-target="#collapse-${firstDeptId}"]`) as HTMLElement;
-          btn?.click();
+    this.subscriptions.add(
+      forkJoin([deptObs, userObs]).subscribe({
+        next: ([departments, users]) => {
+          this.assignedUsers = users;
+          this.enrichDepartments(departments);
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Failed to load related data:', error);
+          this.errorMessage = 'Failed to load related data';
+          this.isLoading = false;
         }
+      })
+    );
+  }
+
+  private enrichDepartments(departments: Department[]): void {
+    this.enrichedDepartments = departments.map(dept => {
+      const users = dept.users || [];
+      const hod = users.find(u => u.role === 'HOD') || users[0];
+      return {
+        id: dept.departmentId,
+        name: dept.name,
+        hodName: hod ? hod.fullName : '—',
+        userCount: users.length,
+        users
+      };
+    });
+  }
+
+  // --- ADD REQUEST MODAL ---
+
+  get isAssignedToCurrentUser(): boolean {
+    return this.isAssigned;
+  }
+
+  openAddRequestModal(): void {
+    this.newRequest = { requestType: null, remarks: '' };
+    this.selectedProofs = [];
+    this.addRequestModal = new Modal(document.getElementById('addRequestModal')!);
+    this.addRequestModal.show();
+  }
+
+  onProofsSelected(event: any): void {
+    const files: FileList = event.target.files;
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > maxSize) {
+        alert(`File "${file.name}" exceeds 10MB limit.`);
+        continue;
       }
-    }, 100);
-  }
-
-  toggleAccordion(deptId: number): void {
-    const el = document.getElementById(`collapse-${deptId}`);
-    if (el) {
-      el.classList.toggle('show');
+      this.selectedProofs.push(file);
     }
+    event.target.value = '';
   }
 
-  // Date validation
-  validateDates(): void {
-    const startDate = this.taskForm.value.startDate;
-    const dueDate = this.taskForm.value.dueDate;
-    const status = this.taskForm.value.status;
+  removeProof(index: number): void {
+    this.selectedProofs.splice(index, 1);
+  }
 
-    this.dueDateErrorMessage = null;
-    this.startDateErrorMessage = null;
-
-    if (!dueDate) {
-      this.dueDateErrorMessage = 'Due date is required.';
+  addRequest(): void {
+    // Validation
+    if (!this.newRequest.requestType) {
+      alert('Please select request type.');
       return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const due = new Date(dueDate);
-    due.setHours(0, 0, 0, 0);
-
-    const start = startDate ? new Date(startDate) : today;
-    start.setHours(0, 0, 0, 0);
-
-
-    // Check if due date is before start date
-    if (due < start) {
-      this.dueDateErrorMessage = 'Due date must be on or after start date.';
-    }
-
-    // Status-specific validations
-    if (status === 'PENDING') {
-      if (due < today) {
-        this.dueDateErrorMessage = 'For PENDING status, due date cannot be in the past.';
-      }
-    }
-
-    if (status === 'UPCOMING') {
-      if (!startDate) {
-        this.startDateErrorMessage = 'Start date is required for UPCOMING status.';
-      } else if (start <= today) {
-        this.startDateErrorMessage = 'For UPCOMING status, start date must be in the future.';
-      }
-    }
-
-    // Update form validity
-    if (this.dueDateErrorMessage) {
-      this.taskForm.get('dueDate')?.setErrors({ custom: true });
-    } else {
-      this.taskForm.get('dueDate')?.setErrors(null);
-    }
-
-    if (this.startDateErrorMessage) {
-      this.taskForm.get('startDate')?.setErrors({ custom: true });
-    } else {
-      this.taskForm.get('startDate')?.setErrors(null);
-    }
-  }
-
-  onStartDateChange(): void {
-    this.validateDates();
-  }
-
-  onDueDateChange(): void {
-    this.validateDates();
-  }
-
-  // Form getters
-  get f(): TaskFormControls {
-    return {
-      title: this.taskForm.get('title')!,
-      description: this.taskForm.get('description')!,
-      status: this.taskForm.get('status')!,
-      startDate: this.taskForm.get('startDate')!,
-      dueDate: this.taskForm.get('dueDate')!,
-      departmentIds: this.taskForm.get('departmentIds')!,
-      assignedToIds: this.taskForm.get('assignedToIds')!,
-      assignToSelf: this.taskForm.get('assignToSelf')!,
-      isRecurring: this.taskForm.get('isRecurring')!,
-      recurrenceType: this.taskForm.get('recurrenceType')!,
-      recurrenceInterval: this.taskForm.get('recurrenceInterval')!,
-      recurrenceEndDate: this.taskForm.get('recurrenceEndDate')!,
-    };
-  }
-
-  get dueDateCtrl(): FormControl {
-    return this.taskForm.get('dueDate') as FormControl;
-  }
-
-  get startDateCtrl(): FormControl {
-    return this.taskForm.get('startDate') as FormControl;
-  }
-
-  // User permission checks
-  isUserSelectionDisabled(user: userDto): boolean {
-    if (!this.currentUser) return true;
-    
-    switch (this.currentUser.role) {
-      case 'ADMIN':
-        return false;
-      case 'HOD':
-        const isSelf = user.userId === this.currentUser.userId;
-        const sameDept = user.departmentIds?.some(id =>
-          this.currentUser?.departmentIds?.includes(id)
-        );
-        return !(isSelf || sameDept);
-      default:
-        return true;
-    }
-  }
-
-  getDepartmentName(id: number): string {
-    return this.departments.find(d => d.departmentId === id)?.name || `Department ${id}`;
-  }
-
-  getDepartmentNames(deptIds: number[]): string {
-    if (!deptIds?.length) return '';
-    return deptIds
-      .map(id => this.departments.find(d => d.departmentId === id)?.name)
-      .filter(Boolean)
-      .join(', ');
-  }
-
-  // Recurrence Modal
-  private initModal(): void {
-    if (this.modalElement) {
-      this.recurrenceModal = new bootstrap.Modal(this.modalElement.nativeElement, {
-        backdrop: 'static',
-        keyboard: false,
-      });
-    }
-  }
-
-  openRecurrenceModal(): void {
-    console.log('Opening recurrence modal');
-    if (this.recurrenceModal) {
-      console.log('Showing recurrence modal');
-      this.recurrenceModal.show();
-      this.updateRecurrencePreview();
-    }
-  }
-
-  closeRecurrenceModal(): void {
-    console.log('Closing recurrence modal');
-    if (this.recurrenceModal) {
-      console.log('Hiding recurrence modal');
-      this.recurrenceModal.hide();
-    }
-  }
-
-  onRecurrenceIntervalChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    const numValue = parseInt(value, 10);
-    
-    if (isNaN(numValue) || numValue < 1) {
-      this.recurrenceIntervalError = 'Interval must be at least 1';
-      this.taskForm.get('recurrenceInterval')?.setErrors({ min: true });
-    } else if (numValue > 365) {
-      this.recurrenceIntervalError = 'Interval cannot exceed 365';
-      this.taskForm.get('recurrenceInterval')?.setErrors({ max: true });
-    } else {
-      this.recurrenceIntervalError = null;
-      this.taskForm.get('recurrenceInterval')?.setErrors(null);
-    }
-    
-    this.updateRecurrencePreview();
-  }
-
-  onRecurrenceTypeChange(): void {
-    this.updateRecurrencePreview();
-  }
-
-  onRecurrenceEndDateChange(): void {
-    this.updateRecurrencePreview();
-  }
-
-  saveRecurrenceSettings(): void {
-    if (this.recurrenceIntervalError) {
-      return;
-    }
-    
-    this.closeRecurrenceModal();
-  }
-
-  private updateRecurrencePreview(): void {
-    const interval = this.taskForm.value.recurrenceInterval || 1;
-    const type = (this.taskForm.value.recurrenceType || 'DAILY') as RecurrenceType;
-    const endDate = this.taskForm.value.recurrenceEndDate;
-    
-    const typeMap: Record<RecurrenceType, string> = {
-      DAILY: interval === 1 ? 'day' : 'days',
-      WEEKLY: interval === 1 ? 'week' : 'weeks',
-      MONTHLY: interval === 1 ? 'month' : 'months'
-    };
-    
-    let preview = `Repeats every ${interval} ${typeMap[type]}`;
-    
-    if (endDate) {
-      const endDateStr = new Date(endDate).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-      preview += ` until ${endDateStr}`;
-    } else {
-      preview += ' indefinitely';
-    }
-    
-    this.recurrencePreview = preview;
-  }
-
-  // Form submission
-  onSubmit(): void {
-    if (this.taskForm.invalid) {
-      this.markFormAsTouched();
-      this.collectFormErrors();
-      this.errorMessage = 'Please fix the errors in the form before submitting.';
+    if (this.newRequest.requestType === 'EXTENSION' && !this.newRequest.remarks?.trim()) {
+      alert('Reason is required for extension.');
       return;
     }
 
-    this.validateDates();
-    if (this.dueDateErrorMessage || this.startDateErrorMessage) {
-      this.errorMessage = 'Please fix date errors before submitting.';
+    if (this.newRequest.requestType === 'CLOSURE' && this.selectedProofs.length === 0) {
+      alert('At least one proof is required for closure.');
       return;
     }
 
-    const formValue = this.taskForm.value;
-    const finalAssigned = [...(formValue.assignedToIds || [])];
-    
-    // Add current user if assign to self is checked
-    if (formValue.assignToSelf && this.currentUser) {
-      if (!finalAssigned.includes(this.currentUser.userId)) {
-        finalAssigned.push(this.currentUser.userId);
-      }
+    this.isAddingReq = true;
+
+    const formData = new FormData();
+    formData.append('requestType', this.newRequest.requestType);
+
+    if (this.newRequest.remarks?.trim()) {
+      formData.append('remarks', this.newRequest.remarks.trim());
     }
 
-    // Prepare payload
-    const payload: any = {
-      title: formValue.title,
-      description: formValue.description || '',
-      status: formValue.status,
-      startDate: formValue.startDate 
-        ? new Date(formValue.startDate).toISOString()
-        : new Date().toISOString(),
-      dueDate: new Date(formValue.dueDate).toISOString(),
-      departmentIds: formValue.departmentIds,
-      assignedToIds: finalAssigned,
-      assignToSelf: formValue.assignToSelf,
-    };
+    this.selectedProofs.forEach(file => {
+      formData.append('proofs', file, file.name);
+    });
 
-    // Add recurrence data if enabled
-    if (formValue.isRecurring) {
-      console.log('Adding recurrence data to payload');
-      payload.recurrenceType = formValue.recurrenceType;
-      payload.recurrenceInterval = Number(formValue.recurrenceInterval) || 1;
-      payload.isRecurring = true;
-      
-      if (formValue.recurrenceEndDate) {
-        payload.recurrenceEndDate = new Date(formValue.recurrenceEndDate).toISOString();
-      }
-    }
-
-    this.isSubmitting = true;
-    this.errorMessage = null;
-    
-    this.taskService.createTask(payload).subscribe({
-      next: (response) => {
-        this.successMessage = 'Task created successfully!';
-        this.isSubmitting = false;
-        
-        setTimeout(() => {
-          this.resetForm();
-          // this.authApiService.goToDashboard();
-        }, 1500);
-        
-        this.cdr.markForCheck();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isSubmitting = false;
-        
-        if (err.status === 400) {
-          this.errorMessage = err.error?.message || 'Invalid data. Please check your inputs.';
-        } else if (err.status === 401) {
-          this.errorMessage = 'Your session has expired. Please login again.';
-          setTimeout(() => this.router.navigate(['/login']), 2000);
-        } else if (err.status === 403) {
-          this.errorMessage = 'You do not have permission to create tasks.';
-        } else if (err.status === 409) {
-          this.errorMessage = 'A similar task already exists.';
+    this.requestService.createRequestWithProofs(this.taskId, formData).pipe(
+      finalize(() => this.isAddingReq = false)
+    ).subscribe({
+      next: (res) => {
+        if (res.success) {
+          alert('Request submitted successfully!');
+          this.addRequestModal?.hide();
+          this.reloadTask();
         } else {
-          this.errorMessage = err.error?.message || 'Failed to create task. Please try again.';
+          alert(res.message || 'Failed to submit request.');
         }
-        
-        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        const msg = err.error?.message || 'Server error. Please try again.';
+        alert('Error: ' + msg);
+        console.error('Error adding request:', err);
       }
     });
   }
 
-  private markFormAsTouched(): void {
-    Object.values(this.taskForm.controls).forEach(control => {
-      control.markAsTouched();
-    });
-  }
+  startTask(): void {
+    if (!confirm('Are you sure you want to start this task?')) {
+      return;
+    }
 
-  private collectFormErrors(): void {
-    this.formErrors = [];
-    
-    if (this.taskForm.get('title')?.errors) {
-      this.formErrors.push('Task title is required (3-255 characters)');
-    }
-    
-    if (this.taskForm.get('status')?.errors) {
-      this.formErrors.push('Status is required');
-    }
-    
-    if (this.taskForm.get('dueDate')?.errors) {
-      this.formErrors.push('Valid due date is required');
-    }
-    
-    if (this.taskForm.get('departmentIds')?.errors) {
-      this.formErrors.push('At least one department must be selected');
-    }
-    
-    if (this.startDateErrorMessage) {
-      this.formErrors.push(this.startDateErrorMessage);
-    }
-    
-    if (this.dueDateErrorMessage) {
-      this.formErrors.push(this.dueDateErrorMessage);
-    }
-  }
+    this.isStarting = true;
 
-  resetForm(): void {
-    this.taskForm.reset({
-      title: '',
-      description: '',
-      status: null,
-      startDate: '',
-      dueDate: '',
-      departmentIds: [],
-      assignedToIds: [],
-      assignToSelf: false,
-      isRecurring: false,
-      recurrenceType: 'DAILY',
-      recurrenceInterval: 1,
-      recurrenceEndDate: '',
-    });
-    
-    this.selectedUsersByDeptObj = {};
-    this.userSearchByDept = {};
-    this.deptSearch = '';
-    this.selectAllDepts = false;
-    this.selectAllUsersByDept = {};
-    this.formErrors = [];
-    this.successMessage = null;
-    this.errorMessage = null;
-    this.dueDateErrorMessage = null;
-    this.startDateErrorMessage = null;
-    
-    this.updateSelectAllDepts();
-    this.cdr.markForCheck();
-  }
-
-  cancel(): void {
-    if (this.taskForm.dirty) {
-      if (confirm('You have unsaved changes. Are you sure you want to cancel?')) {
-        this.authApiService.goToDashboard();
+    this.taskService.startTask(this.taskId).pipe(
+      finalize(() => this.isStarting = false)
+    ).subscribe({
+      next: (res) => {
+        if (res.success) {
+          alert('Task started successfully!');
+          this.reloadTask();
+        } else {
+          alert(res.message || 'Failed to start task.');
+        }
+      },
+      error: (err) => {
+        const msg = err.error?.message || 'Server error. Please try again.';
+        alert('Error: ' + msg);
+        console.error('Error starting task:', err);
       }
-    } else {
-      this.authApiService.goToDashboard();
+    });
+  }
+
+  // --- UI HELPERS ---
+
+  toggleCollapse(section: 'users' | 'departments' | 'requests' | 'instances') {
+    this.collapsed[section] = !this.collapsed[section];
+
+    // Auto-load instances when section is opened
+    if (section === 'instances' && !this.collapsed.instances &&
+      this.task?.isRecurring && this.currentUserRole === 'ADMIN' &&
+      this.recurredInstances.length === 0) {
+      this.loadRecurredInstances();
     }
+  }
+
+  getTaskStats(): TaskStats[] {
+    return this._stats;
+  }
+
+  private computeStats() {
+    this._stats = [
+      {
+        label: 'Assigned Users',
+        count: this.task?.assignedToIds?.length ?? 0,
+        color: 'primary',
+        icon: 'bi-people'
+      },
+      {
+        label: 'Departments',
+        count: this.task?.departmentIds?.length ?? 0,
+        color: 'info',
+        icon: 'bi-diagram-3'
+      },
+      {
+        label: 'Requests',
+        count: this.task?.requests?.length ?? 0,
+        color: 'warning',
+        icon: 'bi-journal-text'
+      },
+      {
+        label: 'Proofs',
+        count: this.task?.proofs?.length ?? 0,
+        color: 'success',
+        icon: 'bi-paperclip'
+      }
+    ];
+  }
+
+  formatStatus(status: string | undefined): string {
+    if (!status) return '—';
+
+    const statusMap: Record<string, string> = {
+      'PENDING': 'Pending',
+      'APPROVED': 'Approved',
+      'REJECTED': 'Rejected',
+      'REQUEST_FOR_CLOSURE': 'Request for Closure',
+      'REQUEST_FOR_EXTENSION': 'Request for Extension',
+      'UPCOMING': 'Upcoming',
+      'DELAYED': 'Delayed',
+      'CLOSED': 'Closed',
+      'IN_PROGRESS': 'In Progress',
+      'EXTENDED': 'Extended',
+      'CANCELLED': 'Cancelled'
+    };
+
+    return statusMap[status] || status.replace(/_/g, ' ');
+  }
+
+  getStatusBadgeClass(status: string): string {
+    const map: Record<string, string> = {
+      'PENDING': 'badge-pending',
+      'APPROVED': 'badge-approved',
+      'REJECTED': 'badge-rejected',
+      'REQUEST_FOR_CLOSURE': 'badge-request',
+      'REQUEST_FOR_EXTENSION': 'badge-request',
+      'UPCOMING': 'badge-upcoming',
+      'DELAYED': 'badge-delayed',
+      'CLOSED': 'badge-closed',
+      'IN_PROGRESS': 'badge-in-progress',
+      'EXTENDED': 'badge-extended',
+      'CANCELLED': 'badge-cancelled'
+    };
+    return map[status] || 'badge-secondary';
+  }
+
+  openProofsModal(request: any): void {
+    this.selectedRequestProofs = request.proofs || [];
+    this.proofsModal = new Modal(document.getElementById('proofsModal')!);
+    this.proofsModal.show();
+  }
+
+  getFileName(url: string): string {
+    if (!url) return 'Unknown file';
+    return url.split('/').pop()?.split('?')[0] || 'File';
+  }
+
+  // --- REQUEST APPROVAL / REJECTION ---
+
+  approveClosureRequest(requestId: number): void {
+    if (!confirm('Are you sure you want to approve this closure request?')) return;
+
+    this.requestService.approveRequest(this.taskId, requestId, {}).subscribe({
+      next: (res) => {
+        if (res.success) {
+          alert('Closure request approved successfully!');
+          this.reloadTask();
+        } else {
+          alert(res.message || 'Failed to approve closure request.');
+        }
+      },
+      error: (error) => {
+        console.error('Error approving closure request:', error);
+        alert('Failed to approve closure request. Please try again.');
+      }
+    });
+  }
+
+  showExtensionApprovalModal(request: any): void {
+    this.extensionRequestId = request.requestId;
+
+    // Set default extension date to current due date + 7 days
+    const currentDueDate = new Date(this.task?.dueDate || new Date());
+    currentDueDate.setDate(currentDueDate.getDate() + 7);
+    this.extensionDueDate = currentDueDate.toISOString().split('T')[0];
+
+    this.extensionModal = new Modal(document.getElementById('extensionApprovalModal')!);
+    this.extensionModal.show();
+  }
+
+  confirmExtensionApproval(): void {
+    if (!this.extensionRequestId || !this.extensionDueDate) {
+      alert('Please select a new due date.');
+      return;
+    }
+
+    const isoDateTime = `${this.extensionDueDate}T00:00:00`;
+
+    this.requestService.approveRequest(
+      this.taskId,
+      this.extensionRequestId,
+      { newDueDate: isoDateTime }
+    ).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.extensionModal?.hide();
+          alert('Extension approved successfully!');
+          this.reloadTask();
+        } else {
+          alert(res.message || 'Failed to approve extension.');
+        }
+      },
+      error: (err) => {
+        console.error('Approve failed:', err);
+        alert('Failed to approve extension. Please try again.');
+      }
+    });
+  }
+
+  showRejectionModal(request: any): void {
+    this.rejectionRequestId = request.requestId;
+    this.rejectionReason = '';
+    this.rejectionModal = new Modal(document.getElementById('rejectionModal')!);
+    this.rejectionModal.show();
+  }
+
+  confirmRejection(): void {
+    if (!this.rejectionRequestId || !this.rejectionReason?.trim()) {
+      alert('Please provide a rejection reason.');
+      return;
+    }
+
+    this.requestService.rejectRequest(
+      this.taskId,
+      this.rejectionRequestId,
+      this.rejectionReason.trim()
+    ).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.rejectionModal?.hide();
+          alert('Request rejected successfully!');
+          this.reloadTask();
+        } else {
+          alert(res.message || 'Failed to reject request.');
+        }
+      },
+      error: (error) => {
+        console.error('Error rejecting request:', error);
+        alert('Failed to reject request. Please try again.');
+      }
+    });
+  }
+
+  private reloadTask(): void {
+    this.loadTask(this.taskId);
+  }
+
+  approveTask(): void {
+    if (!this.task?.taskId || this.isApproving) return;
+
+    if (!confirm('Are you sure you want to approve this entire task?')) return;
+
+    this.isApproving = true;
+    this.taskService.approveTask(this.task.taskId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.task = res.data;
+          alert('Task approved successfully!');
+        } else {
+          alert(res.message || 'Failed to approve task.');
+        }
+        this.isApproving = false;
+      },
+      error: (error) => {
+        console.error('Error approving task:', error);
+        alert('Failed to approve task. Please try again.');
+        this.isApproving = false;
+      }
+    });
+  }
+
+  // --- NAVIGATION METHODS ---
+
+  goBack(): void {
+    this.router.navigate(['/view-tasks']);
+  }
+
+  viewDepartmentDetails(departmentId: number): void {
+    this.router.navigate(['/department', departmentId]);
+  }
+
+  viewUserProfile(userId: number): void {
+    this.router.navigate(['/user', userId]);
+  }
+
+  // --- UTILITY METHODS ---
+
+  getRecurrenceTypeDisplay(type: string): string {
+    const typeMap: Record<string, string> = {
+      'DAILY': 'Daily',
+      'WEEKLY': 'Weekly',
+      'MONTHLY': 'Monthly',
+      'YEARLY': 'Yearly',
+      'CUSTOM': 'Custom'
+    };
+    return typeMap[type] || type;
+  }
+
+  isTaskOverdue(): boolean {
+    if (!this.task?.dueDate) return false;
+
+    const dueDate = new Date(this.task.dueDate);
+    const today = new Date();
+    return dueDate < today && this.task.status !== 'CLOSED';
+  }
+
+  getDaysRemaining(): number {
+    if (!this.task?.dueDate) return 0;
+
+    const dueDate = new Date(this.task.dueDate);
+    const today = new Date();
+    const diffTime = dueDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  // Add these methods to your ViewTask class:
+
+  // Check if a specific instance is overdue
+  isInstanceOverdue(instance: TaskDto): boolean {
+    if (!instance?.dueDate || instance.status === 'CLOSED') return false;
+
+    const dueDate = new Date(instance.dueDate);
+    const today = new Date();
+
+    // Clear time for accurate day comparison
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    return dueDate < today;
+  }
+
+  // Count instances by status
+  getInstanceCountByStatus(status: string): number {
+    if (!this.recurredInstances || this.recurredInstances.length === 0) return 0;
+
+    return this.recurredInstances.filter(instance =>
+      instance.status === status
+    ).length;
+  }
+
+  // Calculate days remaining for an instance
+  getInstanceDaysRemaining(instance: TaskDto): number {
+    if (!instance?.dueDate || instance.status === 'CLOSED') return 0;
+
+    const dueDate = new Date(instance.dueDate);
+    const today = new Date();
+
+    // Clear time for accurate day comparison
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+  }
+
+  // Get instance status badge class (similar to getStatusBadgeClass but for instances)
+  getInstanceStatusBadgeClass(instance: TaskDto): string {
+    if (this.isInstanceOverdue(instance)) {
+      return 'badge-delayed';
+    }
+
+    return this.getStatusBadgeClass(instance.status);
+  }
+
+  // Filter instances by status
+  getInstancesByStatus(status: string): TaskDto[] {
+    if (!this.recurredInstances) return [];
+
+    return this.recurredInstances.filter(instance =>
+      instance.status === status
+    );
   }
 }
