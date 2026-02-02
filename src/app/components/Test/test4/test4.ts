@@ -42,6 +42,9 @@ interface TaskStats {
   imports: [CommonModule, FormsModule],
   templateUrl: './test4.html',
   styleUrl: './test4.css',
+  standalone: true,
+    providers: [DatePipe],
+
 })
 export class Test4 implements OnInit, OnDestroy {
 
@@ -561,12 +564,12 @@ export class Test4 implements OnInit, OnDestroy {
         color: 'warning',
         icon: 'bi-journal-text'
       },
-      {
-        label: 'Proofs',
-        count: this.task?.proofs?.length ?? 0,
-        color: 'success',
-        icon: 'bi-paperclip'
-      }
+      // {
+      //   label: 'Proofs',
+      //   count: this.task?.requests?.proofs?.length ?? 0,
+      //   color: 'success',
+      //   icon: 'bi-paperclip'
+      // }
     ];
   }
 

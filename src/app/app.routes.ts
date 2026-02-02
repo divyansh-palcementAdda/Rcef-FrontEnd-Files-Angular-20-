@@ -30,7 +30,7 @@ export const routes: Routes = [
   { path: 'test', component: Test }, //veiw tasks page on test route
   { path: 'test2/:id', component: Test2 },
   {path: 'test3', component: Test3},
-  {path: 'test4', component: Test4},
+  {path: 'test4/:id', component: Test4},
 
   { path: 'login', component: LoginComponent },
   {

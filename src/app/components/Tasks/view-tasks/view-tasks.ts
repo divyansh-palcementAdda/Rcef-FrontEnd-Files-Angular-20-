@@ -43,7 +43,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
   // Pagination
   currentPage = 1;
-  pageSize = 8;
+  pageSize = 12;
   totalPages = 1;
   totalTasks = 0;
 
