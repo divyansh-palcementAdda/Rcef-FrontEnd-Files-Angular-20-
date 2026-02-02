@@ -3,7 +3,7 @@
   --bg: #ffffff;
   --card-bg: #f8fafc;
   --text: #1e293b;
-  --border: #e2e8f0;
+  --border: #0c0c0c;
   --primary: #10b981;
   --primary-light: #34d399;
   --input-bg-light: #ffffff;
@@ -36,7 +36,7 @@
   textarea.form-control {
     background-color: var(--input-bg) !important;
     color: var(--input-text) !important;
-    border-color: #475569 !important;
+    border-color: #000000 !important;
     -webkit-text-fill-color: var(--input-text) !important; /* Critical for Mac */
     caret-color: var(--caret-color) !important;
   }
@@ -83,7 +83,7 @@
 
 /* ====================== GRADIENT HEADER ====================== */
 .table_head {
-  background: linear-gradient(135deg, #1e3a8a 0%, #10b981 50%, #34d399 100%);
+background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
   border-radius: 1.5rem 1.5rem 0 0;
   padding: 2.5rem 1.5rem;
 }
@@ -110,7 +110,7 @@
 .form-control,
 .form-select,
 textarea.form-control {
-  border: 1.5px solid var(--border);
+  border: 2px solid rgb(188, 120, 224);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
   transition: all 0.3s ease;
@@ -151,8 +151,8 @@ textarea.form-control:focus {
 }
 
 .custom-checkbox:checked {
-  background: linear-gradient(135deg, #10b981, #34d399);
-  border-color: #10b981;
+background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
+border-color: #ffffff;
 }
 
 /* Beautiful white checkmark */
@@ -180,7 +180,7 @@ textarea.form-control:focus {
 
 /* ====================== HOD HIGHLIGHT ====================== */
 .hod-highlight {
-  background: linear-gradient(135deg, #0d9488, #22d3ee);
+  background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
   border-radius: 0.5rem;
   padding: 0.4rem 0.8rem;
   color: white;
@@ -194,7 +194,7 @@ textarea.form-control:focus {
   max-height: 240px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #34d399 #e2e8f0;
+  scrollbar-color:linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
 }
 
 .department-list::-webkit-scrollbar,
@@ -204,8 +204,8 @@ textarea.form-control:focus {
 
 .department-list::-webkit-scrollbar-thumb,
 .max-h-48::-webkit-scrollbar-thumb {
-  background: #34d399;
-  border-radius: 3px;
+background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
+border-radius: 3px;
 }
 
 /* ====================== BUTTONS ====================== */

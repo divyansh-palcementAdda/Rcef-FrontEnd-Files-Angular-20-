@@ -1,0 +1,469 @@
+<div class="add-task-container">
+  <!-- Side Navigation -->
+  <div class="side-nav">
+    <br><br><br>
+    <div class="nav-header">
+      <i class="bi bi-plus-circle"></i>
+      <h6>New Task</h6>
+    </div>
+    <div class="nav-items">
+      <a [class.active]="activeSection === 'basic'" (click)="setActiveSection('basic')">
+        <i class="bi bi-info-circle"></i>
+        <span>Basic Info</span>
+        <i class="bi bi-check-circle-fill" *ngIf="taskForm.value.title && taskForm.value.status && taskForm.value.description"></i>
+      </a>
+      <a [class.active]="activeSection === 'timeline'" (click)="setActiveSection('timeline')">
+        <i class="bi bi-calendar-week"></i>
+        <span>Timeline</span>
+        <i class="bi bi-check-circle-fill" *ngIf="taskForm.value.dueDate"></i>
+      </a>
+      <a [class.active]="activeSection === 'departments'" (click)="setActiveSection('departments')">
+        <i class="bi bi-building"></i>
+        <span>Departments</span>
+        <i class="bi bi-check-circle-fill" *ngIf="taskForm.value.departmentIds?.length"></i>
+        <span class="badge" *ngIf="taskForm.value.departmentIds?.length">{{taskForm.value.departmentIds?.length}}</span>
+      </a>
+      <a [class.active]="activeSection === 'assignment'" (click)="setActiveSection('assignment')" 
+         [class.disabled]="!taskForm.value.departmentIds?.length">
+        <i class="bi bi-person-badge"></i>
+        <span>Assignment</span>
+        <i class="bi bi-check-circle-fill" *ngIf="taskForm.value.assignedToIds?.length"></i>
+        <span class="badge" *ngIf="taskForm.value.assignedToIds?.length">{{taskForm.value.assignedToIds?.length}}</span>
+      </a>
+    </div>
+    <div class="nav-footer">
+      <div class="progress-info">
+        <div class="progress-label">Completion</div>
+        <div class="progress-value">{{calculateFormCompletion()}}%</div>
+      </div>
+      <div class="progress">
+        <div class="progress-bar" [style.width.%]="calculateFormCompletion()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <br><br><br>
+    <!-- Header -->
+    <div class="content-header">
+      <div class="header-left">
+        <h1><i class="bi bi-plus-square"></i> Create New Task</h1>
+        <p class="subtitle">Define task details, assign teams, and set deadlines</p>
+      </div>
+      <div class="header-right">
+        <div class="stat-badge">
+          <i class="bi bi-building"></i>
+          <span>{{taskForm.value.departmentIds?.length || 0}} Departments</span>
+        </div>
+        <div class="stat-badge">
+          <i class="bi bi-people"></i>
+          <span>{{taskForm.value.assignedToIds?.length || 0}} Users</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Save Alert -->
+    <div class="floating-alert" *ngIf="isFormDirty && !successMessage">
+      <div class="alert-content">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span>You have unsaved changes</span>
+        <button class="btn-save" (click)="onSubmit()" [disabled]="isSubmitting">
+          <i class="bi bi-save"></i> Save Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div *ngIf="successMessage" class="alert alert-success alert-elevated">
+      <div class="alert-icon">
+        <i class="bi bi-check-circle"></i>
+      </div>
+      <div class="alert-content">
+        <h6>Success!</h6>
+        <p>{{successMessage}}</p>
+      </div>
+      <button class="alert-close" (click)="successMessage = null">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger alert-elevated">
+      <div class="alert-icon">
+        <i class="bi bi-exclamation-circle"></i>
+      </div>
+      <div class="alert-content">
+        <h6>Error!</h6>
+        <p>{{errorMessage}}</p>
+      </div>
+      <button class="alert-close" (click)="errorMessage = null">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <!-- Main Form -->
+    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" novalidate>
+      <!-- Basic Information Section -->
+      <div class="form-section" id="basic">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="bi bi-info-circle"></i>
+            <h3>Basic Information</h3>
+          </div>
+          <div class="section-required">Required Fields</div>
+        </div>
+
+        <div class="section-content">
+          <div class="form-grid">
+            <!-- Title -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="bi bi-card-heading"></i>
+                Task Title
+                <span class="required">*</span>
+              </label>
+              <div class="input-with-icon">
+                <input type="text" class="form-control" formControlName="title"
+                       placeholder="Enter task title..." 
+                       [class.is-invalid]="f.title.touched && f.title.errors">
+                <i class="bi bi-pencil"></i>
+              </div>
+              <div class="form-hint">Be specific and action-oriented</div>
+              <div *ngIf="f.title.touched && f.title.errors" class="invalid-feedback">
+                <div *ngIf="f.title.errors?.required">Title is required</div>
+                <div *ngIf="f.title.errors?.maxlength">Max 255 characters allowed</div>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="bi bi-flag"></i>
+                Status
+                <span class="required">*</span>
+              </label>
+              <div class="status-selector">
+                <div *ngFor="let s of statuses" 
+                     class="status-option" 
+                     [class.selected]="taskForm.value.status === s"
+                     (click)="taskForm.patchValue({status: s})">
+                  <i class="bi" [class.bi-calendar-plus]="s === 'UPCOMING'" [class.bi-clock]="s === 'PENDING'"></i>
+                  <div class="option-content">
+                    <strong>{{s}}</strong>
+                    <small>{{s === 'UPCOMING' ? 'Future task' : 'Ready to start'}}</small>
+                  </div>
+                  <i class="bi bi-check-lg check-icon" *ngIf="taskForm.value.status === s"></i>
+                </div>
+              </div>
+              <div *ngIf="f.status.touched && f.status.errors" class="invalid-feedback">
+                <div>Status is required</div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full-width">
+              <label class="form-label">
+                <i class="bi bi-text-paragraph"></i>
+                Description
+                <span class="required">*</span>
+              </label>
+              <div class="textarea-with-icon">
+                <textarea class="form-control" rows="4" formControlName="description"
+                          placeholder="Provide detailed instructions, context, and expected outcomes..."
+                          [class.is-invalid]="f.description.touched && f.description.errors"></textarea>
+                <i class="bi bi-chat-left-text"></i>
+              </div>
+              <div class="textarea-footer">
+                <div class="form-hint">Include requirements and success criteria</div>
+                <div class="char-count">{{taskForm.value.description?.length || 0}}/2000</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Section -->
+      <div class="form-section" id="timeline">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="bi bi-calendar-week"></i>
+            <h3>Timeline</h3>
+          </div>
+        </div>
+
+        <div class="section-content">
+          <div class="date-grid">
+            <!-- Start Date -->
+            <div class="date-input" *ngIf="taskForm.value.status === 'UPCOMING'">
+              <label class="form-label">
+                <i class="bi bi-calendar-plus"></i>
+                Start Date
+              </label>
+              <div class="date-picker" (click)="focusInput($event, startDateInput)">
+                <input #startDateInput type="date" class="form-control" formControlName="startDate"
+                       [min]="minDate" (change)="onStartDateChange()"
+                       [class.is-invalid]="startDateErrorMessage">
+                <i class="bi bi-calendar3"></i>
+              </div>
+              <div class="form-hint">Future date when work begins</div>
+              <div *ngIf="startDateErrorMessage" class="invalid-feedback">
+                {{startDateErrorMessage}}
+              </div>
+            </div>
+
+            <!-- Due Date -->
+            <div class="date-input" [class.full-width]="taskForm.value.status !== 'UPCOMING'">
+              <label class="form-label">
+                <i class="bi bi-calendar-check"></i>
+                Due Date
+                <span class="required">*</span>
+              </label>
+              <div class="date-picker" (click)="focusInput($event, dueDateInput)">
+                <input #dueDateInput type="date" class="form-control" formControlName="dueDate"
+                       [min]="minDate" (change)="onDueDateChange()"
+                       [class.is-invalid]="dueDateCtrl.touched && (dueDateCtrl.errors || dueDateErrorMessage)">
+                <i class="bi bi-clock"></i>
+              </div>
+              <div class="form-hint">Final completion date</div>
+              <div *ngIf="dueDateCtrl.touched && dueDateCtrl.errors?.['required']" class="invalid-feedback">
+                Due date is required
+              </div>
+              <div *ngIf="dueDateErrorMessage" class="invalid-feedback">
+                {{dueDateErrorMessage}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Departments Section -->
+      <div class="form-section" id="departments">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="bi bi-building"></i>
+            <h3>Departments</h3>
+          </div>
+          <div class="section-required">Required</div>
+        </div>
+
+        <div class="section-content">
+          <!-- Search and Controls -->
+          <div class="section-controls">
+            <div class="search-box">
+              <i class="bi bi-search"></i>
+              <input type="text" id="dept-search" class="search-input"
+                     placeholder="Search departments..."
+                     [(ngModel)]="deptSearch"
+                     (ngModelChange)="onDeptSearch()"
+                     [ngModelOptions]="{standalone: true}">
+              <button *ngIf="deptSearch" class="clear-search" (click)="clearDeptSearch()">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+            <div class="control-actions">
+              <div class="select-all" (click)="toggleSelectAllDepts()" [class.disabled]="taskForm.value.assignToSelf">
+                <div class="checkbox">
+                  <input type="checkbox" [checked]="selectAllDepts" [disabled]="taskForm.value.assignToSelf">
+                  <div class="checkmark"></div>
+                </div>
+                <span>Select All</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Departments Grid -->
+          <div class="departments-grid">
+            <!-- Loading State -->
+            <div *ngIf="isLoadingDepartments" class="loading-state">
+              <div class="skeleton-card" *ngFor="let _ of [1,2,3,4,5,6]"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!isLoadingDepartments && filteredDepartments.length === 0" class="empty-state">
+              <i class="bi bi-building-slash"></i>
+              <h5>No departments found</h5>
+              <p>Try adjusting your search</p>
+            </div>
+
+            <!-- Departments List -->
+            <div class="grid">
+              <div *ngFor="let dept of filteredDepartments" class="grid-item">
+                <div class="department-card" 
+                     [class.selected]="taskForm.value.departmentIds.includes(dept.departmentId)"
+                     [class.disabled]="taskForm.value.assignToSelf && !currentUser?.departmentIds?.includes(dept.departmentId)"
+                     (click)="onDepartmentCardClick(dept, $event)">
+                  <div class="card-header">
+                    <div class="checkbox">
+                      <input type="checkbox" 
+                             [checked]="taskForm.value.departmentIds.includes(dept.departmentId)"
+                             [disabled]="taskForm.value.assignToSelf && !currentUser?.departmentIds?.includes(dept.departmentId)">
+                      <div class="checkmark"></div>
+                    </div>
+                    <div class="dept-icon">
+                      <i class="bi bi-building"></i>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <h6 class="dept-name">{{dept.name}}</h6>
+                    <div class="dept-meta">
+                      <span class="user-count">
+                        <i class="bi bi-people"></i>
+                        {{(usersByDepartment.get(dept.departmentId) || []).length}} users
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected Summary -->
+          <div *ngIf="taskForm.value.departmentIds.length > 0" class="selected-summary">
+            <i class="bi bi-check-circle"></i>
+            <span><strong>{{taskForm.value.departmentIds.length}}</strong> department(s) selected</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assignment Section -->
+      <div class="form-section" id="assignment" *ngIf="taskForm.value.departmentIds?.length">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="bi bi-person-badge"></i>
+            <h3>Assignment</h3>
+          </div>
+          <div class="section-optional">Optional</div>
+        </div>
+
+        <div class="section-content">
+          <!-- Self Assignment -->
+          <div *ngIf="taskForm.value.assignToSelf && currentUser" class="self-assignment-card">
+            <div class="assignment-header">
+              <i class="bi bi-person-check"></i>
+              <div class="assignment-info">
+                <h6>Assigned to You</h6>
+                <p>{{currentUser.fullName}} • {{currentUser.role}} • {{getDepartmentNames(currentUser.departmentIds)}}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Departments Accordion -->
+          <div class="accordion-container">
+            <div *ngFor="let deptId of taskForm.value.departmentIds" 
+                 class="accordion" 
+                 [class.expanded]="expandedDepts[deptId]">
+              <div class="accordion-header" (click)="toggleDepartmentExpansion(deptId)">
+                <div class="accordion-title">
+                  <i class="bi bi-chevron-right"></i>
+                  <span class="dept-name">{{getDepartmentName(deptId)}}</span>
+                  <span class="user-count">{{(filteredUsersByDept.get(deptId) || []).length}} users</span>
+                </div>
+                <div class="accordion-actions">
+                  <div class="select-all-users" (click)="toggleSelectAllUsers(deptId); $event.stopPropagation()"
+                       [class.disabled]="taskForm.value.assignToSelf">
+                    <div class="checkbox">
+                      <input type="checkbox" [checked]="selectAllUsersByDept[deptId]" [disabled]="taskForm.value.assignToSelf">
+                      <div class="checkmark"></div>
+                    </div>
+                    <span>Select All</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-content" *ngIf="expandedDepts[deptId]">
+                <!-- User Search -->
+                <div class="user-search">
+                  <i class="bi bi-search"></i>
+                  <input type="text" class="search-input"
+                         placeholder="Search users in {{getDepartmentName(deptId)}}..."
+                         [(ngModel)]="userSearchByDept[deptId]"
+                         (ngModelChange)="onUserSearch(deptId)"
+                         [ngModelOptions]="{standalone: true}">
+                  <button *ngIf="userSearchByDept[deptId]" class="clear-search" (click)="clearUserSearch(deptId)">
+                    <i class="bi bi-x"></i>
+                  </button>
+                </div>
+
+                <!-- Users List -->
+                <div class="users-list">
+                  <div *ngIf="!(filteredUsersByDept.get(deptId)?.length)" class="empty-users">
+                    <i class="bi bi-person-x"></i>
+                    <p>No users found</p>
+                  </div>
+
+                  <div *ngFor="let user of filteredUsersByDept.get(deptId)" 
+                       class="user-item"
+                       [class.disabled]="taskForm.value.assignToSelf ? (user.userId !== currentUser?.userId) : isUserSelectionDisabled(user)"
+                       [class.hod]="user.role === 'HOD'"
+                       (click)="onUserItemClick(deptId, user, $event)">
+                    <div class="checkbox">
+                      <input type="checkbox" 
+                             [checked]="selectedUsersByDeptObj[deptId]?.includes(user.userId)"
+                             [disabled]="taskForm.value.assignToSelf ? (user.userId !== currentUser?.userId) : isUserSelectionDisabled(user)">
+                      <div class="checkmark"></div>
+                    </div>
+                    <div class="user-avatar">
+                      {{user.fullName.charAt(0)}}
+                    </div>
+                    <div class="user-info">
+                      <h6 class="user-name">{{user.fullName}}</h6>
+                      <div class="user-meta">
+                        <span class="user-role">{{user.role}}</span>
+                        <span class="user-username">@{{user.username}}</span>
+                      </div>
+                    </div>
+                    <div class="user-status" [class.active]="user.status === 'ACTIVE'">
+                      {{user.status}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assign to Self -->
+          <div class="assign-self">
+            <div class="assign-self-checkbox" (click)="taskForm.patchValue({assignToSelf: !taskForm.value.assignToSelf})">
+              <div class="checkbox">
+                <input type="checkbox" [checked]="taskForm.value.assignToSelf">
+                <div class="checkmark"></div>
+              </div>
+              <div class="assign-self-info">
+                <strong>Assign to Myself</strong>
+                <p>Automatically assign this task to you in your departments</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected Summary -->
+          <div *ngIf="taskForm.value.assignedToIds.length > 0" class="selected-summary">
+            <i class="bi bi-person-check"></i>
+            <span><strong>{{taskForm.value.assignedToIds.length}}</strong> user(s) assigned</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <div class="actions-left">
+          <button type="button" class="btn btn-outline" (click)="cancel()" [disabled]="isSubmitting">
+            <i class="bi bi-x-circle"></i> Cancel
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="resetForm()" [disabled]="isSubmitting">
+            <i class="bi bi-arrow-clockwise"></i> Reset
+          </button>
+        </div>
+        <div class="actions-right">
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || taskForm.invalid">
+            <span *ngIf="!isSubmitting">
+              <i class="bi bi-plus-circle"></i> Create Task
+            </span>
+            <span *ngIf="isSubmitting">
+              <i class="bi bi-hourglass-split"></i> Creating...
+            </span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

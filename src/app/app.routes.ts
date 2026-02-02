@@ -22,13 +22,16 @@ import { Test } from './components/Test/test/test';
 import { Test2 } from './components/Test/test2/test2';
 import { Test3 } from './components/Test/test3/test3';
 import { CreateRecurringTaskComponent } from './components/Tasks/create-recurring-task-component/create-recurring-task-component';
+import { Test4 } from './components/Test/test4/test4';
 
 export const routes: Routes = [
 
   { path: '', component: Home },
   { path: 'test', component: Test }, //veiw tasks page on test route
   { path: 'test2/:id', component: Test2 },
-  {path: 'test3/:id', component: Test3},
+  {path: 'test3', component: Test3},
+  {path: 'test4', component: Test4},
+
   { path: 'login', component: LoginComponent },
   {
     path: 'createRecurring', component: CreateRecurringTaskComponent,
