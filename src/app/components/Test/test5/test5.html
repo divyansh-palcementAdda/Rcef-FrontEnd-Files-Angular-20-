@@ -1,0 +1,320 @@
+<p>test5 works!</p>
+<div class="container-fluid px-3 px-md-4 px-lg-5">
+  
+  <!-- Error Alert (Fixed Position) -->
+  <div *ngIf="errorMessage" class="alert-container">
+    <div class="alert alert-danger alert-dismissible fade show shadow-lg" role="alert">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill me-3 fs-5"></i>
+        <div class="flex-grow-1">
+          <strong>Error!</strong> {{ errorMessage }}
+        </div>
+      </div>
+      <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <!-- Page Header -->
+  <header class="page-header text-center mb-4 mb-md-5">
+    <h1 class="page-title">
+      <i class="bi bi-building me-3"></i>
+      Department Management
+    </h1>
+    <p class="page-subtitle">
+      View, manage, and organize your departments efficiently
+    </p>
+  </header>
+
+  <!-- Main Content Card -->
+  <div class="main-card">
+    
+    <!-- Card Header -->
+    <div class="card-header">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <div class="mb-3 mb-md-0">
+          <h2 class="card-title mb-1">
+            <i class="bi bi-list-columns me-2"></i>
+            Departments List
+          </h2>
+          <p class="card-subtitle mb-0">
+            {{ isZeroDueView ? 'Departments with zero due tasks' : 'All departments' }}
+            • {{ totalItems }} total
+          </p>
+        </div>
+        <div>
+          <a class="back-btn" (click)="goBackToDashboard()">
+            <i class="bi bi-arrow-left"></i>
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card Body -->
+    <div class="card-body p-3 p-md-4">
+      
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-container">
+        <div class="spinner-container">
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+        </div>
+        <p class="loading-text">
+          Loading departments...
+        </p>
+      </div>
+
+      <!-- Content when not loading -->
+      <div *ngIf="!loading">
+        
+        <!-- Filter Section -->
+        <div class="filter-section">
+          <div class="row g-3 align-items-center">
+            <!-- Search Box -->
+            <div class="col-12 col-md-8 col-lg-6">
+              <div class="search-box">
+                <i class="bi bi-search search-icon"></i>
+                <input 
+                  type="text" 
+                  class="form-control search-input" 
+                  placeholder="Search departments by name, description, or status..."
+                  [(ngModel)]="searchTerm"
+                  (input)="applyFilters()"
+                  aria-label="Search departments"
+                >
+              </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="col-12 col-md-4 col-lg-6">
+              <div class="filter-buttons justify-content-md-end">
+                <button 
+                  class="btn btn-outline-secondary filter-btn" 
+                  (click)="resetFilters()"
+                  [disabled]="!searchTerm && currentPage === 1"
+                >
+                  <i class="bi bi-arrow-clockwise"></i>
+                  Reset
+                </button>
+                <button 
+                  *ngIf="isZeroDueView"
+                  class="btn btn-outline-primary filter-btn"
+                  [routerLink]="['/departments']"
+                >
+                  <i class="bi bi-eye"></i>
+                  View All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="table-container d-none d-md-block" *ngIf="!loading && paginatedDepartments.length">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col" width="80">ID</th>
+                <th scope="col">Department Name</th>
+                <th scope="col">Description</th>
+                <th scope="col" width="150">Status</th>
+                <th scope="col" width="180" class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let dept of paginatedDepartments" 
+                  (click)="viewDepartmentDetails(dept.departmentId, $event)">
+                <td class="fw-semibold text-muted">#{{ dept.departmentId }}</td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-building me-2 text-primary"></i>
+                    <span class="fw-semibold">{{ dept.name }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="text-secondary">
+                    {{ getShortDescription(dept.description || 'No description', 80) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusClass(dept.departmentStatus || '')">
+                    {{ dept.departmentStatus || 'Inactive' }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <div class="action-buttons">
+                    <button 
+                      class="btn btn-action btn-view" 
+                      (click)="viewDepartmentDetails(dept.departmentId, $event)"
+                      title="View Details"
+                      aria-label="View department details"
+                    >
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button 
+                      class="btn btn-action btn-delete" 
+                      (click)="deleteDepartment($event, dept.departmentId)"
+                      title="Delete Department"
+                      aria-label="Delete department"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="d-md-none" *ngIf="!loading && paginatedDepartments.length">
+          <div class="row g-3">
+            <div class="col-12" *ngFor="let dept of paginatedDepartments">
+              <div class="mobile-department-card" (click)="viewDepartmentDetails(dept.departmentId, $event)">
+                <div class="card-header-row">
+                  <span class="dept-id">#{{ dept.departmentId }}</span>
+                  <span class="status-badge" [ngClass]="getStatusClass(dept.departmentStatus || '')">
+                    {{ dept.departmentStatus || 'Inactive' }}
+                  </span>
+                </div>
+                
+                <h3 class="dept-name">
+                  <i class="bi bi-building me-2 text-primary"></i>
+                  {{ dept.name }}
+                </h3>
+                
+                <p class="dept-description">
+                  {{ dept.description || 'No description available' }}
+                </p>
+                
+                <div class="card-footer-row">
+                  <div class="d-flex gap-2">
+                    <button 
+                      class="btn btn-sm btn-view"
+                      (click)="viewDepartmentDetails(dept.departmentId, $event)"
+                    >
+                      <i class="bi bi-eye me-1"></i>
+                      View
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-delete"
+                      (click)="deleteDepartment($event, dept.departmentId)"
+                    >
+                      <i class="bi bi-trash me-1"></i>
+                      Delete
+                    </button>
+                  </div>
+                  <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Tap card for details
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!loading && !paginatedDepartments.length" class="empty-state">
+          <div class="empty-icon">
+            <i class="bi bi-building-slash"></i>
+          </div>
+          <h3 class="empty-title">
+            No Departments Found
+          </h3>
+          <p class="empty-subtitle mb-4">
+            {{ searchTerm ? 'No departments match your search criteria.' : 'There are no departments to display.' }}
+          </p>
+          <button 
+            *ngIf="searchTerm"
+            class="btn btn-primary"
+            (click)="resetFilters()"
+          >
+            <i class="bi bi-x-circle me-2"></i>
+            Clear Search
+          </button>
+        </div>
+
+        <!-- Pagination -->
+        <div *ngIf="totalPages > 1" class="pagination-container">
+          <nav aria-label="Departments pagination">
+            <ul class="pagination justify-content-center">
+              <!-- Previous Button -->
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" 
+                   (click)="changePage(currentPage - 1)"
+                   aria-label="Previous page">
+                  <i class="bi bi-chevron-left"></i>
+                  <span class="d-none d-md-inline">Previous</span>
+                </a>
+              </li>
+              
+              <!-- First Page -->
+              <li *ngIf="currentPage > 3" class="page-item d-none d-md-block">
+                <a class="page-link" (click)="changePage(1)">1</a>
+              </li>
+              <li *ngIf="currentPage > 4" class="page-item d-none d-md-block disabled">
+                <span class="page-link">...</span>
+              </li>
+              
+              <!-- Page Numbers -->
+              <li *ngFor="let page of getPageNumbers()" 
+                  class="page-item" 
+                  [class.active]="currentPage === page">
+                <a class="page-link" (click)="changePage(page)">
+                  {{ page }}
+                </a>
+              </li>
+              
+              <!-- Last Page -->
+              <li *ngIf="currentPage < totalPages - 2" class="page-item d-none d-md-block disabled">
+                <span class="page-link">...</span>
+              </li>
+              <li *ngIf="currentPage < totalPages - 1" class="page-item d-none d-md-block">
+                <a class="page-link" (click)="changePage(totalPages)">
+                  {{ totalPages }}
+                </a>
+              </li>
+              
+              <!-- Next Button -->
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" 
+                   (click)="changePage(currentPage + 1)"
+                   aria-label="Next page">
+                  <span class="d-none d-md-inline">Next</span>
+                  <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+          
+          <!-- Page Info -->
+          <div class="text-center mt-3">
+            <small class="text-muted">
+              Showing {{ (currentPage - 1) * pageSize + 1 }} to 
+              {{ Math.min(currentPage * pageSize, totalItems) }} of 
+              {{ totalItems }} departments
+            </small>
+          </div>
+        </div>
+
+      </div>
+      <!-- End of non-loading content -->
+
+    </div>
+    <!-- End of card body -->
+
+  </div>
+  <!-- End of main card -->
+
+  <!-- Footer Note -->
+  <footer class="text-center mt-4 mb-5">
+    <small class="text-muted">
+      <i class="bi bi-shield-check me-1"></i>
+      Department data is securely managed and updated in real-time
+    </small>
+  </footer>
+
+</div>
