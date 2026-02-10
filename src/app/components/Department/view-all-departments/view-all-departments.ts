@@ -111,9 +111,6 @@ export class ViewDepartmentsComponent implements OnInit {
     error: err => this.handleError(err, 'Failed to load departments.')
   });
 }
-
-
-
   private handleDepartmentResponse(depts: Department[]): void {
     this.departments = depts || [];
     console.log(depts)
