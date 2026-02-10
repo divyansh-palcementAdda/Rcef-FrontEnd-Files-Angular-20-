@@ -97,13 +97,21 @@ export class ViewDepartmentsComponent implements OnInit {
     }
   }
 
-  private loadAllDepartments(): void {
-    this.loading = true;
-    this.apiService.getAllDepartments().subscribe({
-      next: (res: Department[]) => this.handleDepartmentResponse(res || []),
-      error: err => this.handleError(err, 'Failed to load departments.')
-    });
-  }
+ private loadAllDepartments(): void {
+  this.loading = true;
+
+  this.apiService.getAllDepartments().subscribe({
+    next: (res: Department[]) => {
+      const activeDepartments = (res || []).filter(
+        dept => dept.departmentStatus === 'ACTIVE'
+      );
+
+      this.handleDepartmentResponse(activeDepartments);
+    },
+    error: err => this.handleError(err, 'Failed to load departments.')
+  });
+}
+
 
 
   private handleDepartmentResponse(depts: Department[]): void {
