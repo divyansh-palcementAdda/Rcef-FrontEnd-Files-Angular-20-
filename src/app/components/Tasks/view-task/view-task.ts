@@ -207,8 +207,6 @@ export class ViewTask implements OnInit, OnDestroy {
 
   canApproveRequest(request: TaskRequestDto): boolean {
 
-  console.log('Checking approval for request:', request);
-
   if (!this.task || !request) return false;
 
   // ✅ ADMIN → full access
@@ -219,10 +217,10 @@ export class ViewTask implements OnInit, OnDestroy {
 
     const isClosure = request.requestType === 'CLOSURE';
     const isTaskApproved = this.task.approved === true;
-    const isCreatedByHod = this.task.createdById === this.currentUserId;
+    // const isCreatedByHod = this.task.createdById === this.currentUserId;
     const isRequesterTeacher = request.requestedByRole === 'TEACHER';
 
-    return isClosure && isTaskApproved && isCreatedByHod && isRequesterTeacher;
+    return isClosure && isTaskApproved && isRequesterTeacher;
   }
 
   return false;
