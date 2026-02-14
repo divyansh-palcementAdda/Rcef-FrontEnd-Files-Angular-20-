@@ -1,3 +1,4 @@
+import { RoleDTO } from "./role-dto";
 import { TaskProofDto } from "./TaskProofDto";
 
 export interface TaskRequestDto {
@@ -21,7 +22,8 @@ export interface TaskRequestDto {
 
   /** User who created the request */
   requestedById: number;               // userId
-  requestedByName?: string;          // populated by backend for convenience
+  requestedByName?: string;  
+  requestedByRole: RoleDTO;        // populated by backend for convenience
 
   /** Approver (only when status = APPROVED/REJECTED) */
   approvedBy?: number;               // userId

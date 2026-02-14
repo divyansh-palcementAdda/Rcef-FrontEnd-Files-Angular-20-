@@ -13,6 +13,7 @@ import { JwtService } from '../../../Services/jwt-service';
 import { Modal } from 'bootstrap';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
+import { TaskRequestDto } from '../../../Model/TaskRequestDto';
 
 interface EnrichedDepartment {
   id: number;
@@ -179,68 +180,191 @@ export class ViewTask implements OnInit, OnDestroy {
       })
     );
   }
+ private applyRequestFilters(): void {
 
+    if (!this.task?.requests) return;
+
+    this.task.requests = this.task.requests.filter(r =>
+      this.canViewRequest(r)
+    );
+  }
+  
+  // =========================================================
+  // ✅ ROLE HELPERS
+  // =========================================================
+
+  get isAdmin(): boolean {
+    return this.currentUserRole === 'ADMIN';
+  }
+
+  get isTeacher(): boolean {
+    return this.currentUserRole === 'TEACHER';
+  }
+
+  get isHod(): boolean {
+    return this.currentUserRole === 'HOD';
+  }
+
+  canApproveRequest(request: TaskRequestDto): boolean {
+
+  console.log('Checking approval for request:', request);
+
+  if (!this.task || !request) return false;
+
+  // ✅ ADMIN → full access
+  if (this.isAdmin) return true;
+
+  // ✅ HOD → strict rules
+  if (this.isHod) {
+
+    const isClosure = request.requestType === 'CLOSURE';
+    const isTaskApproved = this.task.approved === true;
+    const isCreatedByHod = this.task.createdById === this.currentUserId;
+    const isRequesterTeacher = request.requestedByRole === 'TEACHER';
+
+    return isClosure && isTaskApproved && isCreatedByHod && isRequesterTeacher;
+  }
+
+  return false;
+}
+
+  canRejectRequest(request: any): boolean {
+    return this.canApproveRequest(request);
+  }
+
+  canViewRequest(request: any): boolean {
+
+    if (this.isAdmin) return true;
+
+    if (this.isTeacher) {
+      return request.requestedById === this.currentUserId;
+    }
+    return true;
+  }
+
+
+  // private verifyTeacherAccess(taskId: number): void {
+  //   this.taskService.getTaskById(taskId).subscribe({
+  //     next: (res) => {
+  //       if (!res.success || !res.data) {
+  //         this.errorMessage = 'Task not found';
+  //         this.isLoading = false;
+  //         return;
+  //       }
+
+  //       const assigned = res.data.assignedToIds || [];
+  //       if (!assigned.includes(this.currentUserId)) {
+  //         this.isForbidden = true;
+  //         this.isLoading = false;
+  //         return;
+  //       }
+
+  //       this.isAssigned = true;
+  //       this.task = res.data;
+  //       this.computeStats();
+  //       this.filterVisibleRequestsAndProofs();
+  //       this.fetchRelatedEntities();
+  //     },
+  //     error: (error) => {
+  //       console.error('Teacher access verification failed:', error);
+  //       this.isForbidden = true;
+  //       this.isLoading = false;
+  //     }
+  //   });
+  // }
   private verifyTeacherAccess(taskId: number): void {
+
     this.taskService.getTaskById(taskId).subscribe({
-      next: (res) => {
+      next: res => {
         if (!res.success || !res.data) {
           this.errorMessage = 'Task not found';
           this.isLoading = false;
           return;
         }
 
-        const assigned = res.data.assignedToIds || [];
-        if (!assigned.includes(this.currentUserId)) {
+        if (!res.data.assignedToIds?.includes(this.currentUserId)) {
           this.isForbidden = true;
           this.isLoading = false;
           return;
         }
 
+        this.task = res.data;
         this.isAssigned = true;
-        this.task = res.data;
+        this.applyRequestFilters();
         this.computeStats();
-        this.filterVisibleRequestsAndProofs();
         this.fetchRelatedEntities();
       },
-      error: (error) => {
-        console.error('Teacher access verification failed:', error);
+      error: () => {
         this.isForbidden = true;
         this.isLoading = false;
       }
     });
   }
-
   private verifyHODAccess(taskId: number): void {
+
     this.taskService.getTaskById(taskId).subscribe({
-      next: (res) => {
+      next: res => {
+
         if (!res.success || !res.data) {
           this.errorMessage = 'Task not found';
           this.isLoading = false;
           return;
         }
 
-        const taskDeptIds = res.data.departmentIds || [];
-        const hasAccess = taskDeptIds.some(id => this.currentUserDepartments.includes(id));
-        this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
+        const hasDeptAccess = res.data.departmentIds?.some(d =>
+          this.currentUserDepartments.includes(d)
+        );
 
-        if (!hasAccess) {
+        if (!hasDeptAccess) {
           this.isForbidden = true;
           this.isLoading = false;
           return;
         }
 
         this.task = res.data;
+        this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
+        this.applyRequestFilters();
         this.computeStats();
-        this.filterVisibleRequestsAndProofs();
         this.fetchRelatedEntities();
       },
-      error: (error) => {
-        console.error('HOD access verification failed:', error);
+      error: () => {
         this.isForbidden = true;
         this.isLoading = false;
       }
     });
   }
+
+  // private verifyHODAccess(taskId: number): void {
+  //   this.taskService.getTaskById(taskId).subscribe({
+  //     next: (res) => {
+  //       if (!res.success || !res.data) {
+  //         this.errorMessage = 'Task not found';
+  //         this.isLoading = false;
+  //         return;
+  //       }
+
+  //       const taskDeptIds = res.data.departmentIds || [];
+  //       const hasAccess = taskDeptIds.some(id => this.currentUserDepartments.includes(id));
+  //       this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
+
+  //       if (!hasAccess) {
+  //         this.isForbidden = true;
+  //         this.isLoading = false;
+  //         return;
+  //       }
+
+  //       this.task = res.data;
+  //       this.computeStats();
+  //       this.filterVisibleRequestsAndProofs();
+  //       this.fetchRelatedEntities();
+  //     },
+  //     error: (error) => {
+  //       console.error('HOD access verification failed:', error);
+  //       this.isForbidden = true;
+  //       this.isLoading = false;
+  //     }
+  //   });
+  // }
 
   private loadTask(taskId: number): void {
     this.taskService.getTaskById(taskId).subscribe({
@@ -637,17 +761,20 @@ export class ViewTask implements OnInit, OnDestroy {
     });
   }
 
-  showExtensionApprovalModal(request: any): void {
-    this.extensionRequestId = request.requestId;
+showExtensionApprovalModal(request: any): void {
 
-    // Set default extension date to current due date + 7 days
-    const currentDueDate = new Date(this.task?.dueDate || new Date());
-    currentDueDate.setDate(currentDueDate.getDate() + 7);
-    this.extensionDueDate = currentDueDate.toISOString().split('T')[0];
+    if (!this.isAdmin) {
+      alert('Only Admin can approve extension');
+      return;
+    }
+
+    this.extensionRequestId = request.requestId;
+    this.extensionDueDate = this.todayDate;
 
     this.extensionModal = new Modal(document.getElementById('extensionApprovalModal')!);
     this.extensionModal.show();
   }
+
 
   confirmExtensionApproval(): void {
     if (!this.extensionRequestId || !this.extensionDueDate) {
@@ -678,13 +805,19 @@ export class ViewTask implements OnInit, OnDestroy {
     });
   }
 
-  showRejectionModal(request: any): void {
+ showRejectionModal(request: any): void {
+
+    if (!this.canRejectRequest(request)) {
+      alert('Not allowed');
+      return;
+    }
+
     this.rejectionRequestId = request.requestId;
     this.rejectionReason = '';
+
     this.rejectionModal = new Modal(document.getElementById('rejectionModal')!);
     this.rejectionModal.show();
   }
-
   confirmRejection(): void {
     if (!this.rejectionRequestId || !this.rejectionReason?.trim()) {
       alert('Please provide a rejection reason.');
@@ -703,11 +836,15 @@ export class ViewTask implements OnInit, OnDestroy {
           this.reloadTask();
         } else {
           alert(res.message || 'Failed to reject request.');
+                    this.reloadTask();
+
         }
       },
       error: (error) => {
         console.error('Error rejecting request:', error);
         alert('Failed to reject request. Please try again.');
+                  this.reloadTask();
+
       }
     });
   }
@@ -783,9 +920,7 @@ export class ViewTask implements OnInit, OnDestroy {
     const diffTime = dueDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
-  // Add these methods to your ViewTask class:
-
-  // Check if a specific instance is overdue
+  
   isInstanceOverdue(instance: TaskDto): boolean {
     if (!instance?.dueDate || instance.status === 'CLOSED') return false;
 
@@ -843,3 +978,5 @@ export class ViewTask implements OnInit, OnDestroy {
     );
   }
 }
+
+
