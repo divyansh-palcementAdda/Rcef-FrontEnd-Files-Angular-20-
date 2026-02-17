@@ -216,11 +216,11 @@ export class ViewTask implements OnInit, OnDestroy {
   if (this.isHod) {
 
     const isClosure = request.requestType === 'CLOSURE';
-    const isTaskApproved = this.task.approved === true;
+    // const isTaskApproved = this.task.approved === true;
     // const isCreatedByHod = this.task.createdById === this.currentUserId;
     const isRequesterTeacher = request.requestedByRole === 'TEACHER';
 
-    return isClosure && isTaskApproved && isRequesterTeacher;
+    return isClosure && isRequesterTeacher;
   }
 
   return false;
