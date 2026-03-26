@@ -240,36 +240,6 @@ export class ViewTask implements OnInit, OnDestroy {
     return true;
   }
 
-
-  // private verifyTeacherAccess(taskId: number): void {
-  //   this.taskService.getTaskById(taskId).subscribe({
-  //     next: (res) => {
-  //       if (!res.success || !res.data) {
-  //         this.errorMessage = 'Task not found';
-  //         this.isLoading = false;
-  //         return;
-  //       }
-
-  //       const assigned = res.data.assignedToIds || [];
-  //       if (!assigned.includes(this.currentUserId)) {
-  //         this.isForbidden = true;
-  //         this.isLoading = false;
-  //         return;
-  //       }
-
-  //       this.isAssigned = true;
-  //       this.task = res.data;
-  //       this.computeStats();
-  //       this.filterVisibleRequestsAndProofs();
-  //       this.fetchRelatedEntities();
-  //     },
-  //     error: (error) => {
-  //       console.error('Teacher access verification failed:', error);
-  //       this.isForbidden = true;
-  //       this.isLoading = false;
-  //     }
-  //   });
-  // }
   private verifyTeacherAccess(taskId: number): void {
 
     this.taskService.getTaskById(taskId).subscribe({
@@ -332,38 +302,6 @@ export class ViewTask implements OnInit, OnDestroy {
     });
   }
 
-  // private verifyHODAccess(taskId: number): void {
-  //   this.taskService.getTaskById(taskId).subscribe({
-  //     next: (res) => {
-  //       if (!res.success || !res.data) {
-  //         this.errorMessage = 'Task not found';
-  //         this.isLoading = false;
-  //         return;
-  //       }
-
-  //       const taskDeptIds = res.data.departmentIds || [];
-  //       const hasAccess = taskDeptIds.some(id => this.currentUserDepartments.includes(id));
-  //       this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
-
-  //       if (!hasAccess) {
-  //         this.isForbidden = true;
-  //         this.isLoading = false;
-  //         return;
-  //       }
-
-  //       this.task = res.data;
-  //       this.computeStats();
-  //       this.filterVisibleRequestsAndProofs();
-  //       this.fetchRelatedEntities();
-  //     },
-  //     error: (error) => {
-  //       console.error('HOD access verification failed:', error);
-  //       this.isForbidden = true;
-  //       this.isLoading = false;
-  //     }
-  //   });
-  // }
-
   private loadTask(taskId: number): void {
     this.taskService.getTaskById(taskId).subscribe({
       next: (res) => {
@@ -376,7 +314,6 @@ export class ViewTask implements OnInit, OnDestroy {
           this.filterVisibleRequestsAndProofs();
           this.fetchRelatedEntities();
 
-          // Load recurred instances if task is recurring and user is admin
           if (this.task.isRecurring && this.currentUserRole === 'ADMIN') {
             this.loadRecurredInstances();
           }
