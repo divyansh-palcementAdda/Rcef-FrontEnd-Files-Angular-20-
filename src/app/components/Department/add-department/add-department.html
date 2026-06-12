@@ -1,27 +1,32 @@
 <div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
-  <form [formGroup]="departmentForm" (ngSubmit)="onSubmit()" [class.dept-form-card]="!isModal" [class.modal-form-card]="isModal" novalidate>
-    
+  <form [formGroup]="departmentForm" (ngSubmit)="onSubmit()" [class.dept-form-card]="!isModal"
+    [class.modal-form-card]="isModal" novalidate>
+
     <!-- Form Header -->
     <div [class.dept-form-header]="!isModal" [class.text-center]="!isModal" [class.modal-form-header]="isModal">
       <div>
-        <h3 class="mb-1 fw-bold" style="color: var(--text-main);">{{ departmentId ? 'Edit Department' : 'Add Department' }}</h3>
+        <h3 class="mb-1 fw-bold" style="color: var(--text-main);">{{ departmentId ? 'Edit Department' : 'Add Department'
+          }}</h3>
         <p class="mb-0 text-muted small">Manage organizational structure</p>
       </div>
-      <button *ngIf="isModal" type="button" class="modal-close-btn-inline ms-auto" (click)="cancel()" aria-label="Close">
+      <button *ngIf="isModal" type="button" class="modal-close-btn-inline ms-auto" (click)="cancel()"
+        aria-label="Close">
         <i class="bi bi-x-lg fs-5"></i>
       </button>
     </div>
 
     <!-- Form Body -->
     <div [class.dept-form-body]="!isModal" [class.modal-form-body]="isModal">
-      
+
       <!-- Alerts -->
-      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+      <div *ngIf="successMessage"
+        class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
         <span><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}</span>
         <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
       </div>
 
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+      <div *ngIf="errorMessage"
+        class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
         <span><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}</span>
         <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
@@ -37,14 +42,16 @@
             <p class="form-section-subtitle">Define structural department identifiers</p>
           </div>
         </div>
-        
+
         <div class="mb-2">
           <label class="form-label">Department Name <span class="text-danger">*</span></label>
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-building"></i></span>
-            <input type="text" class="form-control" formControlName="name" placeholder="e.g. Department of Computer Science">
+            <input type="text" class="form-control" formControlName="name"
+              placeholder="e.g. Department of Computer Science">
           </div>
-          <div *ngIf="departmentForm.get('name')?.touched && departmentForm.get('name')?.invalid" class="text-danger small mt-1">
+          <div *ngIf="departmentForm.get('name')?.touched && departmentForm.get('name')?.invalid"
+            class="text-danger small mt-1">
             <small>Department name is required and must be between 1 and 100 characters.</small>
           </div>
         </div>
@@ -57,7 +64,7 @@
             <i class="bi bi-chat-dots"></i>
           </div>
           <div class="form-section-title-wrapper">
-            <h4 class="form-section-title">Department Configuration</h4>
+            <h4 class="form-section-title">Department Description</h4>
             <p class="form-section-subtitle">Provide details regarding scope and functions</p>
           </div>
         </div>
@@ -66,37 +73,23 @@
           <label class="form-label">Description</label>
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-chat-dots"></i></span>
-            <textarea class="form-control" rows="4" formControlName="description" placeholder="Enter department scope and details..."></textarea>
+            <textarea class="form-control" rows="4" formControlName="description"
+              placeholder="Enter department scope and details..."></textarea>
           </div>
-          <div *ngIf="departmentForm.get('description')?.touched && departmentForm.get('description')?.invalid" class="text-danger small mt-1">
+          <div *ngIf="departmentForm.get('description')?.touched && departmentForm.get('description')?.invalid"
+            class="text-danger small mt-1">
             <small>Description cannot exceed 500 characters.</small>
           </div>
         </div>
       </div>
 
-      <!-- Hierarchy & HOD Assignment -->
-      <div class="form-section-card">
-        <div class="form-section-header">
-          <div class="form-section-icon">
-            <i class="bi bi-diagram-3"></i>
-          </div>
-          <div class="form-section-title-wrapper">
-            <h4 class="form-section-title">Hierarchy & HOD Assignment</h4>
-            <p class="form-section-subtitle">Configure reporting scopes and permissions bounds</p>
-          </div>
-        </div>
-        <div class="alert alert-secondary mb-0 py-2.5 d-flex align-items-start gap-2 bg-light border text-muted">
-          <i class="bi bi-info-circle-fill text-primary fs-5 mt-0.5"></i>
-          <span style="font-size: 0.85rem; line-height: 1.4;">
-            HOD assignment and reporting structures are managed in the <strong>User Settings</strong>. When adding or editing a User with an HOD or Teacher role, you can bind them directly to this department.
-          </span>
-        </div>
-      </div>
+
 
     </div>
 
     <!-- Submit actions -->
-    <div [class.dept-form-footer]="!isModal" [class.modal-form-footer]="isModal" class="d-flex justify-content-end gap-2">
+    <div [class.dept-form-footer]="!isModal" [class.modal-form-footer]="isModal"
+      class="d-flex justify-content-end gap-2">
       <button type="button" class="btn btn-secondary px-4" (click)="cancel()">Cancel</button>
       <button type="submit" class="btn btn-primary px-5" [disabled]="isSubmitting || departmentForm.invalid">
         <span *ngIf="!isSubmitting">{{ departmentId ? 'Save Changes' : 'Add Department' }}</span>

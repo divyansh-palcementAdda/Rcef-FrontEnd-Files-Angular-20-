@@ -26,7 +26,7 @@
   border-radius: 14px;
   padding: 20px;
   background-color: #ffffff;
-  margin-bottom: 20px;
+  margin-bottom: -18px;
 }
 
 .form-section-header {
@@ -73,7 +73,7 @@
   border-radius: 10px;
   border: 1px solid #ECEEF2;
   background-color: #ffffff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   transition: all 0.2s ease;
   overflow: hidden;
 }
@@ -91,7 +91,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 13px; /* vertically aligns icon with first line of text */
+  padding-top: 13px;
+  /* vertically aligns icon with first line of text */
   align-self: stretch;
   width: 44px;
 }
@@ -193,7 +194,8 @@ textarea.form-control {
 }
 
 .modal-form-body {
-  padding: 1.5rem !important; /* 1.5rem = 24px */
+  padding: 1.5rem !important;
+  /* 1.5rem = 24px */
   overflow-y: auto !important;
   overflow-x: hidden !important;
   flex: 1 1 auto !important;
