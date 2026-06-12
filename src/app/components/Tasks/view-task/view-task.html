@@ -122,7 +122,7 @@
       </div>
 
       <!-- Card 2: Departments -->
-      <div class="kpi-card">
+      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'departments'; scrollToTabs()" style="cursor:pointer;" title="View Departments">
         <div class="kpi-icon-wrapper kpi-blue">
           <i class="bi bi-diagram-3-fill"></i>
         </div>
@@ -135,7 +135,7 @@
       </div>
 
       <!-- Card 3: Total Requests -->
-      <div class="kpi-card">
+      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'requests'; scrollToTabs()" style="cursor:pointer;" title="View Requests">
         <div class="kpi-icon-wrapper kpi-yellow">
           <i class="bi bi-file-earmark-text-fill"></i>
         </div>
@@ -149,7 +149,7 @@
       </div>
 
       <!-- Card 4: Proofs Submitted -->
-      <div class="kpi-card">
+      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'proofs'; scrollToTabs()" style="cursor:pointer;" title="View Proofs">
         <div class="kpi-icon-wrapper kpi-orange">
           <i class="bi bi-paperclip"></i>
         </div>
@@ -179,7 +179,7 @@
         </div>
 
         <!-- Notion/Attio-style Tabs Navigation Card -->
-        <div class="workspace-tabs-card mb-4">
+        <div class="workspace-tabs-card mb-4" id="workspaceTabsCard">
           <div class="tabs-header-bar">
             <button class="tab-nav-btn" [class.active]="activeTab === 'members'" (click)="activeTab = 'members'">
               Team Members

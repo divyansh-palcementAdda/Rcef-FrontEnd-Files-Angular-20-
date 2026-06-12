@@ -967,6 +967,15 @@ showExtensionApprovalModal(request: any): void {
     this.router.navigate(['/view-tasks']);
   }
 
+  scrollToTabs(): void {
+    setTimeout(() => {
+      const el = document.getElementById('workspaceTabsCard');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+  }
+
   viewDepartmentDetails(departmentId: number): void {
     this.router.navigate(['/department', departmentId]);
   }
