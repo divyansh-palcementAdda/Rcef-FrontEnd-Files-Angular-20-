@@ -13,11 +13,13 @@
   flex: 1;
   min-width: 0; /* Prevents flex children from overflowing */
   background-color: var(--bg-color);
+  overflow-y: auto; /* Enables scroll on this container so topbar stays sticky */
+  height: 100vh;    /* Constrains height so sticky works correctly */
 }
 
 .app-content {
   flex: 1;
-  padding: 2rem;
+  padding: 0.5rem 1rem;
   overflow-y: auto;
   max-width: 1600px;
   width: 100%;

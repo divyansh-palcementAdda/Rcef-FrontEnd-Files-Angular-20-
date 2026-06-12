@@ -35,6 +35,10 @@ export class TaskTemplateManagementComponent implements OnInit {
   successMessage: string | null = null;
   errorMessage: string | null = null;
 
+  // Modal visibility
+  showTemplateModal = false;
+  showCategoryModal = false;
+
   // Options
   fieldTypes = ['TEXT', 'NUMBER', 'PERCENTAGE', 'DATE', 'DROPDOWN', 'MULTISELECT', 'LIST', 'FILE_UPLOAD', 'EXCEL_UPLOAD', 'CSV_UPLOAD', 'BOOLEAN'];
   proofTypes = ['STUDENT_ENTRIES', 'ATTENDANCE_UPLOAD', 'TOPICS_LIST', 'FILE_UPLOAD'];
@@ -107,6 +111,11 @@ export class TaskTemplateManagementComponent implements OnInit {
   }
 
   // CATEGORY OPERATIONS
+  openCreateCategoryModal(): void {
+    this.resetCategoryForm();
+    this.showCategoryModal = true;
+  }
+
   saveCategory(): void {
     if (this.categoryForm.invalid) return;
 
@@ -135,11 +144,13 @@ export class TaskTemplateManagementComponent implements OnInit {
       subcategory: cat.subcategory,
       isActive: cat.isActive
     });
+    this.showCategoryModal = true;
   }
 
   resetCategoryForm(): void {
     this.isEditingCategory = false;
     this.editingCategoryId = null;
+    this.showCategoryModal = false;
     this.categoryForm.reset({ name: '', subcategory: '', isActive: true });
   }
 
@@ -174,6 +185,11 @@ export class TaskTemplateManagementComponent implements OnInit {
     });
   }
 
+  openCreateTemplateModal(): void {
+    this.resetTemplateForm();
+    this.showTemplateModal = true;
+  }
+
   editTemplate(tpl: TaskTemplateDto): void {
     this.isEditingTemplate = true;
     this.editingTemplateId = tpl.id || null;
@@ -184,6 +200,7 @@ export class TaskTemplateManagementComponent implements OnInit {
       description: tpl.description,
       isActive: tpl.isActive
     });
+    this.showTemplateModal = true;
   }
 
   deleteTemplate(id: number): void {
@@ -200,6 +217,7 @@ export class TaskTemplateManagementComponent implements OnInit {
   resetTemplateForm(): void {
     this.isEditingTemplate = false;
     this.editingTemplateId = null;
+    this.showTemplateModal = false;
     this.templateForm.reset({ categoryId: '', title: '', description: '', isActive: true });
   }
 

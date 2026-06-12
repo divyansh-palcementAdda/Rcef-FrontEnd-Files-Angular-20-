@@ -62,161 +62,181 @@
       </div>
 
       <!-- ==================== TAB 1: TEMPLATES ==================== -->
-      <div *ngIf="activeTab === 'templates'" class="row g-4 animate_animated animate_fadeIn">
-        <div class="col-lg-5">
-          <div class="card border border-slate-100 rounded-3 p-4 bg-slate-50 shadow-sm">
-            <h5 class="fw-bold mb-3 text-emerald-800">
-              {{ isEditingTemplate ? 'Edit Template' : 'Create New Template' }}
-            </h5>
-            <form [formGroup]="templateForm" (ngSubmit)="saveTemplate()">
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
-                <select class="form-select border-slate-200" formControlName="categoryId">
-                  <option value="" disabled>Select Category</option>
-                  <option *ngFor="let cat of categories" [value]="cat.id">
-                    {{ cat.name }} <span *ngIf="cat.subcategory">({{ cat.subcategory }})</span>
-                  </option>
-                </select>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Template Title <span class="text-danger">*</span></label>
-                <input type="text" class="form-control border-slate-200" formControlName="title" placeholder="e.g. Forms Task" />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Default Description</label>
-                <textarea class="form-control border-slate-200" rows="3" formControlName="description" 
-                          placeholder="Standard details automatically populated when creating tasks..."></textarea>
-              </div>
-
-              <div class="form-check mb-4">
-                <input type="checkbox" class="form-check-input custom-checkbox" id="tplActive" formControlName="isActive" />
-                <label class="form-check-label text-emerald-700" for="tplActive">Template Active</label>
-              </div>
-
-              <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-emerald px-4" [disabled]="templateForm.invalid">
-                  {{ isEditingTemplate ? 'Save Changes' : 'Create Template' }}
-                </button>
-                <button type="button" class="btn btn-outline-secondary" (click)="resetTemplateForm()">Cancel</button>
-              </div>
-            </form>
-          </div>
+      <div *ngIf="activeTab === 'templates'" class="animate_animated animate_fadeIn">
+        <!-- Toolbar -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold text-emerald-800 mb-0">All Templates</h6>
+          <button class="btn btn-emerald btn-sm px-3" (click)="openCreateTemplateModal()">
+            <i class="bi bi-plus-lg me-1"></i> New Template
+          </button>
         </div>
 
-        <div class="col-lg-7">
-          <div class="table-responsive border rounded-3 bg-white shadow-sm">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-emerald text-white">
-                <tr>
-                  <th>Title</th>
-                  <th>Category</th>
-                  <th>Status</th>
-                  <th class="text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let tpl of templates" 
-                    [class.table-active]="selectedTemplate?.id === tpl.id" 
-                    (click)="selectTemplate(tpl)" 
-                    class="cursor-pointer">
-                  <td>
-                    <div class="fw-bold">{{ tpl.title }}</div>
-                    <div class="text-muted small text-truncate" style="max-width: 250px;">{{ tpl.description }}</div>
-                  </td>
-                  <td>
-                    <span>{{ tpl.category.name }}</span>
-                    <span *ngIf="tpl.category.subcategory" class="badge bg-light text-dark ms-2">{{ tpl.category.subcategory }}</span>
-                  </td>
-                  <td>
-                    <span class="badge" [class.bg-success]="tpl.isActive" [class.bg-secondary]="!tpl.isActive">
-                      {{ tpl.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                  </td>
-                  <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary border-0 me-1" (click)="editTemplate(tpl); $event.stopPropagation()">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger border-0" (click)="deleteTemplate(tpl.id!); $event.stopPropagation()">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr *ngIf="templates.length === 0">
-                  <td colspan="4" class="text-center py-4 text-muted">No templates seeded yet. Create one or start application to seed defaults.</td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Full-width Table -->
+        <div class="table-responsive border rounded-3 bg-white shadow-sm">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-emerald text-white">
+              <tr class="table-emerald">
+                <th>Title</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let tpl of templates"
+                  [class.table-active]="selectedTemplate?.id === tpl.id"
+                  (click)="selectTemplate(tpl)"
+                  class="cursor-pointer">
+                <td>
+                  <div class="fw-bold">{{ tpl.title }}</div>
+                  <div class="text-muted small">{{ tpl.description }}</div>
+                </td>
+                <td>
+                  <span>{{ tpl.category.name }}</span>
+                  <span *ngIf="tpl.category.subcategory" class="badge bg-light text-dark ms-2">{{ tpl.category.subcategory }}</span>
+                </td>
+                <td>
+                  <span class="badge" [class.bg-success]="tpl.isActive" [class.bg-secondary]="!tpl.isActive">
+                    {{ tpl.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-primary border-0 me-1" (click)="editTemplate(tpl); $event.stopPropagation()" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger border-0" (click)="deleteTemplate(tpl.id!); $event.stopPropagation()" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="templates.length === 0">
+                <td colspan="4" class="text-center py-4 text-muted">No templates yet. Click <strong>New Template</strong> to create one.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="field-hint mt-2 text-center">
+          Click on a template row to select it and enable the <strong>Fields</strong> and <strong>Proof Requirements</strong> tabs.
+        </div>
+      </div>
+
+      <!-- ===== TEMPLATE MODAL ===== -->
+      <div *ngIf="showTemplateModal" class="modal-backdrop-custom" (click)="resetTemplateForm()">
+        <div class="modal-dialog-custom card border-0 rounded-4 shadow-lg p-4" (click)="$event.stopPropagation()">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-emerald-800 mb-0">
+              <i class="bi bi-file-earmark-text me-2"></i>
+              {{ isEditingTemplate ? 'Edit Template' : 'Create New Template' }}
+            </h5>
+            <button type="button" class="btn-close" (click)="resetTemplateForm()"></button>
           </div>
-          <div class="field-hint mt-2 text-center">
-            Click on a template row above to select it and enable the <strong>Fields</strong> and <strong>Proof Requirements</strong> tabs.
-          </div>
+          <form [formGroup]="templateForm" (ngSubmit)="saveTemplate()">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+              <select class="form-select border-slate-200" formControlName="categoryId">
+                <option value="" disabled>Select Category</option>
+                <option *ngFor="let cat of categories" [value]="cat.id">
+                  {{ cat.name }}<ng-container *ngIf="cat.subcategory"> ({{ cat.subcategory }})</ng-container>
+                </option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Template Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control border-slate-200" formControlName="title" placeholder="e.g. Forms Task" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Default Description</label>
+              <textarea class="form-control border-slate-200" rows="3" formControlName="description"
+                        placeholder="Standard details automatically populated when creating tasks..."></textarea>
+            </div>
+            <div class="form-check mb-4">
+              <input type="checkbox" class="form-check-input custom-checkbox" id="tplActive" formControlName="isActive" />
+              <label class="form-check-label text-emerald-700" for="tplActive">Template Active</label>
+            </div>
+            <div class="d-flex gap-2 justify-content-end">
+              <button type="button" class="btn btn-outline-secondary" (click)="resetTemplateForm()">Cancel</button>
+              <button type="submit" class="btn btn-emerald px-4" [disabled]="templateForm.invalid">
+                {{ isEditingTemplate ? 'Save Changes' : 'Create Template' }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
       <!-- ==================== TAB 2: CATEGORIES ==================== -->
-      <div *ngIf="activeTab === 'categories'" class="row g-4 animate_animated animate_fadeIn">
-        <div class="col-lg-5">
-          <div class="card border border-slate-100 rounded-3 p-4 bg-slate-50 shadow-sm">
-            <h5 class="fw-bold mb-3 text-emerald-800">
-              {{ isEditingCategory ? 'Edit Category' : 'Create New Category' }}
-            </h5>
-            <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Category Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control border-slate-200" formControlName="name" placeholder="e.g. Admissions Tasks" />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Subcategory Name</label>
-                <input type="text" class="form-control border-slate-200" formControlName="subcategory" placeholder="e.g. Activities" />
-              </div>
-
-              <div class="form-check mb-4">
-                <input type="checkbox" class="form-check-input custom-checkbox" id="catActive" formControlName="isActive" />
-                <label class="form-check-label text-emerald-700" for="catActive">Category Active</label>
-              </div>
-
-              <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-emerald px-4" [disabled]="categoryForm.invalid">
-                  {{ isEditingCategory ? 'Save Changes' : 'Create Category' }}
-                </button>
-                <button type="button" class="btn btn-outline-secondary" (click)="resetCategoryForm()">Cancel</button>
-              </div>
-            </form>
-          </div>
+      <div *ngIf="activeTab === 'categories'" class="animate_animated animate_fadeIn">
+        <!-- Toolbar -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold text-emerald-800 mb-0">All Categories</h6>
+          <button class="btn btn-emerald btn-sm px-3" (click)="openCreateCategoryModal()">
+            <i class="bi bi-plus-lg me-1"></i> New Category
+          </button>
         </div>
 
-        <div class="col-lg-7">
-          <div class="table-responsive border rounded-3 bg-white shadow-sm">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-emerald text-white">
-                <tr>
-                  <th>Category Name</th>
-                  <th>Subcategory</th>
-                  <th>Status</th>
-                  <th class="text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let cat of categories">
-                  <td class="fw-bold">{{ cat.name }}</td>
-                  <td>{{ cat.subcategory || '—' }}</td>
-                  <td>
-                    <span class="badge" [class.bg-success]="cat.isActive" [class.bg-secondary]="!cat.isActive">
-                      {{ cat.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                  </td>
-                  <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary border-0" (click)="editCategory(cat)">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Full-width Table -->
+        <div class="table-responsive border rounded-3 bg-white shadow-sm">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-emerald text-white">
+              <tr class="table-emerald">
+                <th>Category Name</th>
+                <th>Subcategory</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cat of categories">
+                <td class="fw-bold">{{ cat.name }}</td>
+                <td>{{ cat.subcategory || '—' }}</td>
+                <td>
+                  <span class="badge" [class.bg-success]="cat.isActive" [class.bg-secondary]="!cat.isActive">
+                    {{ cat.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-primary border-0" (click)="editCategory(cat)" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="categories.length === 0">
+                <td colspan="4" class="text-center py-4 text-muted">No categories yet. Click <strong>New Category</strong> to create one.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== CATEGORY MODAL ===== -->
+      <div *ngIf="showCategoryModal" class="modal-backdrop-custom" (click)="resetCategoryForm()">
+        <div class="modal-dialog-custom card border-0 rounded-4 shadow-lg p-4" (click)="$event.stopPropagation()">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-emerald-800 mb-0">
+              <i class="bi bi-tags me-2"></i>
+              {{ isEditingCategory ? 'Edit Category' : 'Create New Category' }}
+            </h5>
+            <button type="button" class="btn-close" (click)="resetCategoryForm()"></button>
           </div>
+          <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Category Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control border-slate-200" formControlName="name" placeholder="e.g. Admissions Tasks" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Subcategory Name</label>
+              <input type="text" class="form-control border-slate-200" formControlName="subcategory" placeholder="e.g. Activities" />
+            </div>
+            <div class="form-check mb-4">
+              <input type="checkbox" class="form-check-input custom-checkbox" id="catActive" formControlName="isActive" />
+              <label class="form-check-label text-emerald-700" for="catActive">Category Active</label>
+            </div>
+            <div class="d-flex gap-2 justify-content-end">
+              <button type="button" class="btn btn-outline-secondary" (click)="resetCategoryForm()">Cancel</button>
+              <button type="submit" class="btn btn-emerald px-4" [disabled]="categoryForm.invalid">
+                {{ isEditingCategory ? 'Save Changes' : 'Create Category' }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -259,7 +279,7 @@
           <div class="table-responsive border rounded-3 bg-white shadow-sm">
             <table class="table table-hover align-middle mb-0">
               <thead class="table-emerald text-white">
-                <tr>
+                <tr class="table-emerald">
                   <th>Field Name</th>
                   <th>Type</th>
                   <th>Required</th>
@@ -322,7 +342,7 @@
           <div class="table-responsive border rounded-3 bg-white shadow-sm">
             <table class="table table-hover align-middle mb-0">
               <thead class="table-emerald text-white">
-                <tr>
+                <tr class="table-emerald">
                   <th>Proof Type</th>
                   <th>Mandatory</th>
                   <th class="text-end">Actions</th>
