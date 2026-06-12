@@ -20,6 +20,127 @@
   padding: 2rem 2.5rem;
 }
 
+/* ===== Form Section Cards ===== */
+.form-section-card {
+  border: 1px solid #ECEEF2;
+  border-radius: 14px;
+  padding: 20px;
+  background-color: #ffffff;
+  margin-bottom: 20px;
+}
+
+.form-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.form-section-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4f46e5;
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+.form-section-title-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.form-section-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0;
+}
+
+/* ===== Input Group Styling ===== */
+.input-group {
+  border-radius: 10px;
+  border: 1px solid #ECEEF2;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.input-group:focus-within {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+}
+
+.input-group-text {
+  background-color: transparent !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  padding: 0 10px 0 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 13px; /* vertically aligns icon with first line of text */
+  align-self: stretch;
+  width: 44px;
+}
+
+/* For single-line inputs, center the icon vertically */
+.input-group:not(:has(textarea)) .input-group-text {
+  align-items: center;
+  padding-top: 0;
+}
+
+.input-group .form-control,
+.input-group .form-select {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent;
+  font-size: 0.875rem;
+  color: #334155;
+  padding: 11px 14px;
+  height: auto;
+  min-height: 46px;
+}
+
+.input-group .form-control:focus,
+.input-group .form-select:focus {
+  box-shadow: none !important;
+  outline: none;
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+  padding: 12px 14px !important;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.field-hint {
+  font-size: 0.775rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
 /* Modal-specific styles */
 :host-context(.modal-window-wrapper) {
   display: flex !important;
@@ -132,4 +253,44 @@
   .modal-form-body {
     padding: 1.5rem !important;
   }
+}
+
+/* ===== Button Styles ===== */
+.btn-secondary {
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #ECEEF2;
+  background-color: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+.btn-primary {
+  height: 44px;
+  border-radius: 10px;
+  border: none;
+  background-color: #4f46e5;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #4338ca;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
