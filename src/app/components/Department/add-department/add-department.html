@@ -1,5 +1,5 @@
 <div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
-  <div [class.dept-form-card]="!isModal" [class.modal-form-card]="isModal">
+  <form [formGroup]="departmentForm" (ngSubmit)="onSubmit()" [class.dept-form-card]="!isModal" [class.modal-form-card]="isModal" novalidate>
     
     <!-- Form Header -->
     <div [class.dept-form-header]="!isModal" [class.text-center]="!isModal" [class.modal-form-header]="isModal">
@@ -26,11 +26,19 @@
         <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
 
-      <!-- Form -->
-      <form [formGroup]="departmentForm" (ngSubmit)="onSubmit()" novalidate>
+      <!-- Basic Information -->
+      <div class="form-section-card">
+        <div class="form-section-header">
+          <div class="form-section-icon">
+            <i class="bi bi-building"></i>
+          </div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Basic Information</h4>
+            <p class="form-section-subtitle">Define structural department identifiers</p>
+          </div>
+        </div>
         
-        <!-- Department Name -->
-        <div class="mb-4">
+        <div class="mb-2">
           <label class="form-label">Department Name <span class="text-danger">*</span></label>
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-building"></i></span>
@@ -40,9 +48,21 @@
             <small>Department name is required and must be between 1 and 100 characters.</small>
           </div>
         </div>
+      </div>
 
-        <!-- Description -->
-        <div class="mb-4">
+      <!-- Department Configuration -->
+      <div class="form-section-card">
+        <div class="form-section-header">
+          <div class="form-section-icon">
+            <i class="bi bi-chat-dots"></i>
+          </div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Department Configuration</h4>
+            <p class="form-section-subtitle">Provide details regarding scope and functions</p>
+          </div>
+        </div>
+
+        <div class="mb-2">
           <label class="form-label">Description</label>
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-chat-dots"></i></span>
@@ -52,18 +72,37 @@
             <small>Description cannot exceed 500 characters.</small>
           </div>
         </div>
+      </div>
 
-        <!-- Submit actions -->
-        <div [class.d-flex]="true" [class.justify-content-end]="true" [class.gap-2]="true" [class.mt-5]="!isModal" [class.pt-3]="!isModal" [class.border-top]="!isModal" [class.modal-form-footer]="isModal">
-          <button type="button" class="btn btn-secondary px-4" (click)="cancel()">Cancel</button>
-          <button type="submit" class="btn btn-primary px-5" [disabled]="isSubmitting || departmentForm.invalid">
-            <span *ngIf="!isSubmitting">{{ departmentId ? 'Save Changes' : 'Add Department' }}</span>
-            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
-          </button>
+      <!-- Hierarchy & HOD Assignment -->
+      <div class="form-section-card">
+        <div class="form-section-header">
+          <div class="form-section-icon">
+            <i class="bi bi-diagram-3"></i>
+          </div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Hierarchy & HOD Assignment</h4>
+            <p class="form-section-subtitle">Configure reporting scopes and permissions bounds</p>
+          </div>
         </div>
+        <div class="alert alert-secondary mb-0 py-2.5 d-flex align-items-start gap-2 bg-light border text-muted">
+          <i class="bi bi-info-circle-fill text-primary fs-5 mt-0.5"></i>
+          <span style="font-size: 0.85rem; line-height: 1.4;">
+            HOD assignment and reporting structures are managed in the <strong>User Settings</strong>. When adding or editing a User with an HOD or Teacher role, you can bind them directly to this department.
+          </span>
+        </div>
+      </div>
 
-      </form>
     </div>
 
-  </div>
+    <!-- Submit actions -->
+    <div [class.dept-form-footer]="!isModal" [class.modal-form-footer]="isModal" class="d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-secondary px-4" (click)="cancel()">Cancel</button>
+      <button type="submit" class="btn btn-primary px-5" [disabled]="isSubmitting || departmentForm.invalid">
+        <span *ngIf="!isSubmitting">{{ departmentId ? 'Save Changes' : 'Add Department' }}</span>
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
+      </button>
+    </div>
+
+  </form>
 </div>

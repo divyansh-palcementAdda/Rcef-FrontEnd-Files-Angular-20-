@@ -7,6 +7,39 @@
   padding: 1.25rem 1.5rem;
 }
 
+/* ── Host layout wrapper and form structure inside modal ── */
+:host-context(.modal-window-wrapper) {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+}
+
+.modal-form-layout {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: #ffffff !important;
+}
+
+.modal-form-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+}
+
 /* ── Modal header: override global white header with the gradient style ── */
 :host ::ng-deep .modal-form-header,
 .modal-form-header {
@@ -16,6 +49,9 @@
   color: #fff;
   border-radius: 0 !important;
   padding: 1.25rem 1.5rem !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
 }
 
 .modal-form-header h3 {
@@ -41,9 +77,10 @@
 
 /* ── Modal body scroll & padding ── */
 .modal-form-body {
-  padding: 1.5rem 1.75rem !important;
-  overflow-y: auto;
-  flex: 1 1 auto;
+  padding: 1.5rem !important; /* 1.5rem = 24px */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex: 1 1 auto !important;
   scrollbar-width: thin;
   scrollbar-color: #c4b5fd transparent;
 }
@@ -63,7 +100,13 @@
 
 /* ── Modal footer ── */
 .modal-form-footer {
-  padding: 2rem 1.75rem !important;
+  padding: 1.25rem 1.75rem !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 100 !important;
+  background: #ffffff !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+  margin-top: 0 !important;
 }
 
 /* ── Department checkbox list ── */

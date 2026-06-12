@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectionStrategy, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, AfterViewInit, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -73,6 +73,11 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   errorMessage: string | null = null;
   dueDateErrorMessage: string | null = null;
   startDateErrorMessage: string | null = null;
+  
+  // Dropdown UI States
+  isOpenDepts = false;
+  isOpenUsers = false;
+  userFilterQuery = '';
 
   // Search
   deptSearch = '';
@@ -922,6 +927,42 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
   get hasProgressField(): boolean {
     return !!(this.taskForm.value.isTemplateTask && this.selectedTemplate?.fields?.some(f => f.fieldType === 'DROPDOWN' && f.fieldName?.toLowerCase() === 'progress'));
+  }
+
+  getUserFullName(userId: number): string {
+    return this.allUsers.find(u => u.userId === userId)?.fullName || `User ${userId}`;
+  }
+
+  removeUser(userId: number): void {
+    const selectedDepts = this.taskForm.value.departmentIds || [];
+    selectedDepts.forEach((deptId: number) => {
+      this.updateUserSelection(deptId, userId, false);
+    });
+    this.updateSuperAdminUserSelection(userId, false);
+  }
+
+  getFilteredUsersForDept(deptId: number): userDto[] {
+    const users = this.usersByDepartment.get(deptId) || [];
+    if (!this.userFilterQuery) return users;
+    const query = this.userFilterQuery.toLowerCase().trim();
+    return users.filter(u => u.fullName.toLowerCase().includes(query) || u.username.toLowerCase().includes(query));
+  }
+
+  getFilteredAllUsers(): userDto[] {
+    if (!this.userFilterQuery) return this.filteredAllUsers;
+    const query = this.userFilterQuery.toLowerCase().trim();
+    return this.filteredAllUsers.filter(u => u.fullName.toLowerCase().includes(query) || u.username.toLowerCase().includes(query));
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dept-select-container')) {
+      this.isOpenDepts = false;
+    }
+    if (!target.closest('.user-select-container')) {
+      this.isOpenUsers = false;
+    }
   }
 
   cancel(): void {

@@ -1,15 +1,11 @@
 <div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
-  <div [class.task-form-card]="!isModal" [class.modal-form-card]="isModal">
+  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" [class.task-form-card]="!isModal" [class.modal-form-card]="isModal" novalidate>
     
     <!-- Form Header -->
-    <div [class.task-form-header]="!isModal" [class.modal-form-header]="isModal"
-         [style.display]="isModal ? 'flex' : ''"
-         [style.align-items]="isModal ? 'flex-start' : ''"
-         [style.justify-content]="isModal ? 'space-between' : ''"
-         [class.text-center]="!isModal">
+    <div [class.task-form-header]="!isModal" [class.modal-form-header]="isModal">
       <div>
-        <h3 class="mb-1 fw-bold" style="color: var(--text-main);">Create Task</h3>
-        <p class="mb-0 text-muted small">Assign work and track progress</p>
+        <h3 class="mb-1 fw-bold">Create New Task</h3>
+        <p class="mb-0 text-muted small">Define task targets, assign responsible members/departments, and configure completion criteria.</p>
       </div>
       <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
         <i class="bi bi-x-lg fs-5"></i>
@@ -18,109 +14,59 @@
 
     <!-- Form Body -->
     <div [class.task-form-body]="!isModal" [class.modal-form-body]="isModal">
+      
       <!-- Success/Error Feedback Alerts -->
       <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
-        <span>{{ successMessage }}</span>
+        <span><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}</span>
         <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
       </div>
+      
       <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
-        <span>{{ errorMessage }}</span>
+        <span><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}</span>
         <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
 
-      <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" novalidate>
-        <div class="row g-4">
-          
-          <!-- ================= TASK TYPE SWITCHER ================= -->
-          <div class="col-12">
-            <label class="form-label">Task Type <span class="text-danger">*</span></label>
-            <div class="btn-group w-100" role="group" aria-label="Task Type Selection">
-              <input type="radio" class="btn-check" id="taskTypeGeneral" [value]="false" formControlName="isTemplateTask">
-              <label class="btn btn-outline-emerald py-3 fw-semibold flex-fill d-flex align-items-center justify-content-center gap-2" for="taskTypeGeneral">
-                <i class="bi bi-file-earmark-text"></i> General Task
-              </label>
+      <!-- Task Type Switcher (Stretches Full Width) -->
+      <div class="mb-4">
+        <label class="form-label">Task Type <span class="text-danger">*</span></label>
+        <div class="task-type-container">
+          <input type="radio" class="btn-check" id="taskTypeGeneral" [value]="false" formControlName="isTemplateTask">
+          <label class="task-type-btn" [class.active]="!taskForm.value.isTemplateTask" for="taskTypeGeneral">
+            <i class="bi bi-file-earmark-text"></i> General Task
+          </label>
 
-              <input type="radio" class="btn-check" id="taskTypeTemplate" [value]="true" formControlName="isTemplateTask">
-              <label class="btn btn-outline-emerald py-3 fw-semibold flex-fill d-flex align-items-center justify-content-center gap-2" for="taskTypeTemplate">
-                <i class="bi bi-ui-checks-grid"></i> Template-Based Task
-              </label>
+          <input type="radio" class="btn-check" id="taskTypeTemplate" [value]="true" formControlName="isTemplateTask">
+          <label class="task-type-btn" [class.active]="taskForm.value.isTemplateTask" for="taskTypeTemplate">
+            <i class="bi bi-ui-checks-grid"></i> Template-Based Task
+          </label>
+        </div>
+      </div>
+
+      <!-- 2-Column Grid Layout -->
+      <div class="row g-4">
+        
+        <!-- Left Column -->
+        <div class="col-md-6 d-flex flex-column gap-4">
+          
+          <!-- Template Category (only if template task) -->
+          <div *ngIf="taskForm.value.isTemplateTask" class="animate__animated animate__fadeIn">
+            <label class="form-label">Template Category <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-folder2"></i></span>
+              <select class="form-select" formControlName="templateCategoryId">
+                <option [ngValue]="null" disabled>Select Category</option>
+                <option *ngFor="let cat of categories" [ngValue]="cat.id">
+                  {{ cat.name }} <span *ngIf="cat.subcategory">({{ cat.subcategory }})</span>
+                </option>
+              </select>
+            </div>
+            <div *ngIf="taskForm.get('templateCategoryId')?.touched && taskForm.get('templateCategoryId')?.invalid" class="text-danger small mt-1">
+              <small>Template category is required.</small>
             </div>
           </div>
 
-          <!-- ================= TEMPLATE DROPDOWNS ================= -->
-          <ng-container *ngIf="taskForm.value.isTemplateTask">
-            
-            <div class="col-md-6 animate__animated animate__fadeIn">
-              <label class="form-label">Template Category <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-folder2"></i></span>
-                <select class="form-select" formControlName="templateCategoryId">
-                  <option [ngValue]="null" disabled>Select Category</option>
-                  <option *ngFor="let cat of categories" [ngValue]="cat.id">
-                    {{ cat.name }} <span *ngIf="cat.subcategory">({{ cat.subcategory }})</span>
-                  </option>
-                </select>
-              </div>
-              <div *ngIf="taskForm.get('templateCategoryId')?.touched && taskForm.get('templateCategoryId')?.invalid" class="text-danger small mt-1">
-                <small>Template category is required.</small>
-              </div>
-            </div>
-
-            <div class="col-md-6 animate__animated animate__fadeIn">
-              <label class="form-label">Task Template <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-file-earmark-ruled"></i></span>
-                <select class="form-select" formControlName="templateId">
-                  <option [ngValue]="null" disabled>Select Template</option>
-                  <option *ngFor="let temp of filteredTemplates" [ngValue]="temp.id">
-                    {{ temp.title }}
-                  </option>
-                </select>
-              </div>
-              <div *ngIf="taskForm.get('templateId')?.touched && taskForm.get('templateId')?.invalid" class="text-danger small mt-1">
-                <small>Template is required.</small>
-              </div>
-            </div>
-
-            <!-- Dynamic Field: Target Count -->
-            <div class="col-md-6 animate__animated animate__fadeIn" *ngIf="hasCountField">
-              <label class="form-label">Target Count <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-hash"></i></span>
-                <input type="number" class="form-control" formControlName="targetCount"
-                  placeholder="e.g., 50" min="1"
-                  [ngClass]="{ 'is-invalid': taskForm.get('targetCount')?.touched && taskForm.get('targetCount')?.invalid }" />
-              </div>
-              <div class="field-hint">Define the required target count for this template task.</div>
-              <div *ngIf="taskForm.get('targetCount')?.touched && taskForm.get('targetCount')?.invalid" class="text-danger small mt-1">
-                <small *ngIf="taskForm.get('targetCount')?.errors?.['required']">Target count is required.</small>
-                <small *ngIf="taskForm.get('targetCount')?.errors?.['min']">Target count must be at least 1.</small>
-              </div>
-            </div>
-
-            <!-- Dynamic Field: Target Progress -->
-            <div class="col-md-6 animate__animated animate__fadeIn" *ngIf="hasProgressField">
-              <label class="form-label">Target Progress <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-percent"></i></span>
-                <select class="form-select" formControlName="targetPercentage"
-                  [ngClass]="{ 'is-invalid': taskForm.get('targetPercentage')?.touched && taskForm.get('targetPercentage')?.invalid }">
-                  <option [ngValue]="null" disabled>Select Target Progress</option>
-                  <option *ngFor="let opt of getProgressOptions()" [value]="opt">
-                    {{ opt }}
-                  </option>
-                </select>
-              </div>
-              <div class="field-hint">Select the target completion percentage for this task.</div>
-              <div *ngIf="taskForm.get('targetPercentage')?.touched && taskForm.get('targetPercentage')?.invalid" class="text-danger small mt-1">
-                <small>Target progress is required.</small>
-              </div>
-            </div>
-
-          </ng-container>
-
-          <!-- ================= TASK TITLE ================= -->
-          <div class="col-md-6">
+          <!-- Task Title -->
+          <div>
             <label class="form-label">Task Title <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-pencil"></i></span>
@@ -136,23 +82,8 @@
             </div>
           </div>
 
-          <!-- ================= DESCRIPTION ================= -->
-          <div class="col-md-6">
-            <label class="form-label">Description <span class="text-danger">*</span></label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-chat-dots"></i></span>
-              <textarea class="form-control" rows="3" formControlName="description"
-                placeholder="Describe scope, deliverables, and instructions..."
-                [ngClass]="{ 'is-invalid': f.description.touched && f.description.errors }"></textarea>
-            </div>
-            <div class="field-hint">Provide instructions so assignees understand scope and deliverables.</div>
-            <div *ngIf="f.description.touched && f.description.errors" class="text-danger small mt-1">
-              <small *ngIf="f.description.errors?.maxlength">Max 2000 characters allowed.</small>
-            </div>
-          </div>
-
-          <!-- ================= STATUS ================= -->
-          <div class="col-md-6">
+          <!-- Status -->
+          <div>
             <label class="form-label">Status <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-tag"></i></span>
@@ -165,62 +96,23 @@
               </select>
             </div>
             <div class="field-hint">
-              <span class="d-block"><strong>Upcoming</strong>: Planned start in the future (requires start date).</span>
-              <span class="d-block"><strong>Pending</strong>: Active and ready for immediate work.</span>
+              Upcoming: Planned start in the future (requires start date).<br>
+              Pending: Active and ready for immediate work.
             </div>
             <div *ngIf="f.status.touched && f.status.errors" class="text-danger small mt-1">
               <small>Status is required.</small>
             </div>
           </div>
 
-          <!-- ==================== START DATE (UPCOMING only) ==================== -->
-          <div class="col-md-6" *ngIf="f.status.value === 'UPCOMING'">
-            <label class="form-label">Start Date</label>
-            <div class="input-group clickable" (click)="focusInput($event, startDateInput)">
-              <span class="input-group-text"><i class="bi bi-calendar-plus"></i></span>
-              <input #startDateInput type="date" class="form-control" formControlName="startDate"
-                (change)="onStartDateChange()" [ngClass]="{
-                  'is-invalid': startDateCtrl.touched && (startDateCtrl.errors || startDateErrorMessage)
-                }" />
-            </div>
-            <div class="field-hint">Select the future date when work should begin.</div>
-            <div *ngIf="startDateErrorMessage" class="text-danger small mt-1">
-              {{ startDateErrorMessage }}
-            </div>
-          </div>
-
-          <!-- ==================== DUE DATE ==================== -->
-          <div class="col-md-6">
-            <label class="form-label">Due Date <span class="text-danger">*</span></label>
-            <div class="input-group clickable" (click)="focusInput($event, dueDateInput)">
-              <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
-              <input #dueDateInput type="date" class="form-control" formControlName="dueDate" [min]="minDate"
-                (change)="onDueDateChange()" [ngClass]="{
-                  'is-invalid': dueDateCtrl.touched && (dueDateCtrl.errors || dueDateErrorMessage)
-                }" />
-            </div>
-            <div class="field-hint">Select the final due deadline date. Must be after start date.</div>
-            <div *ngIf="dueDateCtrl.touched && dueDateCtrl.errors?.['required']" class="text-danger small mt-1">
-              <small>Due date is required.</small>
-            </div>
-            <div *ngIf="dueDateErrorMessage" class="text-danger small mt-1">
-              {{ dueDateErrorMessage }}
-            </div>
-          </div>
-
-          <!-- ==================== DEPARTMENTS ==================== -->
-          <div class="col-md-6">
+          <!-- Responsible Departments -->
+          <div>
             <label class="form-label">Responsible Departments <span class="text-danger">*</span></label>
-            <div class="department-wrapper p-3">
-              <div class="input-group mb-3 bg-white rounded">
-                <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
-                <input #deptSearchInput id="dept-search" type="text" class="form-control border-0 bg-transparent"
+            <div class="directory-card">
+              <div class="directory-search">
+                <i class="bi bi-search"></i>
+                <input #deptSearchInput id="dept-search" type="text" class="form-control w-100"
                   placeholder="Search departments..." [(ngModel)]="deptSearch" (ngModelChange)="onDeptSearch()"
                   [ngModelOptions]="{standalone: true}" />
-                <button *ngIf="deptSearch" type="button" class="btn btn-link text-secondary border-0 p-0 me-2"
-                  (click)="clearDeptSearch()">
-                  <i class="bi bi-x fs-5"></i>
-                </button>
               </div>
 
               <!-- Select All checkbox -->
@@ -228,17 +120,17 @@
                 <input type="checkbox" class="form-check-input custom-checkbox" id="selectAllDepts"
                   [checked]="selectAllDepts" (change)="toggleSelectAllDepts()"
                   [disabled]="taskForm.value.assignToSelf" />
-                <label class="form-check-label fw-bold text-primary" for="selectAllDepts">
+                <label class="form-check-label select-all-label" for="selectAllDepts">
                   Select All Departments
                 </label>
               </div>
 
-              <div class="department-list mt-2 border-top pt-2">
+              <div class="directory-list border-top pt-2">
                 <div *ngIf="isLoadingDepartments" class="p-2">
                   <div class="skeleton-item mb-2" *ngFor="let _ of [1, 2, 3]"></div>
                 </div>
                 <div *ngIf="!isLoadingDepartments && filteredDepartments.length === 0"
-                  class="text-muted small text-center py-3">
+                  class="text-muted small text-center py-2">
                   No departments found.
                 </div>
                 <div *ngFor="let dept of filteredDepartments" class="form-check mb-2">
@@ -257,27 +149,11 @@
             <div class="field-hint">Assign to departments. Visibilities are configured accordingly.</div>
           </div>
 
-          <!-- ==================== SUB-DEPARTMENTS ==================== -->
-          <div class="col-md-6" *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
-            <label class="form-label">Sub-Department (Optional)</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
-              <select class="form-select" formControlName="subDepartmentId">
-                <option [ngValue]="null">Select Sub-Department</option>
-                <option *ngFor="let sub of filteredSubDepartments" [ngValue]="sub.id">
-                  {{ sub.name }}
-                </option>
-              </select>
-            </div>
-            <div class="field-hint">Specify sub-department inside the selected parent departments.</div>
-          </div>
-
-          <!-- ==================== USERS / ASSIGNMENT ==================== -->
-          <div class="col-md-6" *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
+          <!-- Assign Users -->
+          <div *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
             <label class="form-label">Assign Users</label>
-            <div class="field-hint mb-3">Assign responsibility to specific department members.</div>
-
-            <!-- Self-Assign alert banner -->
+            
+            <!-- Self-Assign Banner -->
             <div *ngIf="taskForm.value.assignToSelf && currentUser"
               class="alert alert-success d-flex align-items-center gap-2 mb-3 py-2.5 animate__animated animate__fadeIn">
               <i class="bi bi-person-check-fill fs-5"></i>
@@ -287,8 +163,8 @@
               </div>
             </div>
 
-            <!-- Accordion showing users by department -->
-            <div class="accordion" id="userAccordion">
+            <!-- Accordion users list directory styled -->
+            <div class="accordion mb-2" id="userAccordion">
               <div *ngFor="let deptId of taskForm.value.departmentIds; let i = index"
                 class="accordion-item rounded-3 mb-2 overflow-hidden border">
                 <h2 class="accordion-header">
@@ -304,15 +180,11 @@
                   data-bs-parent="#userAccordion">
                   <div class="accordion-body p-3">
                     
-                    <div class="input-group mb-3 bg-white rounded border">
-                      <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
-                      <input type="text" class="form-control border-0 bg-transparent" placeholder="Search members..."
+                    <div class="directory-search">
+                      <i class="bi bi-search"></i>
+                      <input type="text" class="form-control w-100" placeholder="Search members..."
                         [(ngModel)]="userSearchByDept[deptId]" (ngModelChange)="onUserSearch(deptId)"
                         [ngModelOptions]="{standalone: true}" />
-                      <button *ngIf="userSearchByDept[deptId]" type="button" class="btn btn-link text-secondary p-0 me-2"
-                        (click)="clearUserSearch(deptId)">
-                        <i class="bi bi-x fs-5"></i>
-                      </button>
                     </div>
 
                     <!-- Select all users in dept -->
@@ -335,7 +207,7 @@
                               ? (user.userId !== currentUser?.userId)
                               : isUserSelectionDisabled(user)
                           " />
-                        <label class="form-check-label fw-medium" [for]="'user-' + user.userId">
+                        <label class="form-check-label" [for]="'user-' + user.userId">
                           {{ user.fullName }}
                           <small class="text-muted ms-1">({{ user.role }})</small>
                         </label>
@@ -350,52 +222,41 @@
               </div>
             </div>
 
-            <!-- Super Admin Fallback selection list if no dept is selected -->
+            <!-- Fallback Directory Card for Super Admin (no dept selected) -->
             <div *ngIf="!taskForm.value.departmentIds?.length && currentUser?.role === 'SUPER_ADMIN'"
-              class="accordion-item rounded-3 mb-2 overflow-hidden border animate__animated animate__fadeIn">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                  data-bs-target="#collapse-all-users">
-                  All Active Users
-                  <span class="badge bg-light text-primary ms-2">{{ allUsers.length }}</span>
-                </button>
-              </h2>
-              <div id="collapse-all-users" class="accordion-collapse collapse show" data-bs-parent="#userAccordion">
-                <div class="accordion-body p-3">
-                  <div class="input-group mb-3 bg-white rounded border">
-                    <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control border-0 bg-transparent" placeholder="Search user directory..."
-                      [(ngModel)]="superAdminUserSearch" (ngModelChange)="onSuperAdminUserSearch()"
-                      [ngModelOptions]="{standalone: true}" />
-                    <button *ngIf="superAdminUserSearch" type="button" class="btn btn-link text-secondary p-0 me-2"
-                      (click)="clearSuperAdminUserSearch()">
-                      <i class="bi bi-x fs-5"></i>
-                    </button>
-                  </div>
+              class="directory-card">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fw-bold text-slate-700 fs-7.5">All Active Users</span>
+                <span class="badge bg-light text-primary rounded-pill">{{ allUsers.length }}</span>
+              </div>
+              <div class="directory-search">
+                <i class="bi bi-search"></i>
+                <input type="text" class="form-control w-100" placeholder="Search user directory..."
+                  [(ngModel)]="superAdminUserSearch" (ngModelChange)="onSuperAdminUserSearch()"
+                  [ngModelOptions]="{standalone: true}" />
+              </div>
 
-                  <div class="max-h-48 overflow-y-auto">
-                    <div *ngFor="let user of filteredAllUsers" class="form-check mb-2">
-                      <input type="checkbox" class="form-check-input custom-checkbox" [id]="'user-all-' + user.userId"
-                        [checked]="taskForm.value.assignedToIds?.includes(user.userId)"
-                        (change)="updateSuperAdminUserSelection(user.userId, $event.target.checked)" />
-                      <label class="form-check-label fw-medium" [for]="'user-all-' + user.userId">
-                        {{ user.fullName }}
-                        <small class="text-muted ms-1">({{ user.role }})</small>
-                      </label>
-                    </div>
-                    <div *ngIf="!filteredAllUsers.length" class="text-muted small text-center py-2">
-                      No users found in directory.
-                    </div>
-                  </div>
+              <div class="directory-list border-top pt-2">
+                <div *ngFor="let user of filteredAllUsers" class="form-check mb-2">
+                  <input type="checkbox" class="form-check-input custom-checkbox" [id]="'user-all-' + user.userId"
+                    [checked]="taskForm.value.assignedToIds?.includes(user.userId)"
+                    (change)="updateSuperAdminUserSelection(user.userId, $event.target.checked)" />
+                  <label class="form-check-label" [for]="'user-all-' + user.userId">
+                    {{ user.fullName }}
+                    <small class="text-muted ms-1">({{ user.role }})</small>
+                  </label>
+                </div>
+                <div *ngIf="!filteredAllUsers.length" class="text-muted small text-center py-2">
+                  No users found in directory.
                 </div>
               </div>
             </div>
 
-            <!-- Self-Assign Checkbox toggle -->
-            <div class="form-check mt-3 pt-2 border-top">
+            <!-- Assign to Myself checkbox -->
+            <div class="form-check mt-3">
               <input type="checkbox" class="form-check-input custom-checkbox" id="assignToSelf"
                 formControlName="assignToSelf" />
-              <label class="form-check-label fw-bold text-primary" for="assignToSelf">
+              <label class="form-check-label select-all-label" for="assignToSelf">
                 Assign to Myself
               </label>
             </div>
@@ -403,33 +264,144 @@
           </div>
 
         </div>
+        
+        <!-- Right Column -->
+        <div class="col-md-6 d-flex flex-column gap-4">
+          
+          <!-- Task Template (only if template task) -->
+          <div *ngIf="taskForm.value.isTemplateTask" class="animate__animated animate__fadeIn">
+            <label class="form-label">Task Template <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-file-earmark-ruled"></i></span>
+              <select class="form-select" formControlName="templateId">
+                <option [ngValue]="null" disabled>Select Template</option>
+                <option *ngFor="let temp of filteredTemplates" [ngValue]="temp.id">
+                  {{ temp.title }}
+                </option>
+              </select>
+            </div>
+            <div *ngIf="taskForm.get('templateId')?.touched && taskForm.get('templateId')?.invalid" class="text-danger small mt-1">
+              <small>Template is required.</small>
+            </div>
+          </div>
 
-        <!-- Non-modal submit buttons (inside form for page layout) -->
-        <div *ngIf="!isModal" class="d-flex flex-wrap justify-content-end gap-2 mt-5 pt-3 border-top">
-          <button type="button" class="btn btn-secondary px-4" (click)="cancel()" [disabled]="isSubmitting">
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-primary px-5 d-flex align-items-center gap-2"
-            [disabled]="isSubmitting || taskForm.invalid">
-            <span *ngIf="!isSubmitting">Create Task</span>
-            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
-          </button>
+          <!-- Description -->
+          <div>
+            <label class="form-label">Description <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-chat-dots"></i></span>
+              <textarea class="form-control" rows="5" formControlName="description"
+                placeholder="Describe scope, deliverables, and instructions..."
+                [ngClass]="{ 'is-invalid': f.description.touched && f.description.errors }"></textarea>
+            </div>
+            <div class="field-hint">Provide instructions so assignees understand scope and deliverables.</div>
+            <div *ngIf="f.description.touched && f.description.errors" class="text-danger small mt-1">
+              <small *ngIf="f.description.errors?.maxlength">Max 2000 characters allowed.</small>
+            </div>
+          </div>
+
+          <!-- Due Date -->
+          <div>
+            <label class="form-label">Due Date <span class="text-danger">*</span></label>
+            <div class="input-group clickable" (click)="focusInput($event, dueDateInput)">
+              <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
+              <input #dueDateInput type="date" class="form-control" formControlName="dueDate" [min]="minDate"
+                (change)="onDueDateChange()" [ngClass]="{
+                  'is-invalid': dueDateCtrl.touched && (dueDateCtrl.errors || dueDateErrorMessage)
+                }" />
+            </div>
+            <div class="field-hint">Select the final due deadline date. Must be after start date.</div>
+            <div *ngIf="dueDateCtrl.touched && dueDateCtrl.errors?.['required']" class="text-danger small mt-1">
+              <small>Due date is required.</small>
+            </div>
+            <div *ngIf="dueDateErrorMessage" class="text-danger small mt-1">
+              {{ dueDateErrorMessage }}
+            </div>
+          </div>
+
+          <!-- Sub-Department Selection -->
+          <div *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
+            <label class="form-label">Sub-Department (Optional)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+              <select class="form-select" formControlName="subDepartmentId">
+                <option [ngValue]="null">Select Sub-Department</option>
+                <option *ngFor="let sub of filteredSubDepartments" [ngValue]="sub.id">
+                  {{ sub.name }}
+                </option>
+              </select>
+            </div>
+            <div class="field-hint">Specify sub-department inside the selected parent departments.</div>
+          </div>
+
+          <!-- Dynamic Field: Target Count -->
+          <div class="animate__animated animate__fadeIn" *ngIf="taskForm.value.isTemplateTask && hasCountField">
+            <label class="form-label">Target Count <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-hash"></i></span>
+              <input type="number" class="form-control" formControlName="targetCount"
+                placeholder="e.g., 50" min="1"
+                [ngClass]="{ 'is-invalid': taskForm.get('targetCount')?.touched && taskForm.get('targetCount')?.invalid }" />
+            </div>
+            <div class="field-hint">Define the required target count for this template task.</div>
+            <div *ngIf="taskForm.get('targetCount')?.touched && taskForm.get('targetCount')?.invalid" class="text-danger small mt-1">
+              <small *ngIf="taskForm.get('targetCount')?.errors?.['required']">Target count is required.</small>
+              <small *ngIf="taskForm.get('targetCount')?.errors?.['min']">Target count must be at least 1.</small>
+            </div>
+          </div>
+
+          <!-- Dynamic Field: Target Progress -->
+          <div class="animate__animated animate__fadeIn" *ngIf="taskForm.value.isTemplateTask && hasProgressField">
+            <label class="form-label">Target Progress <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-percent"></i></span>
+              <select class="form-select" formControlName="targetPercentage"
+                [ngClass]="{ 'is-invalid': taskForm.get('targetPercentage')?.touched && taskForm.get('targetPercentage')?.invalid }">
+                <option [ngValue]="null" disabled>Select Target Progress</option>
+                <option *ngFor="let opt of getProgressOptions()" [value]="opt">
+                  {{ opt }}
+                </option>
+              </select>
+            </div>
+            <div class="field-hint">Select the target completion percentage for this task.</div>
+            <div *ngIf="taskForm.get('targetPercentage')?.touched && taskForm.get('targetPercentage')?.invalid" class="text-danger small mt-1">
+              <small>Target progress is required.</small>
+            </div>
+          </div>
+
+          <!-- Start Date (Upcoming only) -->
+          <div *ngIf="f.status.value === 'UPCOMING'">
+            <label class="form-label">Start Date</label>
+            <div class="input-group clickable" (click)="focusInput($event, startDateInput)">
+              <span class="input-group-text"><i class="bi bi-calendar-plus"></i></span>
+              <input #startDateInput type="date" class="form-control" formControlName="startDate"
+                (change)="onStartDateChange()" [ngClass]="{
+                  'is-invalid': startDateCtrl.touched && (startDateCtrl.errors || startDateErrorMessage)
+                }" />
+            </div>
+            <div class="field-hint">Select the future date when work should begin.</div>
+            <div *ngIf="startDateErrorMessage" class="text-danger small mt-1">
+              {{ startDateErrorMessage }}
+            </div>
+          </div>
+
         </div>
 
-      </form>
+      </div>
+
     </div>
 
-    <!-- Modal submit buttons (outside scroll body — sticks to bottom) -->
-    <div *ngIf="isModal" class="modal-form-footer">
+    <!-- Sticky Form Footer -->
+    <div [class.task-form-footer]="!isModal" [class.modal-form-footer]="isModal" class="d-flex justify-content-end gap-2">
       <button type="button" class="btn btn-secondary px-4" (click)="cancel()" [disabled]="isSubmitting">
         Cancel
       </button>
-      <button type="button" class="btn btn-primary px-5 d-flex align-items-center gap-2"
-        [disabled]="isSubmitting || taskForm.invalid" (click)="onSubmit()">
+      <button type="submit" class="btn btn-primary px-5 d-flex align-items-center gap-2"
+        [disabled]="isSubmitting || taskForm.invalid">
         <span *ngIf="!isSubmitting">Create Task</span>
         <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
       </button>
     </div>
 
-  </div>
+  </form>
 </div>

@@ -21,23 +21,50 @@
 }
 
 /* Modal-specific styles */
+:host-context(.modal-window-wrapper) {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+}
+
 .modal-form-layout {
-  padding: 0;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: #ffffff !important;
 }
 
 .modal-form-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
   background: var(--card-bg);
-  border-radius: 0;
   width: 100%;
 }
 
 .modal-form-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-  background-color: var(--bg-color);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 1.25rem 1.5rem !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  background-color: var(--bg-color) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
 }
 
 .modal-form-header h3 {
@@ -45,13 +72,35 @@
 }
 
 .modal-form-body {
-  padding: 1.5rem;
+  padding: 1.5rem !important; /* 1.5rem = 24px */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex: 1 1 auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.modal-form-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-form-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-form-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 99px;
 }
 
 .modal-form-footer {
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--border-color);
-  margin-top: 1.5rem;
+  padding: 1.25rem 1.75rem !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 100 !important;
+  background-color: var(--bg-color, #ffffff) !important;
+  border-top: 1px solid var(--border-color) !important;
+  margin-top: 0 !important;
 }
 
 .modal-close-btn-inline {
@@ -81,6 +130,6 @@
   }
 
   .modal-form-body {
-    padding: 1.25rem;
+    padding: 1.5rem !important;
   }
 }

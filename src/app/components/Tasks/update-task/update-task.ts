@@ -8,6 +8,7 @@ import {
   Input,
   Output,
   EventEmitter,
+  HostListener,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -96,6 +97,11 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   successMessage: string | null = null;
   errorMessage: string | null = null;
   dateErrorMessage: string | null = null;
+
+  // Dropdown UI States
+  isOpenDepts = false;
+  isOpenUsers = false;
+  userFilterQuery = '';
 
   /* ---------- SEARCH ---------- */
   deptSearch = '';
@@ -917,6 +923,42 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  getUserFullName(userId: number): string {
+    return this.allUsers.find(u => u.userId === userId)?.fullName || `User ${userId}`;
+  }
+
+  removeUser(userId: number): void {
+    const selectedDepts = this.taskForm.value.departmentIds || [];
+    selectedDepts.forEach((deptId: number) => {
+      this.updateUserSelection(deptId, userId, false);
+    });
+    this.updateSuperAdminUserSelection(userId, false);
+  }
+
+  getFilteredUsersForDept(deptId: number): userDto[] {
+    const users = this.usersByDepartment.get(deptId) || [];
+    if (!this.userFilterQuery) return users;
+    const query = this.userFilterQuery.toLowerCase().trim();
+    return users.filter(u => u.fullName.toLowerCase().includes(query) || u.username.toLowerCase().includes(query));
+  }
+
+  getFilteredAllUsers(): userDto[] {
+    if (!this.userFilterQuery) return this.filteredAllUsers;
+    const query = this.userFilterQuery.toLowerCase().trim();
+    return this.filteredAllUsers.filter(u => u.fullName.toLowerCase().includes(query) || u.username.toLowerCase().includes(query));
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dept-select-container')) {
+      this.isOpenDepts = false;
+    }
+    if (!target.closest('.user-select-container')) {
+      this.isOpenUsers = false;
+    }
   }
 
   cancel(): void {

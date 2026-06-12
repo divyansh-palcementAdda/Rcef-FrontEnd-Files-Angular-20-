@@ -1,170 +1,226 @@
-<br *ngIf="!isModal"><br *ngIf="!isModal">
-<div [class.container]="!isModal" [class.my-5]="!isModal" [class.modal-form-layout]="isModal">
-  <div [class.card]="!isModal" [class.shadow]="!isModal" [class.rounded-4]="!isModal" [class.border-0]="!isModal" [class.modal-form-card]="isModal">
+<div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" [class.card]="!isModal" [class.shadow]="!isModal" [class.rounded-4]="!isModal" [class.border-0]="!isModal" [class.modal-form-card]="isModal" novalidate>
+    
+    <!-- Form Header -->
     <div [class.card-header]="!isModal" [class.text-white]="!isModal" [class.text-center]="!isModal" [class.p-4]="!isModal" [class.table_head]="!isModal" [class.modal-form-header]="isModal" [class.d-flex]="isModal" [class.align-items-center]="isModal" [class.justify-content-between]="isModal">
       <div>
-        <h3 class="mb-0 fw-bold">Add User</h3>
-        <p class="mb-0 text-white-50" style="font-size: 0.875rem;">Create and configure a new user</p>
+        <h3 class="mb-0 fw-bold" [style.color]="isModal ? 'var(--text-main)' : '#ffffff'">Add User</h3>
+        <p class="mb-0 text-muted small" [style.color]="isModal ? 'var(--text-muted)' : 'rgba(255,255,255,0.75)'">Create and configure a new user account</p>
       </div>
-      <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
+      <button *ngIf="isModal" type="button" class="modal-close-btn-inline ms-auto" (click)="cancel()" aria-label="Close">
         <i class="bi bi-x-lg fs-5"></i>
       </button>
     </div>
 
+    <!-- Form Body -->
     <div [class.card-body]="!isModal" [class.p-4]="!isModal" [class.modal-form-body]="isModal">
       <!-- Alerts -->
-      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
-        {{ successMessage }}
-        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+        <span><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}</span>
+        <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
       </div>
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
-        {{ errorMessage }}
-        <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+        <span><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}</span>
+        <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
 
-      <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-        <div class="row g-3">
-          <!-- Username -->
-          <div class="col-md-6">
-            <label class="form-label">Username</label>
-            <input type="text" class="form-control" formControlName="username" placeholder="e.g. john_doe">
-            <small class="text-muted d-block mt-1 narration">
-              Choose a unique username (3–80 characters). Only letters, numbers, dots, underscores, and hyphens are
-              allowed.
-            </small>
+      <!-- Personal Information Card -->
+      <div class="form-section-card">
+        <div class="form-section-header">
+          <div class="form-section-icon"><i class="bi bi-person"></i></div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Personal Information</h4>
+            <p class="form-section-subtitle">Set real name and perform email verification</p>
           </div>
-
+        </div>
+        <div class="row g-3">
+          <!-- Full Name -->
+          <div class="col-md-6">
+            <label class="form-label">Full Name <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" class="form-control" formControlName="fullName" placeholder="e.g. John Doe">
+            </div>
+            <small class="text-muted d-block mt-1 narration">Letters and spaces only (min 3 chars).</small>
+          </div>
           <!-- Email + OTP -->
           <div class="col-md-6">
-            <label class="form-label">Email</label>
+            <label class="form-label">Email <span class="text-danger">*</span></label>
             <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
               <input type="email" class="form-control" formControlName="email" [readonly]="otpValidated"
                 [ngClass]="{'bg-light': otpValidated}" placeholder="e.g. john@example.com">
               <button type="button" class="btn btn-outline-primary" (click)="sendOtp()" [disabled]="otpValidated">
                 {{ otpValidated ? 'Verified' : 'Send OTP' }}
               </button>
             </div>
-            <small class="text-muted d-block mt-1 narration">
-              A valid email is required. We'll send a secure OTP to verify ownership.
-            </small>
+            <small class="text-muted d-block mt-1 narration">Verification code will be dispatched to this email.</small>
           </div>
-
           <!-- OTP Input -->
-          <div class="col-md-6" *ngIf="otpSent && !otpValidated">
-            <label class="form-label">Enter OTP</label>
+          <div class="col-md-6 animate__animated animate__fadeIn" *ngIf="otpSent && !otpValidated">
+            <label class="form-label">Enter OTP <span class="text-danger">*</span></label>
             <div class="input-group">
-              <input type="text" class="form-control" [(ngModel)]="otpInput" [ngModelOptions]="{standalone: true}"
-                placeholder="Enter 6-digit OTP">
+              <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+              <input type="text" class="form-control" [(ngModel)]="otpInput" [ngModelOptions]="{standalone: true}" placeholder="6-digit OTP">
               <button type="button" class="btn btn-outline-success" (click)="verifyOtp()">Verify</button>
             </div>
-            <small class="text-muted d-block mt-1 narration">
-              Check your inbox (and spam) for the 6-digit code. It expires in 10 minutes.
-            </small>
           </div>
+        </div>
+      </div>
 
-          <!-- Full Name -->
+      <!-- Account Credentials Card -->
+      <div class="form-section-card">
+        <div class="form-section-header">
+          <div class="form-section-icon"><i class="bi bi-shield-lock"></i></div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Account Credentials</h4>
+            <p class="form-section-subtitle">Set user identifier login credentials</p>
+          </div>
+        </div>
+        <div class="row g-3">
+          <!-- Username -->
           <div class="col-md-6">
-            <label class="form-label">Full Name</label>
-            <input type="text" class="form-control" formControlName="fullName" placeholder="e.g. John Doe">
-            <small class="text-muted d-block mt-1 narration">
-              Enter the user's complete name using only letters and spaces (2–80 characters).
-            </small>
+            <label class="form-label">Username <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text">@</span>
+              <input type="text" class="form-control" formControlName="username" placeholder="e.g. john_doe">
+            </div>
+            <small class="text-muted d-block mt-1 narration">Alphanumeric, dots, hyphens, and underscores.</small>
           </div>
-
           <!-- Password -->
           <div class="col-md-6">
-            <label class="form-label">Password</label>
+            <label class="form-label">Password <span class="text-danger">*</span></label>
             <div class="input-group">
-              <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password"
-                placeholder="Create a strong password">
-              <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()"
-                tabindex="-1">
+              <span class="input-group-text"><i class="bi bi-key"></i></span>
+              <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password" placeholder="Create a strong password">
+              <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()" tabindex="-1">
                 <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </button>
             </div>
-            <small class="text-muted d-block mt-1 narration">
-              Minimum 8 characters: include at least <strong>1 uppercase</strong>, <strong>1 lowercase</strong>,
-              <strong>1 number</strong>, and <strong>1 special character</strong> (@#$%^&+=!).
-            </small>
             <div class="progress mt-2" style="height: 6px;">
-              <div class="progress-bar" [style.width.%]="passwordStrength.score"
-                [style.backgroundColor]="passwordStrength.color"></div>
+              <div class="progress-bar" [style.width.%]="passwordStrength.score" [style.backgroundColor]="passwordStrength.color"></div>
             </div>
-            <small class="text-muted d-block">{{ passwordStrength.label }} password</small>
+            <small class="text-muted d-block mt-1">{{ passwordStrength.label }} password strength</small>
           </div>
+        </div>
+      </div>
 
+      <!-- Role & Hierarchy Card -->
+      <div class="form-section-card">
+        <div class="form-section-header">
+          <div class="form-section-icon"><i class="bi bi-person-badge"></i></div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Role & Hierarchy</h4>
+            <p class="form-section-subtitle">Set role and reporting line supervisor</p>
+          </div>
+        </div>
+        <div class="row g-3">
           <!-- Role -->
           <div class="col-md-6">
-            <label class="form-label">Role</label>
-            <select class="form-select" formControlName="role">
-              <option value="" disabled selected>Select Role</option>
-              <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
-            </select>
-            <small class="text-muted d-block mt-1 narration">
-              Select the appropriate role in the organizational hierarchy.
-            </small>
-          </div>
-
-          <!-- Parent User -->
-          <div class="col-md-6" *ngIf="userForm.get('role')?.value">
-            <label class="form-label">Parent User (Reporting To)</label>
-            <select class="form-select" formControlName="parentUserId">
-              <option [ngValue]="null" disabled selected>Select Parent User</option>
-              <option *ngFor="let parent of filteredParentUsers" [value]="parent.userId">
-                {{ parent.fullName }} ({{ parent.role }})
-              </option>
-            </select>
-            <div *ngIf="userForm.get('parentUserId')?.touched && userForm.get('parentUserId')?.errors?.['required']" class="text-danger small mt-1">
-              Parent user is required.
+            <label class="form-label">System Role <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+              <select class="form-select" formControlName="role">
+                <option value="" disabled selected>Select Role</option>
+                <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+              </select>
             </div>
-            <small class="text-muted d-block mt-1 narration">
-              Must follow strict reporting rules: Teacher -> HOD -> SubAdmin -> Admin -> SuperAdmin.
-            </small>
           </div>
+          <!-- Parent User -->
+          <div class="col-md-6 animate__animated animate__fadeIn" *ngIf="userForm.get('role')?.value">
+            <label class="form-label">Reports To (Supervisor) <span class="text-danger" *ngIf="userForm.get('role')?.value !== 'SUPER_ADMIN'">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+              <select class="form-select" formControlName="parentUserId">
+                <option [ngValue]="null" disabled selected>Select Supervisor</option>
+                <option *ngFor="let parent of filteredParentUsers" [value]="parent.userId">
+                  {{ parent.fullName }} ({{ parent.role }})
+                </option>
+              </select>
+            </div>
+            <div *ngIf="userForm.get('parentUserId')?.touched && userForm.get('parentUserId')?.errors?.['required']" class="text-danger small mt-1">
+              Supervisor reporting assignment is required.
+            </div>
+          </div>
+        </div>
+      </div>
 
+      <!-- Department Assignment Card -->
+      <div class="form-section-card animate__animated animate__fadeIn" *ngIf="userForm.get('role')?.value && userForm.get('role')?.value !== 'SUPER_ADMIN'">
+        <div class="form-section-header">
+          <div class="form-section-icon"><i class="bi bi-diagram-3"></i></div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Department & Sub-Department</h4>
+            <p class="form-section-subtitle">Select organization units and scopes</p>
+          </div>
+        </div>
+        <div class="row g-3">
           <!-- SubDepartment -->
           <div class="col-md-6" *ngIf="subDepartments.length > 0">
-            <label class="form-label">Sub-Department</label>
-            <select class="form-select" formControlName="subDepartmentId">
-              <option [ngValue]="null" selected>None / General</option>
-              <option *ngFor="let sub of subDepartments" [value]="sub.id">
-                {{ sub.name }} ({{ sub.code }})
-              </option>
-            </select>
-            <small class="text-muted d-block mt-1 narration">
-              Optional sub-department assignment.
-            </small>
+            <label class="form-label">Sub-Department (Optional)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+              <select class="form-select" formControlName="subDepartmentId">
+                <option [ngValue]="null" selected>None / General</option>
+                <option *ngFor="let sub of subDepartments" [value]="sub.id">
+                  {{ sub.name }} ({{ sub.code }})
+                </option>
+              </select>
+            </div>
           </div>
-
           <!-- Department List -->
-          <div class="col-12" *ngIf="userForm.get('role')?.value !== 'SUPER_ADMIN'">
-            <label class="form-label fw-semibold">Select Departments</label>
-            <div class="department-list p-3 bg-light rounded-3 shadow-sm">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <label class="form-label mb-0 fw-semibold">Select Departments Access <span class="text-danger">*</span></label>
+              <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control border-0 bg-transparent" placeholder="Search departments..." [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}" />
+                </div>
+              </div>
+            </div>
+            <div class="department-list p-3 bg-light rounded border" style="max-height: 200px; overflow-y: auto;">
               <div *ngFor="let dept of filteredDepartments()" class="form-check mb-2">
                 <input type="checkbox" class="form-check-input" [id]="'dept-' + dept.departmentId"
                   [checked]="selectedDepartments.includes(dept.departmentId)"
                   (change)="updateDepartmentSelection($event, dept.departmentId)" [disabled]="isDeptDisabled(dept)">
                 <label class="form-check-label" [for]="'dept-' + dept.departmentId">
                   {{ dept.name }}
-                  <span *ngIf="isDeptDisabled(dept)" class="text-muted small">(Not allowed)</span>
+                  <span *ngIf="isDeptDisabled(dept)" class="text-muted small ms-1">(Restricted)</span>
                 </label>
               </div>
             </div>
-            <small class="text-muted d-block mt-2 narration">
-              Assign relevant departments based on the selected role.
-              HODs can manage only <strong>one department</strong>.
-            </small>
           </div>
         </div>
+      </div>
 
-        <div class="d-flex justify-content-end gap-2" [class.mt-4]="!isModal" [class.pt-3]="!isModal" [class.modal-form-footer]="isModal">
-          <button type="button" class="btn btn-outline-secondary px-4" (click)="cancel()">Cancel</button>
-          <button type="submit" class="btn btn-success px-4" [disabled]="isSubmitting || !otpValidated">
-            <span *ngIf="!isSubmitting">Add User</span>
-            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
-          </button>
+      <!-- Permissions Card -->
+      <div class="form-section-card animate__animated animate__fadeIn" *ngIf="userForm.get('role')?.value">
+        <div class="form-section-header">
+          <div class="form-section-icon"><i class="bi bi-shield-check"></i></div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">System Permissions</h4>
+            <p class="form-section-subtitle">Permissions governed by role</p>
+          </div>
         </div>
-      </form>
+        <div class="alert alert-secondary mb-0 py-2.5 d-flex align-items-start gap-2 bg-light border text-muted">
+          <i class="bi bi-info-circle-fill text-primary fs-5 mt-0.5"></i>
+          <span style="font-size: 0.85rem; line-height: 1.4;">
+            Permissions are automatically inherited based on the selected role (<strong>{{ userForm.get('role')?.value }}</strong>). Administrators can review and override specific permissions inside the <strong>Roles & Permissions</strong> dashboard setting.
+          </span>
+        </div>
+      </div>
+
     </div>
-  </div>
+
+    <!-- Footer -->
+    <div [class.card-footer]="!isModal" [class.modal-form-footer]="isModal" class="d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-secondary px-4" (click)="cancel()">Cancel</button>
+      <button type="submit" class="btn btn-primary px-5" [disabled]="isSubmitting || !otpValidated || userForm.invalid">
+        <span *ngIf="!isSubmitting">Add User</span>
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
+      </button>
+    </div>
+
+  </form>
 </div>
