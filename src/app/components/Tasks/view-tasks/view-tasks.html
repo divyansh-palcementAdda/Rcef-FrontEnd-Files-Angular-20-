@@ -565,7 +565,7 @@
 
     <!-- Empty State -->
     <div *ngIf="isEmpty || filteredTasks.length === 0" class="empty-state-card animate__animated animate__fadeIn">
-      <div class="empty-state-icon">📭</div>
+      
       <h4 class="fw-bold text-main">No tasks found</h4>
       <p class="text-muted mb-4 small">
         {{ (searchTerm || statusFilter) ? 'We couldn\'t find any assignments matching your current search or filter

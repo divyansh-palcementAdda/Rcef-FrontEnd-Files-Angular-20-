@@ -17,8 +17,17 @@
   background-color: #059669 !important;
 }
 
-.table-emerald th {
-  color: white !important;
+.table-emerald th,
+.table-emerald tr th {
+  color: #ffffff !important;
+  background-color: #059669 !important;
+  border-color: #047857 !important;
+}
+
+:host ::ng-deep .table-emerald th {
+  color: #ffffff !important;
+  background-color: #059669 !important;
+  border-color: #047857 !important;
 }
 
 .cursor-pointer {
@@ -44,4 +53,37 @@
   font-size: 0.825rem;
   color: #64748b;
   margin-top: 0.25rem;
+}
+
+/* ===== Custom Modal ===== */
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeInBackdrop 0.15s ease;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-dialog-custom {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideInModal 0.2s ease;
+}
+
+@keyframes slideInModal {
+  from { transform: translateY(-30px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
 }
