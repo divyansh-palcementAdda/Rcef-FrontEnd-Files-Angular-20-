@@ -5,6 +5,9 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  Input,
+  Output,
+  EventEmitter,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -23,6 +26,7 @@ import { UserApiService } from '../../../Services/UserApiService';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { JwtService } from '../../../Services/jwt-service';
 import { TaskDto } from '../../../Model/TaskDto';
+import { TaskTemplateApiService, TaskTemplateDto, TaskTemplateCategoryDto } from '../../../Services/task-template-api.service';
 
 interface TaskFormControls {
   title: any;
@@ -33,6 +37,12 @@ interface TaskFormControls {
   departmentIds: any;
   assignedToIds: any;
   assignToSelf: any;
+  subDepartmentId: any;
+  isTemplateTask: any;
+  templateCategoryId: any;
+  templateId: any;
+  targetCount: any;
+  targetPercentage: any;
 }
 
 @Component({
@@ -41,9 +51,10 @@ interface TaskFormControls {
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './update-task.html',
   styleUrls: ['./update-task.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UpdateTaskComponent implements OnInit, AfterViewInit {
+  @Input() isModal = false;
+  @Output() closed = new EventEmitter<boolean>();
   /* ---------- FORM ---------- */
   taskForm!: FormGroup;
   taskId!: number;
@@ -54,6 +65,17 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   usersByDepartment = new Map<number, userDto[]>();
   filteredUsersByDept = new Map<number, userDto[]>();
   selectedUsersByDeptObj: Record<number, number[]> = {};
+  allUsers: userDto[] = [];
+  filteredAllUsers: userDto[] = [];
+  superAdminUserSearch = '';
+  subDepartments: any[] = [];
+  filteredSubDepartments: any[] = [];
+
+  // Template States
+  categories: TaskTemplateCategoryDto[] = [];
+  templates: TaskTemplateDto[] = [];
+  filteredTemplates: TaskTemplateDto[] = [];
+  selectedTemplate: TaskTemplateDto | null = null;
 
   allowedStatuses: TaskStatus[] = [
     TaskStatus.PENDING,
@@ -96,6 +118,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     private departmentService: DepartmentApiService,
     private userService: UserApiService,
     private jwtService: JwtService,
+    private templateApiService: TaskTemplateApiService,
     private cdr: ChangeDetectorRef
   ) {
     this.initForm();
@@ -106,22 +129,63 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   get dueDateCtrl() { return this.taskForm.get('dueDate') as FormControl; }
   get startDateCtrl() { return this.taskForm.get('startDate') as FormControl; }
 
+  get hasCountField(): boolean {
+    return !!(this.taskForm.value.isTemplateTask && this.selectedTemplate?.fields?.some(f => f.fieldType === 'NUMBER' && f.fieldName?.toLowerCase() === 'count'));
+  }
+
+  get hasProgressField(): boolean {
+    return !!(this.taskForm.value.isTemplateTask && this.selectedTemplate?.fields?.some(f => f.fieldType === 'DROPDOWN' && f.fieldName?.toLowerCase() === 'progress'));
+  }
+
   /* ---------- LIFECYCLE ---------- */
   ngOnInit(): void {
-    this.route.queryParams.subscribe((params) => {
-      this.taskId = +params['taskId'];
-      if (!this.taskId || isNaN(this.taskId)) {
-        this.errorMessage = 'Invalid task ID.';
+    const params = this.route.snapshot.queryParams;
+    this.taskId = +params['taskId'];
+    if (!this.taskId || isNaN(this.taskId)) {
+      this.errorMessage = 'Invalid task ID.';
+      if (!this.isModal) {
         this.router.navigate(['/view-tasks']);
-        return;
       }
-      this.loadCurrentUserAndTask();
-    });
+      return;
+    }
+    this.loadCurrentUserAndTask();
 
     this.taskForm.get('assignToSelf')?.valueChanges.subscribe((v) => {
       if (v && this.currentUser) this.assignToSelfLogic();
       else this.clearAssignToSelfLogic();
       this.cdr.markForCheck();
+    });
+
+    // Load templates and categories
+    this.templateApiService.getAllCategories().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.categories = res.data.filter(c => c.isActive !== false);
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => console.error('Failed to load categories', err)
+    });
+
+    this.templateApiService.getAllTemplates().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.templates = res.data.filter(t => t.isActive !== false);
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => console.error('Failed to load templates', err)
+    });
+
+    this.departmentService.getAllSubDepartments().subscribe({
+      next: (subs) => {
+        this.subDepartments = subs;
+        this.filterSubDepartments();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Failed to load sub-departments', err);
+      }
     });
   }
 
@@ -143,11 +207,18 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       departmentIds: [[], Validators.required],
       assignedToIds: [[]],
       assignToSelf: [false],
+      subDepartmentId: [null],
+      isTemplateTask: [false],
+      templateCategoryId: [null],
+      templateId: [null],
+      targetCount: [null],
+      targetPercentage: [null]
     });
 
     this.taskForm.get('departmentIds')?.valueChanges.subscribe(() => {
       this.updateFilteredUsers();
       this.expandFirstAccordion();
+      this.filterSubDepartments();
       this.cdr.markForCheck();
     });
 
@@ -157,6 +228,131 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
         this.cdr.markForCheck();
       }
     });
+
+    this.taskForm.get('isTemplateTask')?.valueChanges.subscribe((isTemplate) => {
+      const titleCtrl = this.taskForm.get('title');
+      const descCtrl = this.taskForm.get('description');
+      const catCtrl = this.taskForm.get('templateCategoryId');
+      const tempCtrl = this.taskForm.get('templateId');
+
+      if (isTemplate) {
+        catCtrl?.setValidators([Validators.required]);
+        tempCtrl?.setValidators([Validators.required]);
+        titleCtrl?.clearValidators();
+      } else {
+        catCtrl?.clearValidators();
+        tempCtrl?.clearValidators();
+        catCtrl?.setValue(null);
+        tempCtrl?.setValue(null);
+        this.selectedTemplate = null;
+        
+        titleCtrl?.setValidators([Validators.required, Validators.maxLength(255)]);
+        titleCtrl?.enable();
+        descCtrl?.enable();
+        titleCtrl?.setValue('');
+        descCtrl?.setValue('');
+      }
+      catCtrl?.updateValueAndValidity();
+      tempCtrl?.updateValueAndValidity();
+      titleCtrl?.updateValueAndValidity();
+      descCtrl?.updateValueAndValidity();
+      this.updateTemplateValidation();
+    });
+
+    this.taskForm.get('templateCategoryId')?.valueChanges.subscribe((catId) => {
+      this.taskForm.get('templateId')?.setValue(null);
+      this.selectedTemplate = null;
+      if (catId) {
+        this.filteredTemplates = this.templates.filter(t => t.category.id === +catId);
+      } else {
+        this.filteredTemplates = [];
+      }
+      this.updateTemplateValidation();
+    });
+
+    this.taskForm.get('templateId')?.valueChanges.subscribe((tempId) => {
+      this.selectedTemplate = null;
+      const titleCtrl = this.taskForm.get('title');
+      const descCtrl = this.taskForm.get('description');
+
+      if (tempId) {
+        const template = this.templates.find(t => t.id === +tempId);
+        if (template) {
+          this.selectedTemplate = template;
+          if (template.title === 'Others') {
+            titleCtrl?.enable();
+            descCtrl?.enable();
+          } else {
+            titleCtrl?.setValue(template.title);
+            descCtrl?.setValue(template.description);
+            titleCtrl?.disable();
+            descCtrl?.disable();
+          }
+        }
+      } else {
+        titleCtrl?.setValue('');
+        descCtrl?.setValue('');
+        titleCtrl?.enable();
+        descCtrl?.enable();
+      }
+      titleCtrl?.updateValueAndValidity();
+      descCtrl?.updateValueAndValidity();
+      this.updateTemplateValidation();
+    });
+  }
+
+  getProgressOptions(): string[] {
+    const field = this.selectedTemplate?.fields?.find(f => f.fieldType === 'DROPDOWN');
+    return field?.options ? field.options.split(',') : [];
+  }
+
+  updateTemplateValidation(): void {
+    const countCtrl = this.taskForm.get('targetCount');
+    const percentCtrl = this.taskForm.get('targetPercentage');
+
+    countCtrl?.clearValidators();
+    percentCtrl?.clearValidators();
+
+    if (this.taskForm.value.isTemplateTask && this.selectedTemplate) {
+      const hasNumberField = this.selectedTemplate.fields?.some(f => f.fieldType === 'NUMBER' && f.fieldName?.toLowerCase() === 'count');
+      const hasDropdownField = this.selectedTemplate.fields?.some(f => f.fieldType === 'DROPDOWN' && f.fieldName?.toLowerCase() === 'progress');
+
+      if (hasNumberField) {
+        countCtrl?.setValidators([Validators.required, Validators.min(1)]);
+      }
+      if (hasDropdownField) {
+        percentCtrl?.setValidators([Validators.required]);
+      }
+    } else {
+      countCtrl?.setValue(null);
+      percentCtrl?.setValue(null);
+    }
+
+    countCtrl?.updateValueAndValidity();
+    percentCtrl?.updateValueAndValidity();
+  }
+
+  filterSubDepartments(): void {
+    const selectedDeptIds = this.taskForm.value.departmentIds || [];
+    const isSuperAdmin = this.currentUser?.role === 'SUPER_ADMIN';
+    if (!selectedDeptIds.length) {
+      if (isSuperAdmin) {
+        this.filteredSubDepartments = [...this.subDepartments];
+      } else {
+        this.filteredSubDepartments = [];
+        this.taskForm.get('subDepartmentId')?.setValue(null);
+      }
+      return;
+    }
+    this.filteredSubDepartments = this.subDepartments.filter(sub => {
+      const deptId = sub.department?.departmentId;
+      return deptId && selectedDeptIds.includes(deptId);
+    });
+
+    const currentSubId = this.taskForm.value.subDepartmentId;
+    if (currentSubId && !this.filteredSubDepartments.some(sub => sub.id === currentSubId)) {
+      this.taskForm.get('subDepartmentId')?.setValue(null);
+    }
   }
 
   /* ---------- HELPER: Local Date Formatting ---------- */
@@ -230,6 +426,40 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     const start = this.formatDateForInput(task.startDate);
     const due = this.formatDateForInput(task.dueDate);
 
+    // Populate template info if it's template task
+    const isTemplate = !!task.template;
+    const templateId = task.template?.id ?? null;
+    const templateCategoryId = task.template?.category?.id ?? null;
+
+    if (templateId) {
+      const t = this.templates.find(temp => temp.id === templateId);
+      if (t) {
+        this.selectedTemplate = t;
+        this.filteredTemplates = this.templates.filter(temp => temp.category.id === templateCategoryId);
+        this.updateTemplateValidation();
+        this.setFormValuesAndChecks(task, start, due, isTemplate, templateCategoryId, templateId);
+      } else {
+        this.templateApiService.getAllTemplates().subscribe({
+          next: (res) => {
+            if (res.success && res.data) {
+              this.templates = res.data.filter(temp => temp.isActive !== false);
+              const found = this.templates.find(temp => temp.id === templateId);
+              if (found) {
+                this.selectedTemplate = found;
+                this.filteredTemplates = this.templates.filter(temp => temp.category.id === templateCategoryId);
+                this.updateTemplateValidation();
+              }
+              this.setFormValuesAndChecks(task, start, due, isTemplate, templateCategoryId, templateId);
+            }
+          }
+        });
+      }
+    } else {
+      this.setFormValuesAndChecks(task, start, due, isTemplate, templateCategoryId, templateId);
+    }
+  }
+
+  private setFormValuesAndChecks(task: TaskDto, start: string, due: string, isTemplate: boolean, templateCategoryId: number | null, templateId: number | null): void {
     this.taskForm.patchValue({
       title: task.title,
       description: task.description ?? '',
@@ -237,6 +467,12 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       startDate: start,
       dueDate: due,
       departmentIds: task.departmentIds ?? [],
+      subDepartmentId: task.subDepartmentId ?? null,
+      isTemplateTask: isTemplate,
+      templateCategoryId: templateCategoryId,
+      templateId: templateId,
+      targetCount: task.targetCount ?? null,
+      targetPercentage: task.targetPercentage ? `${task.targetPercentage}%` : null
     });
 
     this._deferredAssignedUserIds = task.assignedToIds ?? [];
@@ -250,7 +486,18 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       this.taskForm.patchValue({ assignToSelf: true });
     }
 
+    const titleCtrl = this.taskForm.get('title');
+    const descCtrl = this.taskForm.get('description');
+    if (isTemplate && this.selectedTemplate && this.selectedTemplate.title !== 'Others') {
+      titleCtrl?.disable();
+      descCtrl?.disable();
+    } else {
+      titleCtrl?.enable();
+      descCtrl?.enable();
+    }
+
     this.dateErrorMessage = null;
+    this.filterSubDepartments();
     this.cdr.markForCheck();
   }
 
@@ -287,8 +534,10 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
 
     this.userService.getAllUsers().subscribe({
-      next: (allUsers) => {
-        const active = allUsers.filter((u) => u.status === 'ACTIVE');
+      next: (res) => {
+        const active = res.filter((u) => u.status === 'ACTIVE');
+        this.allUsers = active;
+        this.filteredAllUsers = active.filter(u => u.userId !== this.currentUser?.userId);
 
         this.usersByDepartment.clear();
         this.filteredUsersByDept.clear();
@@ -308,7 +557,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
         this.expandFirstAccordion();
         this.onDueDateChange();
 
-        this.cdr.markForCheck(); // Critical: UI updates now
+        this.cdr.markForCheck();
       },
       error: () => {
         this.errorMessage = 'Failed to load users.';
@@ -472,6 +721,22 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     }, 100);
   }
 
+  isUserBelow(child: userDto, parent: userDto): boolean {
+    if (!child || !parent) return false;
+    let currentParentId = child.parentUserId;
+    const visited = new Set<number>();
+    while (currentParentId) {
+      if (currentParentId === parent.userId) {
+        return true;
+      }
+      if (visited.has(currentParentId)) break;
+      visited.add(currentParentId);
+      const parentUser = this.allUsers.find(u => u.userId === currentParentId);
+      currentParentId = parentUser?.parentUserId;
+    }
+    return false;
+  }
+
   isUserSelectionDisabled(user: userDto): boolean {
     if (!this.currentUser) return true;
 
@@ -508,6 +773,48 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     this.updateAssignedToIds();
     Object.keys(this.selectAllUsersByDept).forEach(k => (this.selectAllUsersByDept[+k] = false));
     this.cdr.markForCheck();
+  }
+
+  onSuperAdminUserSearch(): void {
+    const query = this.superAdminUserSearch.toLowerCase().trim();
+    this.filteredAllUsers = this.allUsers.filter(u =>
+      (u.fullName.toLowerCase().includes(query) || u.username.toLowerCase().includes(query)) &&
+      u.userId !== this.currentUser?.userId
+    );
+  }
+
+  clearSuperAdminUserSearch(): void {
+    this.superAdminUserSearch = '';
+    this.onSuperAdminUserSearch();
+  }
+
+  updateSuperAdminUserSelection(userId: number, checked: boolean): void {
+    let currentAssigned = [...(this.taskForm.value.assignedToIds || [])];
+    if (checked) {
+      if (!currentAssigned.includes(userId)) {
+        currentAssigned.push(userId);
+      }
+      const selectedUser = this.allUsers.find(u => u.userId === userId);
+      if (selectedUser) {
+        const currentDeptIds = [...(this.taskForm.value.departmentIds || [])];
+        let changed = false;
+        selectedUser.departmentIds?.forEach(id => {
+          if (!currentDeptIds.includes(id)) {
+            currentDeptIds.push(id);
+            changed = true;
+          }
+        });
+        if (changed) {
+          this.taskForm.patchValue({ departmentIds: currentDeptIds });
+        }
+        if (selectedUser.subDepartmentId && !this.taskForm.value.subDepartmentId) {
+          this.taskForm.patchValue({ subDepartmentId: selectedUser.subDepartmentId });
+        }
+      }
+    } else {
+      currentAssigned = currentAssigned.filter(id => id !== userId);
+    }
+    this.taskForm.patchValue({ assignedToIds: currentAssigned });
   }
 
   /* ---------- DATE VALIDATION ---------- */
@@ -553,7 +860,9 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const { startDate, dueDate } = this.taskForm.value;
+    const rawForm = this.taskForm.getRawValue();
+    const { startDate, dueDate, departmentIds, assignedToIds, assignToSelf, status, subDepartmentId, isTemplateTask, templateId, targetCount, targetPercentage } = rawForm;
+
     const v = this.validateDates(startDate, dueDate);
     if (!v.valid) {
       this.dateErrorMessage = v.msg!;
@@ -561,12 +870,29 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    const finalAssigned = [...assignedToIds];
+    if (assignToSelf && this.currentUser && !finalAssigned.includes(this.currentUser.userId)) {
+      finalAssigned.push(this.currentUser.userId);
+    }
+
+    let targetPercentageVal = null;
+    if (targetPercentage) {
+      const rawPct = targetPercentage.toString();
+      targetPercentageVal = parseFloat(rawPct.replace('%', ''));
+    }
+
     const payload = {
-      ...this.taskForm.value,
-      startDate: startDate ? `${startDate}T00:00:00` : null,
+      title: rawForm.title,
+      description: rawForm.description,
+      status: status,
+      startDate: startDate ? `${startDate}T00:00:00` : undefined,
       dueDate: `${dueDate}T00:00:00`,
-      departmentIds: this.taskForm.value.departmentIds,
-      assignedToIds: this.taskForm.value.assignedToIds,
+      departmentIds: departmentIds || [],
+      assignedToIds: finalAssigned,
+      subDepartmentId: subDepartmentId || null,
+      templateId: isTemplateTask ? +templateId : null,
+      targetCount: (isTemplateTask && targetCount) ? +targetCount : null,
+      targetPercentage: (isTemplateTask && targetPercentageVal) ? targetPercentageVal : null,
       requiresApproval: this.currentUser?.role === 'HOD',
     };
 
@@ -577,7 +903,13 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       next: () => {
         this.successMessage = 'Task updated successfully!';
         this.cdr.markForCheck();
-        setTimeout(() => this.router.navigate(['/task', this.taskId]), 1500);
+        setTimeout(() => {
+          if (this.isModal) {
+            this.closed.emit(true);
+          } else {
+            this.router.navigate(['/task', this.taskId]);
+          }
+        }, 1500);
       },
       error: (err) => {
         this.errorMessage = err?.error?.message || 'Failed to update task.';
@@ -588,6 +920,10 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/task', this.taskId]);
+    if (this.isModal) {
+      this.closed.emit(false);
+    } else {
+      this.router.navigate(['/task', this.taskId]);
+    }
   }
 }

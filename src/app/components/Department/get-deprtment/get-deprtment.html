@@ -1,252 +1,446 @@
-<br><br>
-<div class="container py-5">
+<div class="dept-detail-container py-4 animate__animated animate__fadeIn">
 
-  <!-- Error -->
-  <div *ngIf="errorMessage" class="alert alert-danger text-center shadow-sm rounded-pill py-3 fw-semibold">
-    {{ errorMessage }}
+  <!-- Error message display -->
+  <div *ngIf="errorMessage" class="card border border-danger bg-danger-subtle p-5 text-center my-4 rounded-4 animate__animated animate__headShake">
+    <div class="fs-1 mb-3">❌</div>
+    <h4 class="fw-bold text-danger">Unable to Load Department Details</h4>
+    <p class="text-muted mb-4">{{ errorMessage }}</p>
+    <button class="btn btn-primary d-inline-flex align-items-center gap-2 mx-auto" (click)="loadDepartment()">
+      <i class="bi bi-arrow-clockwise"></i> Retry
+    </button>
   </div>
 
-  <!-- Loading -->
-  <div *ngIf="loading" class="text-center my-5">
-    <div class="spinner-border text-success"></div>
-    <p class="mt-3 fw-medium text-muted">Loading department details…</p>
+  <!-- Loading display -->
+  <div *ngIf="loading" class="text-center my-5 py-5">
+    <div class="spinner-border text-primary spinner mb-3" role="status"></div>
+    <p class="fw-medium text-muted">Retrieving department details…</p>
   </div>
 
-  <!-- Department Card -->
-  <div *ngIf="department && !loading"
-       class="dept-card shadow-lg border-0 rounded-4 overflow-hidden animate__animated animate__fadeInUp">
+  <!-- Department detail workspace -->
+  <div *ngIf="department && !loading" class="main-content-flow animate__animated animate__fadeIn">
 
-    <div class="dept-header text-white text-center py-4">
-      <h3 class="fw-bold mb-1">{{ department.name }}</h3>
-      <p class="mb-0 text-light fs-6">Department</p>
+    <!-- 1. HERO HEADER -->
+    <div class="stitch-hero mb-4">
+      <div class="stitch-hero-left">
+        <nav class="stitch-breadcrumb mb-1">
+          <a (click)="goBack()" class="stitch-breadcrumb-item">Departments</a>
+          <span class="stitch-breadcrumb-separator">></span>
+          <span class="stitch-breadcrumb-item active">{{ department.name }}</span>
+        </nav>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <h1 class="stitch-hero-title">{{ department.name }}</h1>
+          <span class="stitch-hero-id-badge">ID #{{ department.departmentId }}</span>
+        </div>
+        <p class="stitch-hero-desc">{{ department.description || 'Central administrative and oversight for high-priority projects.' }}</p>
+      </div>
+
+      <div class="stitch-hero-right">
+        <!-- Health Score glass card -->
+        <div class="stitch-hero-glass-card">
+          <div class="stitch-glass-info">
+            <span class="stitch-glass-label">HEALTH</span>
+            <span class="stitch-glass-value">94%</span>
+          </div>
+          <div class="stitch-glass-icon">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+        </div>
+
+        <button class="stitch-hero-btn btn-assign" (click)="assignNewTask()">
+          <i class="bi bi-clipboard-plus-fill me-1.5"></i>
+          <span>Assign Task</span>
+        </button>
+        <button class="stitch-hero-btn btn-add-user" (click)="addNewUser()">
+          <i class="bi bi-person-plus-fill me-1.5"></i>
+          <span>Add User</span>
+        </button>
+        <button class="stitch-hero-btn btn-edit-dept" (click)="editDepartment()" style="background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); color: #ffc107;">
+          <i class="bi bi-pencil-fill me-1.5"></i>
+          <span>Edit Department</span>
+        </button>
+      </div>
     </div>
 
-    <div class="card-body px-4 py-4">
+    <!-- 2 & 3. DUAL COLUMN ROW: HEAD CARD & HEALTH CARD -->
+    <div class="stitch-row mb-4">
+      <!-- Left Column: Department Head -->
+      <div class="stitch-col-head">
+        <div class="stitch-head-card">
+          <div class="card-header-row">
+            <span class="card-header-title">
+              <i class="bi bi-shield-check-fill text-primary"></i> Department Head
+            </span>
+            <i class="bi bi-three-dots text-muted cursor-pointer fs-5"></i>
+          </div>
 
-      <!-- HOD Section -->
-<div *ngIf="hodUser" class="card shadow-sm border-0 rounded-4 p-4 mb-4 bg-light-subtle border-start border-4 border-primary">
-  <div class="d-flex align-items-center mb-3">
-    <i class="bi bi-person-badge-fill fs-3 text-primary me-2"></i>
-    <h5 class="fw-bold mb-0">Head of Department (HOD)</h5>
-  </div>
-  <div class="row">
-    <div class="col-md-6">
-      <p><strong>Name:</strong> {{ hodUser.fullName }}</p>
-      <p><strong>Email:</strong> {{ hodUser.email }}</p>
-      <p><strong>Username:</strong> {{ hodUser.username }}</p>
-    </div>
-    <div class="col-md-6">
-      <p>
-        <strong>Status:</strong>
-        <span class="badge rounded-pill px-3 py-2"
-              [ngClass]="{'bg-success': hodUser.status==='ACTIVE','bg-secondary': hodUser.status==='INACTIVE'}">
-          {{ hodUser.status }}
-        </span>
-      </p>
-      <p>
-        <strong>Email Verified:</strong>
-        <span [ngClass]="hodUser.emailVerified ? 'text-success fw-semibold' : 'text-danger fw-semibold'">
-          {{ hodUser.emailVerified ? 'Yes' : 'No' }}
-        </span>
-      </p>
-    </div>
-  </div>
-</div>
+          <div class="card-profile-section" *ngIf="hodUser">
+            <div class="avatar-container">
+              <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=256&q=80" alt="HOD Profile" class="avatar-img" />
+              <span class="online-indicator"></span>
+            </div>
+            <h3 class="profile-name">{{ hodUser.fullName }}</h3>
+            <span class="profile-role-badge">Executive Lead</span>
+          </div>
 
-<!-- User Count Display -->
-<div class="text-center mb-4">
-  <div class="d-inline-flex align-items-center gap-3 stats-badge-container px-3 py-2 rounded-pill shadow-sm">
-    <span class="badge-text fw-semibold text-dark">
-      👥 Total Members: {{ userCount }}
-    </span>
-    <span class="badge-text fw-semibold text-dark">
-      📋 Total Tasks: {{ taskCount }}
-    </span>
-  </div>
-</div>
+          <div class="card-profile-section text-center py-4" *ngIf="!hodUser">
+            <div class="avatar-container empty-avatar mx-auto">
+              <i class="bi bi-person-fill fs-2 text-muted"></i>
+            </div>
+            <h3 class="profile-name text-muted fs-6 mt-2">No HOD Assigned</h3>
+          </div>
 
+          <div class="profile-divider"></div>
 
+          <div class="profile-meta-list" *ngIf="hodUser">
+            <div class="profile-meta-item">
+              <div class="meta-info">
+                <span class="meta-label">EMAIL</span>
+                <span class="meta-value">{{ hodUser.email }}</span>
+              </div>
+              <i class="bi bi-envelope text-muted"></i>
+            </div>
 
-      <!-- Task Summary -->
-      <div class="row text-center mt-4">
-        <div class="col-6 col-md-3 mb-3"
-             *ngFor="let stat of deptTaskStats"
-             (click)="filterTasksByStatus(stat.label.toUpperCase())"
-             style="cursor:pointer;">
-          <div class="stat-card shadow-sm border-0 rounded-4 p-3 hover-zoom">
-            <h4 class="fw-bold text-{{ stat.color }} mb-1">{{ stat.count || 0 }}</h4>
-            <small class="text-muted">{{ stat.label }}</small>
+            <div class="profile-meta-item">
+              <div class="meta-info">
+                <span class="meta-label">USERNAME</span>
+                <span class="meta-value">@{{ hodUser.username }}</span>
+              </div>
+              <i class="bi bi-at text-muted"></i>
+            </div>
+
+            <div class="profile-meta-item">
+              <div class="meta-info">
+                <span class="meta-label">STATUS</span>
+                <span class="meta-value-status text-success">Active Now</span>
+              </div>
+              <i class="bi bi-circle-fill text-success fs-7"></i>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Collapse Buttons -->
-      <div class="text-center mt-4 d-flex justify-content-center flex-wrap gap-3">
-        <button class="btn btn-outline-primary px-4 py-2" (click)="toggleCollapse('tasks')">
-          <i class="bi bi-list-task me-2"></i>{{ collapsed.tasks ? 'Show' : 'Hide' }} Tasks
-        </button>
-        <button class="btn btn-outline-info px-4 py-2" (click)="toggleCollapse('users')">
-          <i class="bi bi-people me-2"></i>{{ collapsed.users ? 'Show' : 'Hide' }} Users ({{ department.users?.length || 0 }})
-        </button>
-         <button class="btn btn-outline-primary px-4 py-2" (click)="assignNewTask()">
-          <i class="bi bi-plus-circle me-2"></i>Assign New Task
-        </button>
-        <button class="btn btn-outline-primary px-4 py-2" (click)="addNewUser()">
-          <i class="bi bi-plus-circle me-2"></i>Add New User
-        </button>
-      </div>
-      <button class="btn btn-outline-secondary px-4 py-2" (click)="goBack()">
-          <i class="bi bi-arrow-left-circle me-2"></i>Back
-        </button>
-        
-    </div>
-  </div>
+      <!-- Right Column: Department Health -->
+      <div class="stitch-col-health">
+        <div class="stitch-health-card">
+          <div class="card-header-row mb-3">
+            <span class="card-header-title">
+              <i class="bi bi-heart-pulse-fill text-primary"></i> Department Health
+            </span>
+            <span class="last-sync-label">Last sync: 2 min ago</span>
+          </div>
 
-  <!-- Tasks Table -->
- <div *ngIf="department && !collapsed.tasks"
-     class="card shadow-lg border-0 rounded-4 mt-5 animate__animated animate__fadeIn">
-  <div class="card-header gradient-header text-white text-center py-3 fs-5 fw-bold table_head">
-    <i class="bi bi-clipboard-data me-2"></i>Department Tasks
-  </div>
-    <div class="card-body p-4">
+          <div class="progress-metrics-list mb-4">
+            <!-- Project Completion -->
+            <div class="progress-metric-item">
+              <div class="progress-label-row">
+                <span class="metric-name">Project Completion</span>
+                <span class="metric-percentage text-indigo">82%</span>
+              </div>
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill bg-indigo" style="width: 82%;"></div>
+              </div>
+            </div>
 
-      <div class="row g-3 mb-3">
-        <div class="col-md-6">
-          <input type="text" class="form-control rounded-pill px-3"
-                 placeholder="Search tasks by title..."
-                 [(ngModel)]="taskSearch" (input)="applyTaskFilters()">
+            <!-- Team Efficiency -->
+            <div class="progress-metric-item">
+              <div class="progress-label-row">
+                <span class="metric-name">Team Efficiency</span>
+                <span class="metric-percentage text-green">94%</span>
+              </div>
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill bg-green" style="width: 94%;"></div>
+              </div>
+            </div>
+
+            <!-- System Reliability -->
+            <div class="progress-metric-item">
+              <div class="progress-label-row">
+                <span class="metric-name">System Reliability</span>
+                <span class="metric-percentage text-cyan">99.9%</span>
+              </div>
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill bg-cyan" style="width: 99.9%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="recent-events-section">
+            <span class="section-subtitle">RECENT EVENTS</span>
+            <div class="events-list">
+              <!-- Event 1 -->
+              <div class="event-item">
+                <div class="event-icon-circle bg-indigo-subtle text-indigo">
+                  <i class="bi bi-check2"></i>
+                </div>
+                <div class="event-details">
+                  <span class="event-text"><strong>Divyansh</strong> completed the 'Q3 Audit' task</span>
+                  <span class="event-time">14 minutes ago</span>
+                </div>
+              </div>
+
+              <!-- Event 2 -->
+              <div class="event-item">
+                <div class="event-icon-circle bg-warning-subtle text-warning">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div class="event-details">
+                  <span class="event-text">New high-priority task assigned to <strong>Academic</strong></span>
+                  <span class="event-time">2 hours ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="col-md-6 text-md-end">
-          <button class="btn btn-outline-secondary rounded-pill px-4" (click)="resetTaskFilters()">
-            <i class="bi bi-arrow-clockwise me-1"></i>Reset
+      </div>
+    </div>
+
+    <!-- 4. STATISTICS KPI CARDS -->
+    <div class="stitch-stats-grid mb-4">
+      <!-- Card 1: Members -->
+      <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
+        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <span class="stat-title">MEMBERS</span>
+        <span class="stat-number">{{ userCount }}</span>
+      </div>
+
+      <!-- Card 2: Total Tasks -->
+      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && !taskStatusFilter" (click)="collapsed.tasks = false; collapsed.users = true; resetTaskFilters()">
+        <div class="stat-icon-wrapper text-blue bg-blue-subtle">
+          <i class="bi bi-folder-fill"></i>
+        </div>
+        <span class="stat-title">TOTAL</span>
+        <span class="stat-number">{{ taskCount }}</span>
+      </div>
+
+      <!-- Card 3: Pending -->
+      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'PENDING'" (click)="filterTasksByStatus('PENDING'); collapsed.users = true;">
+        <div class="stat-icon-wrapper text-warning bg-warning-subtle">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+        <span class="stat-title">PENDING</span>
+        <span class="stat-number">{{ deptTaskStats[0]?.count || 0 }}</span>
+      </div>
+
+      <!-- Card 4: Upcoming -->
+      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'UPCOMING'" (click)="filterTasksByStatus('UPCOMING'); collapsed.users = true;">
+        <div class="stat-icon-wrapper text-info bg-info-subtle">
+          <i class="bi bi-calendar-event"></i>
+        </div>
+        <span class="stat-title">UPCOMING</span>
+        <span class="stat-number">{{ deptTaskStats[1]?.count || 0 }}</span>
+      </div>
+
+      <!-- Card 5: Delayed -->
+      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'DELAYED'" (click)="filterTasksByStatus('DELAYED'); collapsed.users = true;">
+        <div class="stat-icon-wrapper text-danger bg-danger-subtle">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <span class="stat-title">DELAYED</span>
+        <span class="stat-number">{{ deptTaskStats[2]?.count || 0 }}</span>
+      </div>
+
+      <!-- Card 6: Closed -->
+      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'CLOSED'" (click)="filterTasksByStatus('CLOSED'); collapsed.users = true;">
+        <div class="stat-icon-wrapper text-success bg-success-subtle">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <span class="stat-title">CLOSED</span>
+        <span class="stat-number">{{ deptTaskStats[3]?.count || 0 }}</span>
+      </div>
+
+      <!-- Card 7: Progress -->
+      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'IN_PROGRESS'" (click)="filterTasksByStatus('IN_PROGRESS'); collapsed.users = true;">
+        <div class="stat-icon-wrapper text-primary bg-primary-subtle">
+          <i class="bi bi-arrow-repeat"></i>
+        </div>
+        <span class="stat-title">PROGRESS</span>
+        <span class="stat-number">{{ deptTaskStats[4]?.count || 0 }}</span>
+      </div>
+    </div>
+
+    <!-- 5. TABS & DATA GRID TABLE SECTION -->
+    <div class="stitch-table-card">
+      <div class="stitch-tabs-header mb-3">
+        <div class="stitch-tabs-left">
+          <button class="stitch-tab-btn" [class.active]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
+            <i class="bi bi-people-fill me-1.5"></i>
+            <span>Members</span>
+            <span class="tab-pill">{{ department.users?.length || 0 }}</span>
+          </button>
+          <button class="stitch-tab-btn" [class.active]="!collapsed.tasks" (click)="collapsed.tasks = false; collapsed.users = true;">
+            <i class="bi bi-clipboard-data-fill me-1.5"></i>
+            <span>Tasks</span>
+          </button>
+        </div>
+
+        <div class="stitch-tabs-right">
+          <!-- Search box for active tab -->
+          <div class="stitch-search-box" *ngIf="!collapsed.users">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" placeholder="Search entries..." [(ngModel)]="userSearch" (input)="applyUserFilters()" />
+          </div>
+          <div class="stitch-search-box" *ngIf="!collapsed.tasks">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" placeholder="Search entries..." [(ngModel)]="taskSearch" (input)="applyTaskFilters()" />
+            <button class="clear-search-btn" *ngIf="taskSearch" (click)="taskSearch = ''; applyTaskFilters()">
+              <i class="bi bi-x-circle-fill"></i>
+            </button>
+          </div>
+
+          <!-- Reset/Filter icon btn -->
+          <button class="stitch-filter-btn" *ngIf="!collapsed.tasks" (click)="resetTaskFilters()" title="Reset Task Filters">
+            <i class="bi bi-funnel"></i>
           </button>
         </div>
       </div>
 
-      <div *ngIf="loadingTasks" class="text-center my-4">
-        <div class="spinner-border text-success"></div>
-        <p class="mt-2 text-muted">Fetching tasks…</p>
+      <!-- MEMBERS TAB CONTENT -->
+      <div *ngIf="!collapsed.users" class="animate__animated animate__fadeIn">
+        <div class="table-responsive">
+          <table class="stitch-table align-middle">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Member</th>
+                <th>Email Address</th>
+                <th>Status</th>
+                <th class="text-end" style="width: 140px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let u of userPaginated">
+                <td data-label="User ID" class="fw-semibold text-muted">#{{ u.userId }}</td>
+                <td data-label="Member">
+                  <div class="stitch-member-info">
+                    <div class="member-avatar" [style.background-color]="getAvatarColor(u.fullName)">
+                      {{ getInitials(u.fullName) }}
+                    </div>
+                    <div class="member-name-area">
+                      <span class="member-name">{{ u.fullName }}</span>
+                      <span class="member-username">@{{ u.username }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Email Address" class="text-muted">{{ u.email }}</td>
+                <td data-label="Status">
+                  <span class="stitch-status-pill" [ngClass]="u.status === 'ACTIVE' ? 'pill-completed' : 'pill-pending'">
+                    {{ u.status }}
+                  </span>
+                </td>
+                <td class="text-end" (click)="$event.stopPropagation()">
+                  <div class="stitch-action-group">
+                    <a [routerLink]="['/user', u.userId]" class="stitch-action-btn btn-act-view" title="View Member Profile">
+                      <i class="bi bi-eye-fill"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="userFiltered.length === 0" class="empty-table-state py-5 text-center text-muted">
+          <i class="bi bi-people fs-3 mb-2 d-block"></i> No members found matching search query.
+        </div>
+
+        <!-- Footer (Back Link + Pagination) -->
+        <div class="stitch-table-footer mt-4">
+          <div class="footer-left">
+            <button class="btn-back-link" (click)="goBack()">
+              <i class="bi bi-arrow-left me-1.5"></i>Back to Departments Directory
+            </button>
+          </div>
+          <div class="footer-right" *ngIf="userFiltered.length > userPageSize">
+            <span class="page-indicator me-3">Page {{ userPage }} of {{ userTotalPages }}</span>
+            <div class="pagination-buttons">
+              <button class="pag-btn" [disabled]="userPage === 1" (click)="changeUserPage(userPage - 1)">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button class="pag-btn" [disabled]="userPage === userTotalPages" (click)="changeUserPage(userPage + 1)">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div *ngIf="!loadingTasks && taskPaginated?.length" class="table-responsive mt-3">
-        <table class="table table-hover align-middle">
-          <thead class="table_head">
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Assigned To</th>
-              <th>Status</th>
-              <th>Due Date</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let t of taskPaginated">
-              <td>{{ t.taskId }}</td>
-              <td>{{ t.title }}</td>
-              <td>{{ t.assignedToNames}}</td>
-              <td>
-                <span class="badge rounded-pill px-3 py-2"
-                      [ngClass]="{
-                        'bg-warning text-dark': t.status===TaskStatus.PENDING || t.status===TaskStatus.UPCOMING,
-                        'bg-danger blink': t.status===TaskStatus.DELAYED,
-                        'bg-info text-dark': t.status===TaskStatus.REQUEST_FOR_CLOSURE || t.status===TaskStatus.REQUEST_FOR_EXTENSION,
-                        'bg-success': t.status===TaskStatus.CLOSED,
-                        'bg-secondary' : t.status===TaskStatus.EXTENDED || t.status===TaskStatus.IN_PROGRESS
-                      }">
-                  {{ t.status }}
-                </span>
-              </td>
-              <td>{{ t.dueDate | date:'mediumDate' }}</td>
-              <td>
-                <a [routerLink]="['/task', t.taskId]" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                  <i class="bi bi-eye me-1"></i>View
-                </a>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- TASKS TAB CONTENT -->
+      <div *ngIf="!collapsed.tasks" class="animate__animated animate__fadeIn">
+        <div *ngIf="loadingTasks" class="text-center py-5">
+          <div class="spinner-border text-primary spinner mb-2"></div>
+          <p class="text-muted small">Retrieving tasks...</p>
+        </div>
 
-      <div *ngIf="!loadingTasks && !taskPaginated?.length" class="text-center text-muted mt-4">
-        <i class="bi bi-clipboard-x fs-4"></i><br>No matching tasks.
-      </div>
+        <div *ngIf="!loadingTasks">
+          <div class="table-responsive" *ngIf="taskPaginated.length > 0">
+            <table class="stitch-table align-middle">
+              <thead>
+                <tr>
+                  <th>Task ID</th>
+                  <th>Task Title</th>
+                  <th>Assigned To</th>
+                  <th>Timeline</th>
+                  <th>Status</th>
+                  <th class="text-end" style="width: 140px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of taskPaginated">
+                  <td data-label="Task ID" class="fw-semibold text-muted">#{{ t.taskId }}</td>
+                  <td data-label="Task Title" class="fw-bold text-dark">{{ t.title }}</td>
+                  <td data-label="Assigned To" class="text-muted small">{{ t.assignedToNames }}</td>
+                  <td data-label="Timeline" class="text-muted">{{ t.dueDate | date:'mediumDate' }}</td>
+                  <td data-label="Status">
+                    <span class="stitch-status-pill" [ngClass]="{
+                      'pill-pending': t.status === TaskStatus.PENDING || t.status === TaskStatus.UPCOMING,
+                      'pill-overdue': t.status === TaskStatus.DELAYED,
+                      'pill-approval': t.status === TaskStatus.REQUEST_FOR_CLOSURE || t.status === TaskStatus.REQUEST_FOR_EXTENSION,
+                      'pill-completed': t.status === TaskStatus.CLOSED,
+                      'pill-in-progress': t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.EXTENDED
+                    }">
+                      {{ t.status.replace('_', ' ') }}
+                    </span>
+                  </td>
+                  <td class="text-end" (click)="$event.stopPropagation()">
+                    <div class="stitch-action-group">
+                      <a [routerLink]="['/task', t.taskId]" class="stitch-action-btn btn-act-view" title="View Task Details">
+                        <i class="bi bi-eye-fill"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-      <nav *ngIf="taskFiltered.length > taskPageSize" class="mt-4">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" [class.disabled]="taskPage===1">
-            <a class="page-link" (click)="changeTaskPage(taskPage-1)">Previous</a>
-          </li>
-          <li class="page-item" *ngFor="let p of taskPages()" [class.active]="taskPage===p">
-            <a class="page-link" (click)="changeTaskPage(p)">{{ p }}</a>
-          </li>
-          <li class="page-item" [class.disabled]="taskPage===taskTotalPages">
-            <a class="page-link" (click)="changeTaskPage(taskPage+1)">Next</a>
-          </li>
-        </ul>
-      </nav>
+          <div *ngIf="taskPaginated.length === 0" class="empty-table-state py-5 text-center text-muted">
+            <i class="bi bi-clipboard-x fs-3 mb-2 d-block"></i> No tasks found matching criteria.
+          </div>
+
+          <!-- Footer (Back Link + Pagination) -->
+          <div class="stitch-table-footer mt-4">
+            <div class="footer-left">
+              <button class="btn-back-link" (click)="goBack()">
+                <i class="bi bi-arrow-left me-1.5"></i>Back to Departments Directory
+              </button>
+            </div>
+            <div class="footer-right" *ngIf="taskFiltered.length > taskPageSize">
+              <span class="page-indicator me-3">Page {{ taskPage }} of {{ taskTotalPages }}</span>
+              <div class="pagination-buttons">
+                <button class="pag-btn" [disabled]="taskPage === 1" (click)="changeTaskPage(taskPage - 1)">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="pag-btn" [disabled]="taskPage === taskTotalPages" (click)="changeTaskPage(taskPage + 1)">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
   </div>
-
-  <!-- Users Table -->
-  <div *ngIf="department && !collapsed.users"
-     class="card shadow-lg border-0 rounded-4 mt-5 animate__animated animate__fadeIn">
-  <div class="card-header gradient-header text-white text-center py-3 fs-5 fw-bold table_head ">
-    <i class="bi bi-people-fill me-2"></i>Department Members ({{ department.users?.length || 0 }})
-  </div>
-    <div class="card-body p-4">
-
-      <div class="mb-3">
-        <input type="text" class="form-control rounded-pill px-3"
-               placeholder="Search users by name / email..."
-               [(ngModel)]="userSearch" (input)="applyUserFilters()">
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table_head">
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let u of userPaginated">
-              <td>{{ u.userId }}</td>
-              <td>{{ u.fullName }}</td>
-              <td>{{ u.username }}</td>
-              <td>{{ u.email }}</td>
-              <td>
-                <span class="badge rounded-pill px-3 py-2"
-                      [ngClass]="{'bg-success':u.status==='ACTIVE','bg-secondary':u.status==='INACTIVE'}">
-                  {{ u.status }}
-                </span>
-              </td>
-              <td>
-                <a [routerLink]="['/user', u.userId]" class="btn btn-sm btn-outline-info rounded-pill px-3">
-                  <i class="bi bi-eye me-1"></i>View
-                </a>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <nav *ngIf="userFiltered.length > userPageSize" class="mt-4">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" [class.disabled]="userPage===1">
-            <a class="page-link" (click)="changeUserPage(userPage-1)">Previous</a>
-          </li>
-          <li class="page-item" *ngFor="let p of userPages()" [class.active]="userPage===p">
-            <a class="page-link" (click)="changeUserPage(p)">{{ p }}</a>
-          </li>
-          <li class="page-item" [class.disabled]="userPage===userTotalPages">
-            <a class="page-link" (click)="changeUserPage(userPage+1)">Next</a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  </div>
-
 </div>

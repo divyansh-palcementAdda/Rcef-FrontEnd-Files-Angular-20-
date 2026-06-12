@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Department } from '../../../Model/department';
@@ -7,6 +7,8 @@ import { DepartmentApiService } from '../../../Services/department-api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
 import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ModalService } from '../../../Services/modal-service';
 
 
 @Component({
@@ -36,7 +38,17 @@ export class ViewDepartmentsComponent implements OnInit {
     private jwtService: JwtService,
     private authApiService: AuthApiService,
     private route: ActivatedRoute
-  ) { }
+  ) {
+    inject(ModalService).modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.success) {
+        if (this.isZeroDueView) {
+          this.loadZeroDueDepartments();
+        } else {
+          this.loadAllDepartments();
+        }
+      }
+    });
+  }
 
  ngOnInit(): void {
     this.subscriptions.add(
@@ -153,6 +165,11 @@ export class ViewDepartmentsComponent implements OnInit {
 
   viewDepartmentDetails(departmentId?: number): void {
     if (departmentId) this.router.navigate(['/department', departmentId]);
+  }
+
+  editDepartment(event: Event, departmentId?: number): void {
+    event.stopPropagation();
+    if (departmentId) this.router.navigate(['/edit-department', departmentId]);
   }
 
   deleteDepartment(event: Event, departmentId?: number): void {

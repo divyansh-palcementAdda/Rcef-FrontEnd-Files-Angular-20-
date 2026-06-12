@@ -1,0 +1,249 @@
+<div class="management-container py-4">
+
+  <!-- Breadcrumbs Welcome Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb" class="mb-1">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a (click)="goBack()" style="cursor: pointer;" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Roles & Permissions</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Roles & Permissions Control</h1>
+    </div>
+    <button class="btn btn-secondary" (click)="goBack()">
+      <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </button>
+  </div>
+
+  <!-- Tab Navigation controls -->
+  <div class="d-flex gap-2 mb-4">
+    <button class="btn tab-nav-btn" [class.active]="activeTab === 'roles'" (click)="activeTab = 'roles'">
+      <i class="bi bi-people-fill me-1"></i>Role Mappings
+    </button>
+    <button class="btn tab-nav-btn" [class.active]="activeTab === 'overrides'" (click)="activeTab = 'overrides'; loadAdmins()">
+      <i class="bi bi-key-fill me-1"></i>Admin Permission Overrides
+    </button>
+  </div>
+
+  <!-- Feedback Alerts -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn" role="alert">
+    <span><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}</span>
+    <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn" role="alert">
+    <span><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}</span>
+    <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
+  </div>
+
+  <!-- TAB 1: ROLE MAPPINGS -->
+  <div *ngIf="activeTab === 'roles'" class="row g-4 animate__animated animate__fadeIn">
+    
+    <!-- Left Panel: Roles directory list -->
+    <div class="col-lg-4">
+      <div class="glass-card h-100">
+        <div class="card-header-gradient">
+          <span>Roles directory</span>
+          <button class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center" (click)="showCreateRoleForm = !showCreateRoleForm" title="Create Custom Role">
+            <i class="bi bi-plus-lg"></i>
+          </button>
+        </div>
+        <div class="card-body-scroll p-3">
+          
+          <!-- Inline Create Role Form -->
+          <div *ngIf="showCreateRoleForm" class="p-3 mb-3 border rounded-3 bg-light animate__animated animate__fadeIn">
+            <h6 class="fw-bold mb-3" style="color: var(--text-main);">Create Custom Role</h6>
+            
+            <div class="mb-3">
+              <label class="form-label">Role Code Name (e.g. SUB_ADMIN)</label>
+              <input type="text" class="form-control" [(ngModel)]="newRole.name" placeholder="ROLE_NAME">
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Display Name</label>
+              <input type="text" class="form-control" [(ngModel)]="newRole.displayName" placeholder="e.g. Sub Administrator">
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <input type="text" class="form-control" [(ngModel)]="newRole.description" placeholder="Description of access scope">
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label">Hierarchy Level (1-10)</label>
+              <input type="number" class="form-control" [(ngModel)]="newRole.level">
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-primary px-3" (click)="createCustomRole()">Create Role</button>
+              <button class="btn btn-sm btn-secondary px-3" (click)="showCreateRoleForm = false">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Loading state -->
+          <div *ngIf="loadingRoles" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary spinner"></div>
+          </div>
+
+          <!-- Roles List items -->
+          <div class="list-group">
+            <div *ngFor="let role of roles" class="list-group-item-premium"
+                 [class.active]="selectedRole?.id === role.id" (click)="selectRole(role)">
+              <div>
+                <strong class="d-block" style="color: var(--text-main);">{{ role.displayName || role.name }}</strong>
+                <small class="text-muted d-block mt-1">Level {{ role.level }} • {{ role.description }}</small>
+              </div>
+              <span class="badge" [ngClass]="role.isSystemRole ? 'bg-primary text-white' : 'bg-secondary text-white'">
+                {{ role.isSystemRole ? 'System' : 'Custom' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Permissions Mapping matrix -->
+    <div class="col-lg-8">
+      <div class="glass-card h-100">
+        <div class="card-header-gradient">
+          <span *ngIf="selectedRole">Permissions for: <strong>{{ selectedRole.displayName || selectedRole.name }}</strong></span>
+          <span *ngIf="!selectedRole">Permissions Mapping</span>
+          
+          <button *ngIf="selectedRole" class="btn btn-sm btn-primary px-3 py-1.5" (click)="saveRolePermissions()">
+            <i class="bi bi-save me-1"></i>Save Mapping
+          </button>
+        </div>
+
+        <div class="card-body-scroll p-4">
+          <div *ngIf="!selectedRole" class="text-center text-muted py-5">
+            <i class="bi bi-shield-exclamation fs-2 mb-2 d-block"></i>
+            <p class="mb-0">Select a role from left directory list to view and configure permission matrix mappings.</p>
+          </div>
+
+          <div *ngIf="selectedRole">
+            <div *ngIf="loadingPermissions" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm text-primary spinner"></div>
+            </div>
+
+            <!-- Grouped Permissions list by Module -->
+            <div *ngFor="let group of groupedPermissions | keyvalue" class="mb-4">
+              <h6 class="fw-bold border-bottom pb-2 mb-3" style="color: var(--text-main); font-size: 0.95rem;">
+                <i class="bi bi-box-seam me-2 text-primary"></i>{{ group.key }} Module
+              </h6>
+              
+              <div class="row g-3">
+                <div class="col-md-6" *ngFor="let perm of group.value">
+                  <div class="perm-checkbox-card" [class.checked]="isPermissionAssigned(perm.code)">
+                    <div class="form-check m-0 d-flex gap-2 align-items-start">
+                      <input class="form-check-input custom-checkbox mt-1" type="checkbox"
+                             [id]="perm.code"
+                             [checked]="isPermissionAssigned(perm.code)"
+                             (change)="togglePermission(perm.code)"
+                             [disabled]="selectedRole.name === 'SUPER_ADMIN'">
+                      <div>
+                        <label class="fw-bold d-block mb-0 text-dark" [for]="perm.code" style="font-size: 0.875rem;">{{ perm.name }}</label>
+                        <small class="text-muted d-block" style="font-size:0.775rem;">{{ perm.description }}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: ADMIN OVERRIDES -->
+  <div *ngIf="activeTab === 'overrides'" class="row g-4 animate__animated animate__fadeIn">
+    
+    <!-- Left Column: Admin directory -->
+    <div class="col-lg-4">
+      <div class="glass-card h-100">
+        <div class="card-header-gradient">
+          <span>Admin Users</span>
+        </div>
+        <div class="card-body-scroll p-3">
+          <div *ngIf="loadingAdmins" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary spinner"></div>
+          </div>
+          <div *ngIf="admins.length === 0 && !loadingAdmins" class="text-center text-muted py-4">
+            No Admin accounts found in directory.
+          </div>
+          
+          <div class="list-group">
+            <div *ngFor="let admin of admins" class="list-group-item-premium"
+                 [class.active]="selectedAdmin?.userId === admin.userId" (click)="selectAdmin(admin)">
+              <div>
+                <strong class="d-block" style="color: var(--text-main);">{{ admin.fullName }}</strong>
+                <small class="text-muted d-block mt-1">{{ admin.email }} • @{{ admin.username }}</small>
+              </div>
+              <i class="bi bi-chevron-right small text-muted"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Overrides config editor -->
+    <div class="col-lg-8">
+      <div class="glass-card h-100">
+        <div class="card-header-gradient">
+          <span *ngIf="selectedAdmin">Overrides for Admin: <strong>{{ selectedAdmin.fullName }}</strong></span>
+          <span *ngIf="!selectedAdmin">Custom Permission Overrides</span>
+        </div>
+
+        <div class="card-body-scroll p-3">
+          <div *ngIf="!selectedAdmin" class="text-center text-muted py-5">
+            <i class="bi bi-key-fill fs-2 mb-2 d-block"></i>
+            <p class="mb-0">Select an Admin user account from the left directory to configure overrides.</p>
+          </div>
+
+          <div *ngIf="selectedAdmin">
+            <div class="alert alert-success d-flex align-items-center mb-4 py-2.5">
+              <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+              <small>Configure custom permission exceptions for this Administrator profile. <strong>Default/Inherit</strong> resolves permissions normally using role settings.</small>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>Permission Attribute</th>
+                    <th>Functional Description</th>
+                    <th class="text-end">Exception Rule</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let perm of permissions" 
+                      [class.table-success]="getOverrideStatus(perm.code) === 'ALLOWED'" 
+                      [class.table-danger]="getOverrideStatus(perm.code) === 'DENIED'">
+                    <td>
+                      <strong class="d-block" style="color: var(--text-main);">{{ perm.name }}</strong>
+                      <span class="badge bg-light text-secondary border mt-1" style="font-size:0.65rem;">{{ perm.code }}</span>
+                    </td>
+                    <td><small class="text-muted">{{ perm.description }}</small></td>
+                    <td class="text-end">
+                      <select class="form-select form-select-sm override-select ms-auto" style="max-width:160px;"
+                              [ngModel]="getOverrideStatus(perm.code)"
+                              (ngModelChange)="onOverrideChange(perm.code, $event)">
+                        <option value="DEFAULT">Default / Inherit</option>
+                        <option value="ALLOWED">Explicitly Allow</option>
+                        <option value="DENIED">Explicitly Deny</option>
+                      </select>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>

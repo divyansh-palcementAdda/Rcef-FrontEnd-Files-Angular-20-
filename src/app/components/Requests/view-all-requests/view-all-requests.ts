@@ -105,7 +105,9 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     let request$: any;
 
     switch (this.currentRole) {
+      case 'SUPER_ADMIN':
       case 'ADMIN':
+      case 'SUB_ADMIN':
         request$ = this.requestService.getAllRequests();
         break;
       case 'HOD':

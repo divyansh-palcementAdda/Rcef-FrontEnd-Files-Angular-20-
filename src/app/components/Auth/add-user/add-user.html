@@ -1,12 +1,17 @@
-<br><br>
-<div class="container my-5">
-  <div class="card shadow rounded-4 border-0">
-    <div class="card-header text-white text-center p-4 table_head">
-      <h3 class="mb-0 fw-bold">Add New User</h3>
-      <small>Create a new user account with role and departments</small>
+<br *ngIf="!isModal"><br *ngIf="!isModal">
+<div [class.container]="!isModal" [class.my-5]="!isModal" [class.modal-form-layout]="isModal">
+  <div [class.card]="!isModal" [class.shadow]="!isModal" [class.rounded-4]="!isModal" [class.border-0]="!isModal" [class.modal-form-card]="isModal">
+    <div [class.card-header]="!isModal" [class.text-white]="!isModal" [class.text-center]="!isModal" [class.p-4]="!isModal" [class.table_head]="!isModal" [class.modal-form-header]="isModal">
+      <div>
+        <h3 class="mb-0 fw-bold">Add User</h3>
+        <p class="mb-0 text-white-50" style="font-size: 0.875rem;">Create and configure a new user</p>
+      </div>
+      <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
+        <i class="bi bi-x-lg fs-5"></i>
+      </button>
     </div>
 
-    <div class="card-body p-4">
+    <div [class.card-body]="!isModal" [class.p-4]="!isModal" [class.modal-form-body]="isModal">
       <!-- Alerts -->
       <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
         {{ successMessage }}
@@ -96,14 +101,43 @@
               <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
             </select>
             <small class="text-muted d-block mt-1 narration">
-              Select the appropriate role. <br>
-              <em>• HOD: Manages one department</em><br>
-              <em>• TEACHER: Can be assigned to multiple departments</em>
+              Select the appropriate role in the organizational hierarchy.
+            </small>
+          </div>
+
+          <!-- Parent User -->
+          <div class="col-md-6" *ngIf="userForm.get('role')?.value">
+            <label class="form-label">Parent User (Reporting To)</label>
+            <select class="form-select" formControlName="parentUserId">
+              <option [ngValue]="null" disabled selected>Select Parent User</option>
+              <option *ngFor="let parent of filteredParentUsers" [value]="parent.userId">
+                {{ parent.fullName }} ({{ parent.role }})
+              </option>
+            </select>
+            <div *ngIf="userForm.get('parentUserId')?.touched && userForm.get('parentUserId')?.errors?.['required']" class="text-danger small mt-1">
+              Parent user is required.
+            </div>
+            <small class="text-muted d-block mt-1 narration">
+              Must follow strict reporting rules: Teacher -> HOD -> SubAdmin -> Admin -> SuperAdmin.
+            </small>
+          </div>
+
+          <!-- SubDepartment -->
+          <div class="col-md-6" *ngIf="subDepartments.length > 0">
+            <label class="form-label">Sub-Department</label>
+            <select class="form-select" formControlName="subDepartmentId">
+              <option [ngValue]="null" selected>None / General</option>
+              <option *ngFor="let sub of subDepartments" [value]="sub.id">
+                {{ sub.name }} ({{ sub.code }})
+              </option>
+            </select>
+            <small class="text-muted d-block mt-1 narration">
+              Optional sub-department assignment.
             </small>
           </div>
 
           <!-- Department List -->
-          <div class="col-12">
+          <div class="col-12" *ngIf="userForm.get('role')?.value !== 'SUPER_ADMIN'">
             <label class="form-label fw-semibold">Select Departments</label>
             <div class="department-list p-3 bg-light rounded-3 shadow-sm">
               <div *ngFor="let dept of filteredDepartments()" class="form-check mb-2">
@@ -123,7 +157,7 @@
           </div>
         </div>
 
-        <div class="d-flex justify-content-end mt-4 gap-2">
+        <div [class.d-flex]="true" [class.justify-content-end]="true" [class.mt-4]="!isModal" [class.gap-2]="true" [class.modal-form-footer]="isModal">
           <button type="button" class="btn btn-outline-secondary px-4" (click)="cancel()">Cancel</button>
           <button type="submit" class="btn btn-success px-4" [disabled]="isSubmitting || !otpValidated">
             <span *ngIf="!isSubmitting">Add User</span>

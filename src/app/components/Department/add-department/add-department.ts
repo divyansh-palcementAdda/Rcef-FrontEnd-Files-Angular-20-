@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
@@ -14,7 +14,11 @@ import { AuthApiService } from '../../../Services/auth-api-service';
   templateUrl: './add-department.html',
   styleUrls: ['./add-department.css'],
 })
-export class AddDepartmentComponent {
+export class AddDepartmentComponent implements OnInit, OnChanges {
+  @Input() isModal = false;
+  @Input() departmentId?: number;
+  @Output() closed = new EventEmitter<boolean>();
+
   departmentForm: FormGroup;
   isSubmitting = false;
   successMessage: string | null = null;
@@ -40,6 +44,34 @@ export class AddDepartmentComponent {
     });
   }
 
+  ngOnInit(): void {
+    if (this.departmentId) {
+      this.loadDepartment();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['departmentId'] && !changes['departmentId'].firstChange) {
+      this.loadDepartment();
+    }
+  }
+
+  loadDepartment(): void {
+    if (!this.departmentId) return;
+    this.apiService.getDepartmentById(this.departmentId).subscribe({
+      next: (dept) => {
+        this.departmentForm.patchValue({
+          name: dept.name,
+          description: dept.description || ''
+        });
+      },
+      error: (err) => {
+        console.error('Error loading department details:', err);
+        this.errorMessage = err?.message || 'Failed to load department details.';
+      }
+    });
+  }
+
   onSubmit(): void {
     if (this.departmentForm.invalid) {
       this.departmentForm.markAllAsTouched();
@@ -56,23 +88,53 @@ export class AddDepartmentComponent {
 
     console.log('Department Payload:', payload);
 
-    this.apiService.createDepartment(payload).subscribe({
-      next: () => {
-        this.isSubmitting = false;
-        this.successMessage = '✅ Department created successfully!';
-        this.departmentForm.reset();
-        this.authApiService.goToDashboard();
-
-      },
-      error: (err) => {
-        console.error('Error creating department:', err);
-        this.isSubmitting = false;
-        this.errorMessage = err?.error?.message || 'Failed to create department. Please try again.';
-      }
-    });
+    if (this.departmentId) {
+      this.apiService.updateDepartment(this.departmentId, payload).subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.successMessage = '✅ Department updated successfully!';
+          setTimeout(() => {
+            if (this.isModal) {
+              this.closed.emit(true);
+            } else {
+              this.authApiService.goToDashboard();
+            }
+          }, 1500);
+        },
+        error: (err) => {
+          console.error('Error updating department:', err);
+          this.isSubmitting = false;
+          this.errorMessage = err?.message || 'Failed to update department. Please try again.';
+        }
+      });
+    } else {
+      this.apiService.createDepartment(payload).subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.successMessage = '✅ Department created successfully!';
+          this.departmentForm.reset();
+          setTimeout(() => {
+            if (this.isModal) {
+              this.closed.emit(true);
+            } else {
+              this.authApiService.goToDashboard();
+            }
+          }, 1500);
+        },
+        error: (err) => {
+          console.error('Error creating department:', err);
+          this.isSubmitting = false;
+          this.errorMessage = err?.message || 'Failed to create department. Please try again.';
+        }
+      });
+    }
   }
 
   cancel(): void {
-    this.authApiService.goToDashboard();
+    if (this.isModal) {
+      this.closed.emit(false);
+    } else {
+      this.authApiService.goToDashboard();
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +8,8 @@ import { userDto } from '../../../Model/userDto';
 import { TaskDto } from '../../../Model/TaskDto';
 import { TaskStatus } from '../../../Model/TaskStatus';
 import { Department } from '../../../Model/department';
+import { ModalService } from '../../../Services/modal-service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface Stat { label: string; count: number; color: string; }
 
@@ -25,6 +27,10 @@ export class GetDepartment implements OnInit {
     });
   }
 
+  editDepartment() {
+    this.router.navigate(['/edit-department', this.departmentId]);
+  }
+
   departmentId!: number;
   department!: Department;
   allDeptTasks: TaskDto[] = [];
@@ -35,7 +41,7 @@ export class GetDepartment implements OnInit {
   loading = true;
   loadingTasks = false;
   errorMessage: string | null = null;
-  collapsed = { tasks: true, users: true };
+  collapsed = { tasks: true, users: false };
 
   taskSearch = '';
   taskStatusFilter = '';
@@ -88,8 +94,13 @@ export class GetDepartment implements OnInit {
     private deptSrv: DepartmentApiService,
     private taskSrv: TaskApiService,
     private router: Router,
-
-  ) { }
+  ) {
+    inject(ModalService).modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.success) {
+        this.loadDepartment();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.departmentId = Number(this.route.snapshot.paramMap.get('id'));
@@ -196,5 +207,34 @@ export class GetDepartment implements OnInit {
   }
   userPages(): number[] {
     return Array.from({ length: this.userTotalPages }, (_, i) => i + 1);
+  }
+
+  getInitials(name?: string): string {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  getAvatarColor(name?: string): string {
+    if (!name) return '#64748b';
+    const colors = [
+      '#4f46e5', // indigo
+      '#06b6d4', // cyan
+      '#10b981', // emerald
+      '#f59e0b', // amber
+      '#ec4899', // pink
+      '#8b5cf6', // violet
+      '#f43f5e', // rose
+      '#3b82f6'  // blue
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
   }
 }

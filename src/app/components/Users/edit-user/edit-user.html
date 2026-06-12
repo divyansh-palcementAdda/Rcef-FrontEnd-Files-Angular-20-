@@ -1,120 +1,95 @@
-<div class="container my-5">
-  <div class="card shadow rounded-4 border-0">
-    <!-- Header – same gradient as Add-User -->
-    <div class="card-header text-white text-center p-4 table_head">
-      <h3 class="mb-0 fw-bold">Edit User</h3>
-      <small>Modify user details</small>
+<div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
+  <div [class.edit-user-card]="!isModal" [class.modal-form-card]="isModal">
+    
+    <!-- Header -->
+    <div [class.edit-user-header]="!isModal" [class.text-center]="!isModal" [class.modal-form-header]="isModal">
+      <div>
+        <h3 class="mb-2 fw-bold" style="color: var(--text-main);">Edit User</h3>
+        <p class="mb-0 text-muted small">Update user profile attributes and accesses</p>
+      </div>
+      <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
+        <i class="bi bi-x-lg fs-5"></i>
+      </button>
     </div>
 
-    <div class="card-body p-4">
-      <!-- Current Role Info -->
-      <div class="alert alert-info mb-4" *ngIf="isCurrentUserAdmin">
-        <i class="bi bi-shield-check me-2"></i>
-        <strong>Admin Mode:</strong> You have full permission to edit all user details including role changes.
+    <div [class.edit-user-body]="!isModal" [class.modal-form-body]="isModal">
+      <!-- Admin Mode Indicator Banner -->
+      <div class="alert alert-success d-flex align-items-center mb-4 py-2.5" *ngIf="isCurrentUserAdmin">
+        <i class="bi bi-shield-check-fill me-2 fs-5"></i>
+        <span><strong>Administrator Privilege:</strong> You are authorized to modify all parameters including directory roles.</span>
       </div>
 
-      <!-- Alerts -->
-      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show d-flex align-items-center">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        <div class="flex-grow-1">{{ successMessage }}</div>
-        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+      <!-- Success & Failure Alerts -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+        <span><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}</span>
+        <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
       </div>
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show d-flex align-items-center">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <div class="flex-grow-1">{{ errorMessage }}</div>
-        <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+        <span><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}</span>
+        <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
 
-      <!-- Loading overlay -->
-      <div *ngIf="isLoading" class="text-center text-muted py-5">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2">Loading user data…</p>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="text-center my-5 py-4">
+        <div class="spinner-border text-primary spinner mb-2" role="status"></div>
+        <p class="text-muted small">Loading user details…</p>
       </div>
 
-      <form *ngIf="!isLoading" [formGroup]="editForm" (ngSubmit)="onSubmit()" class="row g-3">
+      <form *ngIf="!isLoading" [formGroup]="editForm" (submit)="onSubmit()" class="row g-4">
+        
         <!-- Full Name -->
         <div class="col-md-6">
-          <label class="form-label fw-semibold">
-            Full Name
-            <span class="text-danger">*</span>
-          </label>
-          <input
-            type="text"
-            class="form-control"
-            formControlName="fullName"
-            placeholder="e.g. John Doe"
-            [ngClass]="{
-              'is-invalid': f['fullName'].touched && f['fullName'].invalid,
-              'is-valid': f['fullName'].touched && f['fullName'].valid
-            }"
-          />
-          <div *ngIf="f['fullName'].touched && f['fullName'].invalid" class="invalid-feedback">
-            <small *ngIf="f['fullName'].errors?.['required']">
-              Full name is required.
-            </small>
-            <small *ngIf="f['fullName'].errors?.['pattern']">
-              Only letters & spaces, minimum 3 characters.
-            </small>
+          <label class="form-label">Full Name <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" formControlName="fullName" placeholder="e.g. Jane Doe"
+              [ngClass]="{
+                'is-invalid': f['fullName'].touched && f['fullName'].invalid,
+                'is-valid': f['fullName'].touched && f['fullName'].valid
+              }" />
+          </div>
+          <div *ngIf="f['fullName'].touched && f['fullName'].invalid" class="text-danger small mt-1">
+            <small *ngIf="f['fullName'].errors?.['required']">Full name is required.</small>
+            <small *ngIf="f['fullName'].errors?.['pattern']">Only letters and spaces (minimum 3 characters).</small>
           </div>
         </div>
 
         <!-- Username -->
         <div class="col-md-6">
-          <label class="form-label fw-semibold">
-            Username
-            <span class="text-danger">*</span>
-          </label>
-          <input
-            type="text"
-            class="form-control"
-            formControlName="username"
-            placeholder="e.g. john_doe"
-            [ngClass]="{
-              'is-invalid': f['username'].touched && f['username'].invalid,
-              'is-valid': f['username'].touched && f['username'].valid
-            }"
-          />
-          <div *ngIf="f['username'].touched && f['username'].invalid" class="invalid-feedback">
-            <small *ngIf="f['username'].errors?.['required']">
-              Username is required.
-            </small>
-            <small *ngIf="f['username'].errors?.['pattern']">
-              Must start with a letter, 4-20 alphanumeric characters or underscores.
-            </small>
+          <label class="form-label">Username <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text">@</span>
+            <input type="text" class="form-control" formControlName="username" placeholder="e.g. jane_doe"
+              [ngClass]="{
+                'is-invalid': f['username'].touched && f['username'].invalid,
+                'is-valid': f['username'].touched && f['username'].valid
+              }" />
+          </div>
+          <div *ngIf="f['username'].touched && f['username'].invalid" class="text-danger small mt-1">
+            <small *ngIf="f['username'].errors?.['required']">Username is required.</small>
+            <small *ngIf="f['username'].errors?.['pattern']">Start with letter, 4-20 alphanumeric characters or underscores.</small>
           </div>
         </div>
 
-        <!-- Password (optional) -->
+        <!-- Password (Optional edit) -->
         <div class="col-md-6">
-          <label class="form-label fw-semibold">
-            New Password
-            <span class="text-muted small">(leave blank to keep current)</span>
-          </label>
+          <label class="form-label">New Password <span class="text-muted small">(Leave empty to retain current)</span></label>
           <div class="input-group">
-            <input
-              [type]="showPassword ? 'text' : 'password'"
-              class="form-control"
-              formControlName="password"
-              placeholder="Enter strong password"
+            <span class="input-group-text"><i class="bi bi-key"></i></span>
+            <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password" placeholder="Enter new strong password"
               [ngClass]="{
                 'is-invalid': f['password'].touched && f['password'].invalid && f['password'].value,
                 'is-valid': f['password'].touched && f['password'].valid && f['password'].value
-              }"
-            />
-            <button
-              type="button"
-              class="btn btn-outline-secondary"
-              (click)="togglePasswordVisibility()"
-              tabindex="-1"
-            >
+              }" />
+            <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()" tabindex="-1">
               <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
             </button>
           </div>
 
-          <!-- Password strength indicator -->
+          <!-- Password strength helper indicator -->
           <div *ngIf="editForm.get('password')?.value" class="mt-2">
             <div class="d-flex justify-content-between align-items-center mb-1">
-              <small class="text-muted">Password strength:</small>
+              <small class="text-muted">Security Strength:</small>
               <small [ngClass]="{
                 'text-danger': passwordStrength.score <= 2,
                 'text-warning': passwordStrength.score <= 4,
@@ -123,139 +98,137 @@
                 {{ passwordStrength.label }}
               </small>
             </div>
-            <div class="progress" style="height: 6px;">
-              <div
-                class="progress-bar"
-                [style.width.%]="passwordStrength.score"
-                [style.backgroundColor]="passwordStrength.color"
-                role="progressbar"
-              ></div>
-            </div>
-          </div>
-
-          <div *ngIf="f['password'].touched && f['password'].invalid && f['password'].value" class="invalid-feedback d-block">
-            <small>
-              Password must contain uppercase, lowercase, number & special character (minimum 8 characters).
-            </small>
-          </div>
-        </div>
-
-        <!-- Role -->
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">
-            Role
-            <span class="text-danger">*</span>
-          </label>
-          <select 
-            class="form-select" 
-            formControlName="role"
-            [ngClass]="{
-              'is-invalid': f['role'].touched && f['role'].invalid,
-              'is-valid': f['role'].touched && f['role'].valid
-            }"
-          >
-            <option value="" disabled>Select a role</option>
-            <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
-          </select>
-          <div *ngIf="f['role'].touched && f['role'].invalid" class="invalid-feedback">
-            <small>Role selection is required.</small>
-          </div>
-        </div>
-
-        <!-- Department Search -->
-        <div class="col-12">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <label class="form-label fw-semibold">
-              Departments
-              <span class="text-danger">*</span>
-            </label>
-            <div class="col-md-4">
-              <input
-                type="text"
-                class="form-control form-control-sm"
-                placeholder="Search departments..."
-                [(ngModel)]="searchQuery"
-                [ngModelOptions]="{standalone: true}"
-              />
+            <div class="progress">
+              <div class="progress-bar" [style.width.%]="passwordStrength.score" [style.backgroundColor]="passwordStrength.color" role="progressbar"></div>
             </div>
           </div>
           
-          <div class="department-list p-3 bg-light rounded-3 shadow-sm" style="max-height: 300px; overflow-y: auto;">
+          <div *ngIf="f['password'].touched && f['password'].invalid && f['password'].value" class="text-danger small mt-1">
+            <small>Must contain uppercase, lowercase, number, special symbol, and be at least 8 characters long.</small>
+          </div>
+        </div>
+
+        <!-- Role selection -->
+        <div class="col-md-6">
+          <label class="form-label">System Role <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+            <select class="form-select" formControlName="role"
+              [ngClass]="{
+                'is-invalid': f['role'].touched && f['role'].invalid,
+                'is-valid': f['role'].touched && f['role'].valid
+              }">
+              <option value="" disabled>Select Role</option>
+              <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+            </select>
+          </div>
+          <div *ngIf="f['role'].touched && f['role'].invalid" class="text-danger small mt-1">
+            <small>Role assignment is required.</small>
+          </div>
+        </div>
+
+        <!-- Parent User Reporting -->
+        <div class="col-md-6" *ngIf="editForm.get('role')?.value">
+          <label class="form-label">
+            Reports To (Parent Supervisor)
+            <span class="text-danger" *ngIf="editForm.get('role')?.value !== 'SUPER_ADMIN'">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+            <select class="form-select" formControlName="parentUserId"
+              [ngClass]="{
+                'is-invalid': f['parentUserId']?.touched && f['parentUserId']?.invalid,
+                'is-valid': f['parentUserId']?.touched && f['parentUserId']?.valid
+              }">
+              <option [ngValue]="null" disabled>Select Parent Supervisor</option>
+              <option *ngFor="let parent of filteredParentUsers" [value]="parent.userId">
+                {{ parent.fullName }} ({{ parent.role }})
+              </option>
+            </select>
+          </div>
+          <div *ngIf="f['parentUserId']?.touched && f['parentUserId']?.invalid" class="text-danger small mt-1">
+            <small>Parent supervisor assignment is required.</small>
+          </div>
+          <div class="field-hint text-muted mt-1">Hierarchical tree rules apply: Teacher -> HOD -> SubAdmin -> Admin -> SuperAdmin.</div>
+        </div>
+
+        <!-- Sub-Department -->
+        <div class="col-md-6" *ngIf="subDepartments.length > 0">
+          <label class="form-label">Sub-Department (Optional)</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+            <select class="form-select" formControlName="subDepartmentId">
+              <option [ngValue]="null">General / None</option>
+              <option *ngFor="let sub of subDepartments" [value]="sub.id">
+                {{ sub.name }} ({{ sub.code }})
+              </option>
+            </select>
+          </div>
+          <div class="field-hint text-muted mt-1">Link user to a sub-department unit.</div>
+        </div>
+
+        <!-- Department select box list -->
+        <div class="col-12" *ngIf="editForm.get('role')?.value !== 'SUPER_ADMIN'">
+          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <label class="form-label mb-0">Departments Access <span class="text-danger">*</span></label>
+            <div class="col-md-4">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" placeholder="Search departments..."
+                  [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}" />
+              </div>
+            </div>
+          </div>
+          
+          <div class="department-list p-3" style="max-height: 250px; overflow-y: auto;">
             <div *ngIf="filteredDepartments().length === 0" class="text-center text-muted py-3">
-              <i class="bi bi-search me-1"></i>
-              No departments match your search.
+              <i class="bi bi-search me-1"></i> No matching departments.
             </div>
             
             <div *ngFor="let dept of filteredDepartments()" class="form-check mb-2">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                [id]="'dept-' + dept.departmentId"
+              <input type="checkbox" class="form-check-input custom-checkbox" [id]="'dept-' + dept.departmentId"
                 [checked]="isDepartmentSelected(dept.departmentId)"
                 (change)="updateDepartmentSelection($event, dept.departmentId)"
                 [disabled]="isDeptDisabled(dept)"
-                [ngClass]="{
-                  'border-success': isDepartmentSelected(dept.departmentId),
-                  'border-danger': isDeptDisabled(dept)
-                }"
-              />
-              <label
-                class="form-check-label d-flex align-items-center"
-                [for]="'dept-' + dept.departmentId"
+                [ngClass]="{ 'border-success': isDepartmentSelected(dept.departmentId) }" />
+              <label class="form-check-label d-flex align-items-center" [for]="'dept-' + dept.departmentId"
                 [ngClass]="{
                   'text-muted': isDeptDisabled(dept),
                   'text-success fw-semibold': isDepartmentSelected(dept.departmentId)
-                }"
-              >
+                }">
                 <i class="bi bi-building me-2"></i>
-                {{ dept.name }}
+                <span>{{ dept.name }}</span>
                 <span *ngIf="isDeptDisabled(dept)" class="badge bg-secondary ms-2">Restricted</span>
                 <span *ngIf="dept.name.toLowerCase() === 'administration'" class="badge bg-info ms-2">Admin Only</span>
               </label>
             </div>
           </div>
           
-          <small class="text-muted mt-2 d-block">
+          <div class="field-hint text-muted mt-2">
             <i class="bi bi-info-circle me-1"></i>
-            <span *ngIf="editForm.get('role')?.value === 'ADMIN'">Admins can only be assigned to Administration department.</span>
-            <span *ngIf="editForm.get('role')?.value === 'HOD'">HODs can be assigned to only one department.</span>
-            <span *ngIf="editForm.get('role')?.value === 'TEACHER'">Teachers can be assigned to multiple departments.</span>
-          </small>
+            <span *ngIf="editForm.get('role')?.value === 'ADMIN'">Admins must belong exclusively to Administration department.</span>
+            <span *ngIf="editForm.get('role')?.value === 'HOD'">HODs can only be assigned to a single department.</span>
+            <span *ngIf="editForm.get('role')?.value === 'TEACHER'">Teachers can have multiple department access privileges.</span>
+          </div>
           
-          <div *ngIf="f['departmentIds'].touched && f['departmentIds'].invalid" class="invalid-feedback d-block">
-            <small>At least one department must be selected.</small>
+          <div *ngIf="f['departmentIds'].touched && f['departmentIds'].invalid" class="text-danger small mt-1">
+            <small>At least one department selection is required.</small>
           </div>
         </div>
 
-        <!-- Form Actions -->
-        <div class="col-12 mt-4 pt-3 border-top">
-          <div class="d-flex justify-content-end gap-3">
-            <button
-              type="button"
-              class="btn btn-outline-secondary px-4"
-              (click)="cancel()"
-              [disabled]="isSubmitting"
-            >
-              <i class="bi bi-x-circle me-2"></i>
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary px-4"
-              [disabled]="isSubmitting || editForm.invalid"
-            >
-              <span *ngIf="!isSubmitting">
-                <i class="bi bi-check-circle me-2"></i>
-                Update User
-              </span>
-              <span *ngIf="isSubmitting" class="d-flex align-items-center">
-                <span class="spinner-border spinner-border-sm me-2"></span>
-                Updating...
-              </span>
-            </button>
-          </div>
+        <!-- Submit control bar -->
+        <div [class.col-12]="true" [class.mt-4]="!isModal" [class.pt-3]="!isModal" [class.border-top]="!isModal" [class.d-flex]="true" [class.justify-content-end]="true" [class.gap-2]="true" [class.modal-form-footer]="isModal">
+          <button type="button" class="btn btn-secondary px-4" (click)="cancel()" [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary px-5" [disabled]="isSubmitting || editForm.invalid">
+            <span *ngIf="!isSubmitting">Update User</span>
+            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
+          </button>
         </div>
+
       </form>
     </div>
+
   </div>
 </div>

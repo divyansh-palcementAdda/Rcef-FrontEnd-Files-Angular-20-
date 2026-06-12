@@ -17,10 +17,8 @@ import { fadeInUp } from '../../../Animations/fade-in-up.animation';
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
-    RouterLinkActive,
     BaseChartDirective,
-    DatePipe,BulletinBannerComponent
+    DatePipe, BulletinBannerComponent
   ],
   animations: [
     trigger('fadeInUpStagger', [
@@ -41,11 +39,11 @@ import { fadeInUp } from '../../../Animations/fade-in-up.animation';
 export class FacultysDashboard implements OnInit, OnDestroy {
   private dataSub?: Subscription;
   dashboardData?: DashboardDto;
-  
+
   // Chart data
   pieChartData!: ChartConfiguration<'pie'>['data'];
   barChartData!: ChartConfiguration<'bar'>['data'];
-  
+
   // Chart options
   pieChartOptions: ChartConfiguration<'pie'>['options'] = {
     responsive: true,
@@ -142,7 +140,7 @@ export class FacultysDashboard implements OnInit, OnDestroy {
     private apiService: ApiService,
     private authService: AuthApiService,
     private jwtService: JwtService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -182,25 +180,25 @@ export class FacultysDashboard implements OnInit, OnDestroy {
 
   calculatePerformance(): number {
     if (!this.dashboardData) return 0;
-    
+
     const completed = this.dashboardData.completedTask || 0;
     const total = this.dashboardData.totalTask || 0;
     const delayed = this.dashboardData.delayedTask || 0;
-    
+
     if (total === 0) return 0;
-    
+
     let performance = Math.round((completed / total) * 100);
-    
+
     // Add bonus for on-time completion
     const penalty = Math.min(delayed * 5, 30);
     performance = Math.max(0, Math.min(100, performance - penalty));
-    
+
     // Bonus for having self-assigned tasks
     const selfTasks = this.dashboardData.selfTask || 0;
     if (selfTasks > 0) {
       performance = Math.min(100, performance + (selfTasks * 2));
     }
-    
+
     return performance;
   }
 
@@ -247,7 +245,7 @@ export class FacultysDashboard implements OnInit, OnDestroy {
         delta: d.completedTask > 0 ? 8 : 0,
         description: 'Successfully completed'
       },
-      
+
       // Self Management
       {
         title: 'Extended Tasks',
@@ -270,7 +268,7 @@ export class FacultysDashboard implements OnInit, OnDestroy {
         badge: d.delayedTask > 0 ? 'urgent' : undefined,
         description: 'Require immediate attention'
       },
-      
+
       // Request Management
       {
         title: 'Extension Requests',
@@ -287,12 +285,12 @@ export class FacultysDashboard implements OnInit, OnDestroy {
         value: d.requestForClosure || 0,
         color: 'secondary',
         icon: 'bi-lock',
-         route: '/view-tasks',
+        route: '/view-tasks',
         queryParams: { status: 'REQUEST_FOR_CLOSURE' },
         delta: d.requestForClosure > 0 ? 1 : 0,
         description: 'Awaiting closure'
       },
-      
+
       // Performance
       {
         title: 'Upcoming Tasks',
@@ -305,16 +303,16 @@ export class FacultysDashboard implements OnInit, OnDestroy {
         description: 'Tasks starting soon'
       },
 
-     {
-  title: 'Pending Requests',
-  value: d.pendingRequests ?? 0,
-  color: 'primary',
-  icon: 'bi-hourglass-split',
-  route: '/task-requests',
-  queryParams: { status: 'PENDING' },
-  delta: d.pendingRequests > 0 ? 1 : 0,
-  description: 'Requests awaiting review'
-},
+      {
+        title: 'Pending Requests',
+        value: d.pendingRequests ?? 0,
+        color: 'primary',
+        icon: 'bi-hourglass-split',
+        route: '/task-requests',
+        queryParams: { status: 'PENDING' },
+        delta: d.pendingRequests > 0 ? 1 : 0,
+        description: 'Requests awaiting review'
+      },
       {
         title: 'Approved Requests',
         value: d.approvedRequests || 0,

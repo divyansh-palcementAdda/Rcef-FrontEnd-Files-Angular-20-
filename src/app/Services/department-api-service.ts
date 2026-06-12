@@ -31,6 +31,13 @@ export class DepartmentApiService {
     );
   }
 
+  updateDepartment(id: number, payload: Department): Observable<any> {
+    console.log(`Updating department ${id} with payload:`, payload);
+    return this.http.put(`${this.apiUrl}/${id}`, payload).pipe(
+      catchError(err => this.handleError(err, 'update department'))
+    );
+  }
+
   deleteDepartment(departmentId: number): Observable<any> {
     console.log(`Deleting department with id ${departmentId}`);
     return this.http.delete(`${this.apiUrl}/${departmentId}`).pipe(
@@ -50,6 +57,37 @@ export class DepartmentApiService {
   getDepartmentById(id: number): Observable<Department> {
     return this.http.get<Department>(`${this.apiUrl}/${id}`);
   }
+  // ---------------- SubDepartment APIs ----------------
+  getAllSubDepartments(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/sub-departments`).pipe(
+      catchError(err => this.handleError(err, 'fetch all sub-departments'))
+    );
+  }
+
+  getSubDepartmentsByDepartment(deptId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/sub-departments/department/${deptId}`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-departments by department'))
+    );
+  }
+
+  createSubDepartment(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/sub-departments`, payload).pipe(
+      catchError(err => this.handleError(err, 'create sub-department'))
+    );
+  }
+
+  updateSubDepartment(id: string, payload: any): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/sub-departments/${id}`, payload).pipe(
+      catchError(err => this.handleError(err, 'update sub-department'))
+    );
+  }
+
+  deleteSubDepartment(id: string): Observable<any> {
+    return this.http.delete(`${environment.apiUrl}/sub-departments/${id}`).pipe(
+      catchError(err => this.handleError(err, 'delete sub-department'))
+    );
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);

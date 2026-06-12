@@ -33,9 +33,10 @@ export const RoleGuard: CanActivateFn = (
   // NOTE: Token may be expired but still readable 
   // -------------------------------------------
   let role: string | undefined;
+  let payload: any;
 
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    payload = JSON.parse(atob(token.split('.')[1]));
     role = payload.role;
   } catch (err) {
     console.error('[RoleGuard] Invalid JWT payload', err);
@@ -50,10 +51,23 @@ export const RoleGuard: CanActivateFn = (
   }
 
   // -------------------------------------------
-  // Check allowed roles defined on the route
+  // Check allowed permissions or roles defined on the route
   // -------------------------------------------
-  const allowedRoles = (route.data['roles'] as string[]) ?? [];
+  const requiredPermissions = (route.data['permissions'] as string[]) ?? [];
+  const tokenPermissions = (payload.permissions as string[]) ?? [];
 
+  if (role === 'SUPER_ADMIN') {
+    return true;
+  }
+
+  if (requiredPermissions.length > 0) {
+    const hasPermission = requiredPermissions.every(p => tokenPermissions.includes(p));
+    if (hasPermission) {
+      return true;
+    }
+  }
+
+  const allowedRoles = (route.data['roles'] as string[]) ?? [];
   if (allowedRoles.includes(role)) {
     return true;
   }

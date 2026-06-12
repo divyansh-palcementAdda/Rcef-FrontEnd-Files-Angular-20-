@@ -1,0 +1,239 @@
+<div class="subdept-container py-4">
+
+  <!-- Breadcrumbs Welcome Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb" class="mb-1">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a (click)="goBack()" style="cursor: pointer;" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Hierarchy & Sub-Departments</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Hierarchy & Sub-Departments</h1>
+    </div>
+    <button class="btn btn-secondary" (click)="goBack()">
+      <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </button>
+  </div>
+
+  <!-- Tab Navigation controls -->
+  <div class="d-flex gap-2 mb-4">
+    <button class="btn tab-nav-btn" [class.active]="activeTab === 'subdepts'" (click)="activeTab = 'subdepts'; loadDepartments()">
+      <i class="bi bi-folder-fill me-1"></i>Sub-Departments CRUD
+    </button>
+    <button class="btn tab-nav-btn" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'; loadUsersAndParentsData()">
+      <i class="bi bi-people-fill me-1"></i>User Parent Mappings
+    </button>
+  </div>
+
+  <!-- Feedback Alerts -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn" role="alert">
+    <span><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}</span>
+    <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn" role="alert">
+    <span><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}</span>
+    <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
+  </div>
+
+  <!-- TAB 1: SUB-DEPARTMENTS CRUD -->
+  <div *ngIf="activeTab === 'subdepts'" class="row g-4 animate__animated animate__fadeIn">
+    
+    <!-- Parent Department Selector -->
+    <div class="col-lg-3">
+      <div class="glass-card h-100">
+        <div class="card-header-gradient">
+          <span>Departments Directory</span>
+        </div>
+        <div class="card-body-scroll p-3">
+          <div *ngIf="loadingDepartments" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary spinner"></div>
+          </div>
+          <div class="list-group">
+            <div *ngFor="let dept of departments" class="list-group-item-premium"
+                 [class.active]="selectedDepartment?.departmentId === dept.departmentId" (click)="selectDepartment(dept)">
+              <span class="fw-bold">{{ dept.name }}</span>
+              <i class="bi bi-chevron-right small text-muted"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-departments List View -->
+    <div class="col-lg-5">
+      <div class="glass-card h-100">
+        <div class="card-header-gradient">
+          <span *ngIf="selectedDepartment">Sub-Departments in: <strong>{{ selectedDepartment.name }}</strong></span>
+          <span *ngIf="!selectedDepartment">Sub-Departments list</span>
+        </div>
+        <div class="card-body-scroll p-3">
+          <div *ngIf="!selectedDepartment" class="text-center text-muted py-5">
+            <i class="bi bi-folder-x fs-2 mb-2 d-block"></i>
+            <p class="mb-0">Select a department from left panel to load sub-departments.</p>
+          </div>
+
+          <div *ngIf="selectedDepartment">
+            <div *ngIf="loadingSubDepts" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm text-primary spinner"></div>
+            </div>
+            <div *ngIf="subDepartments.length === 0 && !loadingSubDepts" class="text-center text-muted py-4">
+              No sub-departments defined for this unit.
+            </div>
+
+            <div class="list-group">
+              <div *ngFor="let sub of subDepartments" class="list-group-item-premium border rounded-3 p-3 mb-2 shadow-sm d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="fw-bold mb-1" style="color: var(--text-main);">{{ sub.name }}</h6>
+                  <span class="badge bg-light text-secondary border mb-1" style="font-size:0.7rem;">Code: {{ sub.code }}</span>
+                  <small class="text-muted d-block">{{ sub.description || 'No description provided.' }}</small>
+                </div>
+                <button class="btn btn-sm btn-outline-danger py-1 px-2.5" (click)="deleteSubDept(sub.id)" title="Delete Sub-Department">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Sub-Department Form -->
+    <div class="col-lg-4">
+      <div class="glass-card">
+        <div class="card-header-gradient">
+          <span>Create Sub-Department</span>
+        </div>
+        <div class="p-4 bg-white" style="background-color: var(--card-bg) !important;">
+          <div class="mb-3">
+            <label class="form-label">Target Parent Department</label>
+            <select class="form-select" [(ngModel)]="newSubDept.departmentId">
+              <option [ngValue]="null">Select Department</option>
+              <option *ngFor="let dept of departments" [value]="dept.departmentId">{{ dept.name }}</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Sub-Department Name</label>
+            <input type="text" class="form-control" [(ngModel)]="newSubDept.name" placeholder="e.g. Computer Graphics">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Unique Code (Uppercase)</label>
+            <input type="text" class="form-control" [(ngModel)]="newSubDept.code" placeholder="e.g. CSE_CG">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="newSubDept.description" placeholder="Describe the focus/deliverables..."></textarea>
+          </div>
+          
+          <button class="btn btn-primary w-100 py-2 mt-2" (click)="createSubDept()">
+            <i class="bi bi-plus-circle me-1"></i>Create Sub-Department
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: USER PARENT MAPPINGS -->
+  <div *ngIf="activeTab === 'users'" class="glass-card animate__animated animate__fadeIn">
+    <div class="card-header-gradient">
+      <span>User Hierarchies & Parent-Child Relationships</span>
+    </div>
+    
+    <div class="p-4 bg-white" style="background-color: var(--card-bg) !important;">
+      <div class="alert alert-success d-flex align-items-center mb-4 py-2.5">
+        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+        <small>Define reporting rules: <strong>Teachers</strong> report to HODs. <strong>HODs</strong> report to SubAdmins. <strong>SubAdmins</strong> report to Admins. <strong>Admins</strong> report to Super Admins.</small>
+      </div>
+
+      <div *ngIf="loadingUsers" class="text-center py-4">
+        <div class="spinner-border text-primary spinner mb-2"></div>
+        <p class="text-muted small">Loading directories…</p>
+      </div>
+
+      <div class="table-responsive" *ngIf="!loadingUsers">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>User / Profile</th>
+              <th>System Role</th>
+              <th>Parent Department</th>
+              <th>Sub-Department</th>
+              <th>Reports To</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of users">
+              
+              <!-- Non-Edit standard row -->
+              <ng-container *ngIf="editingUserId !== u.userId">
+                <td>
+                  <strong class="d-block" style="color: var(--text-main);">{{ u.fullName }}</strong>
+                  <span class="text-muted small">@{{ u.username }} • {{ u.email }}</span>
+                </td>
+                <td><span class="badge bg-light text-dark">{{ u.role }}</span></td>
+                <td><span class="text-secondary small">{{ getDepartmentNames(u) }}</span></td>
+                <td><span class="text-secondary small">{{ u.subDepartmentName || 'None' }}</span></td>
+                <td>
+                  <span *ngIf="u.parentFullName" class="fw-semibold text-secondary">
+                    <i class="bi bi-person me-1"></i>{{ u.parentFullName }}
+                  </span>
+                  <span *ngIf="!u.parentFullName" class="text-muted small">Unassigned</span>
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-primary" (click)="startEditMapping(u)">
+                    <i class="bi bi-pencil me-1"></i>Configure Relationship
+                  </button>
+                </td>
+              </ng-container>
+
+              <!-- Inline edit controls row -->
+              <ng-container *ngIf="editingUserId === u.userId">
+                <td>
+                  <strong class="d-block" style="color: var(--text-main);">{{ u.fullName }}</strong>
+                  <span class="text-muted small">@{{ u.username }}</span>
+                </td>
+                <td><span class="badge bg-light text-dark">{{ u.role }}</span></td>
+                <td>
+                  <select class="form-select form-select-sm" [(ngModel)]="editPayload.departmentId" (change)="onEditDeptChange()">
+                    <option [ngValue]="null">Select Department</option>
+                    <option *ngFor="let d of departments" [value]="d.departmentId">{{ d.name }}</option>
+                  </select>
+                </td>
+                <td>
+                  <select class="form-select form-select-sm" [(ngModel)]="editPayload.subDepartmentId">
+                    <option [ngValue]="null">None</option>
+                    <option *ngFor="let sd of availableSubDeptsForEdit" [value]="sd.id">{{ sd.name }}</option>
+                  </select>
+                </td>
+                <td>
+                  <select class="form-select form-select-sm" [(ngModel)]="editPayload.parentUserId">
+                    <option [ngValue]="null">Unassigned</option>
+                    <option *ngFor="let potentialParent of getPotentialParents(u)" [value]="potentialParent.userId">
+                      {{ potentialParent.fullName }} ({{ potentialParent.role }})
+                    </option>
+                  </select>
+                </td>
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <button class="btn btn-sm btn-success py-1 px-2.5" (click)="saveEditMapping(u.userId)" title="Save changes">
+                      <i class="bi bi-check-lg"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secondary py-1 px-2.5" (click)="editingUserId = null" title="Cancel">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>

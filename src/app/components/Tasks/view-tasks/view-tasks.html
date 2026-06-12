@@ -1,211 +1,580 @@
-<div class="view-tasks-container" [class.loading]="loading">
-  <!-- Loading Overlay -->
-  <div *ngIf="loading" class="loading-overlay">
-    <div class="loading-spinner">
-      <div class="spinner-container">
-        <div class="spinner"></div>
-        <div class="spinner-inner"></div>
+<div class="view-tasks-container py-4 px-3 animate__animated animate__fadeIn" [class.loading]="loading">
+  <!-- Loading state / Shimmer Skeletons -->
+  <div *ngIf="loading" class="stitch-grid-container animate__animated animate__fadeIn">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-light-subtle">
+      <div class="stitch-skeleton-cell" style="width: 180px; height: 24px;"></div>
+      <div class="d-flex gap-2">
+        <div class="stitch-skeleton-cell" style="width: 80px; height: 24px;"></div>
+        <div class="stitch-skeleton-cell" style="width: 80px; height: 24px;"></div>
       </div>
-      <p class="loading-text">{{ loadingMessage }}</p>
+    </div>
+    <div class="table-responsive">
+      <table class="stitch-table align-middle">
+        <thead>
+          <tr>
+            <th>Task Details</th>
+            <th>Department</th>
+            <th>Assignee</th>
+            <th>Timeline</th>
+            <th>Status</th>
+            <th class="text-end" style="width: 140px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of [1, 2, 3, 4]" class="stitch-skeleton-row">
+            <td>
+              <div class="stitch-skeleton-cell" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div>
+              <div class="stitch-skeleton-cell" style="width: 40%; height: 12px;"></div>
+            </td>
+            <td>
+              <div class="stitch-skeleton-cell" style="width: 90px; height: 22px;"></div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="stitch-skeleton-cell" style="width: 28px; height: 28px; border-radius: 50%;"></div>
+                <div class="stitch-skeleton-cell" style="width: 80px; height: 14px;"></div>
+              </div>
+            </td>
+            <td>
+              <div class="stitch-skeleton-cell" style="width: 100px; height: 16px;"></div>
+            </td>
+            <td>
+              <div class="stitch-skeleton-cell" style="width: 80px; height: 24px; border-radius: 6px;"></div>
+            </td>
+            <td>
+              <div class="d-flex justify-content-end gap-1">
+                <div class="stitch-skeleton-cell" style="width: 28px; height: 28px; border-radius: 6px;"></div>
+                <div class="stitch-skeleton-cell" style="width: 28px; height: 28px; border-radius: 6px;"></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
   <!-- Error States -->
-  <div *ngIf="errorMessage" class="error-state">
-    <div class="error-content">
-      <div class="error-icon">❌</div>
-      <h3>Unable to Load Tasks</h3>
-      <p>{{ errorMessage }}</p>
-      <button class="btn-retry" (click)="loadCurrentUserAndTasks()">
-        🔄 Retry
-      </button>
-    </div>
+  <div *ngIf="errorMessage"
+    class="card border border-danger bg-danger-subtle p-5 text-center my-4 rounded-4 animate__animated animate__headShake">
+    <div class="fs-1 mb-3">❌</div>
+    <h4 class="fw-bold text-danger">Unable to Load Tasks</h4>
+    <p class="text-muted mb-4">{{ errorMessage }}</p>
+    <button class="btn btn-primary d-inline-flex align-items-center gap-2 mx-auto" (click)="loadCurrentUserAndTasks()">
+      <i class="bi bi-arrow-clockwise"></i> Retry
+    </button>
   </div>
 
-  <div *ngIf="isForbidden" class="error-state">
-    <div class="error-content">
-      <div class="error-icon">🔒</div>
-      <h3>Access Restricted</h3>
-      <p>You don't have permission to view these tasks.</p>
-      <button class="btn-back" (click)="goBackToDashboard()">
-        ← Return to Dashboard
-      </button>
-    </div>
+  <div *ngIf="isForbidden"
+    class="card border border-warning bg-warning-subtle p-5 text-center my-4 rounded-4 animate__animated animate__flash">
+    <div class="fs-1 mb-3">🔒</div>
+    <h4 class="fw-bold text-warning">Access Restricted</h4>
+    <p class="text-muted mb-4">You do not have permission to view these tasks.</p>
+    <button class="btn btn-secondary d-inline-flex align-items-center gap-2 mx-auto" (click)="goBackToDashboard()">
+      <i class="bi bi-chevron-left"></i> Return to Dashboard
+    </button>
   </div>
 
-  <!-- Main Content -->
-  <div *ngIf="!loading && !errorMessage && !isForbidden" class="main-content">
-    <br><br><br><br>
-    <!-- Compact Filters Section -->
-    <div class="filters-section">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input 
-          type="text" 
-          class="search-input"
-          placeholder="Search tasks..."
-          [(ngModel)]="searchTerm"
-          (input)="applyFilters()"
-          aria-label="Search tasks"
-        />
-        <span *ngIf="searchTerm" 
-              class="clear-search" 
-              (click)="searchTerm = ''; applyFilters()"
-              title="Clear search">
-          ✕
-        </span>
+  <!-- Main Workspace Content -->
+  <div *ngIf="!loading && !errorMessage && !isForbidden" class="main-content-flow animate__animated animate__fadeIn">
+
+    <!-- ==========================================
+       1. HERO HEADER
+       ========================================== -->
+    <div class="stitch-hero">
+      <div class="stitch-hero-content">
+        <h1 class="stitch-hero-title">Task Management</h1>
+        <p class="stitch-hero-subtitle">Central hub for tracking projects, priorities, and deadlines.</p>
+        <div class="stitch-hero-pills">
+          <div class="stitch-hero-pill">
+            <span class="stitch-hero-dot" style="background-color: #ffffff;"></span>
+            <span>{{ taskStats.total }} Total</span>
+          </div>
+          <div class="stitch-hero-pill">
+            <span class="stitch-hero-dot" style="background-color: #f59e0b;"></span>
+            <span>{{ taskStats.pending }} Pending</span>
+          </div>
+          <div class="stitch-hero-pill">
+            <span class="stitch-hero-dot" style="background-color: #10b981;"></span>
+            <span>{{ taskStats.completed }} Done</span>
+          </div>
+        </div>
       </div>
-      
-      <div class="filter-controls">
-        <select class="status-filter" 
-                [(ngModel)]="statusFilter" 
-                (change)="applyFilters()"
-                aria-label="Filter by status">
-          <option value="">All Statuses</option>
-          <option value="PENDING">Pending</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="DELAYED">Delayed</option>
-          <option value="CLOSED">Closed</option>
-          <option value="SELF">My Tasks</option>
+      <div class="stitch-hero-illustration">
+        <div class="stitch-hero-illustration-card">
+          <i class="bi bi-clipboard-check stitch-hero-illustration-icon"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+       2. ANALYTICS SECTION
+       ========================================== -->
+    <div class="stitch-analytics-row">
+      <!-- Left Column Metrics (2x2 Grid) -->
+      <div class="stitch-analytics-left">
+        <!-- Card 1: Total Tasks -->
+        <div class="stitch-metric-card card-total" [class.selected]="selectedCard === 'total'" (click)="selectCard('total')">
+          <div *ngIf="selectedCard === 'total'" class="stitch-selected-check-badge">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div class="stitch-metric-header">
+            <div class="stitch-metric-title-area">
+              <span class="stitch-metric-label">Total Tasks</span>
+              <span class="stitch-metric-subtitle">System-wide load</span>
+            </div>
+            <div class="stitch-metric-icon-circle"
+              style="background: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);">
+              <i class="bi bi-clipboard-data"></i>
+            </div>
+          </div>
+          <div class="stitch-metric-value-area">
+            <span class="stitch-metric-value">{{ taskStats.total }}</span>
+            <span class="stitch-trend-badge trend-up">
+              <i class="bi bi-arrow-up-right-short"></i> 12%
+            </span>
+          </div>
+        </div>
+
+        <!-- Card 2: Active Tasks -->
+        <div class="stitch-metric-card card-active" [class.selected]="selectedCard === 'active'" (click)="selectCard('active')">
+          <div *ngIf="selectedCard === 'active'" class="stitch-selected-check-badge">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div class="stitch-metric-header">
+            <div class="stitch-metric-title-area">
+              <span class="stitch-metric-label">Active Tasks</span>
+              <span class="stitch-metric-subtitle">In progress now</span>
+            </div>
+            <div class="stitch-metric-icon-circle"
+              style="background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);">
+              <i class="bi bi-activity"></i>
+            </div>
+          </div>
+          <div class="stitch-metric-value-area">
+            <span class="stitch-metric-value">{{ taskStats.active }}</span>
+            <span class="stitch-trend-badge trend-stable">
+              Stable
+            </span>
+          </div>
+        </div>
+
+        <!-- Card 3: Pending Tasks -->
+        <div class="stitch-metric-card card-pending" [class.selected]="selectedCard === 'pending'" (click)="selectCard('pending')">
+          <div *ngIf="selectedCard === 'pending'" class="stitch-selected-check-badge">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div class="stitch-metric-header">
+            <div class="stitch-metric-title-area">
+              <span class="stitch-metric-label">Pending Tasks</span>
+              <span class="stitch-metric-subtitle">Awaiting review</span>
+            </div>
+            <div class="stitch-metric-icon-circle"
+              style="background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);">
+              <i class="bi bi-clock"></i>
+            </div>
+          </div>
+          <div class="stitch-metric-value-area">
+            <span class="stitch-metric-value">{{ taskStats.pending }}</span>
+            <span class="stitch-trend-badge trend-compare">
+              vs last week: 2
+            </span>
+          </div>
+        </div>
+
+        <!-- Card 4: Completed Tasks -->
+        <div class="stitch-metric-card card-completed" [class.selected]="selectedCard === 'completed'" (click)="selectCard('completed')">
+          <div *ngIf="selectedCard === 'completed'" class="stitch-selected-check-badge">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div class="stitch-metric-header">
+            <div class="stitch-metric-title-area">
+              <span class="stitch-metric-label">Completed</span>
+              <span class="stitch-metric-subtitle">Success rate</span>
+            </div>
+            <div class="stitch-metric-icon-circle"
+              style="background: linear-gradient(135deg, #34d399 0%, #059669 100%);">
+              <i class="bi bi-check-circle"></i>
+            </div>
+          </div>
+          <div class="stitch-metric-value-area">
+            <span class="stitch-metric-value">{{ taskStats.completed }}</span>
+            <span class="stitch-trend-badge trend-down">
+              <i class="bi bi-arrow-down-right-short"></i> 100%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Task Health Card -->
+      <div class="stitch-analytics-right">
+        <div class="stitch-health-card">
+          <div>
+            <div class="stitch-health-header">
+              <span class="stitch-health-title">
+                <i class="bi bi-heart-pulse-fill text-primary"></i> Task Health
+              </span>
+              <span class="stitch-health-badge">Real-Time</span>
+            </div>
+
+            <!-- Health statistics list -->
+            <div class="stitch-health-list">
+              <!-- Overdue -->
+              <div class="stitch-health-item health-item-overdue" [class.selected]="selectedCard === 'overdue'" (click)="selectCard('overdue')">
+                <div class="stitch-health-item-left">
+                  <div class="stitch-health-item-icon-wrapper health-icon-overdue">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                  </div>
+                  <div class="stitch-health-item-info">
+                    <span class="stitch-health-item-label">Overdue</span>
+                    <span class="stitch-health-item-sublabel">Requires action</span>
+                  </div>
+                </div>
+                <div class="stitch-health-item-right">
+                  <span class="stitch-health-item-count health-count-overdue">{{ taskStats.overdue }}</span>
+                  <i *ngIf="selectedCard !== 'overdue'" class="bi bi-chevron-right stitch-health-item-chevron"></i>
+                  <i *ngIf="selectedCard === 'overdue'" class="bi bi-check-circle-fill stitch-selected-check-icon text-danger"></i>
+                </div>
+              </div>
+
+              <!-- Extensions -->
+              <div class="stitch-health-item health-item-extensions" [class.selected]="selectedCard === 'extensionRequests'" (click)="selectCard('extensionRequests')">
+                <div class="stitch-health-item-left">
+                  <div class="stitch-health-item-icon-wrapper health-icon-extensions">
+                    <i class="bi bi-clock-history"></i>
+                  </div>
+                  <div class="stitch-health-item-info">
+                    <span class="stitch-health-item-label">Extensions</span>
+                    <span class="stitch-health-item-sublabel">Awaiting approval</span>
+                  </div>
+                </div>
+                <div class="stitch-health-item-right">
+                  <span class="stitch-health-item-count health-count-extensions">{{ taskStats.extensionRequests }}</span>
+                  <i *ngIf="selectedCard !== 'extensionRequests'" class="bi bi-chevron-right stitch-health-item-chevron"></i>
+                  <i *ngIf="selectedCard === 'extensionRequests'" class="bi bi-check-circle-fill stitch-selected-check-icon text-warning"></i>
+                </div>
+              </div>
+
+              <!-- Closures -->
+              <div class="stitch-health-item health-item-closures" [class.selected]="selectedCard === 'closureRequests'" (click)="selectCard('closureRequests')">
+                <div class="stitch-health-item-left">
+                  <div class="stitch-health-item-icon-wrapper health-icon-closures">
+                    <i class="bi bi-shield-check"></i>
+                  </div>
+                  <div class="stitch-health-item-info">
+                    <span class="stitch-health-item-label">Closures</span>
+                    <span class="stitch-health-item-sublabel">Verification pending</span>
+                  </div>
+                </div>
+                <div class="stitch-health-item-right">
+                  <span class="stitch-health-item-count health-count-closures">{{ taskStats.closureRequests }}</span>
+                  <i *ngIf="selectedCard !== 'closureRequests'" class="bi bi-chevron-right stitch-health-item-chevron"></i>
+                  <i *ngIf="selectedCard === 'closureRequests'" class="bi bi-check-circle-fill stitch-selected-check-icon text-success"></i>
+                </div>
+              </div>
+
+              <!-- Upcoming -->
+              <div class="stitch-health-item health-item-upcoming" [class.selected]="selectedCard === 'upcoming'" (click)="selectCard('upcoming')">
+                <div class="stitch-health-item-left">
+                  <div class="stitch-health-item-icon-wrapper health-icon-upcoming">
+                    <i class="bi bi-calendar-event"></i>
+                  </div>
+                  <div class="stitch-health-item-info">
+                    <span class="stitch-health-item-label">Upcoming</span>
+                    <span class="stitch-health-item-sublabel">Next 7 days</span>
+                  </div>
+                </div>
+                <div class="stitch-health-item-right">
+                  <span class="stitch-health-item-count health-count-upcoming">{{ taskStats.upcoming }}</span>
+                  <i *ngIf="selectedCard !== 'upcoming'" class="bi bi-chevron-right stitch-health-item-chevron"></i>
+                  <i *ngIf="selectedCard === 'upcoming'" class="bi bi-check-circle-fill stitch-selected-check-icon text-info"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Completion trend bottom section -->
+          <div class="stitch-health-trend-section">
+            <div class="stitch-health-trend-meta">
+              <span class="stitch-health-trend-label">Weekly Completion Trend</span>
+              <span class="stitch-health-trend-badge">+18%</span>
+            </div>
+            <div class="stitch-health-trend-chart">
+              <div class="stitch-health-chart-bar" style="height: 18px;"></div>
+              <div class="stitch-health-chart-bar" style="height: 26px;"></div>
+              <div class="stitch-health-chart-bar" style="height: 14px;"></div>
+              <div class="stitch-health-chart-bar" style="height: 32px;"></div>
+              <div class="stitch-health-chart-bar active" style="height: 36px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+       3. FLOATING TOOLBAR
+       ========================================== -->
+    <div class="stitch-toolbar">
+      <div class="stitch-toolbar-left">
+        <!-- Search bar -->
+        <div class="stitch-search-wrapper">
+          <i class="bi bi-search stitch-search-icon"></i>
+          <input type="text" class="stitch-search-input" placeholder="Filter tasks by name, assignee, or ID..."
+            [(ngModel)]="searchTerm" (input)="applyFilters()" />
+          <button *ngIf="searchTerm" class="stitch-clear-btn" type="button" (click)="searchTerm = ''; applyFilters()"
+            title="Clear search">
+            <i class="bi bi-x-circle-fill"></i>
+          </button>
+        </div>
+
+        <!-- Status Filter Select -->
+        <select class="stitch-select-filter" [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <option value="">Status: All</option>
+          <option value="PENDING">Status: Pending</option>
+          <option value="IN_PROGRESS">Status: In Progress</option>
+          <option value="DELAYED">Status: Delayed</option>
+          <option value="CLOSED">Status: Completed</option>
+          <option value="SELF">Type: Assigned to Me</option>
+          <option value="SELFASSIGNED">Type: Self Assigned</option>
+          <option value="APPROVAL">Type: Awaiting Approval</option>
+          <option value="MY_DEPARTMENT">Type: My Department</option>
+          <option value="PARENT_RECURRING">Type: Recurring Parent</option>
+          <option value="RECURRED_INSTANCE">Type: Recurring Instance</option>
         </select>
-        
-        <button class="btn-reset" (click)="resetFilters()">
-          <span class="icon">🔄</span>
-          Reset
+
+        <!-- Department Filter (Visual Dropdown) -->
+        <select class="stitch-select-filter" [(ngModel)]="departmentFilter" (change)="applyFilters()"
+          title="Filter by Department">
+          <option value="">Department: All</option>
+          <option value="SUPER_ADMIN">Department: Super Admin</option>
+          <option value="Administration">Department: Administration</option>
+          <option value="Academic">Department: Academic</option>
+          <option value="Registrar">Department: Registrar</option>
+        </select>
+
+        <!-- Date Filter (Visual Select) -->
+        <select class="stitch-select-filter" title="Filter by Date">
+          <option value="">Date: All Time</option>
+          <option value="today">Date: Today</option>
+          <option value="yesterday">Date: Yesterday</option>
+          <option value="week">Date: This Week</option>
+        </select>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="stitch-toolbar-right">
+        <button class="stitch-toolbar-btn" (click)="loadCurrentUserAndTasks()" title="Refresh list">
+          <i class="bi bi-arrow-clockwise"></i>
         </button>
       </div>
     </div>
 
-    <!-- Tasks List - Optimized for Maximum Visibility -->
-    <div *ngIf="!isEmpty && filteredTasks.length > 0" class="tasks-section">
-      
-      <!-- Desktop Table - Compact and Efficient -->
-      <div class="tasks-table desktop-view">
-        <div class="table-header">
-          <div class="table-row">
-            <div class="col-task-id">S.No</div>
-            <div class="col-title">Task Details</div>
-            <div class="col-info">Dept & Assignee</div>
-            <div class="col-dates">Timeline</div>
-            <div class="col-status">Status</div>
-            <div class="col-actions">Actions</div>
-          </div>
-        </div>
-        
-        <div class="table-body">
-          <div *ngFor="let task of paginatedTasks;let i = index; trackBy: trackByTaskId" 
-               class="table-row task-row"
-               (click)="viewTaskDetails(task.taskId)"
-               [attr.aria-label]="'Task: ' + task.title">
-            
-            <div class="col-task-id">
-              <!-- <span class="task-id">#{{ task.taskId }}</span> -->
-               <span class="task-id">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
-            </div>
-            
-            <div class="col-title">
-              <h4 class="task-title">{{ task.title }}</h4>
-              <p *ngIf="task.description" class="task-description">
-                {{ task.description | slice:0:60 }}{{ task.description.length > 60 ? '...' : '' }}
-              </p>
-            </div>
-            
-            <div class="col-info">
-              <div class="department-info">
-                <span class="info-icon">🏢</span>
-                <span *ngIf="task.departmentNames?.length === 1">
-                  {{ (task.departmentNames?.[0] | slice:0:15) }}{{ task.departmentNames?.[0]?.length??0 > 15 ? '...' : '' }}
+    <!-- ==========================================
+       4. DATA GRID TABLE SECTION
+       ========================================== -->
+    <div *ngIf="!isEmpty && filteredTasks.length > 0" class="stitch-grid-container">
+      <div class="table-responsive">
+        <table class="stitch-table align-middle">
+          <thead>
+            <tr>
+              <th (click)="setSort('title')" style="cursor: pointer;">
+                Task Details
+                <i class="bi" [ngClass]="{
+                  'bi-arrow-up text-primary': sortBy === 'title' && sortDirection === 'asc',
+                  'bi-arrow-down text-primary': sortBy === 'title' && sortDirection === 'desc',
+                  'bi-arrow-down-up text-muted opacity-50': sortBy !== 'title'
+                }"></i>
+              </th>
+              <th (click)="setSort('department.name')" style="cursor: pointer;">
+                Department
+                <i class="bi" [ngClass]="{
+                  'bi-arrow-up text-primary': sortBy === 'department.name' && sortDirection === 'asc',
+                  'bi-arrow-down text-primary': sortBy === 'department.name' && sortDirection === 'desc',
+                  'bi-arrow-down-up text-muted opacity-50': sortBy !== 'department.name'
+                }"></i>
+              </th>
+              <th>Assignee</th>
+              <th (click)="setSort('dueDate')" style="cursor: pointer;">
+                Timeline
+                <i class="bi" [ngClass]="{
+                  'bi-arrow-up text-primary': sortBy === 'dueDate' && sortDirection === 'asc',
+                  'bi-arrow-down text-primary': sortBy === 'dueDate' && sortDirection === 'desc',
+                  'bi-arrow-down-up text-muted opacity-50': sortBy !== 'dueDate'
+                }"></i>
+              </th>
+              <th (click)="setSort('status')" style="cursor: pointer;">
+                Status
+                <i class="bi" [ngClass]="{
+                  'bi-arrow-up text-primary': sortBy === 'status' && sortDirection === 'asc',
+                  'bi-arrow-down text-primary': sortBy === 'status' && sortDirection === 'desc',
+                  'bi-arrow-down-up text-muted opacity-50': sortBy !== 'status'
+                }"></i>
+              </th>
+              <th class="text-end" style="width: 140px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of paginatedTasks; let i = index; trackBy: trackByTaskId"
+              (click)="viewTaskDetails(task.taskId)" style="cursor: pointer;">
+
+              <!-- Task Details -->
+              <td data-label="Task Details">
+                <div class="stitch-task-title-area">
+                  <div class="stitch-task-title-row">
+                    <span class="stitch-task-title">{{ task.title }}</span>
+                    <!-- Badges -->
+                    <!-- <span *ngIf="task.templateId" class="stitch-tag-badge tag-template">Template</span>
+                    <span *ngIf="task.isRecurring" class="stitch-tag-badge tag-recurring">Recurring</span> -->
+                    <span *ngIf="isOverdue(task)" class="stitch-tag-badge tag-priority-high">High</span>
+                  </div>
+                  <p class="stitch-task-desc" *ngIf="task.description">{{ task.description }}</p>
+                </div>
+              </td>
+
+              <!-- Department -->
+              <td data-label="Department">
+                <div class="stitch-dept-area">
+                  <span class="stitch-dept-badge" *ngIf="task.departmentNames && task.departmentNames.length > 0">
+                    {{ task.departmentNames[0] }}
+                  </span>
+                  <span class="stitch-subdept-label" *ngIf="task.departmentNames && task.departmentNames.length > 1">
+                    {{ task.departmentNames[1] }}
+                  </span>
+                  <span class="text-muted small"
+                    *ngIf="!task.departmentNames || task.departmentNames.length === 0">—</span>
+                </div>
+              </td>
+
+              <!-- Assignee -->
+              <td data-label="Assignee">
+                <div class="stitch-assignee-layout" *ngIf="task.assignedToNames && task.assignedToNames.length > 0">
+                  <div class="stitch-assignee-avatar"
+                    [style.background-color]="getAvatarColor(task.assignedToNames[0])">
+                    {{ getInitials(task.assignedToNames[0]) }}
+                  </div>
+                  <div class="stitch-assignee-info">
+                    <span class="stitch-assignee-name">{{ task.assignedToNames[0] }}</span>
+                    <span class="stitch-assignee-role">{{ task.assignedUsers?.[0]?.role || 'Super Admin' }}</span>
+                  </div>
+                </div>
+                <span class="text-muted small"
+                  *ngIf="!task.assignedToNames || task.assignedToNames.length === 0">—</span>
+              </td>
+              <td data-label="Timeline">
+                <div class="stitch-timeline-wrapper" [class.timeline-urgent]="isOverdue(task)">
+                  <i class="bi bi-calendar-event stitch-timeline-calendar-icon"></i>
+                  <div class="stitch-timeline-info">
+                    <!-- Date Part -->
+                    <span class="stitch-timeline-date">{{ formatDate(task.dueDate).split(' (')[0] }}</span>
+                    <!-- Relative Part -->
+                    <span class="stitch-timeline-relative"
+                      [ngClass]="isOverdue(task) ? 'timeline-urgent' : 'timeline-normal'">
+                      {{ formatDate(task.dueDate).includes(' (') ? formatDate(task.dueDate).split(' (')[1].replace(')',
+                      '') : '' }}
+                      <span *ngIf="isOverdue(task)"> (Overdue)</span>
+                    </span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Status -->
+              <td data-label="Status">
+                <span class="stitch-status-pill" [ngClass]="{
+                        'pill-in-progress': task.status === 'IN_PROGRESS',
+                        'pill-pending': task.status === 'PENDING' || task.status === 'UPCOMING',
+                        'pill-approval': task.status === 'REQUEST_FOR_CLOSURE' || task.status === 'REQUEST_FOR_EXTENSION',
+                        'pill-completed': task.status === 'CLOSED',
+                        'pill-overdue': isOverdue(task)
+                      }">
+                  {{ isOverdue(task) ? 'Overdue' : getStatusDisplayName(task.status) }}
                 </span>
-                <span *ngIf="(task.departmentNames?.length ?? 0) > 1" class="multiple">
-                  {{ task.departmentNames?.length }} Depts
-                </span>
-              </div>
-              
-              <div class="assignee-info">
-                <span class="info-icon">👤</span>
-                <span *ngIf="task.assignedToNames?.length === 1">
-                  {{ (task.assignedToNames?.[0] | slice:0:12) }}{{ task.assignedToNames?.[0]?.length??0 > 12 ? '...' : '' }}
-                </span>
-                <span *ngIf="(task.assignedToNames?.length ?? 0) > 1" class="multiple">
-                  {{ task.assignedToNames?.length }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="col-dates">
-              <div class="date-item">
-                <span class="date-label">Due:</span>
-                <span class="date-value">{{ formatDate(task.dueDate) }}</span>
-              </div>
-            </div>
-            
-            <div class="col-status">
-              <span class="status-badge" [ngClass]="getStatusClass(task.status)">
-                {{ getStatusIcon(task.status) }} {{ getStatusDisplayName(task.status) }}
-              </span>
-            </div>
-            
-            <div class="col-actions">
-              <div class="action-buttons">
-                <button class="btn-action btn-view" 
-                        (click)="viewTaskDetails(task.taskId); $event.stopPropagation()"
-                        aria-label="View task details">
-                  👁️
-                </button>
-                
-                <button *ngIf="canDeleteTask() && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'" 
-                        class="btn-action btn-delete"
-                        (click)="deleteTask($event, task.taskId)"
-                        aria-label="Delete task">
-                  🗑️
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+              </td>
+
+              <!-- Actions -->
+              <td class="text-end actions-td" (click)="$event.stopPropagation()">
+                <div class="stitch-action-group">
+                  <button class="stitch-action-btn btn-act-view" (click)="viewTaskDetails(task.taskId)"
+                    title="View Details">
+                    <i class="bi bi-eye-fill"></i>
+                  </button>
+                  <button class="stitch-action-btn btn-act-edit" (click)="editTask(task.taskId)" title="Edit Task">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                  <button
+                    *ngIf="canDeleteTask(task) && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"
+                    class="stitch-action-btn btn-act-delete" (click)="deleteTask($event, task.taskId)"
+                    title="Delete Task">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <!-- Pagination - Compact -->
-      <div *ngIf="filteredTasks.length > pageSize" class="pagination-section">
-        <div class="pagination-controls">
-          <button class="btn-pagination" 
-                  [class.disabled]="currentPage === 1"
-                  (click)="changePage(currentPage - 1)"
-                  [attr.aria-label]="'Previous page'">
-            ←
+      <!-- Pagination Footer -->
+      <div class="stitch-pagination">
+        <div class="stitch-pag-left">
+          <span>Rows per page:</span>
+          <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="currentPage = 1; applyFilters()">
+            <option [value]="5">5</option>
+            <option [value]="8">8</option>
+            <option [value]="10">10</option>
+            <option [value]="12">12</option>
+            <option [value]="20">20</option>
+          </select>
+          <span class="stitch-pag-label">
+            {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalTasks) }} of {{
+            totalTasks }} results
+          </span>
+        </div>
+
+        <div class="stitch-pag-controls">
+          <!-- First page button -->
+          <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(1)" title="First Page">
+            <i class="bi bi-chevron-double-left"></i>
           </button>
-          
-          <div class="page-numbers">
-            <span class="pagination-info">
-              Page {{ currentPage }} of {{ totalPages }}
-            </span>
-          </div>
-          
-          <button class="btn-pagination" 
-                  [class.disabled]="currentPage === totalPages"
-                  (click)="changePage(currentPage + 1)"
-                  [attr.aria-label]="'Next page'">
-            →
+
+          <!-- Prev -->
+          <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)"
+            title="Previous Page">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+
+          <!-- Pages -->
+          <button *ngFor="let page of getPageNumbers()" class="stitch-pag-btn" [class.active]="page === currentPage"
+            (click)="changePage(page)">
+            {{ page }}
+          </button>
+
+          <!-- Next -->
+          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)"
+            title="Next Page">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+
+          <!-- Last page button -->
+          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)"
+            title="Last Page">
+            <i class="bi bi-chevron-double-right"></i>
           </button>
         </div>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="isEmpty || filteredTasks.length === 0" class="empty-state">
-      <div class="empty-content">
-        <div class="empty-icon">📭</div>
-        <h3>No Tasks Found</h3>
-        <p *ngIf="searchTerm || statusFilter">
-          No tasks match your current filters.
-        </p>
-        <p *ngIf="!searchTerm && !statusFilter">
-          No tasks available.
-        </p>
-        <button *ngIf="searchTerm || statusFilter" class="btn-reset" (click)="resetFilters()">
-          Clear Filters
-        </button>
-      </div>
+    <div *ngIf="isEmpty || filteredTasks.length === 0" class="empty-state-card animate__animated animate__fadeIn">
+      <div class="empty-state-icon">📭</div>
+      <h4 class="fw-bold text-main">No tasks found</h4>
+      <p class="text-muted mb-4 small">
+        {{ (searchTerm || statusFilter) ? 'We couldn\'t find any assignments matching your current search or filter
+        options.' : 'There are currently no tasks assigned.' }}
+      </p>
+      <button *ngIf="searchTerm || statusFilter" class="btn btn-secondary d-inline-flex align-items-center gap-2"
+        (click)="resetFilters()">
+        <i class="bi bi-x-circle"></i> Clear Filters
+      </button>
     </div>
   </div>
 </div>

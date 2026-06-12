@@ -1,5 +1,36 @@
-<app-navbar></app-navbar>
-<main class="main-content">
-  <router-outlet></router-outlet>
-</main>
-<!-- <app-footer></app-footer> -->
+<ng-container *ngIf="(isLoggedIn$ | async) && !isHomeActive; else publicLayout">
+  <div class="app-layout">
+    <app-sidebar></app-sidebar>
+    <div class="app-main">
+      <app-topbar></app-topbar>
+      <main class="app-content">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #publicLayout>
+  <div class="public-layout">
+    <app-navbar></app-navbar>
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</ng-template>
+
+<!-- Premium Global Modals Overlay -->
+<div class="modal-backdrop-overlay" *ngIf="activeModal" (click)="closeActiveModal(false)">
+  <div class="modal-window-wrapper" [ngClass]="{
+    'modal-size-large': activeModal === 'add-user' || activeModal === 'edit-user',
+    'modal-size-medium': activeModal === 'add-department',
+    'modal-size-xlarge': activeModal === 'add-task' || activeModal === 'edit-task'
+  }" (click)="$event.stopPropagation()">
+    <app-add-user *ngIf="activeModal === 'add-user'" [isModal]="true" (closed)="closeActiveModal($event)"></app-add-user>
+    <app-add-department *ngIf="activeModal === 'add-department'" [departmentId]="editDepartmentId!" [isModal]="true" (closed)="closeActiveModal($event)"></app-add-department>
+    <app-add-task *ngIf="activeModal === 'add-task'" [isModal]="true" (closed)="closeActiveModal($event)"></app-add-task>
+    
+    <app-edit-user *ngIf="activeModal === 'edit-user'" [userId]="editUserId!" [isModal]="true" (closed)="closeActiveModal($event)"></app-edit-user>
+    <app-update-task *ngIf="activeModal === 'edit-task'" [isModal]="true" (closed)="closeActiveModal($event)"></app-update-task>
+  </div>
+</div>

@@ -1,0 +1,162 @@
+<div class="hierarchy-container py-4">
+
+  <!-- Breadcrumbs Welcome Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb" class="mb-1">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a (click)="goBack()" style="cursor: pointer;" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">User Hierarchy</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Organizational Hierarchy</h1>
+    </div>
+    <button class="btn btn-secondary" (click)="goBack()">
+      <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </button>
+  </div>
+
+  <div class="row g-4">
+    
+    <!-- Tree Area -->
+    <div class="col-lg-8">
+      <div class="tree-view">
+        
+        <div *ngIf="loading" class="text-center py-5">
+          <div class="spinner-border text-primary spinner mb-3" role="status"></div>
+          <p class="text-muted small">Generating hierarchy map…</p>
+        </div>
+
+        <div *ngIf="!loading && treeRoots.length === 0" class="text-center py-5 text-muted">
+          <i class="bi bi-diagram-3 fs-2 mb-2 d-block"></i>
+          <span>No hierarchy mappings configured in system.</span>
+        </div>
+
+        <!-- Render Roots Recursively -->
+        <div *ngIf="!loading && treeRoots.length > 0" class="animate__animated animate__fadeIn">
+          <ng-container *ngTemplateOutlet="nodeTemplate; context: { $implicit: treeRoots }"></ng-container>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- User Detail Panel (Inline placeholder if none, or float details if selected) -->
+    <div class="col-lg-4">
+      
+      <!-- Placeholder Unselected State -->
+      <div class="glass-card p-4 h-100 d-flex align-items-center justify-content-center" *ngIf="!selectedUser">
+        <div class="text-center text-muted py-5 px-3">
+          <i class="bi bi-person-badge fs-2 mb-3 d-block text-secondary"></i>
+          <p class="mb-0 small" style="line-height: 1.5;">Click on any user node in the hierarchy tree to inspect their profile, role level, department details, and active permissions.</p>
+        </div>
+      </div>
+
+      <!-- Selected profile details inspector panel -->
+      <div class="glass-card p-4 animate__animated animate__fadeIn" *ngIf="selectedUser">
+        
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+          <h5 class="fw-bold mb-0" style="color: var(--text-main); font-size: 1rem;">
+            <i class="bi bi-person-circle text-primary me-2"></i>Profile details
+          </h5>
+          <button class="btn-close" (click)="selectedUser = null" aria-label="Close"></button>
+        </div>
+
+        <div class="text-center mb-4">
+          <div class="avatar-placeholder rounded-circle mx-auto d-flex align-items-center justify-content-center"
+               [ngClass]="'bg-' + getRoleColor(selectedUser.role) + '-subtle text-' + getRoleColor(selectedUser.role)">
+            <i class="bi" [ngClass]="getRoleIcon(selectedUser.role)"></i>
+          </div>
+          <h5 class="fw-bold mt-3 mb-1" style="color: var(--text-main);">{{ selectedUser.fullName }}</h5>
+          <span class="badge rounded-pill px-3 py-1.5 mt-1"
+                [ngClass]="'bg-' + getRoleColor(selectedUser.role) + '-subtle text-' + getRoleColor(selectedUser.role)">
+            {{ selectedUser.role.replace('_', ' ') }}
+          </span>
+        </div>
+
+        <div class="mb-4">
+          <h6 class="fw-bold text-muted small text-uppercase tracking-wider mb-2">Account details</h6>
+          <ul class="meta-list">
+            <li class="meta-item">
+              <span class="meta-label">Username</span>
+              <span class="meta-value">@{{ selectedUser.username }}</span>
+            </li>
+            <li class="meta-item">
+              <span class="meta-label">Email Address</span>
+              <span class="meta-value text-truncate" style="max-width: 180px;"><small>{{ selectedUser.email }}</small></span>
+            </li>
+            <li class="meta-item">
+              <span class="meta-label">Status</span>
+              <span class="badge rounded-pill px-2 py-0.5" [ngClass]="selectedUser.status === 'ACTIVE' ? 'bg-success' : 'bg-secondary'">
+                {{ selectedUser.status }}
+              </span>
+            </li>
+            <li class="meta-item">
+              <span class="meta-label">Verified</span>
+              <span class="meta-value">
+                <i class="bi" [class.bi-check-circle-fill]="selectedUser.emailVerified" [class.text-success]="selectedUser.emailVerified"
+                   [class.bi-x-circle-fill]="!selectedUser.emailVerified" [class.text-danger]="!selectedUser.emailVerified"></i>
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="mb-4">
+          <h6 class="fw-bold text-muted small text-uppercase tracking-wider mb-2">Organizational scope</h6>
+          <ul class="meta-list">
+            <li class="meta-item">
+              <span class="meta-label">Primary Department</span>
+              <span class="meta-value">{{ getPrimaryDepartmentName(selectedUser) }}</span>
+            </li>
+            <li class="meta-item">
+              <span class="meta-label">Sub-Department</span>
+              <span class="meta-value">{{ selectedUser.subDepartmentName || 'None' }}</span>
+            </li>
+            <li class="meta-item">
+              <span class="meta-label">Reports To</span>
+              <span class="meta-value">
+                <span *ngIf="selectedUser.parentFullName"><i class="bi bi-person me-1"></i>{{ selectedUser.parentFullName }}</span>
+                <span *ngIf="!selectedUser.parentFullName" class="text-muted small">None (Top Level)</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h6 class="fw-bold text-muted small text-uppercase tracking-wider mb-3">Effective access permissions</h6>
+          <div *ngIf="!selectedUser.permissions || selectedUser.permissions.length === 0" class="text-muted small">
+            No permissions configured.
+          </div>
+          <div class="d-flex flex-wrap gap-1">
+            <span class="perm-pill" *ngFor="let p of selectedUser.permissions">{{ p }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Recursive Node Template markup -->
+<ng-template #nodeTemplate let-nodes>
+  <ul class="tree-list">
+    <li *ngFor="let node of nodes">
+      <div class="node-card" [class.selected]="selectedUser?.userId === node.user.userId" (click)="selectUser(node.user)">
+        <div class="role-icon-indicator" [ngClass]="'bg-' + getRoleColor(node.user.role) + '-subtle text-' + getRoleColor(node.user.role)">
+          <i class="bi" [ngClass]="getRoleIcon(node.user.role)"></i>
+        </div>
+        <div>
+          <strong class="d-block" style="color: var(--text-main); font-size: 0.9rem;">{{ node.user.fullName }}</strong>
+          <small class="text-muted d-block" style="font-size:0.75rem;">
+            {{ node.user.role.replace('_', ' ') }} • {{ getPrimaryDepartmentName(node.user) }}
+          </small>
+        </div>
+      </div>
+      
+      <!-- Recursive child render -->
+      <ng-container *ngIf="node.children && node.children.length > 0">
+        <ng-container *ngTemplateOutlet="nodeTemplate; context: { $implicit: node.children }"></ng-container>
+      </ng-container>
+    </li>
+  </ul>
+</ng-template>

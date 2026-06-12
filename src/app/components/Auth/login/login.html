@@ -57,8 +57,11 @@
                  class="form-input"
                  placeholder="Enter your password"
                  [class.error]="f['password'].touched && f['password'].invalid">
-          <button type="button" class="eye-toggle" (click)="togglePasswordVisibility()">
-            <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+          <button type="button"
+                  class="password-toggle-btn"
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="showPassword ? 'Hide Password' : 'Show Password'">
+            <i class="pi" [ngClass]="showPassword ? 'pi-eye-slash' : 'pi-eye'"></i>
           </button>
           <div class="input-line"></div>
         </div>

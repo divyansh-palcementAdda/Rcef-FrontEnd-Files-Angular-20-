@@ -80,12 +80,32 @@ export class ViewTask implements OnInit, OnDestroy {
     requests: true,
     instances: true
   };
+  activeTab: string = 'members';
+  allProofs: any[] = [];
+  comments: any[] = [];
+  newCommentText = '';
+  currentUserFullName = '';
+
+  get pendingRequestsCount(): number {
+    return this.task?.requests?.filter(r => r.status === 'PENDING').length || 0;
+  }
+
+  get creatorInitials(): string {
+    if (!this.task?.createdByName) return 'DT';
+    const parts = this.task.createdByName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return this.task.createdByName.slice(0, 2).toUpperCase();
+  }
 
   // Recurred Instances
   recurredInstances: TaskDto[] = [];
   selectedInstance?: TaskDto;
 
   selectedRequestProofs: any[] = [];
+  selectedRequestStructuredProof: any = null;
+  selectedRequestRemarks = '';
   private proofsModal?: Modal;
   private subscriptions = new Subscription();
 
@@ -96,6 +116,70 @@ export class ViewTask implements OnInit, OnDestroy {
   } = { requestType: null, remarks: '' };
 
   selectedProofs: File[] = [];
+
+  // Template Proof States
+  studentEntriesList: { studentName: string, enrollmentId: string }[] = [{ studentName: '', enrollmentId: '' }];
+  topicsList: string[] = [''];
+  attendanceFile: File | null = null;
+
+  addStudentEntry(): void {
+    this.studentEntriesList.push({ studentName: '', enrollmentId: '' });
+  }
+
+  removeStudentEntry(index: number): void {
+    if (this.studentEntriesList.length > 1) {
+      this.studentEntriesList.splice(index, 1);
+    } else {
+      this.studentEntriesList[0] = { studentName: '', enrollmentId: '' };
+    }
+  }
+
+  addTopic(): void {
+    this.topicsList.push('');
+  }
+
+  removeTopic(index: number): void {
+    if (this.topicsList.length > 1) {
+      this.topicsList.splice(index, 1);
+    } else {
+      this.topicsList[0] = '';
+    }
+  }
+
+  onAttendanceFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.attendanceFile = file;
+    }
+  }
+
+  hasProofRequirement(type: string): boolean {
+    return this.task?.template?.proofRequirements?.some((pr: any) => pr.proofType === type) || false;
+  }
+
+  isProofRequirementRequired(type: string): boolean {
+    return this.task?.template?.proofRequirements?.find((pr: any) => pr.proofType === type)?.isRequired || false;
+  }
+
+  get isTemplateClosureValid(): boolean {
+    if (!this.task?.template || this.newRequest.requestType !== 'CLOSURE') return true;
+
+    if (this.hasProofRequirement('STUDENT_ENTRIES') && this.isProofRequirementRequired('STUDENT_ENTRIES')) {
+      const hasValidEntry = this.studentEntriesList.some(e => e.studentName?.trim() && e.enrollmentId?.trim());
+      if (!hasValidEntry) return false;
+    }
+
+    if (this.hasProofRequirement('ATTENDANCE_UPLOAD') && this.isProofRequirementRequired('ATTENDANCE_UPLOAD')) {
+      if (!this.attendanceFile) return false;
+    }
+
+    if (this.hasProofRequirement('TOPICS_LIST') && this.isProofRequirementRequired('TOPICS_LIST')) {
+      const hasValidTopic = this.topicsList.some(t => t?.trim());
+      if (!hasValidTopic) return false;
+    }
+
+    return true;
+  }
 
   // Enhanced stats with icons
   private _stats: TaskStats[] = [];
@@ -124,7 +208,11 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   canEditDelete(): boolean {
-    return !this.isHOD && this.currentUserRole !== "TEACHER";
+    if (this.currentUserRole === "TEACHER") return false;
+    if (this.currentUserRole === "HOD") {
+      return this.task?.createdById === this.currentUserId;
+    }
+    return true;
   }
 
   editTask(): void {
@@ -161,6 +249,7 @@ export class ViewTask implements OnInit, OnDestroy {
       this.userService.getUserById(this.currentUserId).subscribe({
         next: (user) => {
           this.currentUserRole = user.role;
+          this.currentUserFullName = user.fullName;
           this.isHOD = user.role === 'HOD';
           this.currentUserDepartments = user.departmentIds || [];
 
@@ -194,7 +283,7 @@ export class ViewTask implements OnInit, OnDestroy {
   // =========================================================
 
   get isAdmin(): boolean {
-    return this.currentUserRole === 'ADMIN';
+    return this.currentUserRole === 'SUPER_ADMIN' || this.currentUserRole === 'ADMIN' || this.currentUserRole === 'SUB_ADMIN';
   }
 
   get isTeacher(): boolean {
@@ -259,6 +348,8 @@ export class ViewTask implements OnInit, OnDestroy {
         this.task = res.data;
         this.isAssigned = true;
         this.applyRequestFilters();
+        this.aggregateProofs();
+        this.loadComments();
         this.computeStats();
         this.fetchRelatedEntities();
       },
@@ -292,6 +383,8 @@ export class ViewTask implements OnInit, OnDestroy {
         this.task = res.data;
         this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
         this.applyRequestFilters();
+        this.aggregateProofs();
+        this.loadComments();
         this.computeStats();
         this.fetchRelatedEntities();
       },
@@ -309,12 +402,14 @@ export class ViewTask implements OnInit, OnDestroy {
           this.task = res.data;
           console.log('Task loaded successfully:', this.task);
 
-          this.computeStats();
           this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
           this.filterVisibleRequestsAndProofs();
+          this.aggregateProofs();
+          this.loadComments();
+          this.computeStats();
           this.fetchRelatedEntities();
 
-          if (this.task.isRecurring && this.currentUserRole === 'ADMIN') {
+          if (this.task.isRecurring && this.isAdmin) {
             this.loadRecurredInstances();
           }
         } else {
@@ -482,6 +577,9 @@ export class ViewTask implements OnInit, OnDestroy {
   openAddRequestModal(): void {
     this.newRequest = { requestType: null, remarks: '' };
     this.selectedProofs = [];
+    this.studentEntriesList = [{ studentName: '', enrollmentId: '' }];
+    this.topicsList = [''];
+    this.attendanceFile = null;
     this.addRequestModal = new Modal(document.getElementById('addRequestModal')!);
     this.addRequestModal.show();
   }
@@ -517,9 +615,36 @@ export class ViewTask implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.newRequest.requestType === 'CLOSURE' && this.selectedProofs.length === 0) {
-      alert('At least one proof is required for closure.');
-      return;
+    // Dynamic Validation for Template tasks closure
+    if (this.newRequest.requestType === 'CLOSURE') {
+      if (this.task?.template) {
+        if (this.hasProofRequirement('STUDENT_ENTRIES') && this.isProofRequirementRequired('STUDENT_ENTRIES')) {
+          const validEntries = this.studentEntriesList.filter(e => e.studentName?.trim() && e.enrollmentId?.trim());
+          if (validEntries.length === 0) {
+            alert('At least one student entry (Name and Enrollment ID) is required.');
+            return;
+          }
+        }
+        if (this.hasProofRequirement('ATTENDANCE_UPLOAD') && this.isProofRequirementRequired('ATTENDANCE_UPLOAD')) {
+          if (!this.attendanceFile) {
+            alert('Attendance sheet file (Excel/CSV) is required.');
+            return;
+          }
+        }
+        if (this.hasProofRequirement('TOPICS_LIST') && this.isProofRequirementRequired('TOPICS_LIST')) {
+          const validTopics = this.topicsList.filter(t => t?.trim());
+          if (validTopics.length === 0) {
+            alert('At least one topic covered is required.');
+            return;
+          }
+        }
+      } else {
+        // Legacy: general tasks closure requires at least one general proof file
+        if (this.selectedProofs.length === 0) {
+          alert('At least one proof file is required for closure.');
+          return;
+        }
+      }
     }
 
     this.isAddingReq = true;
@@ -531,9 +656,31 @@ export class ViewTask implements OnInit, OnDestroy {
       formData.append('remarks', this.newRequest.remarks.trim());
     }
 
+    // Append legacy general proofs if any
     this.selectedProofs.forEach(file => {
       formData.append('proofs', file, file.name);
     });
+
+    // Append template-specific proofs
+    if (this.newRequest.requestType === 'CLOSURE' && this.task?.template) {
+      formData.append('customFields', '{}');
+
+      if (this.hasProofRequirement('STUDENT_ENTRIES')) {
+        const validEntries = this.studentEntriesList.filter(e => e.studentName?.trim() && e.enrollmentId?.trim());
+        formData.append('studentEntries', JSON.stringify(validEntries));
+      }
+
+      if (this.hasProofRequirement('ATTENDANCE_UPLOAD') && this.attendanceFile) {
+        formData.append('attendanceFile', this.attendanceFile, this.attendanceFile.name);
+      }
+
+      if (this.hasProofRequirement('TOPICS_LIST')) {
+        const validTopics = this.topicsList.filter(t => t?.trim());
+        validTopics.forEach(topic => {
+          formData.append('topicsCovered', topic.trim());
+        });
+      }
+    }
 
     this.requestService.createRequestWithProofs(this.taskId, formData).pipe(
       finalize(() => this.isAddingReq = false)
@@ -588,7 +735,7 @@ export class ViewTask implements OnInit, OnDestroy {
 
     // Auto-load instances when section is opened
     if (section === 'instances' && !this.collapsed.instances &&
-      this.task?.isRecurring && this.currentUserRole === 'ADMIN' &&
+      this.task?.isRecurring && this.isAdmin &&
       this.recurredInstances.length === 0) {
       this.loadRecurredInstances();
     }
@@ -620,7 +767,7 @@ export class ViewTask implements OnInit, OnDestroy {
       },
       {
         label: 'Proofs',
-        count: this.task?.proofs?.length ?? 0,
+        count: this.allProofs.length,
         color: 'success',
         icon: 'bi-paperclip'
       }
@@ -666,6 +813,8 @@ export class ViewTask implements OnInit, OnDestroy {
 
   openProofsModal(request: any): void {
     this.selectedRequestProofs = request.proofs || [];
+    this.selectedRequestStructuredProof = request.structuredProof || null;
+    this.selectedRequestRemarks = request.remarks || '';
     this.proofsModal = new Modal(document.getElementById('proofsModal')!);
     this.proofsModal.show();
   }
@@ -911,6 +1060,70 @@ showExtensionApprovalModal(request: any): void {
     return this.recurredInstances.filter(instance =>
       instance.status === status
     );
+  }
+
+  // --- PROOFS AGGREGATION ---
+
+  aggregateProofs(): void {
+    this.allProofs = [];
+    if (this.task?.requests) {
+      this.task.requests.forEach(req => {
+        if (req.proofs) {
+          req.proofs.forEach(proof => {
+            this.allProofs.push({
+              ...proof,
+              requestType: req.requestType,
+              requestId: req.requestId
+            });
+          });
+        }
+      });
+    }
+  }
+
+  // --- COMMENTS MANAGEMENT ---
+
+  loadComments(): void {
+    const key = `task_comments_${this.taskId}`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      try {
+        this.comments = JSON.parse(stored);
+      } catch (e) {
+        console.error('Failed to parse comments', e);
+        this.comments = [];
+      }
+    } else {
+      this.comments = [];
+    }
+  }
+
+  addComment(): void {
+    if (!this.newCommentText?.trim()) return;
+
+    const initials = this.currentUserFullName
+      ? this.currentUserFullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+      : 'U';
+
+    const newComment = {
+      id: Math.random().toString(36).substring(2, 9),
+      taskId: this.taskId,
+      userId: this.currentUserId,
+      userName: this.currentUserFullName || 'Unknown User',
+      userRole: this.currentUserRole || 'User',
+      avatarInitials: initials,
+      text: this.newCommentText.trim(),
+      timestamp: new Date().toISOString()
+    };
+
+    this.comments.push(newComment);
+    localStorage.setItem(`task_comments_${this.taskId}`, JSON.stringify(this.comments));
+    this.newCommentText = '';
+  }
+
+  getCommentAvatarClass(role: string): string {
+    if (role === 'TEACHER') return 'avatar-grey';
+    return '';
   }
 }
 

@@ -1,16 +1,211 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('../node_modules/bootstrap-icons/font/bootstrap-icons.css');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import url('../node_modules/animate.css/animate.min.css');
 
-html,
-body {
-    height: 100%;
+:root {
+  /* Layout */
+  --sidebar-width: 260px;
+  --topbar-height: 70px;
+
+  /* Colors */
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  
+  --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-subtle: #eeebff;
+  
+  --success-color: #10b981;
+  --success-hover: #059669;
+  --success-subtle: #ecfdf5;
+  
+  --warning-color: #f59e0b;
+  --warning-hover: #d97706;
+  --warning-subtle: #fffbeb;
+  
+  --danger-color: #f43f5e;
+  --danger-hover: #e11d48;
+  --danger-subtle: #fff1f2;
+  
+  --info-color: #06b6d4;
+  --info-hover: #0891b2;
+  --info-subtle: #ecfeff;
+
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e2e8f0;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
 
-body {
-    margin: 0;
-    font-family: Roboto, "Helvetica Neue", sans-serif;
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Scrollbar override */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Card Overrides */
+.card {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 12px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  overflow: hidden;
+}
+.card:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Inputs & Form Styling */
+.form-control, .form-select {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  padding: 0.6rem 0.9rem !important;
+  font-size: 0.9rem !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px var(--primary-subtle) !important;
+  outline: none !important;
+}
+.form-control::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.7;
+}
+.form-label {
+  color: var(--text-main) !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  margin-bottom: 0.4rem !important;
+}
+
+/* Buttons */
+.btn {
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  padding: 0.55rem 1.25rem !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: #ffffff !important;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+}
+.btn-secondary {
+  background-color: var(--bg-color) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+.btn-secondary:hover {
+  background-color: var(--border-color) !important;
+}
+
+/* Tables */
+.table {
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+  margin-bottom: 0 !important;
+}
+.table th {
+  background-color: var(--bg-color) !important;
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 1rem 1.25rem !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+.table td {
+  background-color: var(--card-bg) !important;
+  padding: 1rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  vertical-align: middle !important;
+}
+.table-hover tbody tr:hover td {
+  background-color: var(--bg-color) !important;
+}
+
+/* Badges */
+.badge {
+  font-weight: 500 !important;
+  padding: 0.35em 0.65em !important;
+  border-radius: 9999px !important;
+  font-size: 0.75rem !important;
+}
+.bg-success {
+  background-color: var(--success-subtle) !important;
+  color: var(--success-color) !important;
+}
+.bg-danger {
+  background-color: var(--danger-subtle) !important;
+  color: var(--danger-color) !important;
+}
+.bg-warning {
+  background-color: var(--warning-subtle) !important;
+  color: var(--warning-color) !important;
+}
+.bg-info {
+  background-color: var(--info-subtle) !important;
+  color: var(--info-color) !important;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 8px !important;
+  border: 1px solid transparent !important;
+  padding: 1rem !important;
+}
+.alert-success {
+  background-color: var(--success-subtle) !important;
+  border-color: var(--success-color) !important;
+  color: var(--success-color) !important;
+}
+.alert-danger {
+  background-color: var(--danger-subtle) !important;
+  border-color: var(--danger-color) !important;
+  color: var(--danger-color) !important;
+}
+
+/* Glass & Accents */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

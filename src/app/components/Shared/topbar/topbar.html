@@ -1,0 +1,29 @@
+<header class="topbar-wrapper d-flex align-items-center justify-content-between px-4">
+  <!-- Left greeting section -->
+  <div class="topbar-left d-flex flex-column">
+    <span class="greeting-text fw-semibold text-main">{{ getGreetingTime() }}, {{ fullName }}</span>
+    <small class="text-muted text-xs">{{ currentDate | date: 'fullDate' }}</small>
+  </div>
+
+  <!-- Right actions section -->
+  <div class="topbar-right d-flex align-items-center gap-3">
+    <!-- Notifications Bell Component -->
+    <div class="topbar-action-item">
+      <app-notification-bell></app-notification-bell>
+    </div>
+
+    <!-- Divider -->
+    <div class="vertical-divider"></div>
+
+    <!-- User context profile button -->
+    <div class="topbar-profile d-flex align-items-center gap-2">
+      <div class="user-avatar fw-bold d-flex align-items-center justify-content-center">
+        {{ (fullName || 'U').substring(0,1).toUpperCase() }}
+      </div>
+      <div class="user-details d-none d-md-flex flex-column">
+        <span class="user-name fw-medium text-main text-sm">{{ fullName }}</span>
+        <span class="user-role text-muted text-xs">{{ role }}</span>
+      </div>
+    </div>
+  </div>
+</header>

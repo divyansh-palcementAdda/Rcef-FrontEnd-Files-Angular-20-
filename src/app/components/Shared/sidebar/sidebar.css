@@ -1,0 +1,136 @@
+.sidebar-wrapper {
+  width: var(--sidebar-width);
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.sidebar-wrapper.collapsed {
+  width: 78px;
+}
+
+.sidebar-brand {
+  height: var(--topbar-height);
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.brand-logo-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
+}
+
+.brand-text {
+  font-size: 1.1rem;
+  color: var(--text-main);
+}
+
+.collapse-toggle-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+}
+
+.collapse-toggle-btn:hover {
+  background-color: var(--bg-color);
+}
+
+.sidebar-nav-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+/* Custom Nav Links */
+.nav-link {
+  color: var(--text-muted) !important;
+  font-weight: 500;
+  padding: 0.75rem 1rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.nav-link:hover {
+  color: var(--text-main) !important;
+  background-color: var(--bg-color);
+}
+
+.nav-link.active {
+  color: var(--primary-color) !important;
+  background-color: var(--primary-subtle) !important;
+}
+
+.nav-link i {
+  transition: transform 0.2s ease;
+}
+
+.nav-link:hover i {
+  transform: scale(1.1);
+}
+
+.link-label {
+  white-space: nowrap;
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* Footer Profile */
+.user-avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--bg-color);
+  background: linear-gradient(135deg, var(--success-color) 0%, var(--primary-color) 100%);
+  color: #ffffff;
+}
+
+.user-info h6 {
+  font-size: 0.875rem;
+}
+
+.logout-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.logout-btn:hover {
+  background-color: var(--danger-subtle);
+  color: var(--danger-color) !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .sidebar-wrapper {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid var(--sidebar-border);
+  }
+  .sidebar-wrapper.collapsed {
+    width: 100%;
+  }
+}

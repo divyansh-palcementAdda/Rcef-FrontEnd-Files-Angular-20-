@@ -207,7 +207,9 @@ export class AuthApiService {
       const role = payload.role;
 
       switch (role) {
+        case 'SUPER_ADMIN':
         case 'ADMIN':
+        case 'SUB_ADMIN':
           this.router.navigate(['/admin']);
           break;
         case 'HOD':

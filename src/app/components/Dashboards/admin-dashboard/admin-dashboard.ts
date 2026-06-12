@@ -19,7 +19,7 @@ Chart.register(...registerables);
   standalone: true,
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css'],
-  imports: [CommonModule, RouterLink, BaseChartDirective, DatePipe, RouterLinkActive, BulletinBannerComponent,],
+  imports: [CommonModule, BaseChartDirective, DatePipe, BulletinBannerComponent,],
   animations: [
     trigger('fadeInUpStagger', [
       transition(':enter', [
@@ -205,12 +205,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle', color: 'success' },
     { label: 'Add User', route: '/add-user', icon: 'bi-person-plus', color: 'info' },
     { label: 'Add Department', route: '/add-department', icon: 'bi-building-gear', color: 'warning' },
-{ 
-  label: 'Add Recurring Task', 
-  route: '/createRecurring', 
-  icon: 'bi-arrow-repeat', 
-  color: 'dark' 
-},
+    { label: 'Roles & Permissions', route: '/roles-permissions', icon: 'bi-shield-lock', color: 'primary' },
+    { label: 'Sub-Departments', route: '/sub-departments', icon: 'bi-diagram-2', color: 'warning' },
+    { label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3', color: 'info' },
+    {
+      label: 'Add Recurring Task',
+      route: '/createRecurring',
+      icon: 'bi-arrow-repeat',
+      color: 'dark'
+    },
     {
       label: 'New Tasks Requiring Approval',
       route: '/view-tasks',
@@ -270,192 +273,192 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
- statCards(d: DashboardDto) {
-  const c = (color: string) => color;
+  statCards(d: DashboardDto) {
+    const c = (color: string) => color;
 
-  return [
+    return [
 
-    /* =======================
-       CORE SUMMARY
-    ======================= */
-    { 
-      title: 'Total Tasks', 
-      value: d.totalTask, 
-      color: c('dark'), 
-      icon: 'bi-clipboard-check', 
-      route: '/view-tasks',
-      delta: d.totalTask ?? 0
-    },
+      /* =======================
+         CORE SUMMARY
+      ======================= */
+      {
+        title: 'Total Tasks',
+        value: d.totalTask,
+        color: c('dark'),
+        icon: 'bi-clipboard-check',
+        route: '/view-tasks',
+        delta: d.totalTask ?? 0
+      },
 
-    { 
-      title: 'Total Users', 
-      value: d.totalUsers, 
-      color: c('dark'), 
-      icon: 'bi-people-fill', 
-      route: '/viewAllUsers',
-      delta: d.totalUsers ?? 0
-    },
+      {
+        title: 'Total Users',
+        value: d.totalUsers,
+        color: c('dark'),
+        icon: 'bi-people-fill',
+        route: '/viewAllUsers',
+        delta: d.totalUsers ?? 0
+      },
 
-    { 
-      title: 'Total Departments', 
-      value: d.totalDepartments, 
-      color: c('dark'), 
-      icon: 'bi-building', 
-      route: '/departments',
-      delta: d.totalDepartments ?? 0
-    },
+      {
+        title: 'Total Departments',
+        value: d.totalDepartments,
+        color: c('dark'),
+        icon: 'bi-building',
+        route: '/departments',
+        delta: d.totalDepartments ?? 0
+      },
 
-    { 
-      title: 'Active Users', 
-      value: d.activeUsers, 
-      color: c('info'), 
-      icon: 'bi-person-check-fill', 
-      route: '/viewAllUsers', 
-      queryParams: { status: 'ACTIVE' },
-      delta: d.activeUsers ?? 0
-    },
-
-
-    /* =======================
-       TASK STATUS
-    ======================= */
-    { 
-      title: 'Active Tasks', 
-      value: d.activeTask, 
-      color: c('primary'), 
-      icon: 'bi-play-circle-fill', 
-      route: '/view-tasks', 
-      queryParams: { status: 'IN_PROGRESS' },
-      delta: d.activeTask ?? 0
-    },
-
-    { 
-      title: 'Pending Tasks', 
-      value: d.pendingTask, 
-      color: c('warning'), 
-      icon: 'bi-hourglass-split', 
-      route: '/view-tasks', 
-      queryParams: { status: 'PENDING' },
-      delta: d.pendingTask ?? 0
-    },
-
-    { 
-      title: 'Upcoming Tasks', 
-      value: d.upcomingTask, 
-      color: c('info'), 
-      icon: 'bi-calendar-event', 
-      route: '/view-tasks', 
-      queryParams: { status: 'UPCOMING' },
-      delta: d.upcomingTask ?? 0
-    },
-
-    { 
-      title: 'Completed Tasks', 
-      value: d.completedTask, 
-      color: c('success'), 
-      icon: 'bi-check-circle-fill', 
-      route: '/view-tasks', 
-      queryParams: { status: 'CLOSED' },
-      delta: d.completedTask ?? 0
-    },
+      {
+        title: 'Active Users',
+        value: d.activeUsers,
+        color: c('info'),
+        icon: 'bi-person-check-fill',
+        route: '/viewAllUsers',
+        queryParams: { status: 'ACTIVE' },
+        delta: d.activeUsers ?? 0
+      },
 
 
-    /* =======================
-       RISK / EXCEPTIONS
-    ======================= */
-    { 
-      title: 'Delayed Tasks', 
-      value: d.delayedTask, 
-      color: c('danger'), 
-      icon: 'bi-exclamation-triangle-fill', 
-      route: '/view-tasks', 
-      queryParams: { status: 'DELAYED' },
-      delta: d.delayedTask ?? 0
-    },
-    { 
-      title: 'New Tasks Requiring Approval', 
-      value: d.tasksRequireApproval, 
-      color: c('warning'), 
-     icon: 'bi-bell',
-      route: '/view-tasks', 
-      queryParams: { status: 'Approval' },
-      delta: d.tasksRequireApproval ?? 0
-    },
+      /* =======================
+         TASK STATUS
+      ======================= */
+      {
+        title: 'Active Tasks',
+        value: d.activeTask,
+        color: c('primary'),
+        icon: 'bi-play-circle-fill',
+        route: '/view-tasks',
+        queryParams: { status: 'IN_PROGRESS' },
+        delta: d.activeTask ?? 0
+      },
+
+      {
+        title: 'Pending Tasks',
+        value: d.pendingTask,
+        color: c('warning'),
+        icon: 'bi-hourglass-split',
+        route: '/view-tasks',
+        queryParams: { status: 'PENDING' },
+        delta: d.pendingTask ?? 0
+      },
+
+      {
+        title: 'Upcoming Tasks',
+        value: d.upcomingTask,
+        color: c('info'),
+        icon: 'bi-calendar-event',
+        route: '/view-tasks',
+        queryParams: { status: 'UPCOMING' },
+        delta: d.upcomingTask ?? 0
+      },
+
+      {
+        title: 'Completed Tasks',
+        value: d.completedTask,
+        color: c('success'),
+        icon: 'bi-check-circle-fill',
+        route: '/view-tasks',
+        queryParams: { status: 'CLOSED' },
+        delta: d.completedTask ?? 0
+      },
 
 
-    /* =======================
-       REQUESTS
-    ======================= */
-    { 
-      title: 'Extension Requests', 
-      value: d.requestForExtension, 
-      color: c('secondary'), 
-      icon: 'bi-clock-history', 
-      route: '/view-tasks', 
-      queryParams: { status: 'REQUEST_FOR_EXTENSION' },
-      delta: d.requestForExtension ?? 0
-    },
-
-    { 
-      title: 'Closure Requests', 
-      value: d.requestForClosure, 
-      color: c('secondary'), 
-      icon: 'bi-lock-fill', 
-      route: '/view-tasks', 
-      queryParams: { status: 'REQUEST_FOR_CLOSURE' },
-      delta: d.requestForClosure ?? 0
-    },
-
-
-    /* =======================
-       RECURRING TASKS
-    ======================= */
-    { 
-      title: 'Recurring Parent Tasks', 
-      value: d.recurringParentTask, 
-      color: c('info'), 
-      icon: 'bi-arrow-clockwise', 
-      route: '/view-tasks', 
-      queryParams: { status: 'PARENT_RECURRING' },
-      delta: d.recurringParentTask ?? 0
-    },
-
-    { 
-      title: 'Recurred Instance Tasks', 
-      value: d.recurredInstanceTask, 
-      color: c('info'), 
-      icon: 'bi-arrow-repeat', 
-      route: '/view-tasks', 
-      queryParams: { status: 'RECURRED_INSTANCE' },
-      delta: d.recurredInstanceTask ?? 0
-    },
+      /* =======================
+         RISK / EXCEPTIONS
+      ======================= */
+      {
+        title: 'Delayed Tasks',
+        value: d.delayedTask,
+        color: c('danger'),
+        icon: 'bi-exclamation-triangle-fill',
+        route: '/view-tasks',
+        queryParams: { status: 'DELAYED' },
+        delta: d.delayedTask ?? 0
+      },
+      {
+        title: 'New Tasks Requiring Approval',
+        value: d.tasksRequireApproval,
+        color: c('warning'),
+        icon: 'bi-bell',
+        route: '/view-tasks',
+        queryParams: { status: 'Approval' },
+        delta: d.tasksRequireApproval ?? 0
+      },
 
 
-    /* =======================
-       DEPARTMENTAL INSIGHTS
-    ======================= */
-    { 
-      title: 'Departments with Zero Due Tasks', 
-      value: d.zeroDueDepartments, 
-      color: c('success'), 
-      icon: 'bi-shield-check', 
-      route: '/departments', 
-      queryParams: { filter: 'ZERO_DUE' },
-      delta: d.zeroDueDepartments ?? 0
-    },
+      /* =======================
+         REQUESTS
+      ======================= */
+      {
+        title: 'Extension Requests',
+        value: d.requestForExtension,
+        color: c('secondary'),
+        icon: 'bi-clock-history',
+        route: '/view-tasks',
+        queryParams: { status: 'REQUEST_FOR_EXTENSION' },
+        delta: d.requestForExtension ?? 0
+      },
 
-    { 
-      title: 'My Department Tasks', 
-      value: d.myDepartmentTasks, 
-      color: c('primary'), 
-      icon: 'bi-diagram-3-fill', 
-      route: '/view-tasks', 
-      queryParams: { status : 'MY_DEPARTMENT' },
-      delta: d.myDepartmentTasks ?? 0
-    }
+      {
+        title: 'Closure Requests',
+        value: d.requestForClosure,
+        color: c('secondary'),
+        icon: 'bi-lock-fill',
+        route: '/view-tasks',
+        queryParams: { status: 'REQUEST_FOR_CLOSURE' },
+        delta: d.requestForClosure ?? 0
+      },
 
-  ];
-}
+
+      /* =======================
+         RECURRING TASKS
+      ======================= */
+      {
+        title: 'Recurring Parent Tasks',
+        value: d.recurringParentTask,
+        color: c('info'),
+        icon: 'bi-arrow-clockwise',
+        route: '/view-tasks',
+        queryParams: { status: 'PARENT_RECURRING' },
+        delta: d.recurringParentTask ?? 0
+      },
+
+      {
+        title: 'Recurred Instance Tasks',
+        value: d.recurredInstanceTask,
+        color: c('info'),
+        icon: 'bi-arrow-repeat',
+        route: '/view-tasks',
+        queryParams: { status: 'RECURRED_INSTANCE' },
+        delta: d.recurredInstanceTask ?? 0
+      },
+
+
+      /* =======================
+         DEPARTMENTAL INSIGHTS
+      ======================= */
+      {
+        title: 'Departments with Zero Due Tasks',
+        value: d.zeroDueDepartments,
+        color: c('success'),
+        icon: 'bi-shield-check',
+        route: '/departments',
+        queryParams: { filter: 'ZERO_DUE' },
+        delta: d.zeroDueDepartments ?? 0
+      },
+
+      {
+        title: 'My Department Tasks',
+        value: d.myDepartmentTasks,
+        color: c('primary'),
+        icon: 'bi-diagram-3-fill',
+        route: '/view-tasks',
+        queryParams: { status: 'MY_DEPARTMENT' },
+        delta: d.myDepartmentTasks ?? 0
+      }
+
+    ];
+  }
 
 
   goToTaskPage(card: any): void {

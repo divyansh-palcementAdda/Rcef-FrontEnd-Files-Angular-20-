@@ -143,12 +143,6 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 0 0 1.5rem 1.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  .card-body {
-    background:  #f8fafc !important;
-  }
-}
-
 .form-control,
 .form-select,
 textarea.form-control {
@@ -350,12 +344,6 @@ textarea.form-control:focus {
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
   border-radius: 0.5rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  .skeleton-item {
-    background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
-  }
 }
 
 /* ====================== ANIMATIONS ====================== */

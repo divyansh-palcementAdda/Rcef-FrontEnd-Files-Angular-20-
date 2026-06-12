@@ -43,4 +43,9 @@ parentTaskId?: number; // For recurring instances
   // ✅ Related entities
   proofs?: TaskProofDto[];
   requests?: TaskRequestDto[];
+  template?: any;
+  templateId?: number;
+  targetCount?: number;
+  targetPercentage?: number;
+  subDepartmentId?: number;
 }

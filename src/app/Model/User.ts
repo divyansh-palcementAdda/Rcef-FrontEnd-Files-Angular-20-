@@ -8,4 +8,10 @@ export  interface User {
     departmentNames: string[];
     emailVerified: boolean;
     departmentIds: number[];
+
+    parentUserId?: number;
+    parentFullName?: string;
+    subDepartmentId?: string;
+    subDepartmentName?: string;
+    permissions?: string[];
 }

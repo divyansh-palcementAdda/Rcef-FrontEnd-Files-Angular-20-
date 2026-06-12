@@ -1,0 +1,53 @@
+<aside class="sidebar-wrapper" [class.collapsed]="isCollapsed">
+  <!-- Top brand area -->
+  <div class="sidebar-brand d-flex align-items-center justify-content-between p-4">
+    <div class="brand-info d-flex align-items-center gap-2" *ngIf="!isCollapsed">
+      <div class="brand-logo-circle d-flex align-items-center justify-content-center">
+        <i class="bi bi-rocket-takeoff-fill text-white fs-5"></i>
+      </div>
+      <span class="brand-text fw-bold tracking-tight">AreYouReporting</span>
+    </div>
+    <button class="collapse-toggle-btn border-0 bg-transparent text-secondary" (click)="toggleCollapse()">
+      <i class="bi" [ngClass]="isCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+    </button>
+  </div>
+
+  <!-- Navigation menu -->
+  <div class="sidebar-nav-container">
+    <ul class="nav flex-column gap-1 px-3">
+      <li class="nav-item" *ngFor="let link of links">
+        <a class="nav-link d-flex align-items-center rounded-3 transition" 
+           [routerLink]="link.route" 
+           [queryParams]="link.queryParams"
+           routerLinkActive="active" 
+           [routerLinkActiveOptions]="{exact: link.route === '/admin' || link.route === '/hod' || link.route === '/teacher'}">
+          <i class="bi {{ link.icon }} fs-5"></i>
+          <span class="link-label ms-3" *ngIf="!isCollapsed">{{ link.label }}</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- User profile footer -->
+  <div class="sidebar-footer p-3 border-top mt-auto">
+    <div class="d-flex align-items-center justify-content-between gap-2" *ngIf="!isCollapsed">
+      <div class="d-flex align-items-center gap-2 min-w-0">
+        <div class="user-avatar-circle d-flex align-items-center justify-content-center fw-bold">
+          {{ (fullName || 'U').substring(0,1).toUpperCase() }}
+        </div>
+        <div class="user-info min-w-0">
+          <h6 class="mb-0 fw-semibold text-truncate">{{ fullName }}</h6>
+          <small class="text-muted text-truncate d-block small">{{ role }}</small>
+        </div>
+      </div>
+      <button class="logout-btn border-0 bg-transparent text-muted" (click)="logout()" title="Logout">
+        <i class="bi bi-box-arrow-right fs-5"></i>
+      </button>
+    </div>
+    <div class="text-center" *ngIf="isCollapsed">
+      <button class="logout-btn border-0 bg-transparent text-muted" (click)="logout()" title="Logout">
+        <i class="bi bi-box-arrow-right fs-5"></i>
+      </button>
+    </div>
+  </div>
+</aside>

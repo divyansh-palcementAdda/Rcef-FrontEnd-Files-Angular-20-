@@ -1,0 +1,122 @@
+/* Modern Roles & Permissions View Styles */
+
+.management-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Glass/Modern Cards */
+.glass-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+.glass-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-header-gradient {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  font-size: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-body-scroll {
+  padding: 1.25rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Premium List Items */
+.list-group-item-premium {
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  margin-bottom: 0.5rem;
+  border-radius: 8px !important;
+  padding: 0.75rem 1rem;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-main);
+}
+.list-group-item-premium:hover {
+  background-color: var(--bg-color);
+  border-color: var(--text-muted);
+}
+.list-group-item-premium.active {
+  background-color: var(--primary-subtle) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+  font-weight: 700;
+}
+
+/* Tab controls */
+.tab-nav-btn {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 0.55rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+.tab-nav-btn:hover {
+  color: var(--text-main);
+  background-color: var(--bg-color);
+}
+.tab-nav-btn.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Permissions checkboxes card list */
+.perm-checkbox-card {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+.perm-checkbox-card:hover {
+  border-color: var(--primary-color);
+}
+.perm-checkbox-card.checked {
+  border-color: var(--success-color);
+  background-color: var(--success-subtle);
+}
+
+/* Overrides selector styling */
+.override-select {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 6px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.85rem;
+}
+.override-select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+.input-group-text {
+  background-color: var(--bg-color) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-muted) !important;
+}

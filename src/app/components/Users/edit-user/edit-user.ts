@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -8,7 +8,7 @@ import {
   FormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { Department } from '../../../Model/department';
@@ -21,13 +21,16 @@ import { AuthApiService } from '../../../Services/auth-api-service';
   templateUrl: './edit-user.html',
   styleUrls: ['./edit-user.css'],
 })
-export class EditUser implements OnInit , OnDestroy {
+export class EditUser implements OnInit, OnDestroy, OnChanges {
+  @Input() userId!: number;
+  @Input() isModal = false;
+  @Output() closed = new EventEmitter<boolean>();
   /** Form */
   editForm!: FormGroup;
   /** Current user info */
-  currentUserRole: string| null = null;
+  currentUserRole: string | null = null;
   isCurrentUserAdmin: boolean = false;
-  
+
   /** UI state */
   isSubmitting = false;
   isLoading = false;
@@ -35,11 +38,15 @@ export class EditUser implements OnInit , OnDestroy {
   errorMessage: string | null = null;
 
   /** Data */
-  userId!: number;
   originalRole = '';
-  roles = ['HOD', 'TEACHER'];
+  roles: string[] = [];
   departments: Department[] = [];
   selectedDepartments: number[] = [];
+
+  // Hierarchy additions
+  allUsers: any[] = [];
+  filteredParentUsers: any[] = [];
+  subDepartments: any[] = [];
 
   /** Password toggle */
   showPassword = false;
@@ -60,22 +67,34 @@ export class EditUser implements OnInit , OnDestroy {
     private authService: AuthApiService
   ) {}
 
-  /* --------------------------------------------------------------- */
-  /* Lifecycle                                                       */
-  /* --------------------------------------------------------------- */
   ngOnInit(): void {
     // Get current user info
     this.currentUserRole = this.authService.getCurrentRole();
-    this.isCurrentUserAdmin = this.currentUserRole === 'ADMIN';
+    this.isCurrentUserAdmin = this.currentUserRole === 'ADMIN' || this.currentUserRole === 'SUPER_ADMIN';
 
-    this.userId = +this.route.snapshot.paramMap.get('id')!;
+    if (!this.userId) {
+      this.userId = +this.route.snapshot.paramMap.get('id')!;
+    }
     this.initForm();
     this.loadDepartments();
+    this.loadAllUsers();
     this.loadUser();
+
+    // Set dynamic roles list based on logged-in user role
+    const currentRole = this.authService.getCurrentRole() || '';
+    const allRolesList = ['SUPER_ADMIN', 'ADMIN', 'SUB_ADMIN', 'HOD', 'TEACHER'];
+    const currentIdx = allRolesList.indexOf(currentRole);
+    this.roles = currentIdx !== -1 ? allRolesList.slice(currentIdx + 1) : ['HOD', 'TEACHER'];
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['userId'] && !changes['userId'].firstChange) {
+      this.loadUser();
+    }
   }
 
   private initForm(): void {
@@ -101,6 +120,8 @@ export class EditUser implements OnInit , OnDestroy {
       ],
       role: [{ value: '', disabled: !this.isCurrentUserAdmin }, Validators.required],
       departmentIds: [[], Validators.required],
+      parentUserId: [null],
+      subDepartmentId: [null]
     });
 
     // Password strength calculation
@@ -114,13 +135,66 @@ export class EditUser implements OnInit , OnDestroy {
     // Role change listener
     const roleSub = this.editForm.get('role')?.valueChanges.subscribe((role) => {
       this.updateDepartmentSelectionBasedOnRole(role);
+      this.onRoleChange(role);
+
+      const parentControl = this.editForm.get('parentUserId');
+      if (role && role !== 'SUPER_ADMIN') {
+        parentControl?.setValidators([Validators.required]);
+      } else {
+        parentControl?.clearValidators();
+      }
+      parentControl?.updateValueAndValidity();
+
+      const deptControl = this.editForm.get('departmentIds');
+      if (role === 'SUPER_ADMIN') {
+        deptControl?.clearValidators();
+        deptControl?.setValue([]);
+      } else {
+        deptControl?.setValidators([Validators.required]);
+      }
+      deptControl?.updateValueAndValidity();
     });
     if (roleSub) this.subscriptions.push(roleSub);
   }
 
-  /* --------------------------------------------------------------- */
-  /* API calls                                                       */
-  /* --------------------------------------------------------------- */
+  private loadAllUsers(): void {
+    this.userApi.getAllUsers().subscribe({
+      next: (users) => {
+        this.allUsers = users;
+        if (this.editForm.get('role')?.value) {
+          this.onRoleChange(this.editForm.get('role')?.value);
+        }
+      },
+      error: (err) => console.error('Failed to load users for parent selection', err)
+    });
+  }
+
+  onRoleChange(selectedRole: string): void {
+    this.filteredParentUsers = [];
+    if (selectedRole === 'TEACHER') {
+      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'HOD' && u.userId !== this.userId);
+    } else if (selectedRole === 'HOD') {
+      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'SUB_ADMIN' && u.userId !== this.userId);
+    } else if (selectedRole === 'SUB_ADMIN') {
+      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'ADMIN' && u.userId !== this.userId);
+    } else if (selectedRole === 'ADMIN') {
+      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'SUPER_ADMIN' && u.userId !== this.userId);
+    }
+  }
+
+  onDepartmentChange(): void {
+    this.subDepartments = [];
+    if (this.selectedDepartments && this.selectedDepartments.length > 0) {
+      const requests = this.selectedDepartments.map(id => this.deptApi.getSubDepartmentsByDepartment(id));
+      forkJoin(requests).subscribe({
+        next: (results) => {
+          this.subDepartments = results.flat();
+        },
+        error: (err) => console.error('Failed to load sub-departments', err)
+      });
+    }
+  }
+
   private loadDepartments(): void {
     this.isLoading = true;
     this.deptApi.getAllDepartments().subscribe({
@@ -140,7 +214,7 @@ export class EditUser implements OnInit , OnDestroy {
     this.userApi.getUserById(this.userId).subscribe({
       next: (user) => {
         this.originalRole = user.role;
-        
+
         const deptIds: number[] = Array.isArray(user.departmentIds)
           ? user.departmentIds
           : [];
@@ -156,9 +230,13 @@ export class EditUser implements OnInit , OnDestroy {
           password: '',
           role: user.role,
           departmentIds: deptIds,
+          parentUserId: user.parentUserId || null,
+          subDepartmentId: user.subDepartmentId || null
         });
 
         this.selectedDepartments = deptIds;
+        this.onDepartmentChange();
+        this.onRoleChange(user.role);
         this.isLoading = false;
       },
       error: (err) => {
@@ -187,19 +265,17 @@ export class EditUser implements OnInit , OnDestroy {
 
   updateDepartmentSelectionBasedOnRole(role: string): void {
     if (role === 'ADMIN') {
-      // Admin can only have Administration department
       const adminDept = this.departments.find(
         d => d.name.toLowerCase() === 'administration'
       );
       this.selectedDepartments = adminDept ? [adminDept.departmentId] : [];
     } else if (role === 'HOD') {
-      // HOD can have only one department
       if (this.selectedDepartments.length > 1) {
         this.selectedDepartments = [this.selectedDepartments[0]];
       }
     }
-    // TEACHER can have multiple departments - no auto adjustment
     this.editForm.get('departmentIds')?.setValue(this.selectedDepartments);
+    this.onDepartmentChange();
   }
 
   updateDepartmentSelection(event: Event, deptId: number): void {
@@ -207,20 +283,17 @@ export class EditUser implements OnInit , OnDestroy {
     const role = this.editForm.get('role')?.value || this.originalRole;
 
     if (role === 'ADMIN') {
-      // Admin can only select Administration department
       const adminDept = this.departments.find(
         d => d.name.toLowerCase() === 'administration'
       );
       this.selectedDepartments = adminDept ? [adminDept.departmentId] : [];
     } else if (role === 'HOD') {
-      // HOD can select only one department
       if (checked) {
         this.selectedDepartments = [deptId];
       } else {
         this.selectedDepartments = [];
       }
     } else {
-      // TEACHER - multi-select
       if (checked && !this.selectedDepartments.includes(deptId)) {
         this.selectedDepartments.push(deptId);
       } else if (!checked) {
@@ -232,6 +305,7 @@ export class EditUser implements OnInit , OnDestroy {
 
     this.editForm.get('departmentIds')?.setValue(this.selectedDepartments);
     this.editForm.get('departmentIds')?.markAsTouched();
+    this.onDepartmentChange();
   }
 
   isDeptDisabled(dept: Department): boolean {
@@ -293,7 +367,9 @@ export class EditUser implements OnInit , OnDestroy {
       fullName: formValue.fullName.trim(),
       username: formValue.username.trim(),
       role: formValue.role,
-      departmentIds: this.selectedDepartments
+      departmentIds: this.selectedDepartments,
+      parentUserId: formValue.parentUserId,
+      subDepartmentId: formValue.subDepartmentId
     };
 
     // Only include password if provided
@@ -307,9 +383,13 @@ export class EditUser implements OnInit , OnDestroy {
         this.isSubmitting = false;
         this.successMessage = 'User updated successfully!';
         
-        // Show success message for 2 seconds then redirect
+        // Show success message for 2 seconds then redirect/close
         setTimeout(() => {
-          this.router.navigate(['/viewAllUsers']);
+          if (this.isModal) {
+            this.closed.emit(true);
+          } else {
+            this.router.navigate(['/viewAllUsers']);
+          }
         }, 2000);
       },
       error: (err) => {
@@ -332,6 +412,10 @@ export class EditUser implements OnInit , OnDestroy {
     if (this.editForm.dirty && !confirm('Are you sure? Any unsaved changes will be lost.')) {
       return;
     }
-    this.router.navigate(['/viewAllUsers']);
+    if (this.isModal) {
+      this.closed.emit(false);
+    } else {
+      this.router.navigate(['/viewAllUsers']);
+    }
   }
 }

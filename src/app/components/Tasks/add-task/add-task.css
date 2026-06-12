@@ -1,276 +1,154 @@
-/* ====================== ROOT VARIABLES ====================== */
-:root {
-  --bg: #ffffff;
-  --card-bg: #f8fafc;
-  --text: #1e293b;
-  --border: #0c0c0c;
-  --primary: #10b981;
-  --primary-light: #34d399;
-  --input-bg-light: #ffffff;
-  --input-text-light: #1e293b;
-  --input-bg-dark: #334155;
-  --input-text-dark: #f1f5f9;
-  --caret-color: #34d399;
-  --placeholder-color: #94a3b8;
-}
+/* Modern Task Form Styles */
 
-/* ====================== DARK MODE ====================== */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f172a;
-    --card-bg: #1e293b;
-    --text: #e2e8f0;
-    --border: #334155;
-    --input-bg: var(--input-bg-dark);
-    --input-text: var(--input-text-dark);
-  }
-
-  /* Force background */
-  .card-body {
-    background: var(--card-bg) !important;
-  }
-
-  /* INPUTS & TEXTAREA - MAC-SAFE TEXT VISIBILITY */
-  .form-control,
-  .form-select,
-  textarea.form-control {
-    background-color: var(--input-bg) !important;
-    color: var(--input-text) !important;
-    border-color: #000000 !important;
-    -webkit-text-fill-color: var(--input-text) !important; /* Critical for Mac */
-    caret-color: var(--caret-color) !important;
-  }
-
-  /* Placeholder */
-  .form-control::placeholder,
-  textarea::placeholder {
-    color: var(--placeholder-color) !important;
-    opacity: 1;
-  }
-
-  /* Autofill fix (yellow background + white text) */
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus,
-  textarea:-webkit-autofill,
-  select:-webkit-autofill {
-    -webkit-text-fill-color: var(--input-text) !important;
-    -webkit-box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
-    background-color: var(--input-bg) !important;
-    caret-color: var(--caret-color) !important;
-    transition: background-color 5000s ease-in-out 0s; /* Prevents flash */
-  }
-
-  /* Accordion */
-  .accordion-button {
-    background: #334155 !important;
-    color: white !important;
-  }
-
-  .accordion-button:not(.collapsed) {
-    background: linear-gradient(135deg, #10b981, #34d399) !important;
-    color: white !important;
-    box-shadow: none;
-  }
-
-  /* Alerts */
-  .alert-success {
-    background: #065f46 !important;
-    color: #a7f3d0 !important;
-    border: 1px solid #0f9d58 !important;
-  }
-}
-
-/* ====================== GRADIENT HEADER ====================== */
-.table_head {
-background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
-  border-radius: 1.5rem 1.5rem 0 0;
-  padding: 2.5rem 1.5rem;
-}
-
-/* ====================== CARD ====================== */
-.card {
-  border: none;
-  overflow: hidden;
+.task-form-card {
   background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
 }
 
-.card-body {
-  background: linear-gradient(to bottom, #f8fafc, #ffffff);
-  border-radius: 0 0 1.5rem 1.5rem;
+.task-form-header {
+  border-bottom: 1px solid var(--border-color);
+  padding: 2rem;
+  background-color: var(--bg-color);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .card-body {
-    background: var(--card-bg) !important;
+.task-form-body {
+  padding: 2rem 2.5rem;
+}
+
+@media (max-width: 768px) {
+  .task-form-body {
+    padding: 1.5rem;
   }
 }
 
-/* ====================== INPUTS & SELECTS ====================== */
-.form-control,
-.form-select,
-textarea.form-control {
-  border: 2px solid rgb(188, 120, 224);
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  transition: all 0.3s ease;
-  background-color: var(--input-bg-light);
-  color: var(--input-text-light);
+/* Form Helper Hints */
+.field-hint {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+  line-height: 1.4;
 }
 
-@media (prefers-color-scheme: dark) {
-  .form-control,
-  .form-select,
-  textarea.form-control {
-    background-color: var(--input-bg-dark);
-    color: var(--input-text-dark);
-  }
-}
-
-.form-control:focus,
-.form-select:focus,
-textarea.form-control:focus {
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 0.25rem rgba(52, 211, 153, 0.2);
-  outline: none;
-}
-
-/* ====================== CUSTOM CHECKBOXES (WITH VISIBLE CHECKMARK) ====================== */
+/* Custom Selection Group Checkboxes */
 .custom-checkbox {
   appearance: none;
   -webkit-appearance: none;
-  width: 1.4rem;
-  height: 1.4rem;
-  border: 2.5px solid #94a3b8;
-  border-radius: 0.4rem;
-  background: transparent;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg);
   position: relative;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  vertical-align: middle;
 }
-
 .custom-checkbox:checked {
-background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
-border-color: #ffffff;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
 }
-
-/* Beautiful white checkmark */
 .custom-checkbox:checked::after {
   content: '✓';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: white;
-  font-weight: bold;
-  font-size: 1rem;
-  line-height: 1;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
-
 .custom-checkbox:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.custom-checkbox:disabled:checked {
-  background: #64748b;
-  border-color: #64748b;
-}
-
-/* ====================== HOD HIGHLIGHT ====================== */
+/* Custom Highlight for HOD User selections */
 .hod-highlight {
-  background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
-  border-radius: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  color: white;
-  font-weight: 500;
-  font-size: 0.85rem;
+  border-left: 3px solid var(--primary-color);
+  padding-left: 0.5rem;
 }
 
-/* ====================== SCROLLBAR ====================== */
-.department-list,
-.max-h-48 {
+/* Selectable Area Wrappers (e.g. Departments panel) */
+.department-wrapper {
+  background-color: var(--bg-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px;
+}
+
+.department-list {
   max-height: 240px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color:linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
 }
 
-.department-list::-webkit-scrollbar,
-.max-h-48::-webkit-scrollbar {
-  width: 6px;
+/* Accordion modern overrides */
+.accordion-item {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
-.department-list::-webkit-scrollbar-thumb,
-.max-h-48::-webkit-scrollbar-thumb {
-background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
-border-radius: 3px;
+.accordion-button {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  padding: 1rem 1.25rem !important;
 }
 
-/* ====================== BUTTONS ====================== */
-.btn-primary {
-  background: linear-gradient(135deg, #10b981, #34d399);
-  border: none;
-  font-weight: 600;
-  border-radius: 0.75rem;
-  padding: 0.75rem 2rem;
-  transition: all 0.3s;
+.accordion-button:focus {
+  box-shadow: none !important;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669, #10b981);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+.accordion-button:not(.collapsed) {
+  background-color: var(--bg-color) !important;
+  color: var(--primary-color) !important;
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+.accordion-body {
+  background-color: var(--bg-color) !important;
 }
 
-/* ====================== SKELETON ====================== */
+/* Skeleton loader for listings */
+.skeleton-item {
+  height: 1.5rem;
+  background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
 @keyframes skeleton-loading {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-.skeleton-item {
-  height: 1.6rem;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  border-radius: 0.5rem;
+/* Radio button selections styling */
+.btn-outline-emerald {
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  transition: all 0.2s ease;
+  font-size: 0.9rem !important;
+}
+.btn-outline-emerald:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+.btn-check:checked + .btn-outline-emerald {
+  color: #ffffff !important;
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: var(--shadow-sm);
 }
 
-@media (prefers-color-scheme: dark) {
-  .skeleton-item {
-    background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
-  }
-}
-
-/* ====================== ANIMATIONS ====================== */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.alert-success,
-.animate_animated {
-  animation: fadeIn 0.4s ease-out;
-}
-
-/* ====================== RESPONSIVE ====================== */
-@media (max-width: 768px) {
-  .table_head {
-    padding: 2rem 1rem;
-    font-size: 1.5rem;
-  }
-  .card-body {
-    padding: 1.5rem;
-  }
-  .btn {
-    font-size: 0.9rem;
-  }
+.input-group-text {
+  background-color: var(--bg-color) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-muted) !important;
 }

@@ -1,8 +1,20 @@
-<br><br>
-<div class="container py-5">
+<div class="task-workspace-container py-4">
+
+  <!-- ==================== Breadcrumbs & Navigation ==================== -->
+  <nav aria-label="breadcrumb" class="mb-4 d-none">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a (click)="goBack()" style="cursor: pointer;" class="text-decoration-none">
+          <i class="bi bi-arrow-left me-1"></i>Tasks
+        </a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">{{ task?.title || 'Task Details' }}</li>
+    </ol>
+  </nav>
 
   <!-- ==================== Forbidden Access ==================== -->
-  <div *ngIf="isForbidden" class="alert alert-danger text-center shadow-sm rounded-4 py-5">
+  <div *ngIf="isForbidden"
+    class="alert alert-danger text-center shadow-sm rounded-4 py-5 animate__animated animate__fadeIn">
     <i class="bi bi-shield-x fs-1 mb-3 d-block text-danger"></i>
     <h4 class="fw-bold mb-3">Access Restricted</h4>
     <p class="mb-0">You are not authorized to view this task. Only assigned users, department HODs, or administrators
@@ -14,710 +26,1103 @@
 
   <!-- ==================== Error Message ==================== -->
   <div *ngIf="errorMessage && !isForbidden"
-    class="alert alert-danger text-center shadow-sm rounded-pill py-3 fw-semibold">
-    {{ errorMessage }}
+    class="alert alert-danger text-center shadow-sm py-3 fw-semibold animate__animated animate__fadeIn">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}
   </div>
 
   <!-- ==================== Loading Spinner ==================== -->
-  <div *ngIf="isLoading" class="text-center my-5">
-    <div class="spinner-border text-success spinner"></div>
-    <p class="mt-3 fw-medium text-muted">Loading task details…</p>
+  <div *ngIf="isLoading" class="text-center my-5 py-5">
+    <div class="spinner-border text-primary spinner mb-3" role="status"></div>
+    <p class="fw-medium text-muted">Loading task details…</p>
   </div>
 
-  <!-- ==================== MAIN TASK CARD ==================== -->
-  <div *ngIf="task && !isLoading && !isForbidden"
-    class="dept-card shadow-lg border-0 rounded-4 overflow-hidden animate__animated animate__fadeInUp">
+  <!-- ==================== Main Content Layout ==================== -->
+  <div *ngIf="task && !isLoading && !isForbidden" class="animate__animated animate__fadeIn">
 
-    <!-- Gradient Header -->
-    <div class="dept-header text-white text-center py-4 position-relative">
-      <h3 class="fw-bold mb-1">{{ task.title }}</h3>
-      <p class="mb-0 text-light fs-6">
-        <span class="badge rounded-pill px-3 py-2" [ngClass]="getStatusBadgeClass(task.status)">
-          {{ formatStatus(task.status) }}
-        </span>
-      </p>
-
-      <!-- Overdue indicator -->
-      <!-- <div *ngIf="isTaskOverdue()" class="position-absolute top-0 end-0 m-3">
-        <span class="badge bg-danger blink px-3 py-2">
-          <i class="bi bi-exclamation-triangle-fill me-1"></i> Overdue
-        </span>
-      </div> -->
-    </div>
-
-    <!-- Card Body -->
-    <div class="card-body px-4 py-5">
-
-      <!-- ==================== BASIC INFO ==================== -->
-      <div class="row gy-4 mb-5">
-        <div class="col-md-6">
-          <p><i class="bi bi-person-circle me-2 text-primary"></i>
-            <strong>Created By:</strong> {{ task.createdByName }}
-          </p>
-
-          <p><i class="bi bi-calendar-event me-2 text-primary"></i>
-            <strong>Start Date:</strong> {{ task.startDate | date:'mediumDate' }}
-          </p>
-
-          <p><i class="bi bi-calendar-check me-2 text-primary"></i>
-            <strong>Due Date:</strong> {{ task.dueDate | date:'mediumDate' }}
-            <span *ngIf="getDaysRemaining() > 0" class="ms-2 badge bg-info">
-              {{ getDaysRemaining() }} days left
-            </span>
-            <span *ngIf="getDaysRemaining() <= 0 && !isTaskOverdue()" class="ms-2 badge bg-warning">
-              Due today
-            </span>
-          </p>
-
-          <!-- Started At – only for IN_PROGRESS or CLOSED -->
-          <p *ngIf="task.status === 'IN_PROGRESS' || task.status === 'CLOSED'">
-            <i class="bi bi-play-circle-fill me-2 text-success"></i>
-            <strong>Started At:</strong> {{ task.startedAt | date:'mediumDate' }}
-          </p>
-        </div>
-
-        <div class="col-md-6">
-          <p><i class="bi bi-shield-lock me-2 text-primary"></i>
-            <strong>Requires Approval:</strong>
-            <span [ngClass]="task.requiresApproval ? 'text-danger fw-semibold' : 'text-success fw-semibold'">
-              {{ task.requiresApproval ? 'Yes (Created By HOD)' : 'No (Created By Admin)' }}
-            </span>
-          </p>
-
-          <p *ngIf="task.requiresApproval">
-            <i class="bi bi-shield-check me-2 text-primary"></i>
-            <strong>Approved:</strong>
-            <span [ngClass]="task.approved ? 'text-success fw-semibold' : 'text-danger fw-semibold'">
-              {{ task.approved ? 'Yes' : 'Not Yet' }}
-            </span>
-          </p>
-
-          <!-- Started By – only for IN_PROGRESS or CLOSED -->
-          <p *ngIf="task.status === 'IN_PROGRESS' || task.status === 'CLOSED'">
-            <i class="bi bi-person-check-fill me-2 text-success"></i>
-            <strong>Started By:</strong> {{ task.startedByName }}
-          </p>
-
-          <p><i class="bi bi-chat-dots me-2 text-primary"></i>
-            <strong>Description:</strong>
-          </p>
-          <p class="text-muted medium fw-bold">{{ task.description || 'No description provided' }}</p>
-        </div>
-
-        <!-- Recurring Task Info -->
-        <div *ngIf="task.isRecurring" class="col-md-12 mt-4">
-          <div class="card border-info border-2">
-            <div class="card-header bg-info bg-opacity-10 d-flex justify-content-between align-items-center">
-              <h5 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Recurring Task Information</h5>
-              <span class="badge bg-info">{{ getRecurrenceTypeDisplay(task.recurrenceType || '') }}</span>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-3">
-                  <p><i class="bi bi-arrow-repeat me-2 text-primary"></i>
-                    <strong>Recurring:</strong>
-                    <span class="badge bg-success">Yes</span>
-                  </p>
-                </div>
-                <div class="col-md-3">
-                  <p><i class="bi bi-calendar-event me-2 text-primary"></i>
-                    <strong>Recurrence Type:</strong> {{ getRecurrenceTypeDisplay(task.recurrenceType || '') }}
-                  </p>
-                </div>
-                <div class="col-md-3">
-                  <p><i class="bi bi-calendar-check me-2 text-primary"></i>
-                    <strong>Interval:</strong> Every {{ task.recurrenceInterval }}
-                    {{ task.recurrenceInterval === 1 ? task.recurrenceType?.slice(0, -2) :
-                    task.recurrenceType?.toLowerCase() }}
-                  </p>
-                </div>
-                <div class="col-md-3">
-                  <p><i class="bi bi-calendar-x me-2 text-primary"></i>
-                    <strong>Recurrence End Date:</strong>
-                    {{ task.recurrenceEndDate ? (task.recurrenceEndDate | date:'mediumDate') : 'No end date' }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+    <!-- SECTION 1: Hero Header Gradient Card -->
+    <div class="task-hero-card mb-4">
+      <div class="hero-left">
+        <!-- Breadcrumb link inside Hero -->
+        <a (click)="goBack()" class="hero-breadcrumb">
+          <i class="bi bi-chevron-left"></i> Tasks / {{ task.title }}
+        </a>
+        <h1 class="hero-title">{{ task.title }}</h1>
+        <div class="hero-badge-row">
+          <span class="badge-status" [ngClass]="{
+            'status-in-progress': task.status === 'IN_PROGRESS',
+            'status-pending': task.status === 'PENDING',
+            'status-delayed': task.status === 'DELAYED',
+            'status-closed': task.status === 'CLOSED',
+            'status-extended': task.status === 'EXTENDED'
+          }">
+            <span class="status-dot"></span>
+            {{ formatStatus(task.status) }}
+          </span>
+          <span *ngIf="isTaskOverdue()" class="badge-overdue">
+            <i class="bi bi-exclamation-triangle"></i> Overdue
+          </span>
+          <span class="badge-priority">
+            HIGH PRIORITY
+          </span>
+          <span class="badge-template-type">
+            {{ task.template?.name || 'Academic Template' }}
+          </span>
         </div>
       </div>
 
-      <!-- ==================== ENHANCED STATS ==================== -->
-      <div class="row text-center mb-5">
-        <div class="col-6 col-md-3 mb-3" *ngFor="let s of getTaskStats()">
-          <div class="stat-card shadow-sm border-0 rounded-4 p-3 hover-zoom"
-            [class]="'border-' + s.color + ' border-2'">
-            <div class="d-flex align-items-center justify-content-center mb-2">
-              <i [class]="'bi ' + s.icon + ' fs-4 text-' + s.color"></i>
-            </div>
-            <h4 class="fw-bold text-{{ s.color }} mb-1">{{ s.count }}</h4>
-            <small class="text-muted">{{ s.label }}</small>
-          </div>
-        </div>
-      </div>
-
-      <!-- ==================== ACTION BAR (Collapse Buttons) ==================== -->
-      <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
-
-        <!-- Assigned Users -->
-        <button *ngIf="currentUserRole!='TEACHER'" class="btn btn-outline-primary px-4 py-2 d-flex align-items-center"
-          (click)="toggleCollapse('users')" [attr.aria-expanded]="!collapsed.users">
-          <i class="bi bi-people me-2"></i>
-          <span class="d-none d-sm-inline">{{ collapsed.users ? 'Show' : 'Hide' }}</span>
-          Assigned Users ({{ assignedUsers.length }})
+      <div class="hero-right">
+        <!-- Action Buttons -->
+        <!-- Submit Request (For Assigned Users) -->
+        <button *ngIf="isAssignedToCurrentUser && task.status === 'IN_PROGRESS'" class="btn-hero-action glass-action"
+          (click)="openAddRequestModal()">
+          <i class="bi bi-plus-lg"></i> Add Request
         </button>
 
-        <!-- Departments -->
-        <button *ngIf="currentUserRole!='TEACHER'" class="btn btn-outline-info px-4 py-2 d-flex align-items-center"
-          (click)="toggleCollapse('departments')" [attr.aria-expanded]="!collapsed.departments">
-          <i class="bi bi-diagram-3 me-2"></i>
-          <span class="d-none d-sm-inline">{{ collapsed.departments ? 'Show' : 'Hide' }}</span>
-          Departments ({{ enrichedDepartments.length }})
+        <!-- Approve Task Entirely (Admins) -->
+        <button *ngIf="task.requiresApproval && isAdmin && !task.approved" class="btn-hero-action glass-action"
+          (click)="approveTask()" [disabled]="isApproving">
+          <i [class]="isApproving ? 'bi bi-arrow-repeat spinner' : 'bi bi-check-circle'"></i>
+          {{ isApproving ? 'Approving...' : 'Approve Task' }}
         </button>
 
-        <!-- Requests -->
-        <button class="btn btn-outline-warning px-4 py-2 d-flex align-items-center" (click)="toggleCollapse('requests')"
-          [attr.aria-expanded]="!collapsed.requests">
-          <i class="bi bi-journal-text me-2"></i>
-          <span class="d-none d-sm-inline">{{ collapsed.requests ? 'Show' : 'Hide' }}</span>
-          Requests ({{ task.requests?.length || 0 }})
-        </button>
-
-        <!-- Recurred Instances (Admin only) -->
-        <button *ngIf="task.isRecurring && currentUserRole === 'ADMIN'"
-          class="btn btn-outline-secondary px-4 py-2 d-flex align-items-center" (click)="toggleCollapse('instances')"
-          [attr.aria-expanded]="!collapsed.instances" [disabled]="isLoadingInstances">
-          <i [class]="isLoadingInstances ? 'bi bi-hourglass-split spinner me-2' : 'bi bi-copy me-2'"></i>
-          <span class="d-none d-sm-inline">{{ collapsed.instances ? 'Show' : 'Hide' }}</span>
-          Recurred Instances ({{ recurredInstances.length }})
-        </button>
-
-        <!-- Approve Task (Admin only) -->
-        <button *ngIf="task.requiresApproval && currentUserRole === 'ADMIN' && !task.approved"
-          class="btn btn-success px-4 py-2 d-flex align-items-center" (click)="approveTask()" [disabled]="isApproving">
-          <i [class]="isApproving ? 'bi bi-hourglass-split spinner' : 'bi bi-check-circle'"></i>
-          <span class="ms-2">{{ isApproving ? 'Approving...' : 'Approve Task' }}</span>
-        </button>
-
-        <!-- Add Request (Assigned & IN_PROGRESS) -->
-        <button *ngIf="isAssignedToCurrentUser && task.status === 'IN_PROGRESS'"
-          class="btn btn-primary px-4 py-2 d-flex align-items-center" (click)="openAddRequestModal()"
-          [disabled]="isAddingReq">
-          <i [class]="isAddingReq ? 'bi bi-hourglass-split spinner' : 'bi bi-plus-circle'"></i>
-          <span class="ms-2">{{ isAddingReq ? 'Submitting...' : 'Add Request' }}</span>
-        </button>
-
-        <!-- Start Task (PENDING / DELAYED) -->
+        <!-- Start Task (For Assigned Users) -->
         <button
           *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')"
-          class="btn btn-primary px-4 py-2 d-flex align-items-center" (click)="startTask()" [disabled]="isStarting">
-          <i [class]="isStarting ? 'bi bi-hourglass-split spinner' : 'bi bi-play-circle'"></i>
-          <span class="ms-2">{{ isStarting ? 'Starting...' : 'Start Task' }}</span>
+          class="btn-hero-action glass-action" (click)="startTask()" [disabled]="isStarting">
+          <i [class]="isStarting ? 'bi bi-arrow-repeat spinner' : 'bi bi-play'"></i>
+          {{ isStarting ? 'Starting...' : 'Start Task' }}
         </button>
 
-        <button *ngIf="canEditDelete()" class="btn btn-outline-primary px-4 py-2 d-flex align-items-center"
-          (click)="editTask()">
-          <i class="bi bi-pencil-square me-2"></i>Edit Task
+        <!-- Edit Task (Creators/Admins) -->
+        <button *ngIf="canEditDelete()" class="btn-hero-action solid-action" (click)="editTask()">
+          <i class="bi bi-pencil"></i> Edit Task
         </button>
 
+        <!-- Three-dot menu button -->
+        <button class="btn-hero-menu-btn">
+          <i class="bi bi-three-dots-vertical"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- SECTION 2: KPI Metrics Cards Grid -->
+    <div class="task-kpi-grid mb-4">
+      <!-- Card 1: Assigned Users -->
+      <div class="kpi-card">
+        <div class="kpi-icon-wrapper kpi-purple">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value-row">
+            <span class="kpi-number">{{ task.assignedToIds?.length ?? 0 }}</span>
+            <span class="kpi-badge badge-green"><i class="bi bi-arrow-up-short"></i> 0%</span>
+          </div>
+          <div class="kpi-label">ASSIGNED USERS</div>
+        </div>
       </div>
 
-      <!-- ==================== ASSIGNED USERS ==================== -->
-      <ng-container *ngIf="!collapsed.users">
-        <div class="card shadow-lg border-0 rounded-4 mt-5 animate__animated animate__fadeIn">
-          <div class="card-header gradient-header text-white text-center py-3 fs-5 fw-bold table_head">
-            <i class="bi bi-people-fill me-2"></i>Assigned Users ({{ assignedUsers.length }})
+      <!-- Card 2: Departments -->
+      <div class="kpi-card">
+        <div class="kpi-icon-wrapper kpi-blue">
+          <i class="bi bi-diagram-3-fill"></i>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value-row">
+            <span class="kpi-number">{{ task.departmentIds?.length ?? 0 }}</span>
           </div>
-          <div class="card-body p-4">
-            <div class="table-responsive">
-              <table class="table table-hover align-middle">
-                <thead class="table_head">
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Department</th>
-                    <th>Role</th>
-                    <th *ngIf="currentUserRole!='TEACHER'">Status</th>
-                    <th *ngIf="currentUserRole!='TEACHER'">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let u of assignedUsers">
-                    <td data-label="ID">{{ u.userId }}</td>
-                    <td data-label="Name">{{ u.fullName }}</td>
-                    <td data-label="Username">{{ u.username }}</td>
-                    <td data-label="Email"><small>{{ u.email }}</small></td>
-                    <td data-label="Dept">
-                      <span class="badge bg-light text-dark text-wrap">{{ u.departmentNames || '—' }}</span>
-                    </td>
-                    <td data-label="Role">
-                      <span class="badge bg-info text-dark">{{ u.role }}</span>
-                    </td>
-                    <td *ngIf="currentUserRole!='TEACHER'" data-label="Status">
-                      <span class="badge rounded-pill px-2 py-1" [ngClass]="getStatusBadgeClass(u.status)">
-                        {{ formatStatus(u.status) }}
-                      </span>
-                    </td>
-                    <td *ngIf="currentUserRole!='TEACHER'" data-label="Action" class="text-center">
-                      <button class="btn btn-sm btn-outline-primary" (click)="viewUserProfile(u.userId)">
-                        <i class="bi bi-eye me-1"></i> View
-                      </button>
-                    </td>
-                  </tr>
+          <div class="kpi-label">DEPARTMENTS</div>
+        </div>
+      </div>
 
-                  <tr *ngIf="!assignedUsers.length">
-                    <td colspan="8" class="text-center text-muted py-4">
-                      <i class="bi bi-inbox fs-4"></i><br>No users assigned.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+      <!-- Card 3: Total Requests -->
+      <div class="kpi-card">
+        <div class="kpi-icon-wrapper kpi-yellow">
+          <i class="bi bi-file-earmark-text-fill"></i>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value-row">
+            <span class="kpi-number">{{ task.requests?.length ?? 0 }}</span>
+            <span *ngIf="pendingRequestsCount > 0" class="kpi-pending-label">! {{ pendingRequestsCount }} Pending</span>
+          </div>
+          <div class="kpi-label">TOTAL REQUESTS</div>
+        </div>
+      </div>
+
+      <!-- Card 4: Proofs Submitted -->
+      <div class="kpi-card">
+        <div class="kpi-icon-wrapper kpi-orange">
+          <i class="bi bi-paperclip"></i>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value-row">
+            <span class="kpi-number">{{ allProofs.length }}</span>
+          </div>
+          <div class="kpi-label">PROOFS SUBMITTED</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: Two-Column Workspace Layout -->
+    <div class="task-workspace-grid">
+
+      <!-- Left Workspace Column (75%) -->
+      <div class="workspace-main-col">
+        <!-- Description Card -->
+        <div class="desc-card mb-4">
+          <div class="desc-header">
+            <i class="bi bi-file-earmark-text desc-icon"></i>
+            Description
+          </div>
+          <div class="desc-body">
+            {{ task.description || 'No description provided for this task.' }}
           </div>
         </div>
-      </ng-container>
 
-      <!-- ==================== DEPARTMENTS ==================== -->
-      <ng-container *ngIf="!collapsed.departments">
-        <div class="card shadow-lg border-0 rounded-4 mt-5 animate__animated animate__fadeIn">
-          <div class="card-header gradient-header text-white text-center py-3 fs-5 fw-bold table_head">
-            <i class="bi bi-diagram-3 me-2"></i>Departments ({{ enrichedDepartments.length }})
+        <!-- Notion/Attio-style Tabs Navigation Card -->
+        <div class="workspace-tabs-card mb-4">
+          <div class="tabs-header-bar">
+            <button class="tab-nav-btn" [class.active]="activeTab === 'members'" (click)="activeTab = 'members'">
+              Team Members
+            </button>
+            <button class="tab-nav-btn" [class.active]="activeTab === 'departments'"
+              (click)="activeTab = 'departments'">
+              Departments
+            </button>
+            <button class="tab-nav-btn" [class.active]="activeTab === 'requests'" (click)="activeTab = 'requests'">
+              Requests <span class="tab-count-badge" *ngIf="task.requests?.length">{{ task.requests?.length }}</span>
+            </button>
+            <button class="tab-nav-btn" [class.active]="activeTab === 'activity'"
+              (click)="activeTab = 'activity'; collapsed.instances ? toggleCollapse('instances') : null">
+              Activity
+            </button>
+            <button class="tab-nav-btn" [class.active]="activeTab === 'proofs'" (click)="activeTab = 'proofs'">
+              Proofs
+            </button>
+            <button class="tab-nav-btn" [class.active]="activeTab === 'comments'" (click)="activeTab = 'comments'">
+              Comments
+            </button>
           </div>
-          <div class="card-body p-4">
-            <div class="table-responsive">
-              <table class="table table-hover align-middle">
-                <thead class="table_head">
-                  <tr>
-                    <th>Name</th>
-                    <th>HOD</th>
-                    <th>User Count</th>
-                    <th *ngIf="currentUserRole!='TEACHER'">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let d of enrichedDepartments">
-                    <td data-label="Name">{{ d.name }}</td>
-                    <td data-label="HOD">{{ d.hodName }}</td>
-                    <td data-label="Count">
-                      <span class="badge bg-primary rounded-pill">{{ d.userCount }}</span>
-                    </td>
-                    <td *ngIf="currentUserRole!='TEACHER'" data-label="Action" class="text-center">
-                      <button class="btn btn-sm btn-outline-info" (click)="viewDepartmentDetails(d.id)">
-                        <i class="bi bi-eye me-1"></i> View
-                      </button>
-                    </td>
-                  </tr>
-                  <tr *ngIf="!enrichedDepartments.length">
-                    <td colspan="4" class="text-center text-muted py-4">
-                      <i class="bi bi-building-x fs-4"></i><br>No departments linked.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </ng-container>
 
-      <!-- ==================== REQUESTS ==================== -->
-      <ng-container *ngIf="!collapsed.requests">
-        <div class="card shadow-lg border-0 rounded-4 mt-5 animate__animated animate__fadeIn">
-          <div class="card-header gradient-header text-white text-center py-3 fs-5 fw-bold table_head">
-            <i class="bi bi-journal-text me-2"></i>Task Requests ({{ task.requests?.length || 0 }})
-          </div>
-          <div class="card-body p-4">
-            <div class="table-responsive">
-              <table class="table table-hover align-middle">
-                <thead class="table_head">
-                  <tr>
-                    <th>ID</th>
-                    <th>Type</th>
-                    <th>Requested By</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Remarks</th>
-                    <th>Proofs</th>
-                    <th *ngIf="isAdmin || isHod">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let r of task.requests">
-                    <td data-label="ID">#{{ r.requestId }}</td>
-                    <td data-label="Type">
-                      <span class="badge" [ngClass]="r.requestType === 'CLOSURE' ? 'bg-danger' : 'bg-warning'">
-                        {{ r.requestType }}
-                      </span>
-                    </td>
-                    <td data-label="RequestedBy">{{ r.requestedByName }}</td>
-                    <td data-label="Date">{{ r.requestDate | date:'mediumDate' }}</td>
-                    <td data-label="Status">
-                      <span class="badge rounded-pill px-3 py-2" [ngClass]="getStatusBadgeClass(r.status)">
-                        {{ formatStatus(r.status) }}
-                      </span>
-                    </td>
-                    <td data-label="Remarks"><small>{{ r.remarks || '—' }}</small></td>
-                    <td data-label="Proofs">
-                      <button class="btn btn-sm btn-outline-success" (click)="openProofsModal(r)">
-                        <i class="bi bi-eye me-1"></i> {{ r.proofs?.length || 0 }}
-                      </button>
-                    </td>
-                    <td *ngIf="isAdmin || isHod" data-label="Action" class="text-center">
-
-                      <div class="btn-group" role="group" *ngIf="r.status === 'PENDING'; else viewOnly">
-
-                        <!-- ✅ Closure Approval (Admin + HOD) -->
-                        <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
-                          class="btn btn-sm btn-success" (click)="approveClosureRequest(r.requestId)">
-                          Approve
-                        </button>
-
-                        <!-- ✅ Extension Approval (Admin ONLY) -->
-                        <button *ngIf="r.requestType === 'EXTENSION' && isAdmin" class="btn btn-sm btn-success"
-                          (click)="showExtensionApprovalModal(r)">
-                          Approve
-                        </button>
-
-                        <!-- ✅ Reject (Admin + HOD Closure Only) -->
-                        <button *ngIf="canRejectRequest(r)" class="btn btn-sm btn-danger"
-                          (click)="showRejectionModal(r)">
-                          Reject
-                        </button>
-
-                      </div>
-
-                      <ng-template #viewOnly>
-                        <span class="text-muted small">Processed</span>
-                      </ng-template>
-
-                    </td>
-
-                  </tr>
-                  <tr *ngIf="!task.requests?.length">
-                    <td colspan="8" class="text-center text-muted py-4">
-                      <i class="bi bi-inbox fs-4"></i><br>No requests yet.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-
-      <!-- ==================== RECURRED INSTANCES ==================== -->
-      <ng-container *ngIf="!collapsed.instances">
-        <div class="card shadow-lg border-0 rounded-4 mt-5 animate__animated animate__fadeIn">
-          <div class="card-header gradient-header text-white text-center py-3 fs-5 fw-bold table_head">
-            <i class="bi bi-copy me-2"></i>Recurred Instances ({{ recurredInstances.length }})
-            <span *ngIf="isLoadingInstances" class="ms-2 spinner-border spinner-border-sm"></span>
-          </div>
-          <div class="card-body p-4">
-            <div *ngIf="isLoadingInstances" class="text-center py-4">
-              <div class="spinner-border text-secondary"></div>
-              <p class="mt-3 text-muted">Loading recurred instances...</p>
-            </div>
-
-            <div *ngIf="!isLoadingInstances">
+          <div class="tabs-content-pane">
+            <!-- Tab 1: Team Members Panel -->
+            <div *ngIf="activeTab === 'members'" class="animate__animated animate__fadeIn">
               <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                  <thead class="table_head">
+                <table class="table modern-tab-table align-middle mb-0">
+                  <thead>
                     <tr>
-                      <th>Sr. No.</th>
-                      <th>Title</th>
-                      <th>Description</th>
-                      <th>Due Date</th>
-                      <th>Status</th>
-                      <th>Action</th>
+                      <th>USER</th>
+                      <th>ROLE</th>
+                      <th>DEPARTMENT</th>
+                      <th>STATUS</th>
+                      <th>ACTION</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let instance of recurredInstances; let i = index">
-                      <td data-label="Sr. No.">{{ i + 1 }}</td>
-                      <td data-label="Title">
-                        <strong>{{ instance.title }}</strong>
-                        <small *ngIf="instance.taskId === taskId" class="ms-2 badge bg-info">Current</small>
+                    <tr *ngFor="let u of assignedUsers" (click)="viewUserProfile(u.userId)" class="cursor-pointer">
+                      <td>
+                        <div class="user-profile-cell">
+                          <div class="user-avatar-circle">
+                            {{ u.fullName.slice(0,2).toUpperCase() }}
+                          </div>
+                          <div class="user-meta-info">
+                            <span class="user-fullname">{{ u.fullName }}</span>
+                            <span class="user-email">{{ u.email }}</span>
+                          </div>
+                        </div>
                       </td>
-                      <td data-label="Description">
-                        <small class="text-muted">{{ (instance.description || '—') | slice:0:100 }}{{
-                          instance.description && instance.description.length > 100 ? '...' : '' }}</small>
+                      <td>
+                        <div class="role-badge-stack">
+                          <span class="role-badge badge-super"
+                            *ngIf="u.role === 'SUPER_ADMIN' || u.role === 'ADMIN'">SUPER</span>
+                          <span class="role-badge badge-admin">{{ u.role }}</span>
+                        </div>
                       </td>
-                      <td data-label="Due Date">
-                        {{ instance.dueDate | date:'mediumDate' }}
-                        <!-- <span *ngIf="isInstanceOverdue(instance)" class="ms-2 badge bg-danger blink">Overdue</span> -->
+                      <td>
+                        <span class="dept-text-cell">{{ u.departmentNames || '—' }}</span>
                       </td>
-                      <td data-label="Status">
-                        <span class="badge rounded-pill px-2 py-1" [ngClass]="getStatusBadgeClass(instance.status)">
-                          {{ formatStatus(instance.status) }}
+                      <td>
+                        <span class="status-indicator-active">
+                          <span class="dot-active"></span>
+                          {{ u.status || 'ACTIVE' }}
                         </span>
                       </td>
-                      <td data-label="Action" class="text-center">
-                        <button class="btn btn-sm btn-outline-primary me-1"
-                          (click)="viewInstanceDetails(instance.taskId)">
-                          <i class="bi bi-eye me-1"></i> Quick View
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" (click)="viewTaskById(instance.taskId)">
-                          <i class="bi bi-box-arrow-up-right me-1"></i> Full View
+                      <td>
+                        <button class="circle-view-btn" (click)="$event.stopPropagation(); viewUserProfile(u.userId)">
+                          <i class="bi bi-eye"></i>
                         </button>
                       </td>
                     </tr>
-                    <tr *ngIf="!recurredInstances || recurredInstances.length === 0">
-                      <td colspan="6" class="text-center text-muted py-4">
-                        <i class="bi bi-inbox fs-4"></i><br>No recurred instances found.
+                    <tr *ngIf="!assignedUsers.length">
+                      <td colspan="5" class="text-center text-muted py-5">
+                        <i class="bi bi-people fs-2 mb-2 d-block"></i>No assigned team members.
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
+            </div>
 
-              <!-- Instance summary -->
-              <!-- <div *ngIf="recurredInstances.length > 0" class="mt-4 pt-3 border-top">
-                <div class="row text-center">
-                  <div class="col-md-3 mb-2">
-                    <span class="badge bg-success rounded-pill px-3 py-2">
-                      {{ getInstanceCountByStatus('CLOSED') }} Completed
-                    </span>
+            <!-- Tab 2: Departments Panel -->
+            <div *ngIf="activeTab === 'departments'" class="animate__animated animate__fadeIn">
+              <div class="table-responsive">
+                <table class="table modern-tab-table align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>DEPARTMENT NAME</th>
+                      <th>HOD IN-CHARGE</th>
+                      <th>TOTAL MEMBERS</th>
+                      <th>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let d of enrichedDepartments" (click)="viewDepartmentDetails(d.id)"
+                      class="cursor-pointer">
+                      <td class="fw-semibold text-dark">{{ d.name }}</td>
+                      <td>{{ d.hodName || 'Not Assigned' }}</td>
+                      <td>
+                        <span class="badge bg-light text-dark px-2.5 py-1.5">{{ d.userCount }} Members</span>
+                      </td>
+                      <td>
+                        <button class="circle-view-btn" (click)="$event.stopPropagation(); viewDepartmentDetails(d.id)">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr *ngIf="!enrichedDepartments.length">
+                      <td colspan="4" class="text-center text-muted py-5">
+                        <i class="bi bi-building fs-2 mb-2 d-block"></i>No linked departments.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Tab 3: Requests Panel -->
+            <div *ngIf="activeTab === 'requests'" class="animate__animated animate__fadeIn">
+              <div class="requests-stack">
+                <div *ngFor="let r of task.requests" class="request-item-card" [ngClass]="{
+                  'req-border-closure': r.requestType === 'CLOSURE',
+                  'req-border-extension': r.requestType === 'EXTENSION'
+                }">
+                  <div class="req-left-icon">
+                    <div class="req-icon-round" [ngClass]="{
+                      'icon-closure': r.requestType === 'CLOSURE',
+                      'icon-extension': r.requestType === 'EXTENSION'
+                    }">
+                      <i class="bi"
+                        [ngClass]="r.requestType === 'CLOSURE' ? 'bi-check2-circle' : 'bi-calendar-plus'"></i>
+                    </div>
                   </div>
-                  <div class="col-md-3 mb-2">
-                    <span class="badge bg-primary rounded-pill px-3 py-2">
-                      {{ getInstanceCountByStatus('IN_PROGRESS') }} In Progress
-                    </span>
+                  <div class="req-mid-content">
+                    <div class="req-meta-badges">
+                      <span class="req-id-pill">#REQ-{{ r.requestId }}</span>
+                      <span class="req-type-pill"
+                        [ngClass]="r.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'">
+                        {{ r.requestType }} REQUEST
+                      </span>
+                    </div>
+                    <h4 class="req-title-text">{{ r.remarks || 'Task request pending execution details.' }}</h4>
+                    <div class="req-details-footer">
+                      <span><i class="bi bi-person"></i> {{ r.requestedByName }}</span>
+                      <span><i class="bi bi-calendar"></i> {{ r.requestDate | date:'mediumDate' }}</span>
+                      <span *ngIf="r.proofs?.length" class="cursor-pointer" (click)="openProofsModal(r)">
+                        <i class="bi bi-paperclip"></i> {{ r.proofs?.length }} File{{ (r.proofs?.length || 0) > 1 ? 's' : '' }}
+                      </span>
+                    </div>
                   </div>
-                  <div class="col-md-3 mb-2">
-                    <span class="badge bg-warning rounded-pill px-3 py-2">
-                      {{ getInstanceCountByStatus('PENDING') }} Pending
-                    </span>
-                  </div>
-                  <div class="col-md-3 mb-2">
-                    <span class="badge bg-danger rounded-pill px-3 py-2">
-                      {{ getInstanceCountByStatus('DELAYED') }} Delayed
-                    </span>
+                  <div class="req-actions-panel">
+                    <div *ngIf="r.status === 'PENDING'; else processedRequest" class="d-flex gap-2">
+                      <!-- Closure Approvals -->
+                      <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
+                        class="btn-req-action req-btn-approve" (click)="approveClosureRequest(r.requestId)">
+                        Approve
+                      </button>
+
+                      <!-- Extension Approvals -->
+                      <button *ngIf="r.requestType === 'EXTENSION' && isAdmin" class="btn-req-action req-btn-approve"
+                        (click)="showExtensionApprovalModal(r)">
+                        Approve
+                      </button>
+
+                      <!-- Rejections -->
+                      <button *ngIf="canRejectRequest(r)" class="btn-req-action req-btn-reject"
+                        (click)="showRejectionModal(r)">
+                        Reject
+                      </button>
+                    </div>
+                    <ng-template #processedRequest>
+                      <span class="processed-req-badge" [ngClass]="{
+                        'proc-approved': r.status === 'APPROVED',
+                        'proc-rejected': r.status === 'REJECTED'
+                      }">
+                        {{ r.status }}
+                      </span>
+                    </ng-template>
                   </div>
                 </div>
-              </div> -->
+
+                <div *ngIf="!task.requests?.length" class="text-center text-muted py-5 bg-light rounded-3">
+                  <i class="bi bi-inbox fs-2 mb-2 d-block"></i>No requests submitted.
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 4: Activity / Instances Panel -->
+            <div *ngIf="activeTab === 'activity'" class="animate__animated animate__fadeIn">
+              <!-- If Recurring, Show Instances list -->
+              <div *ngIf="task.isRecurring && isAdmin; else timelineActivity">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold mb-0 text-secondary">Recurred Schedule Tasks</h6>
+                  <span class="badge bg-secondary px-2.5 py-1.5">{{ recurredInstances.length }} Instances</span>
+                </div>
+                <div class="table-responsive">
+                  <table class="table modern-tab-table align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th>Sr. No.</th>
+                        <th>Title</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let instance of recurredInstances; let i = index">
+                        <td>{{ i + 1 }}</td>
+                        <td class="fw-semibold">
+                          {{ instance.title }}
+                          <span *ngIf="instance.taskId === taskId" class="badge bg-info ms-2">Current</span>
+                        </td>
+                        <td>{{ instance.dueDate | date:'mediumDate' }}</td>
+                        <td>
+                          <span class="badge rounded-pill px-2.5 py-1"
+                            [ngClass]="getInstanceStatusBadgeClass(instance)">
+                            {{ formatStatus(instance.status) }}
+                          </span>
+                        </td>
+                        <td class="text-end">
+                          <div class="btn-group gap-1">
+                            <button class="btn btn-sm btn-outline-primary rounded-3 px-3"
+                              (click)="viewInstanceDetails(instance.taskId)">
+                              Quick View
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary rounded-3 px-3"
+                              (click)="viewTaskById(instance.taskId)">
+                              Full View
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr *ngIf="!recurredInstances.length">
+                        <td colspan="5" class="text-center text-muted py-5">
+                          <i class="bi bi-inbox fs-2 mb-2 d-block"></i>No recurred instances found.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- General Timeline fallback -->
+              <ng-template #timelineActivity>
+                <div class="activity-timeline-wrapper py-2">
+                  <div class="timeline-log-item">
+                    <div class="timeline-log-icon-bullet bullet-blue">
+                      <i class="bi bi-play-fill"></i>
+                    </div>
+                    <div class="timeline-log-info">
+                      <div class="log-title">Status changed to <span class="text-primary fw-semibold">In Progress</span>
+                      </div>
+                      <div class="log-timestamp">2 hours ago</div>
+                    </div>
+                  </div>
+                  <div class="timeline-log-item">
+                    <div class="timeline-log-icon-bullet bullet-grey">
+                      <i class="bi bi-person-plus"></i>
+                    </div>
+                    <div class="timeline-log-info">
+                      <div class="log-title">Task assigned to <span class="fw-semibold text-dark">{{
+                          task.assignedToNames?.join(', ') || 'Team Members' }}</span></div>
+                      <div class="log-timestamp">Yesterday</div>
+                    </div>
+                  </div>
+                  <div class="timeline-log-item">
+                    <div class="timeline-log-icon-bullet bullet-green">
+                      <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <div class="timeline-log-info">
+                      <div class="log-title">Task created by <span class="fw-semibold text-dark">{{ task.createdByName
+                          }}</span></div>
+                      <div class="log-timestamp">{{ task.startDate | date:'mediumDate' }}</div>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </div>
+
+            <!-- Tab 5: Proofs Panel -->
+            <div *ngIf="activeTab === 'proofs'" class="animate__animated animate__fadeIn">
+              <div class="row g-3">
+                <div class="col-md-6 col-lg-4" *ngFor="let p of allProofs">
+                  <div class="proof-asset-card">
+                    <div class="proof-card-header">
+                      <div class="file-icon-square">
+                        <i class="bi" [ngClass]="{
+                          'bi-file-earmark-pdf-fill text-danger': p.fileType.toLowerCase().includes('pdf'),
+                          'bi-file-earmark-image-fill text-primary': p.fileType.toLowerCase().includes('image') || p.fileType.toLowerCase().includes('png') || p.fileType.toLowerCase().includes('jpg') || p.fileType.toLowerCase().includes('jpeg'),
+                          'bi-file-earmark-spreadsheet-fill text-success': p.fileType.toLowerCase().includes('sheet') || p.fileType.toLowerCase().includes('xls') || p.fileType.toLowerCase().includes('xlsx') || p.fileType.toLowerCase().includes('csv'),
+                          'bi-file-earmark-text-fill text-secondary': !p.fileType.toLowerCase().includes('pdf') && !p.fileType.toLowerCase().includes('image') && !p.fileType.toLowerCase().includes('png') && !p.fileType.toLowerCase().includes('jpg') && !p.fileType.toLowerCase().includes('jpeg') && !p.fileType.toLowerCase().includes('sheet') && !p.fileType.toLowerCase().includes('xls') && !p.fileType.toLowerCase().includes('xlsx') && !p.fileType.toLowerCase().includes('csv')
+                        }"></i>
+                      </div>
+                      <div class="proof-card-meta">
+                        <span class="proof-card-filename" [title]="getFileName(p.fileUrl)">{{ getFileName(p.fileUrl)
+                          }}</span>
+                        <span class="proof-card-type">{{ p.requestType === 'CLOSURE' ? 'Closure Request' : 'Extension Request' }} (#{{ p.requestId }})</span>
+                      </div>
+                    </div>
+                    <div class="proof-card-footer">
+                      <div class="proof-uploader-info">
+                        <span class="uploader-name">{{ p.uploadedByName }}</span>
+                        <span class="upload-date">{{ p.uploadedAt | date:'shortDate' }}</span>
+                      </div>
+                      <div class="proof-action-buttons">
+                        <a [href]="p.fileUrl" target="_blank" class="proof-icon-action-btn" title="Preview File">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                        <a [href]="p.fileUrl" target="_blank" class="proof-icon-action-btn" title="Download File">
+                          <i class="bi bi-download"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!allProofs?.length" class="col-12 text-center text-muted py-5 bg-light rounded-3">
+                  <i class="bi bi-paperclip fs-2 mb-2 d-block"></i>No proof files uploaded yet.
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 6: Comments Panel -->
+            <div *ngIf="activeTab === 'comments'" class="animate__animated animate__fadeIn">
+              <div class="comments-conversation-layout">
+                <!-- Thread List -->
+                <div class="comments-thread" *ngIf="comments && comments.length > 0">
+                  <div class="comment-bubble-item" *ngFor="let c of comments">
+                    <div class="comment-avatar" [ngClass]="getCommentAvatarClass(c.userRole)">{{ c.avatarInitials }}</div>
+                    <div class="comment-bubble-content">
+                      <div class="comment-bubble-meta">
+                        <span class="comment-author">
+                          {{ c.userName }}
+                          <span class="badge bg-light text-secondary ms-2 small fw-semibold" style="font-size: 0.65rem; border: 1px solid var(--border-light)">{{ c.userRole }}</span>
+                        </span>
+                        <span class="comment-time">{{ c.timestamp | date:'medium' }}</span>
+                      </div>
+                      <div class="comment-body-text">
+                        {{ c.text }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Empty State -->
+                <div *ngIf="!comments || comments.length === 0" class="col-12 text-center text-muted py-5 bg-light rounded-3 mb-3">
+                  <i class="bi bi-chat-left-dots fs-2 mb-2 d-block"></i>No comments yet. Start the conversation!
+                </div>
+
+                <!-- Input area -->
+                <div class="comment-input-area mt-4">
+                  <textarea class="form-control comment-textarea mb-2" rows="3"
+                    [(ngModel)]="newCommentText"
+                    placeholder="Write a comment... (Notion-style replies supported)"></textarea>
+                  <div class="d-flex justify-content-end">
+                    <button class="btn btn-primary px-4 py-2 rounded-3" (click)="addComment()">
+                      Comment
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Recent Requests Section below tabs -->
+        <div class="recent-requests-section mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="recent-req-heading">Recent Requests</h3>
+            <a (click)="activeTab = 'requests'" class="view-all-link cursor-pointer">View All</a>
+          </div>
+
+          <div class="requests-stack">
+            <div *ngFor="let r of task.requests | slice:0:2" class="request-item-card" [ngClass]="{
+              'req-border-closure': r.requestType === 'CLOSURE',
+              'req-border-extension': r.requestType === 'EXTENSION'
+            }">
+              <div class="req-left-icon">
+                <div class="req-icon-round" [ngClass]="{
+                  'icon-closure': r.requestType === 'CLOSURE',
+                  'icon-extension': r.requestType === 'EXTENSION'
+                }">
+                  <i class="bi" [ngClass]="r.requestType === 'CLOSURE' ? 'bi-check2-circle' : 'bi-calendar-plus'"></i>
+                </div>
+              </div>
+              <div class="req-mid-content">
+                <div class="req-meta-badges">
+                  <span class="req-id-pill">#REQ-{{ r.requestId }}</span>
+                  <span class="req-type-pill"
+                    [ngClass]="r.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'">
+                    {{ r.requestType }} REQUEST
+                  </span>
+                </div>
+                <h4 class="req-title-text">{{ r.remarks || 'Task request pending execution details.' }}</h4>
+                <div class="req-details-footer">
+                  <span><i class="bi bi-person"></i> {{ r.requestedByName }}</span>
+                  <span><i class="bi bi-calendar"></i> {{ r.requestDate | date:'mediumDate' }}</span>
+                  <span *ngIf="r.proofs?.length" class="cursor-pointer" (click)="openProofsModal(r)">
+                    <i class="bi bi-paperclip"></i> {{ r.proofs?.length }} File{{ (r.proofs?.length || 0) > 1 ? 's' : '' }}
+                  </span>
+                </div>
+              </div>
+              <div class="req-actions-panel">
+                <div *ngIf="r.status === 'PENDING'; else processedReq" class="d-flex gap-2">
+                  <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
+                    class="btn-req-action req-btn-approve" (click)="approveClosureRequest(r.requestId)">
+                    Approve
+                  </button>
+                  <button *ngIf="r.requestType === 'EXTENSION' && isAdmin" class="btn-req-action req-btn-approve"
+                    (click)="showExtensionApprovalModal(r)">
+                    Approve
+                  </button>
+                  <button *ngIf="canRejectRequest(r)" class="btn-req-action req-btn-reject"
+                    (click)="showRejectionModal(r)">
+                    Reject
+                  </button>
+                </div>
+                <ng-template #processedReq>
+                  <span class="processed-req-badge" [ngClass]="{
+                    'proc-approved': r.status === 'APPROVED',
+                    'proc-rejected': r.status === 'REJECTED'
+                  }">
+                    {{ r.status }}
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+            <div *ngIf="!task.requests?.length" class="text-center text-muted py-4 border rounded-3 bg-white">
+              No recent requests found.
             </div>
           </div>
         </div>
-      </ng-container>
 
-      <!-- ==================== BACK BUTTON ==================== -->
-      <div class="text-center mt-5">
-        <button class="btn btn-outline-secondary px-4 py-2" (click)="goBack()">
-          <i class="bi bi-arrow-left-circle me-2"></i>Back to Tasks
-        </button>
       </div>
 
-    </div> <!-- End card-body -->
-  </div> <!-- End task card -->
+      <!-- Right Workspace Sidebar Column (25%) -->
+      <div class="workspace-side-col">
+        <div class="sticky-sidebar">
 
-</div> <!-- End container -->
+          <!-- Task Information Card -->
+          <div class="sidebar-card mb-4">
+            <div class="sidebar-card-title">
+              <i class="bi bi-info-circle info-icon"></i>
+              Task Information
+            </div>
 
-<!-- ==================== MODALS (Outside Container) ==================== -->
+            <div class="sidebar-meta-list">
+              <!-- Created By -->
+              <div class="sidebar-meta-item">
+                <div class="meta-label-top">CREATED BY</div>
+                <div class="creator-profile-cell">
+                  <div class="creator-avatar-circle">
+                    {{ creatorInitials }}
+                  </div>
+                  <span class="creator-name">{{ task.createdByName }}</span>
+                </div>
+              </div>
 
-<!-- Proofs Modal -->
-<div class="modal fade" id="proofsModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content rounded-4 shadow-lg">
-      <div class="modal-header gradient-header text-white">
-        <h5 class="modal-title"><i class="bi bi-paperclip me-2"></i>Request Proofs ({{ selectedRequestProofs.length }})
+              <!-- Start & Due dates side-by-side -->
+              <div class="sidebar-meta-item">
+                <div class="row g-2">
+                  <div class="col-6">
+                    <div class="meta-label-top">START DATE</div>
+                    <div class="meta-date-value">{{ task.startDate | date:'mediumDate' }}</div>
+                  </div>
+                  <div class="col-6">
+                    <div class="meta-label-top">DUE DATE</div>
+                    <div class="meta-date-value" [class.overdue-red]="isTaskOverdue()">
+                      {{ task.dueDate | date:'mediumDate' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Requires Approval -->
+              <div class="sidebar-meta-item">
+                <div class="meta-label-top">REQUIRES APPROVAL</div>
+                <div class="approval-status-indicator">
+                  <i class="bi"
+                    [ngClass]="task.requiresApproval ? 'bi-shield-check text-warning' : 'bi-x-circle text-danger'"></i>
+                  <span class="approval-status-text">
+                    {{ task.requiresApproval ? 'Requires Approval' : 'No Approval Required' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Priority -->
+              <div class="sidebar-meta-item">
+                <div class="meta-label-top">PRIORITY</div>
+                <div class="priority-status-indicator">
+                  <span class="dot-priority-red"></span>
+                  <span class="priority-text">Critical (High)</span>
+                </div>
+              </div>
+
+              <!-- Task Type -->
+              <div class="sidebar-meta-item pb-0 border-0">
+                <div class="meta-label-top">TASK TYPE</div>
+                <div class="type-status-indicator">
+                  <i class="bi bi-mortarboard text-primary"></i>
+                  <span class="type-text">Academic Activity</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Back to Task Board Button -->
+          <div class="sidebar-nav-button-container mb-4">
+            <button class="btn btn-sidebar-back w-100" (click)="goBack()">
+              <i class="bi bi-arrow-left me-2"></i> Back to Task Board
+            </button>
+          </div>
+
+          <!-- Recent Logs Card -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-title border-0 pb-1 mb-2">
+              Recent Logs
+            </div>
+
+            <div class="timeline-logs-list">
+              <div class="timeline-log-row">
+                <div class="timeline-bullet bullet-blue-sm">
+                  <i class="bi bi-check2"></i>
+                </div>
+                <div class="timeline-log-content">
+                  <div class="log-desc-text">Status changed to <span class="text-primary fw-semibold">In Progress</span>
+                  </div>
+                  <div class="log-time-text">2 hours ago</div>
+                </div>
+              </div>
+              <div class="timeline-log-row">
+                <div class="timeline-bullet bullet-grey-sm">
+                  <i class="bi bi-person"></i>
+                </div>
+                <div class="timeline-log-content">
+                  <div class="log-desc-text">Task assigned to Divyansh</div>
+                  <div class="log-time-text">Yesterday</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- 1. View Request Proofs Modal -->
+<div class="modal fade custom-modern-modal" id="proofsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+          <i class="bi bi-paperclip text-success"></i>Request Proof Details
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div *ngIf="selectedRequestProofs.length === 0" class="text-center py-4 text-muted">
-          <i class="bi bi-inbox fs-3"></i><br>No proofs attached.
+
+        <!-- Remarks/Notes -->
+        <div *ngIf="selectedRequestRemarks" class="mb-4">
+          <h6 class="modal-sub-label">Remarks / Completion Notes</h6>
+          <div class="p-3 border rounded-3 bg-light text-secondary">
+            {{ selectedRequestRemarks }}
+          </div>
         </div>
-        <div class="row">
-          <div class="col-md-6 mb-3" *ngFor="let p of selectedRequestProofs">
-            <div class="border rounded p-3 h-100 d-flex flex-column justify-content-between">
-              <div>
-                <strong>{{ getFileName(p.fileUrl) }}</strong><br>
-                <small class="text-muted">{{ p.fileType }} • {{ (p.fileSize / 1024).toFixed(2) }} KB</small><br>
-                <small class="text-muted">Uploaded: {{ p.uploadedAt | date:'medium' }}</small>
-              </div>
-              <div class="mt-2">
-                <a [href]="p.fileUrl" target="_blank" class="btn btn-sm btn-outline-success w-100">
-                  <i class="bi bi-download me-1"></i> Download
-                </a>
+
+        <!-- Student Entries -->
+        <div *ngIf="selectedRequestStructuredProof?.studentEntries?.length" class="mb-4">
+          <h6 class="modal-sub-label">Student Entries</h6>
+          <div class="table-responsive border rounded-3 overflow-hidden bg-white">
+            <table class="table table-sm mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-3 py-2">Student Name</th>
+                  <th class="py-2">Enrollment ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let s of selectedRequestStructuredProof.studentEntries">
+                  <td class="ps-3 py-2 fw-medium">{{ s.studentName }}</td>
+                  <td class="py-2 text-muted">{{ s.enrollmentId }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Topics Covered -->
+        <div *ngIf="selectedRequestStructuredProof?.topicEntries?.length" class="mb-4">
+          <h6 class="modal-sub-label">Topics Covered</h6>
+          <ul class="list-group border rounded-3 bg-white">
+            <li class="list-group-item d-flex align-items-center gap-2 border-0 border-bottom"
+              *ngFor="let t of selectedRequestStructuredProof.topicEntries">
+              <i class="bi bi-check-circle-fill text-success"></i>
+              <span class="fw-medium">{{ t.topicName }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Attendance Sheets -->
+        <div *ngIf="selectedRequestStructuredProof?.attendanceSheets?.length" class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="modal-sub-label mb-0">Attendance Sheet Records</h6>
+            <div *ngIf="selectedRequestStructuredProof.attendanceSheets[0]?.fileUrl">
+              <a [href]="selectedRequestStructuredProof.attendanceSheets[0].fileUrl" target="_blank"
+                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                <i class="bi bi-download"></i> Download Original Sheet
+              </a>
+            </div>
+          </div>
+          <div class="table-responsive border rounded-3 bg-white" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-sm mb-0">
+              <thead class="table-light sticky-top">
+                <tr>
+                  <th class="ps-3 py-2">Student Name</th>
+                  <th class="py-2">Lectures Attended</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of selectedRequestStructuredProof.attendanceSheets">
+                  <td class="ps-3 py-2 fw-medium">{{ a.studentName }}</td>
+                  <td class="py-2 text-muted">{{ a.lecturesAttended }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Uploaded Proof Files -->
+        <div *ngIf="selectedRequestProofs.length" class="mb-4">
+          <h6 class="modal-sub-label">Uploaded Support Files</h6>
+          <div class="row g-3">
+            <div class="col-md-6" *ngFor="let p of selectedRequestProofs">
+              <div class="modal-proof-file-card">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-file-earmark-text text-primary fs-3"></i>
+                  <div class="text-truncate">
+                    <strong class="text-dark text-truncate d-block" style="font-size: 0.9rem;">{{ getFileName(p.fileUrl)
+                      }}</strong>
+                    <span class="badge bg-light text-secondary border mt-1">{{ p.fileType }}</span>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <a [href]="p.fileUrl" target="_blank" class="btn btn-sm btn-outline-primary w-100 py-1.5 rounded-3">
+                    <i class="bi bi-download me-1"></i> Download File
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Fallback if no files or data -->
+        <div
+          *ngIf="!selectedRequestStructuredProof?.studentEntries?.length && !selectedRequestStructuredProof?.topicEntries?.length && !selectedRequestStructuredProof?.attendanceSheets?.length && !selectedRequestProofs.length"
+          class="text-center py-5 text-muted bg-light rounded-3">
+          <i class="bi bi-inbox fs-2 mb-2 d-block"></i>No proofs or completion files attached to this request.
+        </div>
+
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Rejection Modal -->
-<div class="modal fade" id="rejectionModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content rounded-4 shadow-lg">
-      <div class="modal-header gradient-header text-white">
-        <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Reject Request</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- 2. Rejection Reason Modal -->
+<div class="modal fade custom-modern-modal" id="rejectionModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-danger">
+          <i class="bi bi-x-circle-fill"></i>Reject Request
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label fw-bold">Rejection Reason <span class="text-danger">*</span></label>
-          <textarea [(ngModel)]="rejectionReason" class="form-control" rows="4"
-            placeholder="Please provide a reason for rejecting this request..." required></textarea>
-          <div class="form-text">This reason will be shared with the requester.</div>
+          <label class="form-label fw-semibold">Rejection Reason <span class="text-danger">*</span></label>
+          <textarea [(ngModel)]="rejectionReason" class="form-control modal-textarea" rows="4"
+            placeholder="Please detail why you are rejecting this request..." required></textarea>
+          <div class="form-text mt-2 text-muted">This feedback will be shared directly with the requester to help them
+            correct the work.</div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-danger" [disabled]="!rejectionReason.trim()" (click)="confirmRejection()">
-          <i class="bi bi-x-circle me-1"></i> Reject Request
+        <button class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger px-4 rounded-3" [disabled]="!rejectionReason.trim()" (click)="confirmRejection()">
+          Reject Request
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Extension Approval Modal -->
-<div class="modal fade" id="extensionApprovalModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content rounded-4 shadow-lg">
-      <div class="modal-header gradient-header text-white">
-        <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Approve Extension</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- 3. Extension Approval Modal -->
+<div class="modal fade custom-modern-modal" id="extensionApprovalModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-plus text-primary"></i>Approve Extension
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label fw-bold">Current Due Date</label>
-          <input type="text" class="form-control" [value]="task?.dueDate | date:'mediumDate'" readonly>
+          <label class="form-label fw-semibold">Current Due Date</label>
+          <input type="text" class="form-control modal-input-readonly" [value]="task?.dueDate | date:'mediumDate'"
+            readonly disabled>
         </div>
         <div class="mb-3">
-          <label class="form-label fw-bold">New Due Date <span class="text-danger">*</span></label>
-          <input type="date" [(ngModel)]="extensionDueDate" class="form-control" [min]="todayDate" required>
-          <div class="form-text">Select a date after the current due date.</div>
+          <label class="form-label fw-semibold">New Approved Due Date <span class="text-danger">*</span></label>
+          <input type="date" [(ngModel)]="extensionDueDate" class="form-control modal-datepicker" [min]="todayDate"
+            required>
+          <div class="form-text mt-1 text-muted">Select an approved date extension after the current due date.</div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-success" [disabled]="!extensionDueDate" (click)="confirmExtensionApproval()">
-          <i class="bi bi-check-circle me-1"></i> Approve Extension
+        <button class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success px-4 rounded-3" [disabled]="!extensionDueDate"
+          (click)="confirmExtensionApproval()">
+          Approve Extension
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Add Request Modal -->
-<div class="modal fade" id="addRequestModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content rounded-4 shadow-lg">
-      <div class="modal-header gradient-header text-white">
-        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Submit Request</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- 4. Add Request Modal -->
+<div class="modal fade custom-modern-modal" id="addRequestModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+          <i class="bi bi-plus-circle text-primary"></i>Submit Completion or Extension Request
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form #requestForm="ngForm">
-          <!-- Task Info -->
-          <div class="alert alert-info mb-4">
-            <h6 class="alert-heading">Task Information</h6>
-            <p class="mb-1"><strong>Task:</strong> {{ task?.title }}</p>
-            <p class="mb-0"><strong>Current Due Date:</strong> {{ task?.dueDate | date:'mediumDate' }}</p>
+
+          <!-- Task Info banner -->
+          <div class="modal-alert-banner mb-4">
+            <div>
+              <div class="small text-muted uppercase-tracking">Submitting request for</div>
+              <strong class="text-dark">{{ task?.title }}</strong>
+            </div>
+            <div class="text-end">
+              <div class="small text-muted uppercase-tracking">Current Due Date</div>
+              <strong class="text-dark">{{ task?.dueDate | date:'mediumDate' }}</strong>
+            </div>
           </div>
 
-          <!-- Request Type -->
+          <!-- Request Type Select -->
           <div class="mb-4">
-            <label class="form-label fw-bold">Request Type <span class="text-danger">*</span></label>
-            <div class="row">
-              <div class="col-md-6 mb-2">
-                <div class="form-check card border h-100"
-                  [class.border-primary]="newRequest.requestType === 'EXTENSION'">
-                  <input class="form-check-input" type="radio" name="requestType" id="extension"
-                    [(ngModel)]="newRequest.requestType" value="EXTENSION" required>
-                  <label class="form-check-label card-body" for="extension">
-                    <h6 class="card-title"><i class="bi bi-calendar-plus text-warning me-2"></i>Extension Request</h6>
-                    <p class="card-text small">Request additional time to complete the task. Requires a valid reason.
-                    </p>
-                  </label>
+            <label class="form-label fw-semibold mb-2">Request Type <span class="text-danger">*</span></label>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="modal-radio-card" [class.active-warning]="newRequest.requestType === 'EXTENSION'"
+                  (click)="newRequest.requestType = 'EXTENSION'">
+                  <div class="form-check m-0 mt-1">
+                    <input class="form-check-input" type="radio" name="requestType" id="extension"
+                      [(ngModel)]="newRequest.requestType" value="EXTENSION" required>
+                  </div>
+                  <div>
+                    <label class="form-check-label fw-bold d-block text-warning" for="extension">
+                      <i class="bi bi-calendar-plus me-1"></i>Extension Request
+                    </label>
+                    <small class="text-muted mt-1 d-block">Request additional time to complete task targets. Requires
+                      justification.</small>
+                  </div>
                 </div>
               </div>
-              <div class="col-md-6 mb-2">
-                <div class="form-check card border h-100" [class.border-primary]="newRequest.requestType === 'CLOSURE'">
-                  <input class="form-check-input" type="radio" name="requestType" id="closure"
-                    [(ngModel)]="newRequest.requestType" value="CLOSURE" required>
-                  <label class="form-check-label card-body" for="closure">
-                    <h6 class="card-title"><i class="bi bi-check-circle text-success me-2"></i>Closure Request</h6>
-                    <p class="card-text small">Request to close the task. Requires proof of completion.</p>
-                  </label>
+              <div class="col-md-6">
+                <div class="modal-radio-card" [class.active-success]="newRequest.requestType === 'CLOSURE'"
+                  (click)="newRequest.requestType = 'CLOSURE'">
+                  <div class="form-check m-0 mt-1">
+                    <input class="form-check-input" type="radio" name="requestType" id="closure"
+                      [(ngModel)]="newRequest.requestType" value="CLOSURE" required>
+                  </div>
+                  <div>
+                    <label class="form-check-label fw-bold d-block text-success" for="closure">
+                      <i class="bi bi-check-circle me-1"></i>Closure Request
+                    </label>
+                    <small class="text-muted mt-1 d-block">Submit the task for completion review. Requires proof of
+                      execution.</small>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Remarks -->
-          <div class="mb-4">
-            <label class="form-label fw-bold">
-              {{ newRequest.requestType === 'EXTENSION' ? 'Extension Reason' : 'Completion Notes' }}
+          <!-- Remarks / Description -->
+          <div class="mb-4" *ngIf="newRequest.requestType">
+            <label class="form-label fw-semibold">
+              {{ newRequest.requestType === 'EXTENSION' ? 'Extension Reason' : 'Completion Details' }}
               <span class="text-danger">*</span>
             </label>
-            <textarea class="form-control" [(ngModel)]="newRequest.remarks" name="remarks" rows="4" [placeholder]="newRequest.requestType === 'EXTENSION' 
-                                   ? 'Explain why you need an extension...' 
-                                   : 'Describe how the task was completed...'" required></textarea>
-            <div class="form-text">
-              {{ newRequest.requestType === 'EXTENSION'
-              ? 'Be specific about the challenges and why you need more time.'
-              : 'Provide details about the completed work.' }}
+            <textarea class="form-control modal-textarea" [(ngModel)]="newRequest.remarks" name="remarks" rows="4"
+              [placeholder]="newRequest.requestType === 'EXTENSION' ? 'Provide a clear rationale for the extension...' : 'Summarize details of the completed task actions...'"
+              required></textarea>
+            <div class="form-text text-muted mt-1">
+              {{ newRequest.requestType === 'EXTENSION' ? 'Explain the challenges you faced and why more time is
+              needed.' : 'Detail the outputs and outcomes.' }}
             </div>
           </div>
 
-          <!-- Proofs -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">
-              <i class="bi bi-paperclip me-1"></i>
-              {{ newRequest.requestType === 'CLOSURE' ? 'Completion Proofs' : 'Supporting Documents' }}
-              <span class="text-danger" *ngIf="newRequest.requestType === 'CLOSURE'">*</span>
-              <span class="text-muted small ms-2">(Max 10MB per file)</span>
-            </label>
-            <div class="input-group">
-              <input type="file" class="form-control" multiple (change)="onProofsSelected($event)"
-                [accept]="'.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt'">
-              <button class="btn btn-outline-secondary" type="button"
-                onclick="document.querySelector('input[type=file]').value='';">
-                <i class="bi bi-x-circle"></i>
+          <!-- ==================== DYNAMIC TEMPLATE PROOFS (CLOSURE only) ==================== -->
+          <div *ngIf="newRequest.requestType === 'CLOSURE' && task?.template"
+            class="mb-4 p-4 border rounded-3 bg-light">
+            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-primary" style="font-size: 0.95rem;">
+              <i class="bi bi-shield-lock-fill"></i>Required Template Proof Inputs
+            </h6>
+
+            <!-- 1. STUDENT_ENTRIES Section -->
+            <div *ngIf="hasProofRequirement('STUDENT_ENTRIES')" class="mb-4">
+              <label class="form-label fw-semibold">Admitted Students Listing <span class="text-danger"
+                  *ngIf="isProofRequirementRequired('STUDENT_ENTRIES')">*</span></label>
+              <div class="form-text text-muted mb-3">Provide Student Names and their Enrollment IDs.</div>
+
+              <div *ngFor="let entry of studentEntriesList; let i = index"
+                class="row g-2 mb-2 align-items-center animate__animated animate__fadeIn">
+                <div class="col-md-5">
+                  <input type="text" class="form-control modal-text-input" placeholder="Student Name"
+                    [(ngModel)]="entry.studentName" name="studentName-{{i}}"
+                    [required]="isProofRequirementRequired('STUDENT_ENTRIES')">
+                </div>
+                <div class="col-md-5">
+                  <input type="text" class="form-control modal-text-input" placeholder="Enrollment ID"
+                    [(ngModel)]="entry.enrollmentId" name="enrollmentId-{{i}}"
+                    [required]="isProofRequirementRequired('STUDENT_ENTRIES')">
+                </div>
+                <div class="col-md-2 text-end">
+                  <button type="button" class="btn btn-outline-danger py-2 px-2.5 rounded-3"
+                    (click)="removeStudentEntry(i)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-sm btn-outline-primary mt-2 rounded-3" (click)="addStudentEntry()">
+                <i class="bi bi-plus-circle me-1"></i> Add Student Row
               </button>
             </div>
 
-            <!-- Selected files -->
+            <!-- 2. ATTENDANCE_UPLOAD Section -->
+            <div *ngIf="hasProofRequirement('ATTENDANCE_UPLOAD')" class="mb-4">
+              <label class="form-label fw-semibold">Attendance Sheet Excel/CSV Upload <span class="text-danger"
+                  *ngIf="isProofRequirementRequired('ATTENDANCE_UPLOAD')">*</span></label>
+              <div class="form-text text-muted mb-2">Upload the sheet detailing lecture counts per student.</div>
+              <input type="file" class="form-control modal-file-input" (change)="onAttendanceFileSelected($event)"
+                accept=".xlsx,.xls,.csv" [required]="isProofRequirementRequired('ATTENDANCE_UPLOAD')">
+
+              <div *ngIf="attendanceFile"
+                class="alert alert-success mt-2 mb-0 py-2 d-flex justify-content-between align-items-center rounded-3">
+                <span class="d-flex align-items-center gap-2">
+                  <i class="bi bi-file-earmark-spreadsheet-fill text-success"></i>
+                  <span>{{ attendanceFile.name }} ({{ (attendanceFile.size/1024).toFixed(2) }} KB)</span>
+                </span>
+                <button type="button" class="btn-close" (click)="attendanceFile = null"></button>
+              </div>
+            </div>
+
+            <!-- 3. TOPICS_LIST Section -->
+            <div *ngIf="hasProofRequirement('TOPICS_LIST')">
+              <label class="form-label fw-semibold">Syllabus Topics Covered <span class="text-danger"
+                  *ngIf="isProofRequirementRequired('TOPICS_LIST')">*</span></label>
+              <div class="form-text text-muted mb-3">Add headings/chapters covered in this period.</div>
+
+              <div *ngFor="let topic of topicsList; let i = index"
+                class="d-flex gap-2 mb-2 align-items-center animate__animated animate__fadeIn">
+                <input type="text" class="form-control modal-text-input"
+                  placeholder="e.g., Chapter 1: Introduction to Web Design" [(ngModel)]="topicsList[i]"
+                  name="topic-{{i}}" [required]="isProofRequirementRequired('TOPICS_LIST')">
+                <button type="button" class="btn btn-outline-danger py-2 px-2.5 rounded-3" (click)="removeTopic(i)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+
+              <button type="button" class="btn btn-sm btn-outline-primary mt-2 rounded-3" (click)="addTopic()">
+                <i class="bi bi-plus-circle me-1"></i> Add Topic
+              </button>
+            </div>
+          </div>
+
+          <!-- Attach Supporting Documents/Files -->
+          <div class="mb-3" *ngIf="newRequest.requestType">
+            <label class="form-label fw-semibold d-flex justify-content-between">
+              <span>
+                <i class="bi bi-paperclip me-1"></i>
+                {{ newRequest.requestType === 'CLOSURE' ? 'Additional Supporting Proof Files' : 'Supporting
+                Documentation' }}
+                <span class="text-danger" *ngIf="newRequest.requestType === 'CLOSURE' && !task?.template">*</span>
+              </span>
+              <span class="text-muted small">Max 10MB per file</span>
+            </label>
+            <div class="input-group">
+              <input type="file" class="form-control modal-file-input" multiple (change)="onProofsSelected($event)"
+                [accept]="'.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt'">
+            </div>
+
+            <!-- Upload File Previews -->
             <div *ngIf="selectedProofs.length > 0" class="mt-3">
-              <div class="alert alert-light border">
-                <h6 class="alert-heading">Selected Files ({{ selectedProofs.length }})</h6>
-                <div class="mt-2">
+              <div class="border rounded-3 p-3 bg-light">
+                <h6 class="fw-bold mb-2 small text-uppercase tracking-wider">Selected Files ({{ selectedProofs.length
+                  }})</h6>
+                <div class="d-flex flex-column gap-2">
                   <div *ngFor="let f of selectedProofs; let i = index"
-                    class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
-                    <div class="d-flex align-items-center" style="max-width: 70%;">
-                      <i class="bi bi-file-earmark me-2 text-primary"></i>
-                      <div class="text-truncate">
-                        <div class="small">{{ f.name }}</div>
-                        <div class="text-muted extra-small">({{ (f.size/1024/1024).toFixed(2) }} MB)</div>
-                      </div>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeProof(i)">
-                      <i class="bi bi-trash"></i>
+                    class="d-flex justify-content-between align-items-center p-2 rounded bg-white border">
+                    <span class="d-flex align-items-center gap-2 text-truncate" style="max-width: 80%;">
+                      <i class="bi bi-file-earmark-code text-primary"></i>
+                      <span class="small text-dark text-truncate">{{ f.name }}</span>
+                      <span class="text-muted extra-small">({{ (f.size/1024/1024).toFixed(2) }} MB)</span>
+                    </span>
+                    <button type="button" class="btn btn-sm btn-link text-danger p-0 border-0" (click)="removeProof(i)">
+                      <i class="bi bi-trash fs-6"></i>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
         </form>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-success" [disabled]="isAddingReq || !requestForm.valid || 
-                           (newRequest.requestType === 'CLOSURE' && selectedProofs.length === 0) ||
+        <button class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success px-4 rounded-3" [disabled]="isAddingReq || !requestForm.valid || 
+                           (newRequest.requestType === 'CLOSURE' && !task?.template && selectedProofs.length === 0) ||
+                           (newRequest.requestType === 'CLOSURE' && task?.template && !isTemplateClosureValid) ||
                            (newRequest.requestType === 'EXTENSION' && !newRequest.remarks.trim())"
           (click)="addRequest()">
-          <i *ngIf="isAddingReq" class="bi bi-hourglass-split spinner me-2"></i>
+          <i *ngIf="isAddingReq" class="bi bi-arrow-repeat spinner me-2"></i>
           <i *ngIf="!isAddingReq" class="bi bi-send me-2"></i>
           {{ isAddingReq ? 'Submitting...' : 'Submit Request' }}
         </button>
@@ -726,78 +1131,101 @@
   </div>
 </div>
 
-<!-- View Instance Details Modal -->
-<div class="modal fade" id="viewInstanceModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content rounded-4 shadow-lg">
-      <div class="modal-header gradient-header text-white">
-        <h5 class="modal-title"><i class="bi bi-eye me-2"></i>Instance Details</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- 5. View Instance Details Modal -->
+<div class="modal fade custom-modern-modal" id="viewInstanceModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+          <i class="bi bi-eye text-primary"></i>Instance Quick Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" *ngIf="selectedInstance">
-        <!-- Instance Header -->
-        <div class="alert alert-light border mb-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">{{ selectedInstance.title }}</h6>
-            <span class="badge rounded-pill px-3 py-2" [ngClass]="getStatusBadgeClass(selectedInstance.status)">
-              {{ formatStatus(selectedInstance.status) }}
-            </span>
-          </div>
+
+        <!-- Header status banner -->
+        <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-light mb-4">
+          <h6 class="mb-0 fw-bold">{{ selectedInstance.title }}</h6>
+          <span class="badge rounded-pill px-3 py-1.5" [ngClass]="getStatusBadgeClass(selectedInstance.status)">
+            {{ formatStatus(selectedInstance.status) }}
+          </span>
         </div>
 
-        <!-- Instance Details -->
-        <div class="row mb-4">
+        <div class="row g-3 mb-4">
           <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
-              <div class="card-body">
-                <h6 class="card-title border-bottom pb-2"><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
-                <p class="mb-2"><strong>Instance ID:</strong> {{ selectedInstance.taskId }}</p>
-                <p class="mb-2"><strong>Created By:</strong> {{ selectedInstance.createdByName }}</p>
-                <p class="mb-2"><strong>Start Date:</strong> {{ selectedInstance.startDate | date:'mediumDate' }}</p>
-                <p class="mb-0"><strong>Due Date:</strong> {{ selectedInstance.dueDate | date:'mediumDate' }}</p>
-              </div>
+            <div class="card h-100 p-3 shadow-none border rounded-3">
+              <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="bi bi-info-circle me-1 text-primary"></i>Basic
+                Information</h6>
+              <ul class="meta-list">
+                <li class="meta-item py-2">
+                  <span class="meta-label">Instance ID</span>
+                  <span class="meta-value text-muted">#{{ selectedInstance.taskId }}</span>
+                </li>
+                <li class="meta-item py-2">
+                  <span class="meta-label">Created By</span>
+                  <span class="meta-value">{{ selectedInstance.createdByName }}</span>
+                </li>
+                <li class="meta-item py-2">
+                  <span class="meta-label">Start Date</span>
+                  <span class="meta-value">{{ selectedInstance.startDate | date:'mediumDate' }}</span>
+                </li>
+                <li class="meta-item py-2">
+                  <span class="meta-label">Due Date</span>
+                  <span class="meta-value fw-bold">{{ selectedInstance.dueDate | date:'mediumDate' }}</span>
+                </li>
+              </ul>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
-              <div class="card-body">
-                <h6 class="card-title border-bottom pb-2"><i class="bi bi-graph-up me-2"></i>Statistics</h6>
-                <p class="mb-2"><strong>Assigned Users:</strong> {{ selectedInstance.assignedToIds?.length || 0 }}</p>
-                <p class="mb-2"><strong>Departments:</strong> {{ selectedInstance.departmentIds?.length || 0 }}</p>
-                <p class="mb-2"><strong>Requests:</strong> {{ selectedInstance.requests?.length || 0 }}</p>
-                <p class="mb-0"><strong>Proofs:</strong> {{ selectedInstance.proofs?.length || 0 }}</p>
-              </div>
+            <div class="card h-100 p-3 shadow-none border rounded-3">
+              <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="bi bi-graph-up me-1 text-primary"></i>Statistics
+              </h6>
+              <ul class="meta-list">
+                <li class="meta-item py-2">
+                  <span class="meta-label">Assigned Users</span>
+                  <span class="meta-value">{{ selectedInstance.assignedToIds?.length || 0 }}</span>
+                </li>
+                <li class="meta-item py-2">
+                  <span class="meta-label">Linked Departments</span>
+                  <span class="meta-value">{{ selectedInstance.departmentIds?.length || 0 }}</span>
+                </li>
+                <li class="meta-item py-2">
+                  <span class="meta-label">Total Requests</span>
+                  <span class="meta-value">{{ selectedInstance.requests?.length || 0 }}</span>
+                </li>
+                <li class="meta-item py-2">
+                  <span class="meta-label">Proof Files</span>
+                  <span class="meta-value">{{ selectedInstance.proofs?.length || 0 }}</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
 
-        <!-- Description -->
         <div class="mb-4">
-          <h6><i class="bi bi-card-text me-2"></i>Description</h6>
-          <div class="border rounded p-3 bg-light">
-            <p class="mb-0">{{ selectedInstance.description || 'No description provided' }}</p>
+          <h6 class="fw-bold"><i class="bi bi-card-text text-muted me-1"></i>Description</h6>
+          <div class="border rounded-3 p-3 bg-light text-secondary small" style="white-space: pre-line;">
+            {{ selectedInstance.description || 'No description provided.' }}
           </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="alert alert-info">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <i class="bi bi-info-circle me-2"></i>
-              <small>You can view full details or return to the instance list.</small>
-            </div>
-            <div>
-              <button type="button" class="btn btn-primary me-2"
-                [disabled]="!selectedInstance || !selectedInstance.taskId"
-                (click)="viewTaskById(selectedInstance!.taskId)">
-                <i class="bi bi-box-arrow-up-right me-1"></i> View Full Details
-              </button>
-              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                <i class="bi bi-x-circle me-1"></i> Close
-              </button>
-            </div>
+        <div class="alert alert-light border d-flex justify-content-between align-items-center mb-0 mt-4 rounded-3">
+          <div class="small text-muted me-2">
+            <i class="bi bi-info-circle me-1"></i>
+            Click 'View Full Details' to open the complete workspace for this instance.
+          </div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary py-2 px-3 rounded-3"
+              [disabled]="!selectedInstance || !selectedInstance.taskId"
+              (click)="viewTaskById(selectedInstance!.taskId)">
+              <i class="bi bi-box-arrow-up-right me-1"></i> View Full Details
+            </button>
+            <button type="button" class="btn btn-secondary py-2 px-3 rounded-3" data-bs-dismiss="modal">
+              Close
+            </button>
           </div>
         </div>
+
       </div>
     </div>
   </div>

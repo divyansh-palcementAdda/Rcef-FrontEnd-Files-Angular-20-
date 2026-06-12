@@ -1,5 +1,5 @@
 // view-all-userss.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { userDto } from '../../../Model/userDto';
 import { CommonModule } from '@angular/common';
@@ -8,6 +8,8 @@ import { UserApiService } from '../../../Services/UserApiService';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
 import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ModalService } from '../../../Services/modal-service';
 
 @Component({
   selector: 'app-view-all-users',
@@ -37,13 +39,21 @@ export class ViewAllUserss implements OnInit {
    currentRole!: string;          // ADMIN | HOD
   private hodDepartmentId?: number;      // only for HOD
 
+  private modalService = inject(ModalService);
+
   constructor(
     private apiService: UserApiService,
     private router: Router,
     private route: ActivatedRoute,
     private authApiService: AuthApiService,
     private jwtService: JwtService
-  ) {}
+  ) {
+    this.modalService.modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.success) {
+        this.loadUsersForRole();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.initCurrentUser()
@@ -99,25 +109,29 @@ export class ViewAllUserss implements OnInit {
 
     let obs$: Observable<userDto[]>;
 
-    if (this.currentRole === 'ADMIN') {
-      // ADMIN sees everything
+    if (this.currentRole === 'SUPER_ADMIN' || this.currentRole === 'ADMIN' || this.currentRole === 'SUB_ADMIN' || this.currentRole === 'TEACHER') {
       obs$ = this.statusFilter
         ? this.apiService.getAllUsersByStatus(this.statusFilter)
         : this.apiService.getAllUsers();
-    } else if (this.currentRole === 'HOD' && this.hodDepartmentId !== undefined) {
-  obs$ = this.apiService.getAllUsersByDepartment(this.hodDepartmentId).pipe(
-    switchMap(deptUsers =>
-      this.apiService.getAllUsersByStatus('ACTIVE').pipe(
-        map(activeUsers => {
-          const activeUserIds = new Set(activeUsers.map(u => u.userId));
-          return deptUsers.filter(user => activeUserIds.has(user.userId));
-        })
-      )
-    )
-  );
-}else {
-      // fallback – should never happen
-      this.errorMessage = 'Invalid role or missing department';
+    } else if (this.currentRole === 'HOD') {
+      if (this.hodDepartmentId !== undefined) {
+        obs$ = this.apiService.getAllUsersByDepartment(this.hodDepartmentId).pipe(
+          switchMap(deptUsers =>
+            this.apiService.getAllUsersByStatus('ACTIVE').pipe(
+              map(activeUsers => {
+                const activeUserIds = new Set(activeUsers.map(u => u.userId));
+                return deptUsers.filter(user => activeUserIds.has(user.userId));
+              })
+            )
+          )
+        );
+      } else {
+        this.errorMessage = 'Missing department assignment for HOD.';
+        this.loading = false;
+        return;
+      }
+    } else {
+      this.errorMessage = 'Invalid role or access denied.';
       this.loading = false;
       return;
     }

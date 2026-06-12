@@ -1,0 +1,58 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.topbar-wrapper {
+  height: var(--topbar-height);
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.greeting-text {
+  font-size: 0.95rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.text-sm {
+  font-size: 0.85rem;
+}
+
+.vertical-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border-color);
+}
+
+.topbar-profile {
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.topbar-profile:hover {
+  background-color: var(--bg-color);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.user-role {
+  text-transform: capitalize;
+}

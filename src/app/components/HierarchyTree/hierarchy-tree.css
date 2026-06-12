@@ -1,0 +1,162 @@
+/* Modern Hierarchy Tree view styles */
+
+.hierarchy-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Color mappings matching TypeScript return values */
+.bg-primary-subtle { background-color: var(--primary-subtle) !important; }
+.text-primary { color: var(--primary-color) !important; }
+
+.bg-indigo-subtle { background-color: var(--primary-subtle) !important; }
+.text-indigo { color: var(--primary-color) !important; }
+
+.bg-warning-subtle { background-color: var(--warning-subtle) !important; }
+.text-warning { color: var(--warning-color) !important; }
+
+.bg-success-subtle { background-color: var(--success-subtle) !important; }
+.text-success { color: var(--success-color) !important; }
+
+.bg-secondary-subtle { background-color: var(--bg-color) !important; }
+.text-secondary { color: var(--text-muted) !important; }
+
+.bg-dark-subtle { background-color: var(--border-color) !important; }
+.text-dark { color: var(--text-main) !important; }
+
+/* Tree visualization layout */
+.tree-view {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.tree-list, .tree-list ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.tree-list ul {
+  padding-left: 2.5rem; /* Indentation for child nodes */
+}
+
+/* Connectors */
+.tree-list li {
+  margin: 0;
+  padding: 0.75rem 0;
+  position: relative;
+}
+
+.tree-list li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -1.25rem;
+  border-left: 2px solid var(--border-color);
+  height: 100%;
+}
+
+.tree-list li::after {
+  content: "";
+  position: absolute;
+  top: 1.75rem;
+  left: -1.25rem;
+  border-top: 2px solid var(--border-color);
+  width: 1.25rem;
+}
+
+.tree-list li:last-child::before {
+  height: 1.75rem; /* Stop connection line at last node */
+}
+
+/* Node card styling */
+.node-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 250px;
+  position: relative;
+  z-index: 1;
+}
+
+.node-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+}
+
+.node-card.selected {
+  border-color: var(--primary-color);
+  background-color: var(--primary-subtle);
+}
+
+.role-icon-indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
+/* Detail panel card styling */
+.glass-card {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.avatar-placeholder {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+}
+
+/* Metadata lists */
+.meta-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.85rem;
+}
+.meta-item:last-child {
+  border-bottom: none;
+}
+
+/* Permission badges/pills */
+.perm-pill {
+  display: inline-block;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: 50px;
+  margin-right: 0.4rem;
+  margin-bottom: 0.4rem;
+  border: 1px solid var(--border-color);
+}

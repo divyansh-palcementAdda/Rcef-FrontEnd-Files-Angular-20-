@@ -1,105 +1,158 @@
-<div class="container my-5">
+<div class="departments-container py-4">
 
-  <!-- Title -->
-  <h1 class="text-center mb-4 fw-bold text-white">
-    Departments
-  </h1>
-
-  <!-- Card -->
-  <div class="card shadow animate__animated animate__fadeIn">
-    <div class="card-header py-3">
-      <h3 class="mb-0 fw-bold">Department Management</h3>
-      <small class="text-light-50">View, filter, and manage departments</small>
+  <!-- Breadcrumbs Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb" class="mb-1">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a (click)="goBackToDashboard()" style="cursor: pointer;"
+              class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Departments</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Departments Directory
+      </h1>
     </div>
+  </div>
 
-    <div class="card-body px-4 py-4">
+  <div class="card border-0">
+    <div class="card-body p-4">
 
       <!-- Alerts -->
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
-        {{ errorMessage }}
-        <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+      <div *ngIf="errorMessage"
+        class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span>{{ errorMessage }}</span>
+        <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
 
       <!-- Loading Spinner -->
-      <div *ngIf="loading" class="text-center my-5">
-        <div class="spinner-border text-primary"></div>
+      <div *ngIf="loading" class="text-center my-5 py-4">
+        <div class="spinner-border text-primary spinner mb-2" role="status"></div>
+        <p class="text-muted small">Loading departments list…</p>
       </div>
 
-      <!-- Filters -->
-      <div class="row mb-3 g-2">
-        <div class="col-md-6">
-          <input type="text" class="form-control"
-                 placeholder="🔍 Search by department name"
-                 [(ngModel)]="searchTerm"
-                 (input)="applyFilters()">
+      <!-- Filters Toolbar -->
+      <div class="row g-2 mb-4" *ngIf="!loading">
+        <div class="col-md-9">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" placeholder="Search departments by name..." [(ngModel)]="searchTerm"
+              (input)="applyFilters()">
+          </div>
         </div>
         <div class="col-md-3">
-          <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">Reset Filters</button>
+          <button class="btn btn-secondary w-100" (click)="resetFilters()">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Filters
+          </button>
         </div>
       </div>
 
-      <!-- Desktop Table -->
-      <div class="table-responsive d-none d-md-block" *ngIf="!loading && paginatedDepartments?.length">
-        <table class="table table-borderless align-middle">
-          <thead class="table_head">
+      <!-- Desktop Table view -->
+      <div class="table-responsive d-none d-md-block" *ngIf="!loading && paginatedDepartments.length">
+        <table class="table table-hover align-middle">
+          <thead>
             <tr>
               <th>ID</th>
-              <th>Name</th>
+              <th>Department Name</th>
               <th>Description</th>
-              <th>Department Status</th>
-              <th class="text-center">Actions</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let dept of paginatedDepartments" (click)="viewDepartmentDetails(dept.departmentId)">
-              <td>{{ dept.departmentId }}</td>
-              <td>{{ dept.name }}</td>
-              <td>{{ dept.description }}</td>
-              <td>{{ dept.departmentStatus }}</td>
-              <td class="text-center">
-                <button class="btn btn-sm btn-outline-primary me-1" (click)="viewDepartmentDetails(dept.departmentId)">View</button>
-                <button class="btn btn-sm btn-outline-danger" (click)="deleteDepartment($event, dept.departmentId)">Delete</button>
+              <td class="fw-semibold">#{{ dept.departmentId }}</td>
+              <td>
+                <div class="fw-bold" style="color: var(--text-main);">{{ dept.name }}</div>
+              </td>
+              <td class="text-muted"><small>{{ dept.description || 'No description provided' }}</small></td>
+              <td>
+                <span class="badge rounded-pill px-2.5 py-1 bg-light text-dark">
+                  {{ dept.departmentStatus }}
+                </span>
+              </td>
+              <td class="text-end" (click)="$event.stopPropagation()">
+                <div class="d-inline-flex gap-1">
+                  <button class="btn btn-sm btn-outline-primary py-1 px-2.5"
+                    (click)="viewDepartmentDetails(dept.departmentId)" title="View Details">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-warning py-1 px-2.5"
+                    (click)="editDepartment($event, dept.departmentId)" title="Edit Department">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger py-1 px-2.5"
+                    (click)="deleteDepartment($event, dept.departmentId)" title="Delete Department">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Mobile Cards -->
-      <div class="d-md-none" *ngIf="!loading && paginatedDepartments?.length">
-        <div class="row g-3">
-          <div class="col-12" *ngFor="let dept of paginatedDepartments">
-            <div class="clickable-card p-3 shadow-sm rounded-3" (click)="viewDepartmentDetails(dept.departmentId)">
-              <h6 class="fw-bold mb-1">{{ dept.name }}</h6>
-              <p class="mb-1">{{ dept.description }}</p>
+      <!-- Mobile List Cards view -->
+      <div class="d-md-none" *ngIf="!loading && paginatedDepartments.length">
+        <div class="mobile-dept-card" *ngFor="let dept of paginatedDepartments"
+          (click)="viewDepartmentDetails(dept.departmentId)">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h6 class="fw-bold mb-1" style="color: var(--text-main);">{{ dept.name }}</h6>
+              <span class="text-muted small">{{ dept.description || 'No description' }}</span>
             </div>
+            <span class="badge rounded-pill px-2 py-1 bg-light text-dark">
+              {{ dept.departmentStatus }}
+            </span>
+          </div>
+
+          <div class="d-flex justify-content-end gap-1 mt-3 pt-2 border-top" (click)="$event.stopPropagation()">
+            <button class="btn btn-sm btn-outline-primary py-1 px-2.5"
+              (click)="viewDepartmentDetails(dept.departmentId)">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-warning py-1 px-2.5"
+              (click)="editDepartment($event, dept.departmentId)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger py-1 px-2.5"
+              (click)="deleteDepartment($event, dept.departmentId)">
+              <i class="bi bi-trash"></i>
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- No Departments -->
-      <div *ngIf="!loading && !paginatedDepartments?.length" class="text-center text-muted mt-4">
-        No departments found.
+      <!-- Empty Fallback state -->
+      <div *ngIf="!loading && !paginatedDepartments.length" class="text-center text-muted py-5">
+        <i class="bi bi-building fs-2 mb-2 d-block"></i>
+        <span>No departments found matching search query.</span>
       </div>
 
-      <!-- Pagination -->
-      <nav *ngIf="filteredDepartments?.length" aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" [class.disabled]="currentPage === 1">
-            <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
-          </li>
-          <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="currentPage === page">
-            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
-          </li>
-          <li class="page-item" [class.disabled]="currentPage === totalPages">
-            <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-          </li>
-        </ul>
-      </nav>
+      <!-- Pagination and Controls Footer -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top"
+        *ngIf="!loading">
+        <div>
+          <button class="btn btn-secondary" (click)="goBackToDashboard()">
+            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+          </button>
+        </div>
 
-      <button class="btn btn-outline-secondary mb-3" (click)="goBackToDashboard()">
-  ← Back to Dashboard
-</button>
+        <nav *ngIf="filteredDepartments.length" aria-label="Page navigation" class="mb-0">
+          <ul class="pagination mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" (click)="changePage(currentPage - 1)"><i class="bi bi-chevron-left"></i></a>
+            </li>
+            <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="currentPage === page">
+              <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <a class="page-link" (click)="changePage(currentPage + 1)"><i class="bi bi-chevron-right"></i></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
 
     </div>
   </div>

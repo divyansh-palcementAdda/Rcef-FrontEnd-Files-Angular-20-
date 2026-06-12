@@ -25,5 +25,9 @@ export interface DashboardDto {
   extendedTask?: number;           // Admin/HOD only
   tasksRequireApproval?: number;           // Admin/HOD only
   email?: string;
+  admissionsCount?: number;
+  academicCount?: number;
+  completionPercentages?: number;
+  templateWiseCounts?: Record<string, number>;
 }
 

@@ -26,6 +26,7 @@ import { NgOptimizedImage } from '@angular/common';
 })
 export class Navbar {
   isMenuOpen = false;
+  isLoggedIn = false;
   isLoggedIn$: Observable<boolean>;
 
   constructor(
@@ -33,13 +34,14 @@ export class Navbar {
     private router: Router
   ) {
     this.isLoggedIn$ = this.authService.isLoggedIn$;
+    this.authService.isLoggedIn$.subscribe(val => this.isLoggedIn = val);
   }
 
   onHomeClick() {
     console.log("Home clicked");
-    if (!this.isLoggedIn$) {
-      console.log("Not logged in, navigating to /home");
-      this.router.navigate(['/home']);
+    if (!this.isLoggedIn) {
+      console.log("Not logged in, navigating to /");
+      this.router.navigate(['/']);
     }
 
     else {

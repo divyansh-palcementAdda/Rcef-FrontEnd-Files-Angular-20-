@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
+import { forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-add-user',
@@ -15,12 +16,15 @@ import { AuthApiService } from '../../../Services/auth-api-service';
   styleUrls: ['./add-user.css']
 })
 export class AddUserComponent implements OnInit {
+  @Input() isModal = false;
+  @Output() closed = new EventEmitter<boolean>();
+
   userForm: FormGroup;
   isSubmitting = false;
   successMessage: string | null = null;
   errorMessage: string | null = null;
 
-  roles = ['HOD', 'TEACHER'];
+  roles: string[] = [];
   departments: any[] = [];
   selectedDepartments: number[] = [];
   searchQuery: string = '';
@@ -35,6 +39,10 @@ export class AddUserComponent implements OnInit {
   verifiedEmail: string | null = null;
   departmentId: string | null = null;
 
+  // Hierarchy
+  allUsers: any[] = [];
+  filteredParentUsers: any[] = [];
+  subDepartments: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -50,19 +58,94 @@ export class AddUserComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       fullName: ['', [Validators.required, Validators.pattern(/^[A-Za-z ]{3,}$/)]],
       role: ['', Validators.required],
-      departmentIds: [[], Validators.required]
+      departmentIds: [[], Validators.required],
+      parentUserId: [null],
+      subDepartmentId: [null]
     });
   }
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(params => {
-      this.departmentId = params.get('departmentId');
+    this.route.queryParams.subscribe(params => {
+      const deptIdStr = params['departmentId'];
+      if (deptIdStr) {
+        this.departmentId = deptIdStr;
+        const deptId = +deptIdStr;
+        this.selectedDepartments = [deptId];
+        this.userForm.patchValue({ departmentIds: [deptId] });
+        this.onDepartmentChange();
+      }
     });
     console.log('Preselected Department ID:', this.departmentId);
     this.loadDepartments();
+    this.loadAllUsers();
+
+    // Set dynamic roles list based on logged-in user role
+    const currentRole = this.authApiService.getCurrentRole() || '';
+    const allRolesList = ['SUPER_ADMIN', 'ADMIN', 'SUB_ADMIN', 'HOD', 'TEACHER'];
+    const currentIdx = allRolesList.indexOf(currentRole);
+    this.roles = currentIdx !== -1 ? allRolesList.slice(currentIdx + 1) : ['HOD', 'TEACHER'];
+
     this.userForm.get('password')?.valueChanges.subscribe(value => {
       this.passwordStrength = this.evaluatePasswordStrength(value || '');
     });
+
+    this.userForm.get('role')?.valueChanges.subscribe(role => {
+      this.onRoleChange(role);
+      const parentControl = this.userForm.get('parentUserId');
+      if (role && role !== 'SUPER_ADMIN') {
+        parentControl?.setValidators([Validators.required]);
+      } else {
+        parentControl?.clearValidators();
+      }
+      parentControl?.updateValueAndValidity();
+
+      const deptControl = this.userForm.get('departmentIds');
+      if (role === 'SUPER_ADMIN') {
+        deptControl?.clearValidators();
+        deptControl?.setValue([]);
+      } else {
+        deptControl?.setValidators([Validators.required]);
+      }
+      deptControl?.updateValueAndValidity();
+    });
+  }
+
+  loadAllUsers(): void {
+    this.userApiService.getAllUsers().subscribe({
+      next: (users) => {
+        this.allUsers = users;
+      },
+      error: (err) => console.error('Failed to load users for parent selection', err)
+    });
+  }
+
+  onRoleChange(selectedRole: string): void {
+    this.filteredParentUsers = [];
+    this.userForm.get('parentUserId')?.setValue(null);
+
+    if (selectedRole === 'TEACHER') {
+      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'HOD');
+    } else if (selectedRole === 'HOD') {
+      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'SUB_ADMIN');
+    } else if (selectedRole === 'SUB_ADMIN') {
+      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'ADMIN');
+    } else if (selectedRole === 'ADMIN') {
+      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'SUPER_ADMIN');
+    }
+  }
+
+  onDepartmentChange(): void {
+    this.subDepartments = [];
+    this.userForm.get('subDepartmentId')?.setValue(null);
+    if (this.selectedDepartments && this.selectedDepartments.length > 0) {
+      const requests = this.selectedDepartments.map(id => this.departmentApiService.getSubDepartmentsByDepartment(id));
+      forkJoin(requests).subscribe({
+        next: (results) => {
+          this.subDepartments = results.flat();
+        },
+        error: (err) => console.error('Failed to load sub-departments', err)
+      });
+    }
   }
 
   loadDepartments(): void {
@@ -116,6 +199,7 @@ export class AddUserComponent implements OnInit {
     }
 
     this.userForm.get('departmentIds')?.setValue(this.selectedDepartments);
+    this.onDepartmentChange();
   }
 
   isDeptDisabled(dept: any): boolean {
@@ -198,7 +282,13 @@ export class AddUserComponent implements OnInit {
         this.otpInput = '';
         this.verifiedEmail = null;
         this.isSubmitting = false;
-        this.authApiService.goToDashboard();
+        setTimeout(() => {
+          if (this.isModal) {
+            this.closed.emit(true);
+          } else {
+            this.authApiService.goToDashboard();
+          }
+        }, 1500);
       },
       error: (err) => {
         this.isSubmitting = false;
@@ -208,6 +298,10 @@ export class AddUserComponent implements OnInit {
   }
 
   cancel(): void {
-   this.authApiService.goToDashboard();
+    if (this.isModal) {
+      this.closed.emit(false);
+    } else {
+      this.authApiService.goToDashboard();
+    }
   }
 }

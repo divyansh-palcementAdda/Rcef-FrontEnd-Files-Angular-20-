@@ -1,0 +1,355 @@
+<div class="container my-4 my-md-5">
+  <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+    <!-- Premium Header -->
+    <div class="card-header text-white text-center py-5 bg-gradient-emerald sticky-top">
+      <h3 class="mb-1 fw-bold">Task Template Control Center</h3>
+      <p class="mb-0 opacity-90">Manage categories, templates, dynamic fields, and proof requirements in one dashboard.</p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="bg-light border-bottom p-2 d-flex flex-wrap gap-2">
+      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" 
+              [class.btn-emerald]="activeTab === 'templates'"
+              [class.btn-light]="activeTab !== 'templates'"
+              (click)="activeTab = 'templates'">
+        <i class="bi bi-file-earmark-text me-1"></i> Templates
+      </button>
+      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" 
+              [class.btn-emerald]="activeTab === 'categories'"
+              [class.btn-light]="activeTab !== 'categories'"
+              (click)="activeTab = 'categories'">
+        <i class="bi bi-tags me-1"></i> Categories
+      </button>
+      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" 
+              [class.btn-emerald]="activeTab === 'fields'"
+              [class.btn-light]="activeTab !== 'fields'"
+              [disabled]="!selectedTemplate"
+              (click)="activeTab = 'fields'">
+        <i class="bi bi-list-stars me-1"></i> Dynamic Fields
+      </button>
+      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" 
+              [class.btn-emerald]="activeTab === 'requirements'"
+              [class.btn-light]="activeTab !== 'requirements'"
+              [disabled]="!selectedTemplate"
+              (click)="activeTab = 'requirements'">
+        <i class="bi bi-clipboard-check me-1"></i> Proof Requirements
+      </button>
+
+      <button class="btn btn-outline-secondary btn-sm ms-auto px-3 py-2" (click)="goBack()">
+        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+      </button>
+    </div>
+
+    <div class="card-body p-4 p-md-5 bg-white">
+      <!-- Alerts -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3">
+        <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+      </div>
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+        <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+      </div>
+
+      <!-- Selected Template Warning Indicator for Fields/Reqs tabs -->
+      <div *ngIf="(activeTab === 'fields' || activeTab === 'requirements') && selectedTemplate" 
+           class="alert alert-info border-0 rounded-3 p-3 mb-4 d-flex align-items-center">
+        <i class="bi bi-info-circle-fill fs-5 text-info me-3"></i>
+        <div>
+          Configuring template: <strong class="text-dark">{{ selectedTemplate.title }}</strong> 
+          <span class="badge bg-emerald-100 text-emerald-800 ms-2">{{ selectedTemplate.category.name }}</span>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 1: TEMPLATES ==================== -->
+      <div *ngIf="activeTab === 'templates'" class="row g-4 animate_animated animate_fadeIn">
+        <div class="col-lg-5">
+          <div class="card border border-slate-100 rounded-3 p-4 bg-slate-50 shadow-sm">
+            <h5 class="fw-bold mb-3 text-emerald-800">
+              {{ isEditingTemplate ? 'Edit Template' : 'Create New Template' }}
+            </h5>
+            <form [formGroup]="templateForm" (ngSubmit)="saveTemplate()">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                <select class="form-select border-slate-200" formControlName="categoryId">
+                  <option value="" disabled>Select Category</option>
+                  <option *ngFor="let cat of categories" [value]="cat.id">
+                    {{ cat.name }} <span *ngIf="cat.subcategory">({{ cat.subcategory }})</span>
+                  </option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Template Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control border-slate-200" formControlName="title" placeholder="e.g. Forms Task" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Default Description</label>
+                <textarea class="form-control border-slate-200" rows="3" formControlName="description" 
+                          placeholder="Standard details automatically populated when creating tasks..."></textarea>
+              </div>
+
+              <div class="form-check mb-4">
+                <input type="checkbox" class="form-check-input custom-checkbox" id="tplActive" formControlName="isActive" />
+                <label class="form-check-label text-emerald-700" for="tplActive">Template Active</label>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-emerald px-4" [disabled]="templateForm.invalid">
+                  {{ isEditingTemplate ? 'Save Changes' : 'Create Template' }}
+                </button>
+                <button type="button" class="btn btn-outline-secondary" (click)="resetTemplateForm()">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="table-responsive border rounded-3 bg-white shadow-sm">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-emerald text-white">
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let tpl of templates" 
+                    [class.table-active]="selectedTemplate?.id === tpl.id" 
+                    (click)="selectTemplate(tpl)" 
+                    class="cursor-pointer">
+                  <td>
+                    <div class="fw-bold">{{ tpl.title }}</div>
+                    <div class="text-muted small text-truncate" style="max-width: 250px;">{{ tpl.description }}</div>
+                  </td>
+                  <td>
+                    <span>{{ tpl.category.name }}</span>
+                    <span *ngIf="tpl.category.subcategory" class="badge bg-light text-dark ms-2">{{ tpl.category.subcategory }}</span>
+                  </td>
+                  <td>
+                    <span class="badge" [class.bg-success]="tpl.isActive" [class.bg-secondary]="!tpl.isActive">
+                      {{ tpl.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary border-0 me-1" (click)="editTemplate(tpl); $event.stopPropagation()">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger border-0" (click)="deleteTemplate(tpl.id!); $event.stopPropagation()">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="templates.length === 0">
+                  <td colspan="4" class="text-center py-4 text-muted">No templates seeded yet. Create one or start application to seed defaults.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="field-hint mt-2 text-center">
+            Click on a template row above to select it and enable the <strong>Fields</strong> and <strong>Proof Requirements</strong> tabs.
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 2: CATEGORIES ==================== -->
+      <div *ngIf="activeTab === 'categories'" class="row g-4 animate_animated animate_fadeIn">
+        <div class="col-lg-5">
+          <div class="card border border-slate-100 rounded-3 p-4 bg-slate-50 shadow-sm">
+            <h5 class="fw-bold mb-3 text-emerald-800">
+              {{ isEditingCategory ? 'Edit Category' : 'Create New Category' }}
+            </h5>
+            <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Category Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control border-slate-200" formControlName="name" placeholder="e.g. Admissions Tasks" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Subcategory Name</label>
+                <input type="text" class="form-control border-slate-200" formControlName="subcategory" placeholder="e.g. Activities" />
+              </div>
+
+              <div class="form-check mb-4">
+                <input type="checkbox" class="form-check-input custom-checkbox" id="catActive" formControlName="isActive" />
+                <label class="form-check-label text-emerald-700" for="catActive">Category Active</label>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-emerald px-4" [disabled]="categoryForm.invalid">
+                  {{ isEditingCategory ? 'Save Changes' : 'Create Category' }}
+                </button>
+                <button type="button" class="btn btn-outline-secondary" (click)="resetCategoryForm()">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="table-responsive border rounded-3 bg-white shadow-sm">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-emerald text-white">
+                <tr>
+                  <th>Category Name</th>
+                  <th>Subcategory</th>
+                  <th>Status</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let cat of categories">
+                  <td class="fw-bold">{{ cat.name }}</td>
+                  <td>{{ cat.subcategory || '—' }}</td>
+                  <td>
+                    <span class="badge" [class.bg-success]="cat.isActive" [class.bg-secondary]="!cat.isActive">
+                      {{ cat.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary border-0" (click)="editCategory(cat)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 3: DYNAMIC FIELDS ==================== -->
+      <div *ngIf="activeTab === 'fields' && selectedTemplate" class="row g-4 animate_animated animate_fadeIn">
+        <div class="col-lg-5">
+          <div class="card border border-slate-100 rounded-3 p-4 bg-slate-50 shadow-sm">
+            <h5 class="fw-bold mb-3 text-emerald-800">Add Template Field</h5>
+            <form [formGroup]="fieldForm" (ngSubmit)="addField()">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Field Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control border-slate-200" formControlName="fieldName" placeholder="e.g. Count" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Field Type <span class="text-danger">*</span></label>
+                <select class="form-select border-slate-200" formControlName="fieldType">
+                  <option *ngFor="let type of fieldTypes" [value]="type">{{ type }}</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Options (comma-separated, for DROPDOWN/MULTISELECT)</label>
+                <input type="text" class="form-control border-slate-200" formControlName="options" placeholder="e.g. 20%,40%,60%,80%" />
+              </div>
+
+              <div class="form-check mb-4">
+                <input type="checkbox" class="form-check-input custom-checkbox" id="fieldReq" formControlName="isRequired" />
+                <label class="form-check-label text-emerald-700" for="fieldReq">Is Required Field</label>
+              </div>
+
+              <button type="submit" class="btn btn-emerald px-4" [disabled]="fieldForm.invalid">
+                Add Field
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="table-responsive border rounded-3 bg-white shadow-sm">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-emerald text-white">
+                <tr>
+                  <th>Field Name</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Options</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let field of selectedTemplate.fields; let idx = index">
+                  <td class="fw-bold">{{ field.fieldName }}</td>
+                  <td>
+                    <span class="badge bg-light text-emerald-800 border border-emerald-200">{{ field.fieldType }}</span>
+                  </td>
+                  <td>
+                    <span class="text-success" *ngIf="field.isRequired"><i class="bi bi-check-circle-fill"></i> Yes</span>
+                    <span class="text-muted" *ngIf="!field.isRequired">No</span>
+                  </td>
+                  <td class="text-muted small">{{ field.options || '—' }}</td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-danger border-0" (click)="removeField(idx)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="!selectedTemplate.fields || selectedTemplate.fields.length === 0">
+                  <td colspan="5" class="text-center py-4 text-muted">No dynamic fields configured for this template yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 4: PROOF REQUIREMENTS ==================== -->
+      <div *ngIf="activeTab === 'requirements' && selectedTemplate" class="row g-4 animate_animated animate_fadeIn">
+        <div class="col-lg-5">
+          <div class="card border border-slate-100 rounded-3 p-4 bg-slate-50 shadow-sm">
+            <h5 class="fw-bold mb-3 text-emerald-800">Add Proof Requirement</h5>
+            <form [formGroup]="requirementForm" (ngSubmit)="addRequirement()">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Proof Type <span class="text-danger">*</span></label>
+                <select class="form-select border-slate-200" formControlName="proofType">
+                  <option *ngFor="let pt of proofTypes" [value]="pt">{{ pt }}</option>
+                </select>
+              </div>
+
+              <div class="form-check mb-4">
+                <input type="checkbox" class="form-check-input custom-checkbox" id="reqReq" formControlName="isRequired" />
+                <label class="form-check-label text-emerald-700" for="reqReq">Mandatory Requirement</label>
+              </div>
+
+              <button type="submit" class="btn btn-emerald px-4" [disabled]="requirementForm.invalid">
+                Add Requirement
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="table-responsive border rounded-3 bg-white shadow-sm">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-emerald text-white">
+                <tr>
+                  <th>Proof Type</th>
+                  <th>Mandatory</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let req of selectedTemplate.proofRequirements; let idx = index">
+                  <td class="fw-bold">{{ req.proofType }}</td>
+                  <td>
+                    <span class="text-danger fw-semibold" *ngIf="req.isRequired"><i class="bi bi-exclamation-circle-fill"></i> Mandatory</span>
+                    <span class="text-muted" *ngIf="!req.isRequired">Optional</span>
+                  </td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-danger border-0" (click)="removeRequirement(idx)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="!selectedTemplate.proofRequirements || selectedTemplate.proofRequirements.length === 0">
+                  <td colspan="3" class="text-center py-4 text-muted">No proof requirements configured for this template yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

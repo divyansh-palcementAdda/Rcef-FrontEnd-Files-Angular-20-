@@ -14,14 +14,14 @@ import { BulletinBannerComponent } from '../../Shared/bulletin-banner/bulletin-b
 
 @Component({
   selector: 'app-hods-dashboard',
-  imports: [CommonModule, RouterLink, BaseChartDirective, DatePipe, RouterLinkActive, BulletinBannerComponent],
+  imports: [CommonModule, BaseChartDirective, DatePipe, BulletinBannerComponent],
   animations: [
     trigger('fadeInUpStagger', [
       transition(':enter', [
         query(':enter', [
           stagger(80, [
             useAnimation(fadeInUp, {
-            params: { time: '300ms' }
+              params: { time: '300ms' }
             })
           ])
         ], { optional: true })
@@ -46,16 +46,16 @@ export class HodsDashboard {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { 
-          display: true, 
-          labels: { 
-            font: { 
-              family: "'Inter', sans-serif", 
-              size: 12 
-            }, 
-            color: '#4b5563', 
-            usePointStyle: true 
-          } 
+        legend: {
+          display: true,
+          labels: {
+            font: {
+              family: "'Inter', sans-serif",
+              size: 12
+            },
+            color: '#4b5563',
+            usePointStyle: true
+          }
         },
         tooltip: {
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -68,36 +68,36 @@ export class HodsDashboard {
         }
       },
       scales: {
-        y: { 
-          beginAtZero: true, 
-          grid: { 
-            color: 'rgba(99, 102, 241, 0.08)' 
-          }, 
-          ticks: { 
-            color: '#6b7280' 
-          } 
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(99, 102, 241, 0.08)'
+          },
+          ticks: {
+            color: '#6b7280'
+          }
         },
-        x: { 
-          grid: { 
-            color: 'rgba(99, 102, 241, 0.05)' 
-          }, 
-          ticks: { 
-            color: '#6b7280' 
-          } 
+        x: {
+          grid: {
+            color: 'rgba(99, 102, 241, 0.05)'
+          },
+          ticks: {
+            color: '#6b7280'
+          }
         }
       },
-      animation: { 
-        duration: 1500, 
-        easing: 'easeInOutQuart' 
+      animation: {
+        duration: 1500,
+        easing: 'easeInOutQuart'
       },
-      elements: { 
-        line: { 
-          tension: 0.4 
-        }, 
-        point: { 
-          radius: 6, 
-          hoverRadius: 8 
-        } 
+      elements: {
+        line: {
+          tension: 0.4
+        },
+        point: {
+          radius: 6,
+          hoverRadius: 8
+        }
       }
     };
   }
@@ -106,45 +106,45 @@ export class HodsDashboard {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { 
-        position: 'bottom', 
-        labels: { 
+      legend: {
+        position: 'bottom',
+        labels: {
           padding: 20,
           font: {
             family: "'Inter', sans-serif",
             size: 11
           }
-        } 
+        }
       },
-      tooltip: { 
+      tooltip: {
         enabled: true,
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         titleColor: '#1f2937',
         bodyColor: '#4b5563'
       }
     },
-    animation: { 
-      duration: 2000, 
-      easing: 'easeInOutQuart' as const 
+    animation: {
+      duration: 2000,
+      easing: 'easeInOutQuart' as const
     }
   };
 
   barChartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { 
-      legend: { 
-        display: false 
-      }, 
-      tooltip: { 
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
         enabled: true,
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         titleColor: '#1f2937',
         bodyColor: '#4b5563'
-      } 
+      }
     },
-    scales: { 
-      y: { 
+    scales: {
+      y: {
         beginAtZero: true,
         grid: {
           color: 'rgba(99, 102, 241, 0.08)'
@@ -162,33 +162,33 @@ export class HodsDashboard {
         }
       }
     },
-    animation: { 
-      duration: 2000, 
-      easing: 'easeInOutQuart' as const 
+    animation: {
+      duration: 2000,
+      easing: 'easeInOutQuart' as const
     }
   };
 
   currentDate = new Date();
 
   sidebarLinks = [
-    { 
-      label: 'Dashboard', 
-      click: () => this.dashboard(), 
-      icon: 'bi-speedometer2', 
-      color: 'primary' 
+    {
+      label: 'Dashboard',
+      click: () => this.dashboard(),
+      icon: 'bi-speedometer2',
+      color: 'primary'
     },
-    { 
-      label: 'My Tasks', 
-      route: '/view-tasks', 
-      queryParams: { status: 'Self' }, 
-      icon: 'bi-list-check', 
+    {
+      label: 'My Tasks',
+      route: '/view-tasks',
+      queryParams: { status: 'Self' },
+      icon: 'bi-list-check',
       color: 'success',
       tooltip: 'View your assigned tasks'
     },
-    { 
-      label: 'Add Task', 
-      route: '/add-task', 
-      icon: 'bi-plus-circle', 
+    {
+      label: 'Add Task',
+      route: '/add-task',
+      icon: 'bi-plus-circle',
       color: 'success',
       tooltip: 'Create new tasks for your team'
     },
@@ -227,9 +227,9 @@ export class HodsDashboard {
   ngOnInit(): void {
     const seen = localStorage.getItem('hod_dashboard_announcement_seen');
 
-  if (!seen) {
-    this.showAnnouncement = true;
-  }
+    if (!seen) {
+      this.showAnnouncement = true;
+    }
     this.dataSub = this.apiService.getDashboardData().subscribe({
       next: (data) => {
         if (data) {
@@ -269,19 +269,19 @@ export class HodsDashboard {
   /** Calculate department performance percentage */
   calculatePerformance(): number {
     if (!this.dashboardData) return 0;
-    
+
     const completed = this.dashboardData.completedTask || 0;
     const total = this.dashboardData.totalTask || 0;
-    
+
     if (total === 0) return 0;
-    
+
     // Simple performance calculation based on completed tasks
     const performance = Math.round((completed / total) * 100);
-    
+
     // Add bonus for on-time completion (considering delayed tasks)
     const delayed = this.dashboardData.delayedTask || 0;
     const penalty = Math.min(delayed * 5, 30); // Max 30% penalty
-    
+
     return Math.max(0, Math.min(100, performance - penalty));
   }
 
@@ -509,11 +509,11 @@ export class HodsDashboard {
     const completedTasks = data.completedTask || 0;
     const activeTasks = data.activeTask || 0;
     const totalTasks = data.totalTask || 0;
-    
+
     // Generate trend data based on current metrics
     const baseCompleted = completedTasks;
     const baseActive = activeTasks;
-    
+
     this.lineChartData = {
       labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       datasets: [
@@ -551,7 +551,7 @@ export class HodsDashboard {
   private generateTrendData(baseValue: number, months: number, isCompleted: boolean): number[] {
     const data: number[] = [];
     let current = baseValue;
-    
+
     // Start with some base values and create a trend
     for (let i = 0; i < months; i++) {
       if (i === 0) {
@@ -564,7 +564,7 @@ export class HodsDashboard {
         data.push(Math.round(monthValue));
       }
     }
-    
+
     // Ensure the data is ascending (showing growth)
     return data.map((val, index) => {
       const progressFactor = (months - index) / months;

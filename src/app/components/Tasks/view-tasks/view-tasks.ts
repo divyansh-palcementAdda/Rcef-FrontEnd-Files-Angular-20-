@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskApiService } from '../../../Services/task-api-Service';
@@ -10,6 +10,7 @@ import { Subscription, of } from 'rxjs';
 import { finalize, catchError } from 'rxjs/operators';
 import { userDto } from '../../../Model/userDto';
 import { AuthApiService } from '../../../Services/auth-api-service';
+import { ModalService } from '../../../Services/modal-service';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -25,6 +26,8 @@ interface ApiResponse<T> {
   styleUrls: ['./view-tasks.css']
 })
 export class ViewTasksComponent implements OnInit, OnDestroy {
+  private modalService = inject(ModalService);
+
   // Task Data
   tasks: TaskDto[] = [];
   filteredTasks: TaskDto[] = [];
@@ -40,6 +43,13 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   // Filters
   searchTerm = '';
   statusFilter = '';
+  departmentFilter = '';
+  dateFilter = '';
+  selectedCard = 'total';
+
+  // Sorting
+  sortBy = 'createdAt';
+  sortDirection = 'desc';
 
   // Pagination
   currentPage = 1;
@@ -55,9 +65,15 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   // Stats
   taskStats = {
     total: 0,
+    active: 0,
     pending: 0,
-    delayed: 0,
     completed: 0,
+    overdue: 0,
+    extensionRequests: 0,
+    closureRequests: 0,
+    upcoming: 0,
+    // Keep for backward compatibility
+    delayed: 0,
     In_PROGRESS: 0
   };
 
@@ -74,6 +90,14 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCurrentUserAndTasks();
+
+    this.subscriptions.add(
+      this.modalService.modalClosed$.subscribe(event => {
+        if (event.success) {
+          this.loadTasksFromServer();
+        }
+      })
+    );
   }
 
   /** Load current user → then decide which tasks to load */
@@ -106,29 +130,18 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
               const status = params['status'];
               this.statusFilter = status ? status.toUpperCase() : '';
 
-              if (status?.toLowerCase() === 'self') {
-                this.loadTasksForCurrentUser();
-              } else if (status?.toLowerCase() === 'selfassigned') {
-                this.loadTasksForSelf();
-              } else if (status?.toLowerCase() === 'approval') {
-                this.loadTasksForApproval();
-              } else if (status?.toLowerCase() === 'parent_recurring') {
-                console.log('PARENT_RECURRING filter selected');
-                this.loadReccuringParentTasks();
-              }
-              else if (status?.toLowerCase() === 'recurred_instance') {
-                console.log('RECURRED_INSTANCE filter selected');
-                this.loadRecurredInstanceTasks();
-              }
-              else if (status?.toLowerCase() === 'my_department') {
-                console.log('MY_DEPARTMENT filter selected');
-                this.loadTasksByDepartment();
-              }
-              else if (status) {
-                this.loadTasksByStatus(this.statusFilter);
+              if (this.statusFilter === 'IN_PROGRESS') {
+                this.selectedCard = 'active';
+              } else if (this.statusFilter === 'PENDING') {
+                this.selectedCard = 'pending';
+              } else if (this.statusFilter === 'CLOSED') {
+                this.selectedCard = 'completed';
               } else {
-                this.loadTasksByRole();
+                this.selectedCard = 'total';
               }
+
+              this.currentPage = 1;
+              this.loadTasksFromServer();
             })
           );
         },
@@ -140,378 +153,151 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       })
     );
   }
-  loadTasksByDepartment(): void {
-    if (this.currentUserDeptIds.length === 0) {
-      this.tasks = [];
-      this.applyFilters();
-      this.loading = false;
-      this.isEmpty = true;
-      return;
-    }
+
+  loadTasksFromServer(): void {
     this.loading = true;
-    this.loadingMessage = 'Loading department tasks...';
-    console.log('Loading tasks for departments:', this.currentUserDeptIds);
+    this.loadingMessage = 'Loading tasks...';
+
+    const params: any = {
+      page: this.currentPage - 1,
+      size: this.pageSize,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection,
+      search: this.searchTerm
+    };
+
+    if (this.departmentFilter) {
+      params.departmentName = this.departmentFilter;
+    }
+
+    // Map status filter from the toolbar select dropdown
+    if (this.statusFilter) {
+      if (this.statusFilter === 'SELF') {
+        params.assignedUserId = this.currentUserId;
+      } else if (this.statusFilter === 'SELFASSIGNED') {
+        params.assignedUserId = this.currentUserId;
+        params.createdById = this.currentUserId;
+      } else if (this.statusFilter === 'APPROVAL') {
+        params.requiresApproval = true;
+        params.approved = false;
+      } else if (this.statusFilter === 'MY_DEPARTMENT') {
+        if (this.currentUserDeptIds.length > 0) {
+          params.departmentId = this.currentUserDeptIds[0];
+        }
+      } else if (this.statusFilter === 'PARENT_RECURRING') {
+        params.isRecurringParent = true;
+      } else if (this.statusFilter === 'RECURRED_INSTANCE') {
+        params.isRecurredInstance = true;
+      } else {
+        params.status = this.statusFilter;
+      }
+    }
+
+    // Map selected KPI card filter (which overrides the status filter)
+    if (this.selectedCard === 'active') {
+      params.status = 'IN_PROGRESS';
+    } else if (this.selectedCard === 'pending') {
+      params.status = 'PENDING';
+    } else if (this.selectedCard === 'completed') {
+      params.status = 'CLOSED';
+    } else if (this.selectedCard === 'overdue') {
+      params.overdue = true;
+    } else if (this.selectedCard === 'extensionRequests') {
+      params.hasExtensionRequest = true;
+    } else if (this.selectedCard === 'closureRequests') {
+      params.hasClosureRequest = true;
+    } else if (this.selectedCard === 'upcoming') {
+      params.upcoming = true;
+    }
+
     this.subscriptions.add(
-      this.apiService.getTasksByDepartment(this.currentUserDeptIds[0])
+      this.apiService.searchTasks(params)
         .pipe(
           finalize(() => this.loading = false),
           catchError(err => {
-            this.handleError(err, 'Failed to load department tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
+            this.handleError(err, 'Failed to load tasks from server.');
+            return of({ success: false, data: null } as any);
           })
         )
-        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
+        .subscribe(res => {
+          if (res?.success && res.data) {
+            const data = res.data;
+            this.tasks = data.content || [];
+            this.filteredTasks = this.tasks;
+            this.totalTasks = data.totalElements || 0;
+            this.totalPages = data.totalPages || 1;
+
+            if (data.stats) {
+              this.taskStats = data.stats;
+            }
+            this.isEmpty = this.tasks.length === 0;
+            this.errorMessage = null;
+            this.isForbidden = false;
+          } else {
+            this.handleError(res, res?.message || 'Error searching tasks');
+          }
+        })
     );
   }
-// Add these methods to your ViewTasksComponent class
 
-loadReccuringParentTasks(): void {
-  this.loading = true;
-  this.loadingMessage = 'Loading recurring parent tasks...';
-  this.errorMessage = null;
-  this.isEmpty = false;
-console.log('Loading recurring parent tasks...');
-  this.subscriptions.add(
-    this.apiService.getAllRecurringParentTasks()  // ← adjust method name to match your TaskApiService
-      .pipe(
-        finalize(() => this.loading = false),
-        catchError(err => {
-          this.handleError(err, 'Failed to load recurring parent tasks.');
-          return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-        })
-      )
-      .subscribe(res => {
-        const tasks = this.extractTasks(res);
-        // Optional: extra client-side filtering if needed (rarely necessary here)
-        this.handleTaskResponse(tasks);
-      })
-  );
-}
+  selectCard(cardName: string): void {
+    if (cardName === 'total') {
+      this.selectedCard = 'total';
+      this.searchTerm = '';
+      this.statusFilter = '';
+      this.departmentFilter = '';
+    } else {
+      this.selectedCard = cardName;
+    }
+    this.currentPage = 1;
+    this.loadTasksFromServer();
+  }
 
-loadRecurredInstanceTasks(): void {
-  this.loading = true;
-  this.loadingMessage = 'Loading all recurring instance tasks...';
-  this.errorMessage = null;
-  this.isEmpty = false;
-
-  this.subscriptions.add(
-    this.apiService.getAllRecurredInstanceTasks()  // ← adjust method name to match your service
-      .pipe(
-        finalize(() => this.loading = false),
-        catchError(err => {
-          this.handleError(err, 'Failed to load recurring instance tasks.');
-          return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-        })
-      )
-      .subscribe(res => {
-        const tasks = this.extractTasks(res);
-        this.handleTaskResponse(tasks);
-      })
-  );
-}
+  setSort(column: string): void {
+    if (this.sortBy === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = column;
+      this.sortDirection = 'desc';
+    }
+    this.currentPage = 1;
+    this.loadTasksFromServer();
+  }
 
   /** Calculate task statistics */
   private calculateStats(tasks: TaskDto[]): void {
     this.taskStats = {
       total: tasks.length,
+      active: tasks.filter(t => t.status === 'IN_PROGRESS').length,
       pending: tasks.filter(t => t.status === 'PENDING' || t.status === 'UPCOMING').length,
-      delayed: tasks.filter(t => t.status === 'DELAYED').length,
       completed: tasks.filter(t => t.status === 'CLOSED').length,
+      overdue: tasks.filter(t => this.isOverdue(t)).length,
+      extensionRequests: tasks.filter(t => t.status === 'REQUEST_FOR_EXTENSION' || t.status === 'EXTENDED').length,
+      closureRequests: tasks.filter(t => t.status === 'REQUEST_FOR_CLOSURE').length,
+      upcoming: tasks.filter(t => t.status === 'UPCOMING').length,
+      delayed: tasks.filter(t => t.status === 'DELAYED').length,
       In_PROGRESS: tasks.filter(t => t.status === 'IN_PROGRESS').length
     };
   }
 
-  /** Load tasks requiring approval (requiresApproval=true && approved=false) */
-  loadTasksForApproval(): void {
-    this.loading = true;
-    this.loadingMessage = 'Loading approval tasks...';
-    this.subscriptions.add(
-      this.apiService.getAllTasksWhichRequriesApproval()
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load approval tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => {
-          let tasks = this.extractTasks(res);
-          tasks = this.filterTasksByRole(tasks);
-          this.handleTaskResponse(tasks);
-        })
-    );
+  applyFilters(): void {
+    this.currentPage = 1;
+    this.loadTasksFromServer();
   }
-
-  /** Load tasks where current user is the creator AND assignee (self-assigned) */
-  loadTasksForSelf(): void {
-    if (!this.currentUserId) return;
-
-    this.loading = true;
-    this.loadingMessage = 'Loading self-assigned tasks...';
-    this.subscriptions.add(
-      this.apiService.getTasksByUser(this.currentUserId)
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load self-assigned tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => {
-          const tasks = this.extractTasks(res);
-          this.handleTaskResponse(tasks);
-        })
-    );
-  }
-
-  /** Role-based task loading */
-  private loadTasksByRole(): void {
-    if (this.currentUserRole === 'ADMIN') {
-      this.loadAllTasks();
-    } else if (this.currentUserRole === 'HOD') {
-      this.loadTasksByHODDepartments();
-    } else if (this.currentUserRole === 'TEACHER') {
-      this.loadTasksForCurrentUser();
-    } else {
-      this.errorMessage = 'Unauthorized role';
-      this.isForbidden = true;
-      this.loading = false;
-    }
-  }
-
-  /** ADMIN: All tasks */
-  private loadAllTasks(): void {
-    this.loading = true;
-    this.loadingMessage = 'Loading all tasks...';
-    this.subscriptions.add(
-      this.apiService.getAllTasks()
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
-    );
-  }
-
-  /** HOD: Tasks in their departments */
-  private loadTasksByHODDepartments(): void {
-    if (!this.currentUserDeptIds.length) {
-      this.tasks = [];
-      this.applyFilters();
-      this.loading = false;
-      this.isEmpty = true;
-      return;
-    }
-
-    this.loading = true;
-    this.loadingMessage = 'Loading department tasks...';
-    console.log('Loading tasks for departments:', this.currentUserDeptIds);
-    this.subscriptions.add(
-      this.apiService.getTasksByDepartment(this.currentUserDeptIds[0])
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load department tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
-    );
-  }
-
-  /** TEACHER: Only tasks assigned to them */
-  private loadTasksForCurrentUser(): void {
-    if (!this.currentUserId) return;
-
-    this.loading = true;
-    this.loadingMessage = 'Loading your tasks...';
-    this.subscriptions.add(
-      this.apiService.getTasksByUser(this.currentUserId)
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to load your tasks.');
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => this.handleTaskResponse(this.extractTasks(res)))
-    );
-  }
-
-  /** Load by status (with role filter applied after) */
-  private loadTasksByStatus(status: string): void {
-    this.loading = true;
-    this.loadingMessage = `Loading ${status.toLowerCase()} tasks...`;
-    this.subscriptions.add(
-      this.apiService.getTasksByStatus(status)
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, `Failed to load ${status} tasks.`);
-            return of({ success: false, data: [] } as ApiResponse<TaskDto[]>);
-          })
-        )
-        .subscribe(res => {
-          let tasks = this.extractTasks(res);
-          tasks = this.filterTasksByRole(tasks);
-          this.handleTaskResponse(tasks);
-        })
-    );
-  }
-
-  /** Filter tasks client-side by role (used after status fetch) */
-  private filterTasksByRole(tasks: TaskDto[]): TaskDto[] {
-    if (this.currentUserRole === 'ADMIN') return tasks;
-    if (this.currentUserRole === 'HOD') {
-      return tasks.filter(t =>
-        t.departmentIds?.some(id => this.currentUserDeptIds.includes(id))
-      );
-    }
-    if (this.currentUserRole === 'TEACHER' && this.currentUserId) {
-      return tasks.filter(t =>
-        t.assignedToIds?.includes(this.currentUserId!)
-      );
-    }
-    return [];
-  }
-
-  /** Safely extract tasks */
-  private extractTasks(res: any): TaskDto[] {
-    if (!res) return [];
-    if (res.success === false) {
-      this.handleError(res, res.message || 'Error fetching tasks');
-      return [];
-    }
-    // console.log('API response for tasks:', res);
-    if (Array.isArray(res)) return res;
-    if (Array.isArray(res.data)) return res.data;
-    if (Array.isArray(res.tasks)) return res.tasks;
-    return [];
-  }
-
-  /** Handle success response */
-  private handleTaskResponse(tasks: TaskDto[]): void {
-    this.errorMessage = null;
-    this.isForbidden = false;
-    console.log('Loaded tasks:', tasks);
-    this.isEmpty = tasks.length === 0;
-    this.tasks = tasks || [];
-    console.log('Total tasks loaded:', this.tasks.length);
-    this.totalTasks = tasks.length;
-    this.calculateStats(tasks);
-    this.applyFilters();
-  }
-
-  /** Centralized error */
-  private handleError(err: any, fallback: string): void {
-    console.error('Task loading error:', err);
-    this.errorMessage = err?.message || err?.error?.message || fallback;
-    this.isForbidden = err?.status === 403;
-    this.isEmpty = true;
-  }
-
-  // ──────────────────────────────────────────────────────────────
-  //  FILTER LOGIC – Updated for SELF, SELFASSIGNED, APPROVAL
-  // ──────────────────────────────────────────────────────────────
-
-  private isSelfTask(task: TaskDto): boolean {
-    if (!this.currentUserId) return false;
-
-    const assigned = task.assignedToIds || [];
-    const isAssignedToMe = assigned.includes(this.currentUserId);
-    // const createdByMe = task.createdById === this.currentUserId;
-
-    // Must be assigned to me
-    if (!isAssignedToMe) return false;
-    // If created by someone else → show if assigned to me
-    return true;
-  }
-
-  private isSelfAssignedTask(task: TaskDto): boolean {
-    if (!this.currentUserId) return false;
-    const assigned = task.assignedToIds || [];
-    const isAssignedToMe = assigned.includes(this.currentUserId);
-    const createdByMe = task.createdById === this.currentUserId;
-    // const assigneeCountIsOne = assigned.length === 1;
-
-    return createdByMe && isAssignedToMe;
-  }
-
-applyFilters(): void {
-  const term = this.searchTerm.trim().toLowerCase();
-
-  this.filteredTasks = this.tasks.filter(task => {
-    // 1. Search term matching
-    const matchesSearch = !term || 
-      task.title?.toLowerCase().includes(term) ||
-      task.assignedToNames?.some(name => name?.toLowerCase().includes(term)) ||
-      task.departmentNames?.some(name => name?.toLowerCase().includes(term)) ||
-      // Optional: also search in description if you want broader search
-      task.description?.toLowerCase().includes(term) ||
-      false;
-
-    // 2. Status / View Type filter
-    let matchesFilter = true;
-
-    switch (this.statusFilter?.toUpperCase()) {
-      case 'SELF':
-        matchesFilter = this.isSelfTask(task);
-        break;
-
-      case 'SELFASSIGNED':
-        matchesFilter = this.isSelfAssignedTask(task);
-        break;
-
-      case 'APPROVAL':
-        matchesFilter = !!task.requiresApproval && !task.approved;
-        break;
-
-      case 'MY_DEPARTMENT':
-        matchesFilter = task.departmentIds?.some(id => 
-          this.currentUserDeptIds.includes(id)
-        ) ?? false;
-        break;
-
-      // ── New recurring filters ──
-      case 'PARENT_RECURRING':
-        matchesFilter = !!task.isRecurring && task.parentTaskId == null;
-        break;
-
-      case 'RECURRED_INSTANCE':
-        matchesFilter = !task.isRecurring && task.parentTaskId != null;
-        break;
-
-      // Regular status filter (PENDING, IN_PROGRESS, CLOSED, etc.)
-      default:
-        if (this.statusFilter) {
-          matchesFilter = task.status?.toUpperCase() === this.statusFilter;
-        }
-        // If no statusFilter → show all (matchesFilter remains true)
-        break;
-    }
-
-    return matchesSearch && matchesFilter;
-  });
-
-  // Update pagination
-  this.totalPages = Math.max(1, Math.ceil(this.filteredTasks.length / this.pageSize));
-  this.currentPage = Math.min(this.currentPage, this.totalPages || 1); // prevent invalid page
-}
-
-  // ──────────────────────────────────────────────────────────────
 
   resetFilters(): void {
     this.searchTerm = '';
     this.statusFilter = '';
-    this.applyFilters();
+    this.departmentFilter = '';
+    this.selectedCard = 'total';
+    this.currentPage = 1;
+    this.loadTasksFromServer();
   }
 
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      this.loadTasksFromServer();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
@@ -530,8 +316,7 @@ applyFilters(): void {
   }
 
   get paginatedTasks(): TaskDto[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredTasks.slice(start, start + this.pageSize);
+    return this.tasks;
   }
 
   goBackToDashboard() {
@@ -547,6 +332,12 @@ applyFilters(): void {
   viewTaskDetails(taskId?: number): void {
     if (taskId) {
       this.router.navigate(['/task', taskId]);
+    }
+  }
+
+  editTask(taskId?: number): void {
+    if (taskId) {
+      this.router.navigate(['/edit-task'], { queryParams: { taskId: taskId } });
     }
   }
 
@@ -679,8 +470,77 @@ applyFilters(): void {
     }
   }
 
-  canDeleteTask(): boolean {
-    return this.currentUserRole === 'ADMIN';
+  canDeleteTask(task: TaskDto): boolean {
+    if (this.currentUserRole === "TEACHER") return false;
+    if (this.currentUserRole === "HOD") {
+      return task?.createdById === this.currentUserId;
+    }
+    return true;
+  }
+
+  getInitials(name?: string): string {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  getAvatarColor(name?: string): string {
+    if (!name) return '#64748b';
+    const colors = [
+      '#4f46e5', // indigo
+      '#06b6d4', // cyan
+      '#10b981', // emerald
+      '#f59e0b', // amber
+      '#ec4899', // pink
+      '#8b5cf6', // violet
+      '#f43f5e', // rose
+      '#3b82f6'  // blue
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
+  }
+
+  get overdueCount(): number {
+    return this.tasks.filter(t => this.isOverdue(t)).length;
+  }
+
+  get extensionsCount(): number {
+    return this.tasks.filter(t => t.status === 'REQUEST_FOR_EXTENSION' || t.status === 'EXTENDED').length;
+  }
+
+  get closuresCount(): number {
+    return this.tasks.filter(t => t.status === 'REQUEST_FOR_CLOSURE').length;
+  }
+
+  get upcomingCount(): number {
+    return this.tasks.filter(t => t.status === 'UPCOMING').length;
+  }
+
+  isOverdue(task: TaskDto): boolean {
+    if (!task.dueDate || task.status?.toUpperCase() === 'CLOSED') return false;
+    const d = new Date(task.dueDate);
+    const now = new Date();
+    d.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    return d.getTime() < now.getTime();
+  }
+
+  private handleError(err: any, fallbackMessage: string): void {
+    console.error(fallbackMessage, err);
+    if (err?.status === 403) {
+      this.isForbidden = true;
+      this.errorMessage = null;
+    } else {
+      this.errorMessage = err?.error?.message || err?.message || fallbackMessage;
+      this.isForbidden = false;
+    }
   }
 
   ngOnDestroy(): void {

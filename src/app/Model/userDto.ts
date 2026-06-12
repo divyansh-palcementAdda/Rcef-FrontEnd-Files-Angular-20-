@@ -9,6 +9,12 @@ export interface userDto {
   departmentNames: string[];  // maps to backend departmentName
   emailVerified: boolean;  // maps to backend emailVerified
 
+  parentUserId?: number;
+  parentFullName?: string;
+  subDepartmentId?: string;
+  subDepartmentName?: string;
+  permissions?: string[];
+
   // Task counters
   pendingTasks: number;    // count of pending tasks
   upcomingTasks: number;   // count of upcoming tasks

@@ -113,6 +113,67 @@ updateUser(userId: number, payload: any) {
     );
   }
 
+  // ---------------- Role & Permission APIs ----------------
+  getAllRoles(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/roles`).pipe(
+      catchError(err => this.handleError(err, 'fetch all roles'))
+    );
+  }
+
+  getRoleById(id: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/roles/${id}`).pipe(
+      catchError(err => this.handleError(err, 'fetch role by ID'))
+    );
+  }
+
+  createRoleEntity(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/roles`, payload).pipe(
+      catchError(err => this.handleError(err, 'create role'))
+    );
+  }
+
+  updateRole(id: string, payload: any): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/roles/${id}`, payload).pipe(
+      catchError(err => this.handleError(err, 'update role'))
+    );
+  }
+
+  updateRolePermissions(id: string, permissionCodes: string[]): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/roles/${id}/permissions`, permissionCodes).pipe(
+      catchError(err => this.handleError(err, 'update role permissions'))
+    );
+  }
+
+  deleteRole(id: string): Observable<any> {
+    return this.http.delete(`${environment.apiUrl}/roles/${id}`).pipe(
+      catchError(err => this.handleError(err, 'delete role'))
+    );
+  }
+
+  getAllPermissions(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/permissions`).pipe(
+      catchError(err => this.handleError(err, 'fetch all permissions'))
+    );
+  }
+
+  getAdminPermissions(adminId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/admin-permissions/admin/${adminId}`).pipe(
+      catchError(err => this.handleError(err, 'fetch admin permissions'))
+    );
+  }
+
+  configureAdminPermission(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/admin-permissions/configure`, payload).pipe(
+      catchError(err => this.handleError(err, 'configure admin permission'))
+    );
+  }
+
+  deleteAdminPermission(adminId: number, code: string): Observable<any> {
+    return this.http.delete(`${environment.apiUrl}/admin-permissions/admin/${adminId}/permission/${code}`).pipe(
+      catchError(err => this.handleError(err, 'delete admin permission override'))
+    );
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);

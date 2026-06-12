@@ -15,6 +15,25 @@ export interface ApiResponse<T> {
   status?: number;
 }
 
+export interface TaskStatsDto {
+  total: number;
+  active: number;
+  pending: number;
+  completed: number;
+  overdue: number;
+  extensionRequests: number;
+  closureRequests: number;
+  upcoming: number;
+}
+
+export interface TaskSearchResponse {
+  content: TaskDto[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  stats: TaskStatsDto;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -102,6 +121,18 @@ getRecurredInstancesByParent(parentTaskId: number): Observable<ApiResponse<TaskD
   // 10. Get All Tasks
   getAllTasks(): Observable<ApiResponse<TaskDto[]>> {
     return this.http.get<ApiResponse<TaskDto[]>>(this.baseUrl);
+  }
+
+  // 10b. Search Tasks with paginated, filtered backend query
+  searchTasks(params: any): Observable<ApiResponse<TaskSearchResponse>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      const val = params[key];
+      if (val !== null && val !== undefined && val !== '') {
+        httpParams = httpParams.set(key, val.toString());
+      }
+    });
+    return this.http.get<ApiResponse<TaskSearchResponse>>(`${this.baseUrl}/search`, { params: httpParams });
   }
 
   // 11. Get Tasks Requiring Approval
