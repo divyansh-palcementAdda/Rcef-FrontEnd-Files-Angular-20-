@@ -2,9 +2,13 @@
   <div [class.task-form-card]="!isModal" [class.modal-form-card]="isModal">
     
     <!-- Form Header -->
-    <div [class.task-form-header]="!isModal" [class.text-center]="!isModal" [class.modal-form-header]="isModal">
+    <div [class.task-form-header]="!isModal" [class.modal-form-header]="isModal"
+         [style.display]="isModal ? 'flex' : ''"
+         [style.align-items]="isModal ? 'flex-start' : ''"
+         [style.justify-content]="isModal ? 'space-between' : ''"
+         [class.text-center]="!isModal">
       <div>
-        <h3 class="mb-2 fw-bold" style="color: var(--text-main);">Create Task</h3>
+        <h3 class="mb-1 fw-bold" style="color: var(--text-main);">Create Task</h3>
         <p class="mb-0 text-muted small">Assign work and track progress</p>
       </div>
       <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
@@ -400,19 +404,31 @@
 
         </div>
 
-        <!-- Submit & Control Buttons -->
-        <div [class.d-flex]="true" [class.flex-wrap]="true" [class.justify-content-end]="true" [class.gap-2]="true" [class.mt-5]="!isModal" [class.pt-3]="!isModal" [class.border-top]="!isModal" [class.modal-form-footer]="isModal">
+        <!-- Non-modal submit buttons (inside form for page layout) -->
+        <div *ngIf="!isModal" class="d-flex flex-wrap justify-content-end gap-2 mt-5 pt-3 border-top">
           <button type="button" class="btn btn-secondary px-4" (click)="cancel()" [disabled]="isSubmitting">
             Cancel
           </button>
           <button type="submit" class="btn btn-primary px-5 d-flex align-items-center gap-2"
-            [disabled]="isSubmitting || taskForm.invalid" (click)="onSubmit()">
+            [disabled]="isSubmitting || taskForm.invalid">
             <span *ngIf="!isSubmitting">Create Task</span>
             <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
           </button>
         </div>
 
       </form>
+    </div>
+
+    <!-- Modal submit buttons (outside scroll body — sticks to bottom) -->
+    <div *ngIf="isModal" class="modal-form-footer">
+      <button type="button" class="btn btn-secondary px-4" (click)="cancel()" [disabled]="isSubmitting">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-primary px-5 d-flex align-items-center gap-2"
+        [disabled]="isSubmitting || taskForm.invalid" (click)="onSubmit()">
+        <span *ngIf="!isSubmitting">Create Task</span>
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
+      </button>
     </div>
 
   </div>

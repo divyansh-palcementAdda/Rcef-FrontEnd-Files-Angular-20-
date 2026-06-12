@@ -10,7 +10,7 @@
 
 .task-form-header {
   border-bottom: 1px solid var(--border-color);
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   background-color: var(--bg-color);
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
@@ -20,9 +20,129 @@
   padding: 2rem 2.5rem;
 }
 
+/* ===== Modal Layout ===== */
+.modal-form-layout {
+  width: 100%;
+  height: 100%;          /* fills the 90vh modal-window-wrapper */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-form-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;         /* critical: allows flex scroll chain */
+  overflow: hidden;
+  background: var(--card-bg);
+}
+
+.modal-form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem 1rem 1.75rem;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  flex-shrink: 0;
+}
+
+.modal-form-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;         /* critical: allows body to shrink and scroll */
+  padding: 1.75rem;
+
+  /* Slim scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.modal-form-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.modal-form-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-form-body::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 999px;
+}
+
+.modal-form-footer {
+  flex-shrink: 0;
+  padding: 1rem 1.75rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modal-close-btn-inline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-muted);
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+  margin-left: 0.75rem;
+}
+
+.modal-close-btn-inline:hover {
+  background-color: var(--border-color);
+  color: var(--text-main);
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
   .task-form-body {
-    padding: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  .task-form-header {
+    padding: 1.25rem;
+  }
+
+  .modal-form-header {
+    padding: 1rem 1.25rem 0.75rem 1.25rem;
+  }
+
+  .modal-form-body {
+    padding: 1rem 1.25rem;
+  }
+
+  .modal-form-footer {
+    padding: 0.75rem 1.25rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-form-body {
+    padding: 0.875rem 1rem;
+  }
+
+  .modal-form-header {
+    padding: 0.875rem 1rem 0.75rem 1rem;
+  }
+
+  .modal-form-footer {
+    padding: 0.75rem 1rem;
+  }
+
+  .modal-form-footer .btn {
+    flex: 1;
+    min-width: 0;
   }
 }
 

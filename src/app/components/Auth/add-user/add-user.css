@@ -1,18 +1,93 @@
+/* ── Standalone (non-modal) card header ── */
 .table_head {
-      /* padding-top: 56px; */
   background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%);
-    color: #fff;
-    border-radius: 1rem 1rem 0 0;
-    text-align: center;
-  }
-  .body{
-    padding-top: 56px;
-  }
-  .narration {
-  font-size: 0.85rem;
+  color: #fff;
+  border-radius: 1rem 1rem 0 0;
+  text-align: center;
+  padding: 1.25rem 1.5rem;
+}
+
+/* ── Modal header: override global white header with the gradient style ── */
+:host ::ng-deep .modal-form-header,
+.modal-form-header {
+  background: linear-gradient(135deg, rgba(108, 111, 245, 0.9) 0%, rgba(194, 146, 240, 0.9) 50%, rgba(252, 148, 200, 0.9) 100%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #fff;
+  border-radius: 0 !important;
+  padding: 1.25rem 1.5rem !important;
+}
+
+.modal-form-header h3 {
+  color: #fff !important;
+}
+
+.modal-form-header p,
+.modal-form-header small {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Close button white variant for gradient header */
+.modal-close-btn-inline {
+  color: #fff !important;
+  opacity: 0.85;
+}
+
+.modal-close-btn-inline:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+  opacity: 1;
+}
+
+/* ── Modal body scroll & padding ── */
+.modal-form-body {
+  padding: 1.5rem 1.75rem !important;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c4b5fd transparent;
+}
+
+.modal-form-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-form-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-form-body::-webkit-scrollbar-thumb {
+  background: #c4b5fd;
+  border-radius: 99px;
+}
+
+/* ── Modal footer ── */
+.modal-form-footer {
+  padding: 2rem 1.75rem !important;
+}
+
+/* ── Department checkbox list ── */
+.department-list {
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c4b5fd #f1f1f1;
+}
+
+.department-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.department-list::-webkit-scrollbar-thumb {
+  background: #c4b5fd;
+  border-radius: 3px;
+}
+
+/* ── Narration helper text ── */
+.narration {
+  font-size: 0.8rem;
   line-height: 1.4;
   color: #6c757d;
-  font-style: normal;
 }
 
 .narration em {
@@ -24,16 +99,17 @@
   color: #2c3e50;
   font-weight: 600;
 }
-  .progress {
-    border-radius: 50px;
-    background-color: #e9ecef;
-  }
-  
-  .progress-bar {
-    transition: width 0.3s ease;
-  }
-  
-  small {
-    font-size: 0.85rem;
-  }
-  
+
+/* ── Password strength bar ── */
+.progress {
+  border-radius: 50px;
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  transition: width 0.3s ease;
+}
+
+small {
+  font-size: 0.8rem;
+}

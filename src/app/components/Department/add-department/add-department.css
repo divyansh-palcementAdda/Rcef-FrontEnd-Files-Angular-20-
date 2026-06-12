@@ -20,8 +20,67 @@
   padding: 2rem 2.5rem;
 }
 
+/* Modal-specific styles */
+.modal-form-layout {
+  padding: 0;
+}
+
+.modal-form-card {
+  background: var(--card-bg);
+  border-radius: 0;
+  width: 100%;
+}
+
+.modal-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+}
+
+.modal-form-header h3 {
+  margin-bottom: 0.15rem;
+}
+
+.modal-form-body {
+  padding: 1.5rem;
+}
+
+.modal-form-footer {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+  margin-top: 1.5rem;
+}
+
+.modal-close-btn-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted, #6c757d);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.modal-close-btn-inline:hover {
+  background-color: var(--hover-bg, rgba(0, 0, 0, 0.08));
+  color: var(--text-main, #212529);
+}
+
 @media (max-width: 768px) {
   .dept-form-body {
     padding: 1.5rem;
+  }
+
+  .modal-form-body {
+    padding: 1.25rem;
   }
 }

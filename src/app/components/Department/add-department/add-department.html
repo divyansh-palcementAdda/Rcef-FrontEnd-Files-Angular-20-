@@ -4,10 +4,10 @@
     <!-- Form Header -->
     <div [class.dept-form-header]="!isModal" [class.text-center]="!isModal" [class.modal-form-header]="isModal">
       <div>
-        <h3 class="mb-2 fw-bold" style="color: var(--text-main);">{{ departmentId ? 'Edit Department' : 'Add Department' }}</h3>
+        <h3 class="mb-1 fw-bold" style="color: var(--text-main);">{{ departmentId ? 'Edit Department' : 'Add Department' }}</h3>
         <p class="mb-0 text-muted small">Manage organizational structure</p>
       </div>
-      <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
+      <button *ngIf="isModal" type="button" class="modal-close-btn-inline ms-auto" (click)="cancel()" aria-label="Close">
         <i class="bi bi-x-lg fs-5"></i>
       </button>
     </div>
