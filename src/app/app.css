@@ -42,14 +42,21 @@
 }
 
 /* Responsiveness overrides */
-@media (max-width: 991.98px) {
-  .app-layout {
-    flex-direction: column;
-  }
+@media (max-width: 1199.98px) {
   .app-content {
-    padding: 1rem;
+    padding: 1.5rem 1rem;
   }
 }
+
+@media (max-width: 991.98px) {
+  app-sidebar {
+    display: none !important;
+  }
+  .app-content {
+    padding: 1rem 1rem 100px 1rem !important; /* Bottom padding to prevent content overlap with floating capsule */
+  }
+}
+
 
 /* ==========================================================================
    PREMIUM MODAL & BACKDROP STYLING (Inspired by Linear/Notion/Stripe)

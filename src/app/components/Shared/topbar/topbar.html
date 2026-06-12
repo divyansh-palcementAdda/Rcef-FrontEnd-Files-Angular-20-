@@ -1,8 +1,14 @@
 <header class="topbar-wrapper d-flex align-items-center justify-content-between px-4">
   <!-- Left greeting section -->
-  <div class="topbar-left d-flex flex-column">
-    <span class="greeting-text fw-semibold text-main">{{ getGreetingTime() }}, {{ fullName }}</span>
-    <small class="text-muted text-xs">{{ currentDate | date: 'fullDate' }}</small>
+  <div class="topbar-left d-flex align-items-center gap-3">
+    <!-- Hamburger button visible on tablet only -->
+    <button class="hamburger-btn border-0 bg-transparent text-secondary d-none d-md-flex d-xl-none p-1 align-items-center justify-content-center" (click)="toggleSidebar()" aria-label="Toggle Sidebar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+    </button>
+    <div class="d-flex flex-column greeting-container">
+      <span class="greeting-text fw-semibold text-main">{{ getGreetingTime() }}, {{ fullName }}</span>
+      <small class="text-muted text-xs">{{ currentDate | date: 'fullDate' }}</small>
+    </div>
   </div>
 
   <!-- Right actions section -->

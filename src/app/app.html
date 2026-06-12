@@ -1,5 +1,5 @@
 <ng-container *ngIf="(isLoggedIn$ | async) && !isHomeActive; else publicLayout">
-  <div class="app-layout">
+  <div class="app-layout" [class.mobile-sidebar-open]="sidebarService.isMobileOpen$ | async" [class.tablet-sidebar-collapsed]="sidebarService.isCollapsed$ | async">
     <app-sidebar></app-sidebar>
     <div class="app-main">
       <app-topbar></app-topbar>
@@ -7,6 +7,7 @@
         <router-outlet></router-outlet>
       </main>
     </div>
+    <app-bottom-nav></app-bottom-nav>
   </div>
 </ng-container>
 

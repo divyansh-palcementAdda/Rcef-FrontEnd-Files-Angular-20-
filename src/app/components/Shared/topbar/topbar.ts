@@ -5,6 +5,7 @@ import { AuthApiService } from '../../../Services/auth-api-service';
 import { NotificationBellComponent } from '../notification-bell-component/notification-bell-component';
 import { UserApiService } from '../../../Services/UserApiService';
 import { JwtService } from '../../../Services/jwt-service';
+import { SidebarService } from '../../../Services/sidebar-service';
 
 @Component({
   selector: 'app-topbar',
@@ -23,7 +24,8 @@ export class TopbarComponent implements OnInit {
     private authService: AuthApiService,
     private router: Router,
     private userApiService: UserApiService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private sidebarService: SidebarService
   ) { }
 
   ngOnInit(): void {
@@ -68,6 +70,14 @@ export class TopbarComponent implements OnInit {
     if (hour < 12) return 'Good Morning';
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
+  }
+
+  toggleSidebar(): void {
+    if (window.innerWidth < 768) {
+      this.sidebarService.toggleMobileSidebar();
+    } else {
+      this.sidebarService.toggleCollapsed();
+    }
   }
 
   logout(): void {

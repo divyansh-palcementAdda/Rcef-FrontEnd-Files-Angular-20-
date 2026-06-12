@@ -5,13 +5,16 @@
 
 .topbar-wrapper {
   height: var(--topbar-height);
-  background-color: var(--card-bg);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-color);
   width: 100%;
   position: sticky;
   top: 0;
-  z-index: 90;
+  z-index: 900;
   transition: background-color 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
 }
 
 .greeting-text {
@@ -55,4 +58,53 @@
 
 .user-role {
   text-transform: capitalize;
+}
+
+.hamburger-btn {
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.hamburger-btn:hover {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+}
+
+@media (max-width: 767.98px) {
+  .topbar-wrapper {
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 1rem !important;
+    height: 60px !important;
+  }
+  
+  .topbar-left {
+    grid-column: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 0 !important;
+  }
+
+  .topbar-left .greeting-container {
+    align-items: center;
+  }
+
+  .topbar-left small {
+    display: none !important; /* Hide date on mobile for compactness */
+  }
+
+  .topbar-right {
+    grid-column: 3;
+    justify-content: flex-end;
+    gap: 0.5rem !important;
+  }
 }

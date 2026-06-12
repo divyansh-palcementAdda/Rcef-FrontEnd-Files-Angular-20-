@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Navbar } from './components/Shared/navbar/navbar';
 import { SidebarComponent } from './components/Shared/sidebar/sidebar';
 import { TopbarComponent } from './components/Shared/topbar/topbar';
+import { BottomNavComponent } from './components/Shared/bottom-nav/bottom-nav';
 import { AuthApiService } from './Services/auth-api-service';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -15,6 +16,7 @@ import { AddTaskComponent } from './components/Tasks/add-task/add-task';
 import { EditUser } from './components/Users/edit-user/edit-user';
 import { UpdateTaskComponent } from './components/Tasks/update-task/update-task';
 import { ModalService } from './Services/modal-service';
+import { SidebarService } from './Services/sidebar-service';
 
 @Component({
   selector: 'app-root',
@@ -25,6 +27,7 @@ import { ModalService } from './Services/modal-service';
     Navbar, 
     SidebarComponent, 
     TopbarComponent,
+    BottomNavComponent,
     AddUserComponent,
     AddDepartmentComponent,
     AddTaskComponent,
@@ -45,6 +48,7 @@ export class App {
 
   private modalService = inject(ModalService);
   private route = inject(ActivatedRoute);
+  public sidebarService = inject(SidebarService);
 
   constructor(private authService: AuthApiService, private router: Router) {
     this.isLoggedIn$ = this.authService.isLoggedIn$;
@@ -98,6 +102,11 @@ export class App {
     if (this.activeModal) {
       this.closeActiveModal(false);
     }
+    this.sidebarService.setMobileSidebarOpen(false);
+  }
+
+  closeMobileSidebar(): void {
+    this.sidebarService.setMobileSidebarOpen(false);
   }
 
   @HostListener('document:keydown', ['$event'])

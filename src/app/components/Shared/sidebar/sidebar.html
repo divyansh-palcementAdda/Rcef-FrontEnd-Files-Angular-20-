@@ -20,7 +20,8 @@
            [routerLink]="link.route" 
            [queryParams]="link.queryParams"
            routerLinkActive="active" 
-           [routerLinkActiveOptions]="{exact: link.route === '/admin' || link.route === '/hod' || link.route === '/teacher'}">
+           [routerLinkActiveOptions]="{exact: link.route === '/admin' || link.route === '/hod' || link.route === '/teacher'}"
+           (click)="onLinkClick()">
           <i class="bi {{ link.icon }} fs-5"></i>
           <span class="link-label ms-3" *ngIf="!isCollapsed">{{ link.label }}</span>
         </a>

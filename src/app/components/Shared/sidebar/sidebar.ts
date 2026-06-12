@@ -4,6 +4,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { JwtService } from '../../../Services/jwt-service';
+import { SidebarService } from '../../../Services/sidebar-service';
 
 interface SidebarLink {
   label: string;
@@ -30,7 +31,8 @@ export class SidebarComponent implements OnInit {
     private authService: AuthApiService,
     private router: Router,
     private userApiService: UserApiService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private sidebarService: SidebarService
   ) {}
 
   ngOnInit(): void {
@@ -43,6 +45,9 @@ export class SidebarComponent implements OnInit {
     });
     this.buildLinks();
     this.loadUserProfile();
+    this.sidebarService.isCollapsed$.subscribe(collapsed => {
+      this.isCollapsed = collapsed;
+    });
   }
 
   loadUserProfile(): void {
@@ -72,7 +77,13 @@ export class SidebarComponent implements OnInit {
   }
 
   toggleCollapse(): void {
-    this.isCollapsed = !this.isCollapsed;
+    this.sidebarService.toggleCollapsed();
+  }
+
+  onLinkClick(): void {
+    if (window.innerWidth < 768) {
+      this.sidebarService.setMobileSidebarOpen(false);
+    }
   }
 
   logout(): void {
