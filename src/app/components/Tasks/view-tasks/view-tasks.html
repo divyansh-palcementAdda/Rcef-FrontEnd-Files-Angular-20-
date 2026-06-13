@@ -377,37 +377,45 @@
           <thead>
             <tr>
               <th (click)="setSort('title')" style="cursor: pointer;">
-                Task Details
-                <i class="bi" [ngClass]="{
-                  'bi-arrow-up text-primary': sortBy === 'title' && sortDirection === 'asc',
-                  'bi-arrow-down text-primary': sortBy === 'title' && sortDirection === 'desc',
-                  'bi-arrow-down-up text-muted opacity-50': sortBy !== 'title'
-                }"></i>
+                <span style="white-space: nowrap;">
+                  Task Details
+                  <i class="bi" [ngClass]="{
+                    'bi-arrow-up text-primary': sortBy === 'title' && sortDirection === 'asc',
+                    'bi-arrow-down text-primary': sortBy === 'title' && sortDirection === 'desc',
+                    'bi-arrow-down-up text-muted opacity-50': sortBy !== 'title'
+                  }"></i>
+                </span>
               </th>
               <th (click)="setSort('department.name')" style="cursor: pointer;">
-                Department
-                <i class="bi" [ngClass]="{
-                  'bi-arrow-up text-primary': sortBy === 'department.name' && sortDirection === 'asc',
-                  'bi-arrow-down text-primary': sortBy === 'department.name' && sortDirection === 'desc',
-                  'bi-arrow-down-up text-muted opacity-50': sortBy !== 'department.name'
-                }"></i>
+                <span style="white-space: nowrap;">
+                  Department
+                  <i class="bi" [ngClass]="{
+                    'bi-arrow-up text-primary': sortBy === 'department.name' && sortDirection === 'asc',
+                    'bi-arrow-down text-primary': sortBy === 'department.name' && sortDirection === 'desc',
+                    'bi-arrow-down-up text-muted opacity-50': sortBy !== 'department.name'
+                  }"></i>
+                </span>
               </th>
               <th>Assignee</th>
               <th (click)="setSort('dueDate')" style="cursor: pointer;">
-                Timeline
-                <i class="bi" [ngClass]="{
-                  'bi-arrow-up text-primary': sortBy === 'dueDate' && sortDirection === 'asc',
-                  'bi-arrow-down text-primary': sortBy === 'dueDate' && sortDirection === 'desc',
-                  'bi-arrow-down-up text-muted opacity-50': sortBy !== 'dueDate'
-                }"></i>
+                <span style="white-space: nowrap;">
+                  Timeline
+                  <i class="bi" [ngClass]="{
+                    'bi-arrow-up text-primary': sortBy === 'dueDate' && sortDirection === 'asc',
+                    'bi-arrow-down text-primary': sortBy === 'dueDate' && sortDirection === 'desc',
+                    'bi-arrow-down-up text-muted opacity-50': sortBy !== 'dueDate'
+                  }"></i>
+                </span>
               </th>
               <th (click)="setSort('status')" style="cursor: pointer;">
-                Status
-                <i class="bi" [ngClass]="{
-                  'bi-arrow-up text-primary': sortBy === 'status' && sortDirection === 'asc',
-                  'bi-arrow-down text-primary': sortBy === 'status' && sortDirection === 'desc',
-                  'bi-arrow-down-up text-muted opacity-50': sortBy !== 'status'
-                }"></i>
+                <span style="white-space: nowrap;">
+                  Status
+                  <i class="bi" [ngClass]="{
+                    'bi-arrow-up text-primary': sortBy === 'status' && sortDirection === 'asc',
+                    'bi-arrow-down text-primary': sortBy === 'status' && sortDirection === 'desc',
+                    'bi-arrow-down-up text-muted opacity-50': sortBy !== 'status'
+                  }"></i>
+                </span>
               </th>
               <th class="text-end" style="width: 140px;">Actions</th>
             </tr>

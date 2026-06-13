@@ -1,5 +1,39 @@
 /* Modern Departments View Styles */
 
+/* ── Search input with icon inside ── */
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.search-input {
+  padding-left: 2.75rem !important;
+  border-radius: 10px;
+  border: 1px solid #ECEEF2;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  min-height: 46px;
+  font-size: 0.875rem;
+  color: #334155;
+  transition: all 0.2s ease;
+ 
+}
+
+.search-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  outline: none;
+}
+
 .departments-container {
   max-width: 1200px;
   margin: 0 auto;

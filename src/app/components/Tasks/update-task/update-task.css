@@ -78,24 +78,13 @@
   min-height: 0;
   padding: 28px;
   background-color: #ffffff;
-  
-  /* Slim scrollbar */
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
 
-.modal-form-body::-webkit-scrollbar {
-  width: 5px;
-}
-
-.modal-form-body::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.modal-form-body::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 99px;
-}
+.modal-form-body::-webkit-scrollbar { width: 5px; }
+.modal-form-body::-webkit-scrollbar-track { background: transparent; }
+.modal-form-body::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 99px; }
 
 .modal-form-footer {
   flex-shrink: 0;
@@ -128,7 +117,7 @@
   color: #0f172a;
 }
 
-/* ===== Form Elements & Spacing ===== */
+/* ===== Form Elements ===== */
 .form-label {
   font-size: 0.875rem;
   font-weight: 600;
@@ -137,7 +126,6 @@
   display: inline-block;
 }
 
-/* Input group styling (Linear/Stripe style) */
 .input-group {
   border-radius: 14px;
   border: 1px solid #ECEEF2;
@@ -232,7 +220,7 @@ textarea.form-control {
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
 }
 
-/* ===== Directory Cards (Departments & Users selector lists) ===== */
+/* ===== Directory Cards ===== */
 .directory-card {
   border: 1px solid #ECEEF2;
   border-radius: 14px;
@@ -268,69 +256,111 @@ textarea.form-control {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
-/* Custom rounded checkboxes */
-.form-check {
+.directory-list::-webkit-scrollbar { width: 4px; }
+.directory-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 99px; }
+
+/* ===== User list scroll container ===== */
+.user-list-scroll {
+  max-height: 192px;
+  overflow-y: auto;
+  padding-right: 4px;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-left: 0;
-  margin-bottom: 0;
+  flex-direction: column;
+  gap: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
-.form-check-input.custom-checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 4px;
-  background-color: #ffffff;
-  position: relative;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-  margin-top: 0;
+.user-list-scroll::-webkit-scrollbar { width: 4px; }
+.user-list-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 99px; }
+
+/* ===== Checkbox Fix via ::ng-deep to pierce Bootstrap global styles ===== */
+
+/* Reset Bootstrap's .form-check row layout */
+:host ::ng-deep .form-check {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding-left: 0 !important;
+  margin-bottom: 0 !important;
+  min-height: unset !important;
 }
 
-.form-check-input.custom-checkbox:checked {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
+/* The actual checkbox input */
+:host ::ng-deep .form-check-input.custom-checkbox {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  position: relative !important;
+  float: none !important;
+  flex-shrink: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 4px !important;
+  background-color: #ffffff !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  box-shadow: none !important;
+  background-image: none !important;
 }
 
-.form-check-input.custom-checkbox:checked::after {
+:host ::ng-deep .form-check-input.custom-checkbox:checked {
+  background-color: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+  background-image: none !important;
+}
+
+:host ::ng-deep .form-check-input.custom-checkbox:checked::after {
   content: '✓';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
-.form-check-input.custom-checkbox:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+:host ::ng-deep .form-check-input.custom-checkbox:focus {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important;
+  border-color: #4f46e5 !important;
+  outline: none !important;
 }
 
-.form-check-label {
-  font-size: 0.875rem;
-  color: #334155;
-  font-weight: 500;
-  cursor: pointer;
-  user-select: none;
+:host ::ng-deep .form-check-input.custom-checkbox:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
 }
 
-.form-check-label.select-all-label {
-  color: #4f46e5;
-  font-weight: 700;
+/* Label sits inline next to checkbox */
+:host ::ng-deep .form-check-label {
+  font-size: 0.875rem !important;
+  color: #334155 !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  margin-bottom: 0 !important;
+  padding-left: 0 !important;
+  line-height: 1.4 !important;
 }
 
-/* Accordion overrides */
+:host ::ng-deep .form-check-label.select-all-label,
+:host ::ng-deep .form-check-label.fw-bold.text-primary {
+  color: #4f46e5 !important;
+  font-weight: 700 !important;
+}
+
+/* ===== Accordion overrides ===== */
 .accordion-item {
   background-color: #ffffff !important;
   border: 1px solid #ECEEF2 !important;
@@ -364,7 +394,7 @@ textarea.form-control {
   padding-left: 8px;
 }
 
-/* Skeleton loader */
+/* ===== Skeleton loader ===== */
 .skeleton-item {
   height: 1.5rem;
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
@@ -378,7 +408,7 @@ textarea.form-control {
   100% { background-position: -200% 0; }
 }
 
-/* Button variants */
+/* ===== Buttons ===== */
 .btn-secondary {
   height: 44px;
   border-radius: 12px;
@@ -415,15 +445,9 @@ textarea.form-control {
   box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
 }
 
-/* ===== Responsive styles ===== */
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
-  .modal-form-header {
-    padding: 16px 20px;
-  }
-  .modal-form-body {
-    padding: 20px;
-  }
-  .modal-form-footer {
-    padding: 12px 20px;
-  }
+  .modal-form-header { padding: 16px 20px; }
+  .modal-form-body { padding: 20px; }
+  .modal-form-footer { padding: 12px 20px; }
 }

@@ -19,6 +19,14 @@ export class TaskTemplateManagementComponent implements OnInit {
   categories: TaskTemplateCategoryDto[] = [];
   selectedTemplate: TaskTemplateDto | null = null;
 
+  // Pagination – Templates
+  templateCurrentPage = 1;
+  templatePageSize = 5;
+
+  // Pagination – Categories
+  categoryCurrentPage = 1;
+  categoryPageSize = 5;
+
   // Forms
   templateForm!: FormGroup;
   categoryForm!: FormGroup;
@@ -87,6 +95,7 @@ export class TaskTemplateManagementComponent implements OnInit {
       next: (res) => {
         if (res.success && res.data) {
           this.templates = res.data;
+          this.templateCurrentPage = 1;
           if (this.selectedTemplate) {
             const updated = res.data.find(t => t.id === this.selectedTemplate?.id);
             if (updated) this.selectedTemplate = updated;
@@ -100,6 +109,7 @@ export class TaskTemplateManagementComponent implements OnInit {
       next: (res) => {
         if (res.success && res.data) {
           this.categories = res.data;
+          this.categoryCurrentPage = 1;
         }
       },
       error: (err) => (this.errorMessage = 'Failed to load categories')
@@ -311,6 +321,44 @@ export class TaskTemplateManagementComponent implements OnInit {
       },
       error: (err) => (this.errorMessage = 'Failed to remove requirement')
     });
+  }
+
+  // ─── Pagination helpers – Templates ───────────────────────────────────────
+  get templateTotalPages(): number {
+    return Math.ceil(this.templates.length / this.templatePageSize) || 1;
+  }
+
+  get paginatedTemplates(): TaskTemplateDto[] {
+    const start = (this.templateCurrentPage - 1) * this.templatePageSize;
+    return this.templates.slice(start, start + this.templatePageSize);
+  }
+
+  get templatePageNumbers(): number[] {
+    return Array.from({ length: this.templateTotalPages }, (_, i) => i + 1);
+  }
+
+  changeTemplatePage(page: number): void {
+    if (page < 1 || page > this.templateTotalPages) return;
+    this.templateCurrentPage = page;
+  }
+
+  // ─── Pagination helpers – Categories ──────────────────────────────────────
+  get categoryTotalPages(): number {
+    return Math.ceil(this.categories.length / this.categoryPageSize) || 1;
+  }
+
+  get paginatedCategories(): TaskTemplateCategoryDto[] {
+    const start = (this.categoryCurrentPage - 1) * this.categoryPageSize;
+    return this.categories.slice(start, start + this.categoryPageSize);
+  }
+
+  get categoryPageNumbers(): number[] {
+    return Array.from({ length: this.categoryTotalPages }, (_, i) => i + 1);
+  }
+
+  changeCategoryPage(page: number): void {
+    if (page < 1 || page > this.categoryTotalPages) return;
+    this.categoryCurrentPage = page;
   }
 
   goBack(): void {

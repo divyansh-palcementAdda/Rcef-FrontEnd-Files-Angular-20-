@@ -108,7 +108,7 @@
     <!-- SECTION 2: KPI Metrics Cards Grid -->
     <div class="task-kpi-grid mb-4">
       <!-- Card 1: Assigned Users -->
-      <div class="kpi-card">
+      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'members'; scrollToTabs()" style="cursor:pointer;" title="View Team Members">
         <div class="kpi-icon-wrapper kpi-purple">
           <i class="bi bi-people-fill"></i>
         </div>

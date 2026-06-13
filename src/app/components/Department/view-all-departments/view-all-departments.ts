@@ -99,6 +99,10 @@ export class ViewDepartmentsComponent implements OnInit {
     this.loading = false;
   }
 
+  openAddDepartment(): void {
+    this.router.navigate(['/add-department']);
+  }
+
   goBackToDashboard() {
     const token = this.jwtService.getAccessToken();
     if (token) {

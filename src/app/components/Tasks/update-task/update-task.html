@@ -131,7 +131,7 @@
                   <div *ngIf="!isLoadingDepartments && filteredDepartments.length === 0" class="text-muted small text-center py-2">
                     No departments found.
                   </div>
-                  <div *ngFor="let dept of filteredDepartments" class="form-check mb-2">
+                  <div *ngFor="let dept of filteredDepartments" class="form-check">
                     <input type="checkbox" class="form-check-input custom-checkbox"
                         [id]="'dept-' + dept.departmentId"
                         [checked]="(taskForm.value.departmentIds || []).includes(dept.departmentId)"
@@ -193,8 +193,8 @@
                         </label>
                       </div>
 
-                      <div class="max-h-48 overflow-y-auto pr-1">
-                        <div *ngFor="let user of filteredUsersByDept.get(deptId)" class="form-check mb-2"
+                      <div class="user-list-scroll">
+                        <div *ngFor="let user of filteredUsersByDept.get(deptId)" class="form-check mb-1"
                           [ngClass]="{ 'hod-highlight': user.role === 'HOD' }">
                           <input type="checkbox" class="form-check-input custom-checkbox"
                             [id]="'user-' + user.userId"
