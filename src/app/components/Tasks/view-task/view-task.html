@@ -122,7 +122,8 @@
       </div>
 
       <!-- Card 2: Departments -->
-      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'departments'; scrollToTabs()" style="cursor:pointer;" title="View Departments">
+      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'departments'; scrollToTabs()"
+        style="cursor:pointer;" title="View Departments">
         <div class="kpi-icon-wrapper kpi-blue">
           <i class="bi bi-diagram-3-fill"></i>
         </div>
@@ -135,7 +136,8 @@
       </div>
 
       <!-- Card 3: Total Requests -->
-      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'requests'; scrollToTabs()" style="cursor:pointer;" title="View Requests">
+      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'requests'; scrollToTabs()" style="cursor:pointer;"
+        title="View Requests">
         <div class="kpi-icon-wrapper kpi-yellow">
           <i class="bi bi-file-earmark-text-fill"></i>
         </div>
@@ -149,7 +151,8 @@
       </div>
 
       <!-- Card 4: Proofs Submitted -->
-      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'proofs'; scrollToTabs()" style="cursor:pointer;" title="View Proofs">
+      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'proofs'; scrollToTabs()" style="cursor:pointer;"
+        title="View Proofs">
         <div class="kpi-icon-wrapper kpi-orange">
           <i class="bi bi-paperclip"></i>
         </div>
@@ -164,7 +167,6 @@
 
     <!-- SECTION 3: Two-Column Workspace Layout -->
     <div class="task-workspace-grid">
-
       <!-- Left Workspace Column (75%) -->
       <div class="workspace-main-col">
         <!-- Description Card -->
@@ -327,7 +329,8 @@
                       <span><i class="bi bi-person"></i> {{ r.requestedByName }}</span>
                       <span><i class="bi bi-calendar"></i> {{ r.requestDate | date:'mediumDate' }}</span>
                       <span *ngIf="r.proofs?.length" class="cursor-pointer" (click)="openProofsModal(r)">
-                        <i class="bi bi-paperclip"></i> {{ r.proofs?.length }} File{{ (r.proofs?.length || 0) > 1 ? 's' : '' }}
+                        <i class="bi bi-paperclip"></i> {{ r.proofs?.length }} File{{ (r.proofs?.length || 0) > 1 ? 's'
+                        : '' }}
                       </span>
                     </div>
                   </div>
@@ -478,7 +481,8 @@
                       <div class="proof-card-meta">
                         <span class="proof-card-filename" [title]="getFileName(p.fileUrl)">{{ getFileName(p.fileUrl)
                           }}</span>
-                        <span class="proof-card-type">{{ p.requestType === 'CLOSURE' ? 'Closure Request' : 'Extension Request' }} (#{{ p.requestId }})</span>
+                        <span class="proof-card-type">{{ p.requestType === 'CLOSURE' ? 'Closure Request' : 'Extension
+                          Request' }} (#{{ p.requestId }})</span>
                       </div>
                     </div>
                     <div class="proof-card-footer">
@@ -509,12 +513,14 @@
                 <!-- Thread List -->
                 <div class="comments-thread" *ngIf="comments && comments.length > 0">
                   <div class="comment-bubble-item" *ngFor="let c of comments">
-                    <div class="comment-avatar" [ngClass]="getCommentAvatarClass(c.userRole)">{{ c.avatarInitials }}</div>
+                    <div class="comment-avatar" [ngClass]="getCommentAvatarClass(c.userRole)">{{ c.avatarInitials }}
+                    </div>
                     <div class="comment-bubble-content">
                       <div class="comment-bubble-meta">
                         <span class="comment-author">
                           {{ c.userName }}
-                          <span class="badge bg-light text-secondary ms-2 small fw-semibold" style="font-size: 0.65rem; border: 1px solid var(--border-light)">{{ c.userRole }}</span>
+                          <span class="badge bg-light text-secondary ms-2 small fw-semibold"
+                            style="font-size: 0.65rem; border: 1px solid var(--border-light)">{{ c.userRole }}</span>
                         </span>
                         <span class="comment-time">{{ c.timestamp | date:'medium' }}</span>
                       </div>
@@ -526,14 +532,14 @@
                 </div>
 
                 <!-- Empty State -->
-                <div *ngIf="!comments || comments.length === 0" class="col-12 text-center text-muted py-5 bg-light rounded-3 mb-3">
+                <div *ngIf="!comments || comments.length === 0"
+                  class="col-12 text-center text-muted py-5 bg-light rounded-3 mb-3">
                   <i class="bi bi-chat-left-dots fs-2 mb-2 d-block"></i>No comments yet. Start the conversation!
                 </div>
 
                 <!-- Input area -->
                 <div class="comment-input-area mt-4">
-                  <textarea class="form-control comment-textarea mb-2" rows="3"
-                    [(ngModel)]="newCommentText"
+                  <textarea class="form-control comment-textarea mb-2" rows="3" [(ngModel)]="newCommentText"
                     placeholder="Write a comment... (Notion-style replies supported)"></textarea>
                   <div class="d-flex justify-content-end">
                     <button class="btn btn-primary px-4 py-2 rounded-3" (click)="addComment()">
@@ -580,7 +586,8 @@
                   <span><i class="bi bi-person"></i> {{ r.requestedByName }}</span>
                   <span><i class="bi bi-calendar"></i> {{ r.requestDate | date:'mediumDate' }}</span>
                   <span *ngIf="r.proofs?.length" class="cursor-pointer" (click)="openProofsModal(r)">
-                    <i class="bi bi-paperclip"></i> {{ r.proofs?.length }} File{{ (r.proofs?.length || 0) > 1 ? 's' : '' }}
+                    <i class="bi bi-paperclip"></i> {{ r.proofs?.length }} File{{ (r.proofs?.length || 0) > 1 ? 's' : ''
+                    }}
                   </span>
                 </div>
               </div>
@@ -689,7 +696,7 @@
           </div>
 
           <!-- Back to Task Board Button -->
-          
+
 
           <!-- Recent Logs Card -->
           <div class="sidebar-card">
