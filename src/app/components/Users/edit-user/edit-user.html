@@ -1,21 +1,22 @@
 <div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
   <form [formGroup]="editForm" (ngSubmit)="onSubmit()" [class.edit-user-card]="!isModal" [class.modal-form-card]="isModal" novalidate>
-    
+
     <!-- Form Header -->
-    <div [class.edit-user-header]="!isModal" [class.text-center]="!isModal" [class.modal-form-header]="isModal">
+    <div [class.edit-user-header]="!isModal" [class.modal-form-header]="isModal">
       <div>
-        <h3 class="mb-1 fw-bold" style="color: var(--text-main);">Edit User</h3>
+        <h3 class="mb-1 fw-bold">Edit User</h3>
         <p class="mb-0 text-muted small">Update user profile attributes and accesses</p>
       </div>
-      <button *ngIf="isModal" type="button" class="modal-close-btn-inline ms-auto" (click)="cancel()" aria-label="Close">
+      <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
         <i class="bi bi-x-lg fs-5"></i>
       </button>
     </div>
 
     <!-- Form Body -->
     <div [class.edit-user-body]="!isModal" [class.modal-form-body]="isModal">
+
       <!-- Admin Mode Indicator Banner -->
-      <div class="alert alert-success d-flex align-items-center mb-4 py-2.5 animate__animated animate__fadeIn" *ngIf="isCurrentUserAdmin">
+      <div class="alert alert-success d-flex align-items-center mb-4 py-2 animate__animated animate__fadeIn" *ngIf="isCurrentUserAdmin">
         <i class="bi bi-shield-check-fill me-2 fs-5 text-success"></i>
         <span style="font-size: 0.875rem;"><strong>Administrator Privilege:</strong> You are authorized to modify all parameters including directory roles.</span>
       </div>
@@ -32,13 +33,14 @@
 
       <!-- Loading State -->
       <div *ngIf="isLoading" class="text-center my-5 py-4">
-        <div class="spinner-border text-primary spinner mb-2" role="status"></div>
+        <div class="spinner-border text-primary mb-2" role="status"></div>
         <p class="text-muted small">Loading user details…</p>
       </div>
 
       <ng-container *ngIf="!isLoading">
+
         <!-- Personal Details -->
-        <div class="form-section-card">
+        <div class="form-section-card animate__animated animate__fadeIn">
           <div class="form-section-header">
             <div class="form-section-icon"><i class="bi bi-person"></i></div>
             <div class="form-section-title-wrapper">
@@ -47,6 +49,7 @@
             </div>
           </div>
           <div class="row g-3">
+
             <!-- Full Name -->
             <div class="col-md-6">
               <label class="form-label">Full Name <span class="text-danger">*</span></label>
@@ -55,7 +58,7 @@
                 <input type="text" class="form-control" formControlName="fullName" placeholder="e.g. Jane Doe"
                   [ngClass]="{
                     'is-invalid': f['fullName'].touched && f['fullName'].invalid,
-                    'is-valid': f['fullName'].touched && f['fullName'].valid
+                    'is-valid':   f['fullName'].touched && f['fullName'].valid
                   }" />
               </div>
               <div *ngIf="f['fullName'].touched && f['fullName'].invalid" class="text-danger small mt-1">
@@ -72,19 +75,20 @@
                 <input type="text" class="form-control" formControlName="username" placeholder="e.g. jane_doe"
                   [ngClass]="{
                     'is-invalid': f['username'].touched && f['username'].invalid,
-                    'is-valid': f['username'].touched && f['username'].valid
+                    'is-valid':   f['username'].touched && f['username'].valid
                   }" />
               </div>
               <div *ngIf="f['username'].touched && f['username'].invalid" class="text-danger small mt-1">
                 <small *ngIf="f['username'].errors?.['required']">Username is required.</small>
-                <small *ngIf="f['username'].errors?.['pattern']">Start with letter, 4-20 alphanumeric characters or underscores.</small>
+                <small *ngIf="f['username'].errors?.['pattern']">Start with letter, 4–20 alphanumeric characters or underscores.</small>
               </div>
             </div>
+
           </div>
         </div>
 
         <!-- Security Credentials -->
-        <div class="form-section-card">
+        <div class="form-section-card animate__animated animate__fadeIn">
           <div class="form-section-header">
             <div class="form-section-icon"><i class="bi bi-shield-lock"></i></div>
             <div class="form-section-title-wrapper">
@@ -93,56 +97,62 @@
             </div>
           </div>
           <div class="row g-3">
-            <!-- Password (Optional edit) -->
+
+            <!-- Password -->
             <div class="col-12">
-              <label class="form-label">New Password <span class="text-muted small">(Leave empty to retain current)</span></label>
+              <label class="form-label">
+                New Password
+                <span class="text-muted small">(Leave empty to retain current)</span>
+              </label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-key"></i></span>
-                <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password" placeholder="Enter new strong password"
+                <input [type]="showPassword ? 'text' : 'password'" class="form-control"
+                  formControlName="password" placeholder="Enter new strong password"
                   [ngClass]="{
                     'is-invalid': f['password'].touched && f['password'].invalid && f['password'].value,
-                    'is-valid': f['password'].touched && f['password'].valid && f['password'].value
+                    'is-valid':   f['password'].touched && f['password'].valid  && f['password'].value
                   }" />
                 <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()" tabindex="-1">
                   <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
                 </button>
               </div>
 
-              <!-- Password strength helper indicator -->
+              <!-- Password strength bar -->
               <div *ngIf="editForm.get('password')?.value" class="mt-2">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                   <small class="text-muted">Security Strength:</small>
-                  <small [ngClass]="{
-                    'text-danger': passwordStrength.score <= 40,
+                  <small class="fw-semibold" [ngClass]="{
+                    'text-danger':  passwordStrength.score <= 40,
                     'text-warning': passwordStrength.score > 40 && passwordStrength.score <= 80,
                     'text-success': passwordStrength.score > 80
-                  }" class="fw-semibold">
-                    {{ passwordStrength.label }}
-                  </small>
+                  }">{{ passwordStrength.label }}</small>
                 </div>
-                <div class="progress" style="height: 6px;">
-                  <div class="progress-bar" [style.width.%]="passwordStrength.score" [style.backgroundColor]="passwordStrength.color" role="progressbar"></div>
+                <div class="progress">
+                  <div class="progress-bar" [style.width.%]="passwordStrength.score"
+                    [style.backgroundColor]="passwordStrength.color" role="progressbar"></div>
                 </div>
               </div>
-              
+
               <div *ngIf="f['password'].touched && f['password'].invalid && f['password'].value" class="text-danger small mt-1">
-                <small>Must contain uppercase, lowercase, number, special symbol, and be at least 8 characters long.</small>
+                <small>Must contain uppercase, lowercase, number, special symbol, and be at least 8 characters.</small>
               </div>
             </div>
+
           </div>
         </div>
 
         <!-- Role & Hierarchy -->
-        <div class="form-section-card">
+        <div class="form-section-card animate__animated animate__fadeIn">
           <div class="form-section-header">
             <div class="form-section-icon"><i class="bi bi-person-badge"></i></div>
             <div class="form-section-title-wrapper">
               <h4 class="form-section-title">Role & Hierarchy</h4>
-              <p class="form-section-subtitle">Modify reporting structure supervisor and roles</p>
+              <p class="form-section-subtitle">Modify reporting structure, supervisor and roles</p>
             </div>
           </div>
           <div class="row g-3">
-            <!-- Role selection -->
+
+            <!-- Role -->
             <div class="col-md-6">
               <label class="form-label">System Role <span class="text-danger">*</span></label>
               <div class="input-group">
@@ -150,7 +160,7 @@
                 <select class="form-select" formControlName="role"
                   [ngClass]="{
                     'is-invalid': f['role'].touched && f['role'].invalid,
-                    'is-valid': f['role'].touched && f['role'].valid
+                    'is-valid':   f['role'].touched && f['role'].valid
                   }">
                   <option value="" disabled>Select Role</option>
                   <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
@@ -161,7 +171,7 @@
               </div>
             </div>
 
-            <!-- Parent User Reporting -->
+            <!-- Parent User (Reports To) -->
             <div class="col-md-6" *ngIf="editForm.get('role')?.value">
               <label class="form-label">
                 Reports To (Supervisor)
@@ -172,7 +182,7 @@
                 <select class="form-select" formControlName="parentUserId"
                   [ngClass]="{
                     'is-invalid': f['parentUserId']?.touched && f['parentUserId']?.invalid,
-                    'is-valid': f['parentUserId']?.touched && f['parentUserId']?.valid
+                    'is-valid':   f['parentUserId']?.touched && f['parentUserId']?.valid
                   }">
                   <option [ngValue]="null" disabled>Select Supervisor</option>
                   <option *ngFor="let parent of filteredParentUsers" [value]="parent.userId">
@@ -183,8 +193,9 @@
               <div *ngIf="f['parentUserId']?.touched && f['parentUserId']?.invalid" class="text-danger small mt-1">
                 <small>Supervisor reporting line assignment is required.</small>
               </div>
-              <div class="field-hint">Teacher -> HOD -> SubAdmin -> Admin -> SuperAdmin.</div>
+              <div class="field-hint">Teacher → HOD → SubAdmin → Admin → SuperAdmin.</div>
             </div>
+
           </div>
         </div>
 
@@ -198,9 +209,10 @@
             </div>
           </div>
           <div class="row g-3">
+
             <!-- Sub-Department -->
             <div class="col-md-6 mb-2" *ngIf="subDepartments.length > 0">
-              <label class="form-label">Sub-Department (Optional)</label>
+              <label class="form-label">Sub-Department <span class="text-muted small">(Optional)</span></label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
                 <select class="form-select" formControlName="subDepartmentId">
@@ -212,7 +224,7 @@
               </div>
             </div>
 
-            <!-- Department select checkbox list -->
+            <!-- Departments checkbox list -->
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                 <label class="form-label mb-0">Departments Access <span class="text-danger">*</span></label>
@@ -224,12 +236,11 @@
                   </div>
                 </div>
               </div>
-              
-              <div class="department-list p-3 bg-light rounded border" style="max-height: 200px; overflow-y: auto;">
+
+              <div class="department-list p-3" style="max-height: 200px; overflow-y: auto;">
                 <div *ngIf="filteredDepartments().length === 0" class="text-center text-muted py-3">
                   <i class="bi bi-search me-1"></i> No matching departments.
                 </div>
-                
                 <div *ngFor="let dept of filteredDepartments()" class="form-check mb-2">
                   <input type="checkbox" class="form-check-input custom-checkbox" [id]="'dept-' + dept.departmentId"
                     [checked]="isDepartmentSelected(dept.departmentId)"
@@ -238,7 +249,7 @@
                     [ngClass]="{ 'border-success': isDepartmentSelected(dept.departmentId) }" />
                   <label class="form-check-label d-flex align-items-center" [for]="'dept-' + dept.departmentId"
                     [ngClass]="{
-                      'text-muted': isDeptDisabled(dept),
+                      'text-muted':             isDeptDisabled(dept),
                       'text-success fw-semibold': isDepartmentSelected(dept.departmentId)
                     }">
                     <i class="bi bi-building me-2"></i>
@@ -248,22 +259,23 @@
                   </label>
                 </div>
               </div>
-              
-              <div class="field-hint text-muted mt-2">
+
+              <div class="field-hint mt-2">
                 <i class="bi bi-info-circle me-1"></i>
                 <span *ngIf="editForm.get('role')?.value === 'ADMIN'">Admins must belong exclusively to Administration department.</span>
                 <span *ngIf="editForm.get('role')?.value === 'HOD'">HODs can only be assigned to a single department.</span>
                 <span *ngIf="editForm.get('role')?.value === 'TEACHER'">Teachers can have multiple department access privileges.</span>
               </div>
-              
+
               <div *ngIf="f['departmentIds'].touched && f['departmentIds'].invalid" class="text-danger small mt-1">
                 <small>At least one department selection is required.</small>
               </div>
             </div>
+
           </div>
         </div>
 
-        <!-- Permissions Card -->
+        <!-- System Permissions -->
         <div class="form-section-card animate__animated animate__fadeIn" *ngIf="editForm.get('role')?.value">
           <div class="form-section-header">
             <div class="form-section-icon"><i class="bi bi-shield-check"></i></div>
@@ -272,21 +284,27 @@
               <p class="form-section-subtitle">Permissions governed by role</p>
             </div>
           </div>
-          <div class="alert alert-secondary mb-0 py-2.5 d-flex align-items-start gap-2 bg-light border text-muted">
-            <i class="bi bi-info-circle-fill text-primary fs-5 mt-0.5"></i>
+          <div class="alert alert-secondary mb-0 py-2 d-flex align-items-start gap-2 bg-light border text-muted">
+            <i class="bi bi-info-circle-fill text-primary fs-5 flex-shrink-0 mt-1"></i>
             <span style="font-size: 0.85rem; line-height: 1.4;">
-              Permissions are automatically inherited based on the selected role (<strong>{{ editForm.get('role')?.value }}</strong>). Administrators can review and override specific permissions inside the <strong>Roles & Permissions</strong> dashboard setting.
+              Permissions are automatically inherited based on the selected role
+              (<strong>{{ editForm.get('role')?.value }}</strong>).
+              Administrators can review and override specific permissions inside the
+              <strong>Roles &amp; Permissions</strong> dashboard setting.
             </span>
           </div>
         </div>
-      </ng-container>
 
+      </ng-container>
     </div>
 
-    <!-- Footer -->
-    <div [class.edit-user-footer]="!isModal" [class.modal-form-footer]="isModal" class="d-flex justify-content-end gap-2">
-      <button type="button" class="btn btn-secondary px-4" (click)="cancel()" [disabled]="isSubmitting">Cancel</button>
-      <button type="submit" class="btn btn-primary px-5" [disabled]="isSubmitting || editForm.invalid || isLoading">
+    <!-- Form Footer -->
+    <div [class.edit-user-footer]="!isModal" [class.modal-form-footer]="isModal">
+      <button type="button" class="btn btn-secondary px-4" (click)="cancel()" [disabled]="isSubmitting">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary px-5 d-flex align-items-center gap-2"
+        [disabled]="isSubmitting || editForm.invalid || isLoading">
         <span *ngIf="!isSubmitting">Update User</span>
         <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
       </button>

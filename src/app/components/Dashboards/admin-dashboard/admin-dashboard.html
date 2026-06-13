@@ -103,7 +103,9 @@
       <div class="row g-3 g-md-4 mb-4">
         <!-- Admissions Count Card -->
         <div class="col-md-4">
-          <div class="border rounded-3 p-3 bg-light bg-opacity-50 d-flex align-items-center gap-3">
+          <div class="border rounded-3 p-3 bg-light bg-opacity-50 d-flex align-items-center gap-3 hover-lift"
+            style="cursor: pointer;"
+            (click)="router.navigate(['/view-tasks'], { queryParams: { status: 'SELF', taskCategory: 'ADMISSIONS' } })">
             <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; flex-shrink: 0; background-color: var(--primary-subtle); color: var(--primary-color);">
               <i class="bi bi-person-plus-fill fs-4"></i>
             </div>
@@ -116,7 +118,9 @@
 
         <!-- Academic Count Card -->
         <div class="col-md-4">
-          <div class="border rounded-3 p-3 bg-light bg-opacity-50 d-flex align-items-center gap-3">
+          <div class="border rounded-3 p-3 bg-light bg-opacity-50 d-flex align-items-center gap-3 hover-lift"
+            style="cursor: pointer;"
+            (click)="router.navigate(['/view-tasks'], { queryParams: { status: 'SELF', taskCategory: 'ACADEMIC' } })">
             <div class="bg-info bg-opacity-10 text-info rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; flex-shrink: 0; background-color: var(--info-subtle); color: var(--info-color);">
               <i class="bi bi-journal-bookmark-fill fs-4"></i>
             </div>
@@ -129,7 +133,9 @@
 
         <!-- Completion Percentage Card -->
         <div class="col-md-4">
-          <div class="border rounded-3 p-3 bg-light bg-opacity-50 d-flex align-items-center gap-3">
+          <div class="border rounded-3 p-3 bg-light bg-opacity-50 d-flex align-items-center gap-3 hover-lift"
+            style="cursor: pointer;"
+            (click)="router.navigate(['/view-tasks'], { queryParams: { status: 'SELF' } })">
             <div class="bg-success bg-opacity-10 text-success rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; flex-shrink: 0; background-color: var(--success-subtle); color: var(--success-color);">
               <i class="bi bi-check-circle-fill fs-4"></i>
             </div>
@@ -146,7 +152,9 @@
         <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-list-stars me-2 text-primary"></i>Task Count by Template Type</h6>
         <div class="row g-2">
           <div class="col-md-4 col-sm-6" *ngFor="let item of dashboardData.templateWiseCounts | keyvalue">
-            <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-light bg-opacity-50">
+            <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-light bg-opacity-50 hover-lift"
+              style="cursor: pointer;"
+              (click)="router.navigate(['/view-tasks'], { queryParams: { status: 'SELF', templateType: item.key } })">
               <span class="fw-medium text-main small">{{ item.key }}</span>
               <span class="badge bg-success text-white rounded-pill px-2.5 py-1 small">{{ item.value }}</span>
             </div>

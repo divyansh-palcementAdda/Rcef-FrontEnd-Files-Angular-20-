@@ -710,8 +710,8 @@ private async loadUsersForSelectedDepartments(deptIds: number[]): Promise<void> 
   private initModal(): void {
     if (this.modalElement) {
       this.recurrenceModal = new bootstrap.Modal(this.modalElement.nativeElement, {
-        backdrop: 'static',
-        keyboard: false,
+        backdrop: true,
+        keyboard: true,
       });
     }
   }
@@ -731,6 +731,11 @@ private async loadUsersForSelectedDepartments(deptIds: number[]): Promise<void> 
       console.log('Hiding recurrence modal');
       this.recurrenceModal.hide();
     }
+    // Ensure backdrop is fully removed
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
   }
 
   onRecurrenceIntervalChange(event: Event): void {
