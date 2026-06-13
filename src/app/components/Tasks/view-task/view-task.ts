@@ -21,6 +21,8 @@ interface EnrichedDepartment {
   hodName: string;
   userCount: number;
   users: userDto[];
+  description?: string;
+  departmentStatus?: string;
 }
 
 interface CollapsedState {
@@ -85,9 +87,17 @@ export class ViewTask implements OnInit, OnDestroy {
   comments: any[] = [];
   newCommentText = '';
   currentUserFullName = '';
+  replyingToCommentId: string | null = null;
+  replyText = '';
 
   get pendingRequestsCount(): number {
     return this.task?.requests?.filter(r => r.status === 'PENDING').length || 0;
+  }
+
+  getApproverName(): string {
+    if (!this.task?.requests) return '—';
+    const approvedReq = this.task.requests.find(r => r.status === 'APPROVED' && r.approvedByName);
+    return approvedReq ? approvedReq.approvedByName || '—' : '—';
   }
 
   get creatorInitials(): string {
@@ -563,7 +573,9 @@ export class ViewTask implements OnInit, OnDestroy {
         name: dept.name,
         hodName: hod ? hod.fullName : '—',
         userCount: users.length,
-        users
+        users,
+        description: dept.description || 'No description provided.',
+        departmentStatus: dept.departmentStatus || 'ACTIVE'
       };
     });
   }
@@ -933,7 +945,7 @@ showExtensionApprovalModal(request: any): void {
     });
   }
 
-  private reloadTask(): void {
+  reloadTask(): void {
     this.loadTask(this.taskId);
   }
 
@@ -995,6 +1007,23 @@ showExtensionApprovalModal(request: any): void {
       'CUSTOM': 'Custom'
     };
     return typeMap[type] || type;
+  }
+
+  formatProofType(type: string): string {
+    if (!type) return '';
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  getExpectedOutputsDisplay(): string {
+    if (!this.task?.template?.proofRequirements?.length) {
+      return 'Custom';
+    }
+    return this.task.template.proofRequirements
+      .map((pr: any) => this.formatProofType(pr.proofType))
+      .join(', ');
   }
 
   isTaskOverdue(): boolean {
@@ -1098,6 +1127,9 @@ showExtensionApprovalModal(request: any): void {
     if (stored) {
       try {
         this.comments = JSON.parse(stored);
+        this.comments.forEach(c => {
+          if (!c.replies) c.replies = [];
+        });
       } catch (e) {
         console.error('Failed to parse comments', e);
         this.comments = [];
@@ -1122,7 +1154,8 @@ showExtensionApprovalModal(request: any): void {
       userRole: this.currentUserRole || 'User',
       avatarInitials: initials,
       text: this.newCommentText.trim(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      replies: []
     };
 
     this.comments.push(newComment);
@@ -1130,9 +1163,127 @@ showExtensionApprovalModal(request: any): void {
     this.newCommentText = '';
   }
 
+  toggleReplyInput(commentId: string): void {
+    if (this.replyingToCommentId === commentId) {
+      this.replyingToCommentId = null;
+      this.replyText = '';
+    } else {
+      this.replyingToCommentId = commentId;
+      this.replyText = '';
+    }
+  }
+
+  addReply(parentComment: any): void {
+    if (!this.replyText?.trim()) return;
+
+    const initials = this.currentUserFullName
+      ? this.currentUserFullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+      : 'U';
+
+    const newReply = {
+      id: Math.random().toString(36).substring(2, 9),
+      taskId: this.taskId,
+      userId: this.currentUserId,
+      userName: this.currentUserFullName || 'Unknown User',
+      userRole: this.currentUserRole || 'User',
+      avatarInitials: initials,
+      text: this.replyText.trim(),
+      timestamp: new Date().toISOString()
+    };
+
+    if (!parentComment.replies) {
+      parentComment.replies = [];
+    }
+    parentComment.replies.push(newReply);
+
+    localStorage.setItem(`task_comments_${this.taskId}`, JSON.stringify(this.comments));
+    this.replyText = '';
+    this.replyingToCommentId = null;
+  }
+
   getCommentAvatarClass(role: string): string {
     if (role === 'TEACHER') return 'avatar-grey';
     return '';
+  }
+
+  getTimelineEvents() {
+    const events: any[] = [];
+    if (!this.task) return events;
+
+    // 1. Task Created
+    if (this.task.startDate) {
+      events.push({
+        title: 'Task Created',
+        date: this.task.startDate,
+        type: 'created',
+        icon: 'bi-plus-circle-fill',
+        badgeClass: 'bg-light-green text-green',
+        details: `Task was created.`,
+        user: this.task.createdByName || 'System'
+      });
+    }
+
+    // 2. Task Started
+    if (this.task.startedAt) {
+      events.push({
+        title: 'Task Started',
+        date: this.task.startedAt,
+        type: 'started',
+        icon: 'bi-play-circle-fill',
+        badgeClass: 'bg-light-blue text-blue',
+        details: 'Task execution was started.',
+        user: this.task.startedByName || 'System'
+      });
+    }
+
+    // 3. Requests: Extension, Closure
+    if (this.task.requests) {
+      this.task.requests.forEach(req => {
+        const typeLabel = req.requestType === 'EXTENSION' ? 'Extension' : 'Closure';
+        const isExtension = req.requestType === 'EXTENSION';
+        
+        // Submission Event
+        events.push({
+          title: `${typeLabel} Request Submitted`,
+          date: req.requestDate,
+          type: 'request_submitted',
+          icon: isExtension ? 'bi-calendar-plus-fill' : 'bi-check-circle-fill',
+          badgeClass: isExtension ? 'bg-light-purple text-purple' : 'bg-light-yellow text-yellow',
+          details: req.remarks ? `Remarks: "${req.remarks}"` : `Submitted ${typeLabel.toLowerCase()} request.`,
+          user: req.requestedByName || 'User'
+        });
+
+        // Resolve Event (if approved/rejected)
+        if (req.status !== 'PENDING') {
+          const statusLabel = req.status === 'APPROVED' ? 'Approved' : 'Rejected';
+          const resolveDate = req.status === 'APPROVED' && req.requestType === 'CLOSURE' && this.task?.rfcCompletedAt ? this.task.rfcCompletedAt : req.requestDate;
+          events.push({
+            title: `${typeLabel} Request ${statusLabel}`,
+            date: resolveDate,
+            type: 'request_resolved',
+            icon: req.status === 'APPROVED' ? 'bi-check-all' : 'bi-x-circle-fill',
+            badgeClass: req.status === 'APPROVED' ? 'bg-light-success text-success' : 'bg-light-danger text-danger',
+            details: req.status === 'REJECTED' ? 'Request was rejected.' : `Request was approved.`,
+            user: req.approvedByName || 'System'
+          });
+        }
+      });
+    }
+
+    // 4. RFC Completed
+    if (this.task.rfcCompletedAt) {
+      events.push({
+        title: 'Task Closed (RFC Completed)',
+        date: this.task.rfcCompletedAt,
+        type: 'completed',
+        icon: 'bi-patch-check-fill',
+        badgeClass: 'bg-light-success text-success',
+        details: 'The task has been marked as completed and closed.',
+        user: 'System'
+      });
+    }
+
+    return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 }
 

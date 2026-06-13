@@ -39,152 +39,369 @@
   <!-- ==================== Main Content Layout ==================== -->
   <div *ngIf="task && !isLoading && !isForbidden" class="animate__animated animate__fadeIn">
 
-    <!-- SECTION 1: Hero Header Gradient Card -->
-    <div class="task-hero-card mb-4">
-      <div class="hero-left">
-        <!-- Breadcrumb link inside Hero -->
-        <a (click)="goBack()" class="hero-breadcrumb">
-          <i class="bi bi-chevron-left"></i> Tasks / {{ task.title }}
-        </a>
-        <h1 class="hero-title">{{ task.title }}</h1>
-        <div class="hero-badge-row">
-          <span class="badge-status" [ngClass]="{
-            'status-in-progress': task.status === 'IN_PROGRESS',
-            'status-pending': task.status === 'PENDING',
-            'status-delayed': task.status === 'DELAYED',
-            'status-closed': task.status === 'CLOSED',
-            'status-extended': task.status === 'EXTENDED'
-          }">
-            <span class="status-dot"></span>
-            {{ formatStatus(task.status) }}
-          </span>
-          <span *ngIf="isTaskOverdue()" class="badge-overdue">
-            <i class="bi bi-exclamation-triangle"></i> Overdue
-          </span>
-          <span class="badge-priority">
-            HIGH PRIORITY
-          </span>
-          <span class="badge-template-type">
-            {{ task.template?.name || 'Academic Template' }}
-          </span>
+    <!-- SECTION 1: Premium Task Header (Direct Page Layout, borderless matching Figma) -->
+    <div class="task-header-section mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- Breadcrumb link -->
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0" style="--bs-breadcrumb-divider: '>'; font-size: 0.85rem;">
+            <li class="breadcrumb-item">
+              <a (click)="goBack()" class="text-decoration-none text-muted"
+                style="cursor: pointer; font-weight: 500;">Tasks</a>
+            </li>
+            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ task.title }}</li>
+          </ol>
+        </nav>
+
+        <!-- Action Buttons aligned on the right -->
+        <div class="d-flex align-items-center gap-2">
+          <!-- Edit Task (Creators/Admins) -->
+          <button *ngIf="canEditDelete()"
+            class="btn btn-outline-secondary btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold"
+            (click)="editTask()" style="font-size: 0.85rem; border-color: #cbd5e1; color: #334155;">
+            <i class="bi bi-pencil"></i> Edit Task
+          </button>
+
+          <!-- Add Request (For Assigned Users) -->
+          <button *ngIf="isAssignedToCurrentUser && task.status === 'IN_PROGRESS'"
+            class="btn btn-primary btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold"
+            (click)="openAddRequestModal()"
+            style="font-size: 0.85rem; background-color: #4f46e5; border-color: #4f46e5;">
+            <i class="bi bi-plus-lg"></i> Add Request
+          </button>
+
+          <!-- More Actions Dropdown -->
+          <div class="dropdown">
+            <button
+              class="btn btn-outline-secondary btn-sm px-2.5 py-1.5 rounded-3 dropdown-toggle d-flex align-items-center justify-content-center"
+              type="button" id="moreActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+              style="border-color: #cbd5e1; color: #334155;">
+              <i class="bi bi-three-dots"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border p-1 rounded-3"
+              aria-labelledby="moreActionsDropdown" style="font-size: 0.875rem; min-width: 160px;">
+              <!-- Start Task -->
+              <li
+                *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')">
+                <button class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" (click)="startTask()"
+                  [disabled]="isStarting">
+                  <i [class]="isStarting ? 'bi bi-arrow-repeat spinner' : 'bi bi-play-fill text-success'"></i>
+                  {{ isStarting ? 'Starting...' : 'Start Task' }}
+                </button>
+              </li>
+              <!-- Approve Task -->
+              <li *ngIf="task.requiresApproval && isAdmin && !task.approved">
+                <button class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" (click)="approveTask()"
+                  [disabled]="isApproving">
+                  <i [class]="isApproving ? 'bi bi-arrow-repeat spinner' : 'bi bi-check-circle-fill text-primary'"></i>
+                  {{ isApproving ? 'Approving...' : 'Approve Task' }}
+                </button>
+              </li>
+              <!-- Refresh Action -->
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" (click)="reloadTask()">
+                  <i class="bi bi-arrow-clockwise text-secondary"></i>
+                  Refresh Details
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
-      <div class="hero-right">
-        <!-- Action Buttons -->
-        <!-- Submit Request (For Assigned Users) -->
-        <button *ngIf="isAssignedToCurrentUser && task.status === 'IN_PROGRESS'" class="btn-hero-action glass-action"
-          (click)="openAddRequestModal()">
-          <i class="bi bi-plus-lg"></i> Add Request
-        </button>
+      <!-- Title & Description -->
+      <h1 class="hero-title fw-bold text-dark mb-1"
+        style="font-size: 2.25rem; letter-spacing: -0.025em; line-height: 1.2;">{{ task.title }}</h1>
+      <p class="text-secondary mb-3" style="font-size: 0.95rem; max-width: 900px;" *ngIf="task.description">
+        {{ task.description }}
+      </p>
 
-        <!-- Approve Task Entirely (Admins) -->
-        <button *ngIf="task.requiresApproval && isAdmin && !task.approved" class="btn-hero-action glass-action"
-          (click)="approveTask()" [disabled]="isApproving">
-          <i [class]="isApproving ? 'bi bi-arrow-repeat spinner' : 'bi bi-check-circle'"></i>
-          {{ isApproving ? 'Approving...' : 'Approve Task' }}
-        </button>
+      <!-- Badges Row -->
+      <div class="hero-badge-row">
+        <!-- Status Badge -->
+        <span class="badge-status" [ngClass]="{
+          'status-in-progress': task.status === 'IN_PROGRESS',
+          'status-pending': task.status === 'PENDING',
+          'status-delayed': task.status === 'DELAYED',
+          'status-closed': task.status === 'CLOSED',
+          'status-extended': task.status === 'EXTENDED'
+        }">
+          <span class="status-dot"></span>
+          {{ formatStatus(task.status) }}
+        </span>
 
-        <!-- Start Task (For Assigned Users) -->
-        <button
-          *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')"
-          class="btn-hero-action glass-action" (click)="startTask()" [disabled]="isStarting">
-          <i [class]="isStarting ? 'bi bi-arrow-repeat spinner' : 'bi bi-play'"></i>
-          {{ isStarting ? 'Starting...' : 'Start Task' }}
-        </button>
+        <!-- Overdue Badge -->
+        <span *ngIf="isTaskOverdue()" class="badge-overdue">
+          <i class="bi bi-exclamation-triangle"></i> Overdue
+        </span>
 
-        <!-- Edit Task (Creators/Admins) -->
-        <button *ngIf="canEditDelete()" class="btn-hero-action solid-action" (click)="editTask()">
-          <i class="bi bi-pencil"></i> Edit Task
-        </button>
+        <!-- Task Type Badge -->
+        <span class="badge badge-task-type">
+          {{ task.taskType?.toUpperCase()}}
+        </span>
 
-        <!-- Three-dot menu button -->
-        <button class="btn-hero-menu-btn">
-          <i class="bi bi-three-dots-vertical"></i>
-        </button>
+        <!-- Template Category Badge -->
+        <span *ngIf="task.template?.category" class="badge badge-template-cat">
+          {{ task.template.category.name }} &rarr; {{ task.template.category.subcategory }}
+        </span>
+
+        <!-- Target Count Badge -->
+        <span *ngIf="task.targetCount !== undefined && task.targetCount !== null" class="badge badge-target-count">
+          Target Count: {{ task.targetCount }}
+        </span>
+
+        <!-- Requires Approval Badge -->
+        <span class="badge" [ngClass]="task.requiresApproval ? 'badge-requires-approval' : 'badge-direct-closure'">
+          {{ task.requiresApproval ? 'Approval Required' : 'No Approval Required' }}
+        </span>
+
+        <!-- Approved State Badge -->
+        <span class="badge" [ngClass]="task.approved ? 'badge-approved' : 'badge-pending'">
+          {{ task.approved ? 'Approved' : 'Pending Approval' }}
+        </span>
+
+        <!-- Recurring State Badge -->
+        <span class="badge" [ngClass]="task.isRecurring ? 'badge-recurring' : 'badge-one-time'">
+          {{ task.isRecurring ? 'Recurring: ' + getRecurrenceTypeDisplay(task.recurrenceType || '') : 'One-time Task' }}
+        </span>
       </div>
     </div>
 
-    <!-- SECTION 2: KPI Metrics Cards Grid -->
+    <!-- Divider Line -->
+    <hr class="mb-4" style="color: var(--border-light); opacity: 0.15; border-top: 1.5px solid;">
+
+    <!-- SECTION 2: 6 Stats Cards -->
     <div class="task-kpi-grid mb-4">
-      <!-- Card 1: Assigned Users -->
-      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'members'; scrollToTabs()" style="cursor:pointer;" title="View Team Members">
-        <div class="kpi-icon-wrapper kpi-purple">
-          <i class="bi bi-people-fill"></i>
-        </div>
-        <div class="kpi-content">
-          <div class="kpi-value-row">
+      <!-- 1. Assigned Users -->
+      <div class="kpi-card" (click)="activeTab = 'members'; scrollToTabs()" style="cursor: pointer; position: relative;"
+        title="View Assigned Users">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-purple">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div class="kpi-content">
             <span class="kpi-number">{{ task.assignedToIds?.length ?? 0 }}</span>
-            <span class="kpi-badge badge-green"><i class="bi bi-arrow-up-short"></i> 0%</span>
+            <div class="kpi-label">ASSIGNED USERS</div>
           </div>
-          <div class="kpi-label">ASSIGNED USERS</div>
+        </div>
+        <div class="kpi-top-right text-success fw-bold"
+          style="font-size: 0.725rem; position: absolute; top: 0.75rem; right: 0.75rem;"
+          *ngIf="task.targetPercentage !== undefined">
+          {{ task.targetPercentage }}% &rarr;
         </div>
       </div>
 
-      <!-- Card 2: Departments -->
-      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'departments'; scrollToTabs()"
-        style="cursor:pointer;" title="View Departments">
-        <div class="kpi-icon-wrapper kpi-blue">
-          <i class="bi bi-diagram-3-fill"></i>
-        </div>
-        <div class="kpi-content">
-          <div class="kpi-value-row">
+      <!-- 2. Departments -->
+      <div class="kpi-card" (click)="activeTab = 'departments'; scrollToTabs()" style="cursor: pointer;"
+        title="View Departments">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-blue">
+            <i class="bi bi-diagram-3-fill"></i>
+          </div>
+          <div class="kpi-content">
             <span class="kpi-number">{{ task.departmentIds?.length ?? 0 }}</span>
+            <div class="kpi-label">DEPARTMENTS</div>
           </div>
-          <div class="kpi-label">DEPARTMENTS</div>
         </div>
       </div>
 
-      <!-- Card 3: Total Requests -->
-      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'requests'; scrollToTabs()" style="cursor:pointer;"
-        title="View Requests">
-        <div class="kpi-icon-wrapper kpi-yellow">
-          <i class="bi bi-file-earmark-text-fill"></i>
-        </div>
-        <div class="kpi-content">
-          <div class="kpi-value-row">
+      <!-- 3. Requests -->
+      <div class="kpi-card" (click)="activeTab = 'requests'; scrollToTabs()"
+        style="cursor: pointer; position: relative;" title="View Requests">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-yellow">
+            <i class="bi bi-file-earmark-text-fill"></i>
+          </div>
+          <div class="kpi-content">
             <span class="kpi-number">{{ task.requests?.length ?? 0 }}</span>
-            <span *ngIf="pendingRequestsCount > 0" class="kpi-pending-label">! {{ pendingRequestsCount }} Pending</span>
+            <div class="kpi-label">TOTAL REQUESTS</div>
           </div>
-          <div class="kpi-label">TOTAL REQUESTS</div>
+        </div>
+        <div class="kpi-top-right text-danger fw-bold"
+          style="font-size: 0.725rem; position: absolute; top: 0.75rem; right: 0.75rem;"
+          *ngIf="pendingRequestsCount > 0">
+          {{ pendingRequestsCount }} Pending
         </div>
       </div>
 
-      <!-- Card 4: Proofs Submitted -->
-      <div class="kpi-card kpi-card-clickable" (click)="activeTab = 'proofs'; scrollToTabs()" style="cursor:pointer;"
-        title="View Proofs">
-        <div class="kpi-icon-wrapper kpi-orange">
-          <i class="bi bi-paperclip"></i>
-        </div>
-        <div class="kpi-content">
-          <div class="kpi-value-row">
-            <span class="kpi-number">{{ allProofs.length }}</span>
+      <!-- 4. Proof Files -->
+      <div class="kpi-card" (click)="activeTab = 'proofs'; scrollToTabs()" style="cursor: pointer;"
+        title="View Proof Files">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-orange">
+            <i class="bi bi-paperclip"></i>
           </div>
-          <div class="kpi-label">PROOFS SUBMITTED</div>
+          <div class="kpi-content">
+            <span class="kpi-number">{{ allProofs.length }}</span>
+            <div class="kpi-label">PROOF FILES</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Recurring Type -->
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-cyan">
+            <i class="bi bi-arrow-repeat"></i>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-number" style="font-size: 1.45rem;">{{ task.isRecurring ? 'Yes' : 'No' }}</span>
+            <div class="kpi-label">RECURRING</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Task Type -->
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-rose">
+            <i class="bi bi-card-checklist"></i>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-number" style="font-size: 1.25rem;">{{ task.taskType?.toUpperCase() }}</span>
+            <div class="kpi-label">TASK TYPE</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- SECTION 3: Two-Column Workspace Layout -->
     <div class="task-workspace-grid">
-      <!-- Left Workspace Column (75%) -->
+      <!-- Left Workspace Column (70%) -->
       <div class="workspace-main-col">
-        <!-- Description Card -->
-        <div class="desc-card mb-4">
-          <div class="desc-header">
-            <i class="bi bi-file-earmark-text desc-icon"></i>
-            Description
+        <!-- Task Briefing Card -->
+        <div class="desc-card mb-4" style="border-left: 4px solid #3b82f6;">
+          <div class="desc-header d-flex align-items-center gap-2"
+            style="font-size: 0.75rem; font-weight: 700; color: #4b5563; text-transform: uppercase; letter-spacing: 0.05em;">
+            <span
+              style="width: 8px; height: 8px; background-color: #3b82f6; border-radius: 50%; display: inline-block;"></span>
+            Task Briefing
           </div>
-          <div class="desc-body">
-            {{ task.description || 'No description provided for this task.' }}
+          <div class="desc-body mt-2">
+            <h3 class="fw-bold text-dark mb-2" style="font-size: 1.25rem;">
+              {{ task.template ? task.template.title : task.title }}
+            </h3>
+            <p class="text-secondary mb-3" style="font-size: 0.925rem; line-height: 1.6;">
+              {{ task.template ? task.template.description : task.description }}
+            </p>
+
+            <!-- Separator -->
+            <hr class="my-3" style="color: var(--border-light); opacity: 0.8;">
+
+            <div class="row g-3">
+              <!-- Template Origin -->
+              <div class="col-md-6" *ngIf="task.template">
+                <span class="meta-label-top d-block"
+                  style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TEMPLATE
+                  ORIGIN</span>
+                <strong class="text-primary" style="font-size: 0.875rem; font-weight: 600; cursor: pointer;">{{
+                  task.template.title }}</strong>
+              </div>
+              <div class="col-md-6" *ngIf="!task.template">
+                <span class="meta-label-top d-block"
+                  style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TASK
+                  TYPE</span>
+                <strong class="text-dark" style="font-size: 0.875rem; font-weight: 600;">Custom Task</strong>
+              </div>
+
+              <!-- Expected Output -->
+              <div class="col-md-6">
+                <span class="meta-label-top d-block"
+                  style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">EXPECTED
+                  OUTPUT</span>
+                <strong class="text-dark" style="font-size: 0.875rem; font-weight: 600;">
+                  {{ getExpectedOutputsDisplay() }} Proofs (Min {{ task.targetCount || 1 }})
+                </strong>
+              </div>
+
+              <!-- Category & Subcategory -->
+              <div class="col-md-6" *ngIf="task.template">
+                <span class="meta-label-top d-block"
+                  style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TEMPLATE
+                  CATEGORY & SUBCATEGORY</span>
+                <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.template.category?.name }} / {{
+                  task.template.category?.subcategory }}</span>
+              </div>
+
+              <!-- Target Count -->
+              <div class="col-md-6" *ngIf="task.targetCount !== undefined && task.targetCount !== null">
+                <span class="meta-label-top d-block"
+                  style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TARGET
+                  COUNT</span>
+                <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.targetCount }}
+                  completions required</span>
+              </div>
+
+              <!-- Proof Requirements -->
+              <div class="col-12" *ngIf="task.template?.proofRequirements?.length">
+                <span class="meta-label-top d-block mb-1.5"
+                  style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">PROOF
+                  REQUIREMENTS</span>
+                <div class="d-flex flex-wrap gap-1.5">
+                  <span *ngFor="let pr of task.template.proofRequirements"
+                    class="badge bg-light text-danger border fw-bold"
+                    style="font-size: 0.7rem; padding: 0.3rem 0.6rem; border-radius: 6px;">
+                    <i class="bi bi-shield-check me-1"></i>
+                    {{ formatProofType(pr.proofType) }} {{ pr.isRequired ? '(Required)' : '(Optional)' }}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Notion/Attio-style Tabs Navigation Card -->
+        <!-- Request & RFC Timeline Card -->
+        <div class="desc-card mb-4">
+          <div class="desc-header">
+            <i class="bi bi-activity desc-icon text-purple"></i>
+            Request & RFC Timeline
+          </div>
+          <div class="desc-body">
+            <div class="activity-timeline-wrapper py-2">
+              <ng-container *ngFor="let ev of getTimelineEvents()">
+                <div class="timeline-log-item" *ngIf="ev.type.startsWith('request') || ev.type === 'completed'">
+                  <div class="timeline-log-icon-bullet" [ngClass]="{
+                    'bullet-blue': ev.type === 'request_submitted' && ev.status === 'PENDING',
+                    'bullet-green': ev.type === 'request_resolved' && ev.status === 'APPROVED',
+                    'bullet-red': ev.type === 'request_resolved' && ev.status === 'REJECTED',
+                    'bullet-completed': ev.type === 'completed'
+                  }">
+                    <i class="bi" [ngClass]="{
+                      'bi-clock-history': ev.type === 'request_submitted',
+                      'bi-check-circle-fill': ev.type === 'request_resolved' && ev.status === 'APPROVED',
+                      'bi-x-circle-fill': ev.type === 'request_resolved' && ev.status === 'REJECTED',
+                      'bi-patch-check-fill': ev.type === 'completed'
+                    }"></i>
+                  </div>
+                  <div class="timeline-log-info">
+                    <div class="log-title">
+                      <span class="fw-bold text-dark">{{ ev.title }}</span>
+                      <span class="badge ms-2" [ngClass]="{
+                        'bg-warning text-dark': ev.status === 'PENDING',
+                        'bg-success text-white': ev.status === 'APPROVED' || ev.type === 'completed',
+                        'bg-danger text-white': ev.status === 'REJECTED'
+                      }">{{ ev.status || 'CLOSED' }}</span>
+                    </div>
+                    <div class="text-secondary small mt-1" *ngIf="ev.details">{{ ev.details }}</div>
+                    <div class="log-timestamp d-flex gap-2 align-items-center mt-1 text-muted small">
+                      <span><i class="bi bi-clock"></i> {{ ev.date | date:'medium' }}</span>
+                      <span class="border-start ps-2"><i class="bi bi-person"></i> {{ ev.user }}</span>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+              <div *ngIf="!task.requests?.length && !task.rfcCompletedAt" class="text-center text-muted py-3">
+                No request activities recorded yet.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notion-style Sticky Tabs Navigation Card -->
         <div class="workspace-tabs-card mb-4" id="workspaceTabsCard">
           <div class="tabs-header-bar">
             <button class="tab-nav-btn" [class.active]="activeTab === 'members'" (click)="activeTab = 'members'">
-              Team Members
+              Team
             </button>
             <button class="tab-nav-btn" [class.active]="activeTab === 'departments'"
               (click)="activeTab = 'departments'">
@@ -193,15 +410,14 @@
             <button class="tab-nav-btn" [class.active]="activeTab === 'requests'" (click)="activeTab = 'requests'">
               Requests <span class="tab-count-badge" *ngIf="task.requests?.length">{{ task.requests?.length }}</span>
             </button>
-            <button class="tab-nav-btn" [class.active]="activeTab === 'activity'"
-              (click)="activeTab = 'activity'; collapsed.instances ? toggleCollapse('instances') : null">
-              Activity
-            </button>
             <button class="tab-nav-btn" [class.active]="activeTab === 'proofs'" (click)="activeTab = 'proofs'">
               Proofs
             </button>
+            <button class="tab-nav-btn" [class.active]="activeTab === 'activity'" (click)="activeTab = 'activity'">
+              Activity
+            </button>
             <button class="tab-nav-btn" [class.active]="activeTab === 'comments'" (click)="activeTab = 'comments'">
-              Comments
+              Comments <span class="tab-count-badge" *ngIf="comments.length">{{ comments.length }}</span>
             </button>
           </div>
 
@@ -213,10 +429,11 @@
                   <thead>
                     <tr>
                       <th>USER</th>
+                      <th>USERNAME</th>
                       <th>ROLE</th>
                       <th>DEPARTMENT</th>
                       <th>STATUS</th>
-                      <th>ACTION</th>
+                      <th class="text-end">ACTION</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -228,34 +445,39 @@
                           </div>
                           <div class="user-meta-info">
                             <span class="user-fullname">{{ u.fullName }}</span>
-                            <span class="user-email">{{ u.email }}</span>
+                            <span class="user-email text-muted">{{ u.email }}</span>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <div class="role-badge-stack">
-                          <span class="role-badge badge-super"
-                            *ngIf="u.role === 'SUPER_ADMIN' || u.role === 'ADMIN'">SUPER</span>
-                          <span class="role-badge badge-admin">{{ u.role }}</span>
-                        </div>
+                        <code class="text-secondary">@{{ u.username }}</code>
                       </td>
                       <td>
-                        <span class="dept-text-cell">{{ u.departmentNames || '—' }}</span>
+                        <span class="role-badge" [ngClass]="{
+                          'badge-super': u.role === 'SUPER_ADMIN' || u.role === 'ADMIN',
+                          'bg-warning text-dark': u.role === 'HOD',
+                          'bg-light text-dark border': u.role === 'TEACHER'
+                        }">{{ u.role }}</span>
+                      </td>
+                      <td>
+                        <span class="dept-text-cell">{{ u.departmentNames.join(', ') || '—' }}</span>
                       </td>
                       <td>
                         <span class="status-indicator-active">
-                          <span class="dot-active"></span>
+                          <span class="dot-active"
+                            [style.background-color]="u.status === 'ACTIVE' ? '#10b981' : '#64748b'"></span>
                           {{ u.status || 'ACTIVE' }}
                         </span>
                       </td>
-                      <td>
-                        <button class="circle-view-btn" (click)="$event.stopPropagation(); viewUserProfile(u.userId)">
+                      <td class="text-end">
+                        <button class="circle-view-btn ms-auto"
+                          (click)="$event.stopPropagation(); viewUserProfile(u.userId)">
                           <i class="bi bi-eye"></i>
                         </button>
                       </td>
                     </tr>
                     <tr *ngIf="!assignedUsers.length">
-                      <td colspan="5" class="text-center text-muted py-5">
+                      <td colspan="6" class="text-center text-muted py-5">
                         <i class="bi bi-people fs-2 mb-2 d-block"></i>No assigned team members.
                       </td>
                     </tr>
@@ -271,27 +493,37 @@
                   <thead>
                     <tr>
                       <th>DEPARTMENT NAME</th>
-                      <th>HOD IN-CHARGE</th>
-                      <th>TOTAL MEMBERS</th>
-                      <th>ACTION</th>
+                      <th>DESCRIPTION</th>
+                      <th>STATUS</th>
+                      <th>MEMBERS COUNT</th>
+                      <th class="text-end">ACTION</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr *ngFor="let d of enrichedDepartments" (click)="viewDepartmentDetails(d.id)"
                       class="cursor-pointer">
-                      <td class="fw-semibold text-dark">{{ d.name }}</td>
-                      <td>{{ d.hodName || 'Not Assigned' }}</td>
+                      <td class="fw-bold text-dark">{{ d.name }}</td>
                       <td>
-                        <span class="badge bg-light text-dark px-2.5 py-1.5">{{ d.userCount }} Members</span>
+                        <p class="text-secondary text-truncate mb-0" style="max-width: 250px;">{{ d.description }}</p>
                       </td>
                       <td>
-                        <button class="circle-view-btn" (click)="$event.stopPropagation(); viewDepartmentDetails(d.id)">
+                        <span class="badge"
+                          [ngClass]="d.departmentStatus === 'INACTIVE' ? 'bg-secondary' : 'bg-success'">
+                          {{ d.departmentStatus }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge bg-light text-dark border px-2.5 py-1.5">{{ d.userCount }} Members</span>
+                      </td>
+                      <td class="text-end">
+                        <button class="circle-view-btn ms-auto"
+                          (click)="$event.stopPropagation(); viewDepartmentDetails(d.id)">
                           <i class="bi bi-eye"></i>
                         </button>
                       </td>
                     </tr>
                     <tr *ngIf="!enrichedDepartments.length">
-                      <td colspan="4" class="text-center text-muted py-5">
+                      <td colspan="5" class="text-center text-muted py-5">
                         <i class="bi bi-building fs-2 mb-2 d-block"></i>No linked departments.
                       </td>
                     </tr>
@@ -304,8 +536,9 @@
             <div *ngIf="activeTab === 'requests'" class="animate__animated animate__fadeIn">
               <div class="requests-stack">
                 <div *ngFor="let r of task.requests" class="request-item-card" [ngClass]="{
-                  'req-border-closure': r.requestType === 'CLOSURE',
-                  'req-border-extension': r.requestType === 'EXTENSION'
+                  'req-status-pending': r.status === 'PENDING',
+                  'req-status-approved': r.status === 'APPROVED',
+                  'req-status-rejected': r.status === 'REJECTED'
                 }">
                   <div class="req-left-icon">
                     <div class="req-icon-round" [ngClass]="{
@@ -323,32 +556,36 @@
                         [ngClass]="r.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'">
                         {{ r.requestType }} REQUEST
                       </span>
+                      <span class="badge bg-light text-dark border ms-1">{{ r.requestedByRole }}</span>
+                      <span class="badge ms-1" [ngClass]="{
+                        'bg-warning text-dark': r.status === 'PENDING',
+                        'bg-success text-white': r.status === 'APPROVED',
+                        'bg-danger text-white': r.status === 'REJECTED'
+                      }">{{ r.status }}</span>
                     </div>
-                    <h4 class="req-title-text">{{ r.remarks || 'Task request pending execution details.' }}</h4>
+                    <h4 class="req-title-text">{{ r.remarks || 'No remarks provided.' }}</h4>
                     <div class="req-details-footer">
-                      <span><i class="bi bi-person"></i> {{ r.requestedByName }}</span>
+                      <span><i class="bi bi-person"></i> Requested By: <strong>{{ r.requestedByName }}</strong></span>
                       <span><i class="bi bi-calendar"></i> {{ r.requestDate | date:'mediumDate' }}</span>
-                      <span *ngIf="r.proofs?.length" class="cursor-pointer" (click)="openProofsModal(r)">
-                        <i class="bi bi-paperclip"></i> {{ r.proofs?.length }} File{{ (r.proofs?.length || 0) > 1 ? 's'
-                        : '' }}
+                      <span *ngIf="r.proofs?.length" class="cursor-pointer badge bg-light text-primary border"
+                        (click)="openProofsModal(r)">
+                        <i class="bi bi-paperclip"></i> Proofs: {{ r.proofs?.length }}
+                      </span>
+                      <span *ngIf="r.approvedByName" class="badge bg-light text-success border">
+                        Approved By: {{ r.approvedByName }}
                       </span>
                     </div>
                   </div>
                   <div class="req-actions-panel">
                     <div *ngIf="r.status === 'PENDING'; else processedRequest" class="d-flex gap-2">
-                      <!-- Closure Approvals -->
                       <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
                         class="btn-req-action req-btn-approve" (click)="approveClosureRequest(r.requestId)">
                         Approve
                       </button>
-
-                      <!-- Extension Approvals -->
                       <button *ngIf="r.requestType === 'EXTENSION' && isAdmin" class="btn-req-action req-btn-approve"
                         (click)="showExtensionApprovalModal(r)">
                         Approve
                       </button>
-
-                      <!-- Rejections -->
                       <button *ngIf="canRejectRequest(r)" class="btn-req-action req-btn-reject"
                         (click)="showRejectionModal(r)">
                         Reject
@@ -371,15 +608,89 @@
               </div>
             </div>
 
-            <!-- Tab 4: Activity / Instances Panel -->
+            <!-- Tab 4: Proofs Panel -->
+            <div *ngIf="activeTab === 'proofs'" class="animate__animated animate__fadeIn">
+              <div class="row g-3">
+                <div class="col-md-6 col-lg-4" *ngFor="let p of allProofs; let i = index">
+                  <div class="proof-asset-card">
+                    <div class="proof-card-header">
+                      <div class="file-icon-square">
+                        <i class="bi" [ngClass]="{
+                          'bi-file-earmark-pdf-fill text-danger': p.fileType?.toLowerCase()?.includes('pdf'),
+                          'bi-file-earmark-image-fill text-primary': p.fileType?.toLowerCase()?.includes('image') || p.fileType?.toLowerCase()?.includes('png') || p.fileType?.toLowerCase()?.includes('jpg') || p.fileType?.toLowerCase()?.includes('jpeg'),
+                          'bi-file-earmark-spreadsheet-fill text-success': p.fileType?.toLowerCase()?.includes('sheet') || p.fileType?.toLowerCase()?.includes('xls') || p.fileType?.toLowerCase()?.includes('xlsx') || p.fileType?.toLowerCase()?.includes('csv'),
+                          'bi-file-earmark-text-fill text-secondary': !p.fileType?.toLowerCase()?.includes('pdf') && !p.fileType?.toLowerCase()?.includes('image') && !p.fileType?.toLowerCase()?.includes('png') && !p.fileType?.toLowerCase()?.includes('jpg') && !p.fileType?.toLowerCase()?.includes('jpeg') && !p.fileType?.toLowerCase()?.includes('sheet') && !p.fileType?.toLowerCase()?.includes('xls') && !p.fileType?.toLowerCase()?.includes('xlsx') && !p.fileType?.toLowerCase()?.includes('csv')
+                        }"></i>
+                      </div>
+                      <div class="proof-card-meta">
+                        <span class="proof-card-filename" [title]="getFileName(p.fileUrl)">Proof #{{ p.proofId }}</span>
+                        <span class="proof-card-type">
+                          Request #{{ p.requestId }} ({{ p.requestType === 'CLOSURE' ? 'Closure' : 'Extension' }})
+                        </span>
+                        <span class="extra-small text-muted">Type: {{ p.fileType || 'FILE' }}</span>
+                      </div>
+                    </div>
+                    <div class="proof-card-footer">
+                      <div class="proof-uploader-info">
+                        <span class="uploader-name">{{ p.uploadedByName || 'Team Member' }}</span>
+                        <span class="upload-date">{{ p.uploadedAt | date:'mediumDate' }}</span>
+                      </div>
+                      <div class="proof-action-buttons gap-1 d-flex">
+                        <a [href]="p.fileUrl" target="_blank" class="proof-icon-action-btn" title="View File">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                        <a [href]="p.fileUrl" target="_blank" class="proof-icon-action-btn" title="Download File">
+                          <i class="bi bi-download"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!allProofs?.length" class="col-12 text-center text-muted py-5 bg-light rounded-3">
+                  <i class="bi bi-paperclip fs-2 mb-2 d-block"></i>No proof files uploaded yet.
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 5: Activity Panel -->
             <div *ngIf="activeTab === 'activity'" class="animate__animated animate__fadeIn">
-              <!-- If Recurring, Show Instances list -->
-              <div *ngIf="task.isRecurring && isAdmin; else timelineActivity">
+              <div class="activity-timeline-wrapper py-2">
+                <div class="timeline-log-item" *ngFor="let ev of getTimelineEvents()">
+                  <div class="timeline-log-icon-bullet" [ngClass]="{
+                    'bullet-green': ev.type === 'created' || (ev.type === 'request_resolved' && ev.status === 'APPROVED') || ev.type === 'completed',
+                    'bullet-blue': ev.type === 'started',
+                    'bullet-purple': ev.type === 'request_submitted' && ev.status === 'PENDING',
+                    'bullet-red': ev.type === 'request_resolved' && ev.status === 'REJECTED'
+                  }">
+                    <i class="bi" [ngClass]="ev.icon || 'bi-info-circle-fill'"></i>
+                  </div>
+                  <div class="timeline-log-info">
+                    <div class="log-title">
+                      <span class="fw-bold text-dark">{{ ev.title }}</span>
+                      <span *ngIf="ev.status" class="badge ms-2" [ngClass]="{
+                        'bg-warning text-dark': ev.status === 'PENDING',
+                        'bg-success text-white': ev.status === 'APPROVED',
+                        'bg-danger text-white': ev.status === 'REJECTED'
+                      }">{{ ev.status }}</span>
+                    </div>
+                    <div class="text-secondary small mt-0.5" *ngIf="ev.details">{{ ev.details }}</div>
+                    <div class="log-timestamp d-flex gap-2 align-items-center mt-1 text-muted small">
+                      <span><i class="bi bi-clock"></i> {{ ev.date | date:'medium' }}</span>
+                      <span class="border-start ps-2"><i class="bi bi-person"></i> Logged by: <strong>{{ ev.user
+                          }}</strong></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recurred instances section inside Activity Tab -->
+              <div *ngIf="task.isRecurring && isAdmin" class="mt-4 pt-4 border-top">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h6 class="fw-bold mb-0 text-secondary">Recurred Schedule Tasks</h6>
+                  <h6 class="fw-bold mb-0 text-secondary"><i class="bi bi-arrow-repeat me-2"></i>Recurred Schedule Task
+                    Instances</h6>
                   <span class="badge bg-secondary px-2.5 py-1.5">{{ recurredInstances.length }} Instances</span>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive border rounded-3 bg-white">
                   <table class="table modern-tab-table align-middle mb-0">
                     <thead>
                       <tr>
@@ -393,7 +704,7 @@
                     <tbody>
                       <tr *ngFor="let instance of recurredInstances; let i = index">
                         <td>{{ i + 1 }}</td>
-                        <td class="fw-semibold">
+                        <td class="fw-bold">
                           {{ instance.title }}
                           <span *ngIf="instance.taskId === taskId" class="badge bg-info ms-2">Current</span>
                         </td>
@@ -426,85 +737,6 @@
                   </table>
                 </div>
               </div>
-
-              <!-- General Timeline fallback -->
-              <ng-template #timelineActivity>
-                <div class="activity-timeline-wrapper py-2">
-                  <div class="timeline-log-item">
-                    <div class="timeline-log-icon-bullet bullet-blue">
-                      <i class="bi bi-play-fill"></i>
-                    </div>
-                    <div class="timeline-log-info">
-                      <div class="log-title">Status changed to <span class="text-primary fw-semibold">In Progress</span>
-                      </div>
-                      <div class="log-timestamp">2 hours ago</div>
-                    </div>
-                  </div>
-                  <div class="timeline-log-item">
-                    <div class="timeline-log-icon-bullet bullet-grey">
-                      <i class="bi bi-person-plus"></i>
-                    </div>
-                    <div class="timeline-log-info">
-                      <div class="log-title">Task assigned to <span class="fw-semibold text-dark">{{
-                          task.assignedToNames?.join(', ') || 'Team Members' }}</span></div>
-                      <div class="log-timestamp">Yesterday</div>
-                    </div>
-                  </div>
-                  <div class="timeline-log-item">
-                    <div class="timeline-log-icon-bullet bullet-green">
-                      <i class="bi bi-plus-circle"></i>
-                    </div>
-                    <div class="timeline-log-info">
-                      <div class="log-title">Task created by <span class="fw-semibold text-dark">{{ task.createdByName
-                          }}</span></div>
-                      <div class="log-timestamp">{{ task.startDate | date:'mediumDate' }}</div>
-                    </div>
-                  </div>
-                </div>
-              </ng-template>
-            </div>
-
-            <!-- Tab 5: Proofs Panel -->
-            <div *ngIf="activeTab === 'proofs'" class="animate__animated animate__fadeIn">
-              <div class="row g-3">
-                <div class="col-md-6 col-lg-4" *ngFor="let p of allProofs">
-                  <div class="proof-asset-card">
-                    <div class="proof-card-header">
-                      <div class="file-icon-square">
-                        <i class="bi" [ngClass]="{
-                          'bi-file-earmark-pdf-fill text-danger': p.fileType.toLowerCase().includes('pdf'),
-                          'bi-file-earmark-image-fill text-primary': p.fileType.toLowerCase().includes('image') || p.fileType.toLowerCase().includes('png') || p.fileType.toLowerCase().includes('jpg') || p.fileType.toLowerCase().includes('jpeg'),
-                          'bi-file-earmark-spreadsheet-fill text-success': p.fileType.toLowerCase().includes('sheet') || p.fileType.toLowerCase().includes('xls') || p.fileType.toLowerCase().includes('xlsx') || p.fileType.toLowerCase().includes('csv'),
-                          'bi-file-earmark-text-fill text-secondary': !p.fileType.toLowerCase().includes('pdf') && !p.fileType.toLowerCase().includes('image') && !p.fileType.toLowerCase().includes('png') && !p.fileType.toLowerCase().includes('jpg') && !p.fileType.toLowerCase().includes('jpeg') && !p.fileType.toLowerCase().includes('sheet') && !p.fileType.toLowerCase().includes('xls') && !p.fileType.toLowerCase().includes('xlsx') && !p.fileType.toLowerCase().includes('csv')
-                        }"></i>
-                      </div>
-                      <div class="proof-card-meta">
-                        <span class="proof-card-filename" [title]="getFileName(p.fileUrl)">{{ getFileName(p.fileUrl)
-                          }}</span>
-                        <span class="proof-card-type">{{ p.requestType === 'CLOSURE' ? 'Closure Request' : 'Extension
-                          Request' }} (#{{ p.requestId }})</span>
-                      </div>
-                    </div>
-                    <div class="proof-card-footer">
-                      <div class="proof-uploader-info">
-                        <span class="uploader-name">{{ p.uploadedByName }}</span>
-                        <span class="upload-date">{{ p.uploadedAt | date:'shortDate' }}</span>
-                      </div>
-                      <div class="proof-action-buttons">
-                        <a [href]="p.fileUrl" target="_blank" class="proof-icon-action-btn" title="Preview File">
-                          <i class="bi bi-eye"></i>
-                        </a>
-                        <a [href]="p.fileUrl" target="_blank" class="proof-icon-action-btn" title="Download File">
-                          <i class="bi bi-download"></i>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div *ngIf="!allProofs?.length" class="col-12 text-center text-muted py-5 bg-light rounded-3">
-                  <i class="bi bi-paperclip fs-2 mb-2 d-block"></i>No proof files uploaded yet.
-                </div>
-              </div>
             </div>
 
             <!-- Tab 6: Comments Panel -->
@@ -512,20 +744,56 @@
               <div class="comments-conversation-layout">
                 <!-- Thread List -->
                 <div class="comments-thread" *ngIf="comments && comments.length > 0">
-                  <div class="comment-bubble-item" *ngFor="let c of comments">
-                    <div class="comment-avatar" [ngClass]="getCommentAvatarClass(c.userRole)">{{ c.avatarInitials }}
-                    </div>
-                    <div class="comment-bubble-content">
-                      <div class="comment-bubble-meta">
-                        <span class="comment-author">
-                          {{ c.userName }}
-                          <span class="badge bg-light text-secondary ms-2 small fw-semibold"
-                            style="font-size: 0.65rem; border: 1px solid var(--border-light)">{{ c.userRole }}</span>
-                        </span>
-                        <span class="comment-time">{{ c.timestamp | date:'medium' }}</span>
+                  <div class="comment-thread-wrapper mb-3" *ngFor="let c of comments">
+                    <!-- Main Comment -->
+                    <div class="comment-bubble-item">
+                      <div class="comment-avatar" [ngClass]="getCommentAvatarClass(c.userRole)">{{ c.avatarInitials }}
                       </div>
-                      <div class="comment-body-text">
-                        {{ c.text }}
+                      <div class="comment-bubble-content">
+                        <div class="comment-bubble-meta">
+                          <span class="comment-author">
+                            {{ c.userName }}
+                            <span class="badge bg-light text-secondary ms-2 small fw-semibold border">{{ c.userRole
+                              }}</span>
+                          </span>
+                          <span class="comment-time">{{ c.timestamp | date:'medium' }}</span>
+                        </div>
+                        <div class="comment-body-text">{{ c.text }}</div>
+                        <div class="comment-actions mt-2">
+                          <button class="btn btn-sm btn-link text-primary p-0 border-0 fw-semibold text-decoration-none"
+                            (click)="toggleReplyInput(c.id)">
+                            <i class="bi bi-reply-fill me-1"></i>Reply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Thread Replies -->
+                    <div class="comment-replies-list ms-5 mt-3 d-flex flex-column gap-3" *ngIf="c.replies?.length">
+                      <div class="comment-bubble-item" *ngFor="let rep of c.replies">
+                        <div class="comment-avatar bg-secondary">{{ rep.avatarInitials }}</div>
+                        <div class="comment-bubble-content bg-light" style="border-left: 3px solid var(--border-light)">
+                          <div class="comment-bubble-meta">
+                            <span class="comment-author text-secondary">
+                              {{ rep.userName }}
+                              <span class="badge bg-light text-secondary ms-2 small fw-semibold border">{{ rep.userRole
+                                }}</span>
+                            </span>
+                            <span class="comment-time">{{ rep.timestamp | date:'medium' }}</span>
+                          </div>
+                          <div class="comment-body-text">{{ rep.text }}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Inline Reply Input -->
+                    <div class="reply-input-wrapper ms-5 mt-3" *ngIf="replyingToCommentId === c.id">
+                      <div class="d-flex gap-2">
+                        <input type="text" class="form-control modal-text-input" [(ngModel)]="replyText"
+                          placeholder="Write a reply..." (keyup.enter)="addReply(c)">
+                        <button class="btn btn-primary px-3 rounded-3" (click)="addReply(c)">Reply</button>
+                        <button class="btn btn-outline-secondary px-3 rounded-3"
+                          (click)="toggleReplyInput(c.id)">Cancel</button>
                       </div>
                     </div>
                   </div>
@@ -540,10 +808,10 @@
                 <!-- Input area -->
                 <div class="comment-input-area mt-4">
                   <textarea class="form-control comment-textarea mb-2" rows="3" [(ngModel)]="newCommentText"
-                    placeholder="Write a comment... (Notion-style replies supported)"></textarea>
+                    placeholder="Write a comment..."></textarea>
                   <div class="d-flex justify-content-end">
                     <button class="btn btn-primary px-4 py-2 rounded-3" (click)="addComment()">
-                      Comment
+                      <i class="bi bi-chat-left-text me-2"></i>Comment
                     </button>
                   </div>
                 </div>
@@ -553,86 +821,17 @@
           </div>
         </div>
 
-        <!-- Recent Requests Section below tabs -->
-        <div class="recent-requests-section mb-4">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="recent-req-heading">Recent Requests</h3>
-            <a (click)="activeTab = 'requests'" class="view-all-link cursor-pointer">View All</a>
-          </div>
-
-          <div class="requests-stack">
-            <div *ngFor="let r of task.requests | slice:0:2" class="request-item-card" [ngClass]="{
-              'req-border-closure': r.requestType === 'CLOSURE',
-              'req-border-extension': r.requestType === 'EXTENSION'
-            }">
-              <div class="req-left-icon">
-                <div class="req-icon-round" [ngClass]="{
-                  'icon-closure': r.requestType === 'CLOSURE',
-                  'icon-extension': r.requestType === 'EXTENSION'
-                }">
-                  <i class="bi" [ngClass]="r.requestType === 'CLOSURE' ? 'bi-check2-circle' : 'bi-calendar-plus'"></i>
-                </div>
-              </div>
-              <div class="req-mid-content">
-                <div class="req-meta-badges">
-                  <span class="req-id-pill">#REQ-{{ r.requestId }}</span>
-                  <span class="req-type-pill"
-                    [ngClass]="r.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'">
-                    {{ r.requestType }} REQUEST
-                  </span>
-                </div>
-                <h4 class="req-title-text">{{ r.remarks || 'Task request pending execution details.' }}</h4>
-                <div class="req-details-footer">
-                  <span><i class="bi bi-person"></i> {{ r.requestedByName }}</span>
-                  <span><i class="bi bi-calendar"></i> {{ r.requestDate | date:'mediumDate' }}</span>
-                  <span *ngIf="r.proofs?.length" class="cursor-pointer" (click)="openProofsModal(r)">
-                    <i class="bi bi-paperclip"></i> {{ r.proofs?.length }} File{{ (r.proofs?.length || 0) > 1 ? 's' : ''
-                    }}
-                  </span>
-                </div>
-              </div>
-              <div class="req-actions-panel">
-                <div *ngIf="r.status === 'PENDING'; else processedReq" class="d-flex gap-2">
-                  <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
-                    class="btn-req-action req-btn-approve" (click)="approveClosureRequest(r.requestId)">
-                    Approve
-                  </button>
-                  <button *ngIf="r.requestType === 'EXTENSION' && isAdmin" class="btn-req-action req-btn-approve"
-                    (click)="showExtensionApprovalModal(r)">
-                    Approve
-                  </button>
-                  <button *ngIf="canRejectRequest(r)" class="btn-req-action req-btn-reject"
-                    (click)="showRejectionModal(r)">
-                    Reject
-                  </button>
-                </div>
-                <ng-template #processedReq>
-                  <span class="processed-req-badge" [ngClass]="{
-                    'proc-approved': r.status === 'APPROVED',
-                    'proc-rejected': r.status === 'REJECTED'
-                  }">
-                    {{ r.status }}
-                  </span>
-                </ng-template>
-              </div>
-            </div>
-            <div *ngIf="!task.requests?.length" class="text-center text-muted py-4 border rounded-3 bg-white">
-              No recent requests found.
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      <!-- Right Workspace Sidebar Column (25%) -->
+      <!-- Right Workspace Sidebar Column (30%) -->
       <div class="workspace-side-col">
         <div class="sticky-sidebar">
 
-          <!-- Task Information Card -->
+          <!-- Widget 1: Timeline & Details -->
           <div class="sidebar-card mb-4">
             <div class="sidebar-card-title">
-              <i class="bi bi-info-circle info-icon"></i>
-              Task Information
+              <i class="bi bi-clock-history info-icon text-indigo"></i>
+              Timeline & Details
             </div>
 
             <div class="sidebar-meta-list">
@@ -643,11 +842,58 @@
                   <div class="creator-avatar-circle">
                     {{ creatorInitials }}
                   </div>
-                  <span class="creator-name">{{ task.createdByName }}</span>
+                  <div class="d-flex flex-column">
+                    <span class="creator-name">{{ task.createdByName || '—' }}</span>
+                    <span class="extra-small text-muted" *ngIf="task.createdById">ID: #{{ task.createdById }}</span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Start & Due dates side-by-side -->
+              <!-- Started By -->
+              <div class="sidebar-meta-item" *ngIf="task.startedByName">
+                <div class="meta-label-top">STARTED BY</div>
+                <div class="creator-profile-cell">
+                  <div class="creator-avatar-circle bg-info">
+                    {{ task.startedByName.slice(0,2).toUpperCase() }}
+                  </div>
+                  <div class="d-flex flex-column">
+                    <span class="creator-name">{{ task.startedByName }}</span>
+                    <span class="extra-small text-muted">Started: {{ task.startedAt | date:'medium' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Assigned By -->
+              <div class="sidebar-meta-item">
+                <div class="meta-label-top">ASSIGNED BY</div>
+                <div class="creator-profile-cell">
+                  <div class="creator-avatar-circle bg-primary">
+                    {{ creatorInitials }}
+                  </div>
+                  <div class="d-flex flex-column">
+                    <span class="creator-name">{{ task.createdByName || '—' }}</span>
+                    <span class="extra-small text-muted">Creator/Assigner</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Assigned Users -->
+              <div class="sidebar-meta-item">
+                <div class="meta-label-top">ASSIGNED USERS</div>
+                <div class="d-flex flex-column gap-2 mt-1">
+                  <div class="creator-profile-cell" *ngFor="let u of assignedUsers | slice:0:5">
+                    <div class="creator-avatar-circle bg-secondary">{{ u.fullName.slice(0,2).toUpperCase() }}</div>
+                    <div class="d-flex flex-column">
+                      <span class="creator-name">{{ u.fullName }}</span>
+                      <span class="extra-small text-muted">{{ u.role }}</span>
+                    </div>
+                  </div>
+                  <span class="text-muted small ps-1" *ngIf="assignedUsers.length > 5">+{{ assignedUsers.length - 5 }}
+                    more</span>
+                </div>
+              </div>
+
+              <!-- Dates row side-by-side -->
               <div class="sidebar-meta-item">
                 <div class="row g-2">
                   <div class="col-6">
@@ -663,69 +909,113 @@
                 </div>
               </div>
 
-              <!-- Requires Approval -->
-              <div class="sidebar-meta-item">
-                <div class="meta-label-top">REQUIRES APPROVAL</div>
-                <div class="approval-status-indicator">
-                  <i class="bi"
-                    [ngClass]="task.requiresApproval ? 'bi-shield-check text-warning' : 'bi-x-circle text-danger'"></i>
-                  <span class="approval-status-text">
-                    {{ task.requiresApproval ? 'Requires Approval' : 'No Approval Required' }}
+              <!-- RFC Completed At -->
+              <div class="sidebar-meta-item border-bottom-0 pb-0 mb-0" *ngIf="task.rfcCompletedAt">
+                <div class="meta-label-top">RFC COMPLETED AT</div>
+                <div class="meta-date-value text-success fw-bold">{{ task.rfcCompletedAt | date:'mediumDate' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Widget 2: Status Health -->
+          <div class="sidebar-card mb-4 bg-light">
+            <div class="sidebar-card-title border-0 pb-1 mb-2">
+              <i class="bi bi-heart-pulse-fill text-danger me-2"></i>Status Health
+            </div>
+            <div class="sidebar-meta-list">
+              <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
+                <span class="small text-muted fw-bold">Current Status:</span>
+                <span class="badge" [ngClass]="getStatusBadgeClass(task.status)">{{ formatStatus(task.status) }}</span>
+              </div>
+              <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
+                <span class="small text-muted fw-bold">Approval Status:</span>
+                <span class="badge" [ngClass]="task.approved ? 'bg-success text-white' : 'bg-warning text-dark'">{{
+                  task.approved ? 'Approved' : 'Pending' }}</span>
+              </div>
+              <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
+                <span class="small text-muted fw-bold">RFC Status:</span>
+                <span class="badge"
+                  [ngClass]="task.rfcCompletedAt ? 'bg-success text-white' : 'bg-secondary text-white'">{{
+                  task.rfcCompletedAt ? 'Completed' : 'Active' }}</span>
+              </div>
+              <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
+                <span class="small text-muted fw-bold">Recurring Status:</span>
+                <span class="badge bg-light text-dark border">{{ task.isRecurring ? 'Recurring' : 'One-time' }}</span>
+              </div>
+              <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
+                <span class="small text-muted fw-bold">Task Type:</span>
+                <span class="badge bg-light text-dark border">{{ task.template ? 'Template' : 'Custom' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Widget 3: Related People -->
+          <div class="sidebar-card mb-4">
+            <div class="sidebar-card-title border-0 pb-1 mb-2">
+              <i class="bi bi-people-fill text-primary me-2"></i>Related People
+            </div>
+            <div class="sidebar-meta-list">
+              <!-- Creator -->
+              <div class="sidebar-meta-item py-2">
+                <span class="meta-label-top">CREATOR</span>
+                <div class="creator-profile-cell mt-1">
+                  <div class="creator-avatar-circle bg-primary">{{ creatorInitials }}</div>
+                  <span class="creator-name">{{ task.createdByName || '—' }}</span>
+                </div>
+              </div>
+
+              <!-- Starter -->
+              <div class="sidebar-meta-item py-2" *ngIf="task.startedByName">
+                <span class="meta-label-top">STARTER</span>
+                <div class="creator-profile-cell mt-1">
+                  <div class="creator-avatar-circle bg-info">{{ task.startedByName.slice(0,2).toUpperCase() }}</div>
+                  <span class="creator-name">{{ task.startedByName }}</span>
+                </div>
+              </div>
+
+              <!-- Assigned Users -->
+              <div class="sidebar-meta-item py-2">
+                <span class="meta-label-top">ASSIGNED USERS</span>
+                <div class="d-flex align-items-center mt-1" style="margin-left: 8px;">
+                  <div *ngFor="let u of assignedUsers | slice:0:4" class="avatar-with-tooltip"
+                    [title]="u.fullName + ' (' + u.role + ')'" style="margin-left: -8px;">
+                    <div class="creator-avatar-circle bg-secondary border border-white"
+                      style="box-shadow: 0 0 0 2px #fff; width: 32px; height: 32px; font-size: 0.75rem;">
+                      {{ u.fullName.slice(0,2).toUpperCase() }}
+                    </div>
+                  </div>
+                  <div *ngIf="assignedUsers.length > 4"
+                    class="creator-avatar-circle bg-light text-dark border border-white"
+                    style="margin-left: -8px; box-shadow: 0 0 0 2px #fff; width: 32px; height: 32px; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+                    +{{ assignedUsers.length - 4 }}
+                  </div>
+                  <span class="text-muted small ms-2" *ngIf="assignedUsers.length > 0">
+                    {{ assignedUsers.length }} user(s)
                   </span>
                 </div>
               </div>
 
-              <!-- Priority -->
-              <div class="sidebar-meta-item">
-                <div class="meta-label-top">PRIORITY</div>
-                <div class="priority-status-indicator">
-                  <span class="dot-priority-red"></span>
-                  <span class="priority-text">Critical (High)</span>
+              <!-- Approver -->
+              <div class="sidebar-meta-item py-2 border-bottom-0 pb-0 mb-0">
+                <span class="meta-label-top">APPROVER</span>
+                <div class="creator-profile-cell mt-1" *ngIf="getApproverName() !== '—'">
+                  <div class="creator-avatar-circle bg-success">{{ getApproverName().slice(0,2).toUpperCase() }}</div>
+                  <span class="creator-name">{{ getApproverName() }}</span>
                 </div>
-              </div>
-
-              <!-- Task Type -->
-              <div class="sidebar-meta-item pb-0 border-0">
-                <div class="meta-label-top">TASK TYPE</div>
-                <div class="type-status-indicator">
-                  <i class="bi bi-mortarboard text-primary"></i>
-                  <span class="type-text">Academic Activity</span>
+                <div class="creator-profile-cell mt-1" *ngIf="getApproverName() === '—'">
+                  <div class="creator-avatar-circle bg-secondary"><i class="bi bi-person-dash"></i></div>
+                  <span class="creator-name text-muted">None/Pending</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Back to Task Board Button -->
-
-
-          <!-- Recent Logs Card -->
-          <div class="sidebar-card">
-            <div class="sidebar-card-title border-0 pb-1 mb-2">
-              Recent Logs
-            </div>
-
-            <div class="timeline-logs-list">
-              <div class="timeline-log-row">
-                <div class="timeline-bullet bullet-blue-sm">
-                  <i class="bi bi-check2"></i>
-                </div>
-                <div class="timeline-log-content">
-                  <div class="log-desc-text">Status changed to <span class="text-primary fw-semibold">In Progress</span>
-                  </div>
-                  <div class="log-time-text">2 hours ago</div>
-                </div>
-              </div>
-              <div class="timeline-log-row">
-                <div class="timeline-bullet bullet-grey-sm">
-                  <i class="bi bi-person"></i>
-                </div>
-                <div class="timeline-log-content">
-                  <div class="log-desc-text">Task assigned to Divyansh</div>
-                  <div class="log-time-text">Yesterday</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Back to Board Button -->
+          <button
+            class="btn btn-sidebar-back w-100 py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2 fw-semibold"
+            (click)="goBack()">
+            <i class="bi bi-arrow-left"></i> Back to Board
+          </button>
 
         </div>
       </div>

@@ -28,10 +28,10 @@ export interface TaskDto {
   startedByName?: string;
 
   isRecurring?: boolean;
-recurrenceType?: RecurrenceType; // 'DAILY' | 'WEEKLY' | 'MONTHLY'
-recurrenceInterval?: number;
-recurrenceEndDate?: string; // ISO 8601 date string
-parentTaskId?: number; // For recurring instances
+  recurrenceType?: RecurrenceType; // 'DAILY' | 'WEEKLY' | 'MONTHLY'
+  recurrenceInterval?: number;
+  recurrenceEndDate?: string; // ISO 8601 date string
+  parentTaskId?: number; // For recurring instances
 
 
   // ✅ Task lifecycle flags
@@ -48,4 +48,5 @@ parentTaskId?: number; // For recurring instances
   targetCount?: number;
   targetPercentage?: number;
   subDepartmentId?: number;
+  taskType?: string;
 }
