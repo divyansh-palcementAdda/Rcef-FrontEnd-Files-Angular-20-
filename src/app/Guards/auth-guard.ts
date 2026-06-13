@@ -17,7 +17,7 @@ export const AuthGuard: CanActivateFn = (): boolean | UrlTree => {
   // --------------------------------------------------------------
   if (!accessToken && !refreshToken) {
     showExpired(snack);
-    authSrv.logout();
+    authSrv.clearAuthAndRedirect();
     return router.createUrlTree(['/login']);
   }
 
@@ -31,9 +31,30 @@ export const AuthGuard: CanActivateFn = (): boolean | UrlTree => {
   }
 
   // --------------------------------------------------------------
-  // CASE 3: Access token exists even if expired, do NOT block.
-  // Interceptor will handle refresh on first API call.
+  // CASE 3: Access token exists — check if it is expired
+  // If expired but refresh token present, interceptor will handle it.
+  // If expired AND no refresh token → force logout.
   // --------------------------------------------------------------
+  if (accessToken) {
+    try {
+      const payload = JSON.parse(atob(accessToken.split('.')[1]));
+      const isExpired = payload.exp * 1000 < Date.now();
+
+      if (isExpired && !refreshToken) {
+        // Both tokens effectively gone — force logout
+        showExpired(snack);
+        authSrv.clearAuthAndRedirect();
+        return router.createUrlTree(['/login']);
+      }
+      // Expired but refresh token exists → interceptor will refresh on first API call
+    } catch {
+      // Malformed token — treat as unauthenticated
+      showExpired(snack);
+      authSrv.clearAuthAndRedirect();
+      return router.createUrlTree(['/login']);
+    }
+  }
+
   return true;
 };
 

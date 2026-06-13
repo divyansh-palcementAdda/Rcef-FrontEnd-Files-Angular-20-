@@ -390,8 +390,13 @@ textarea.form-control {
 }
 
 .hod-highlight {
-  border-left: 3px solid #4f46e5;
-  padding-left: 8px;
+  background-color: rgba(79, 70, 229, 0.04);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.hod-highlight .form-check {
+  padding-left: 0 !important;
 }
 
 /* Skeleton loader */

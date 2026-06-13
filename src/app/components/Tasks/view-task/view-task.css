@@ -291,7 +291,7 @@
 /* ==================== SECTION 2: KPI CARDS ==================== */
 .task-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
 }
 
@@ -377,19 +377,18 @@
 /* ==================== SECTION 3: WORKSPACE GRID ==================== */
 .task-workspace-grid {
   display: grid;
-  grid-template-columns: 7fr 3fr;
-  gap: 1.5rem;
-  align-items: start;
+  grid-template-columns: 1fr;
+  gap: 0;
 }
 
 .workspace-main-col {
   min-width: 0;
+  width: 100%;
 }
 
+/* workspace-side-col no longer used — removed from layout */
 .workspace-side-col {
-  position: sticky;
-  top: 1.5rem;
-  z-index: 10;
+  display: none;
 }
 
 /* Description Card */
@@ -1353,7 +1352,7 @@
 /* ==================== RESPONSIVE LAYOUTS ==================== */
 @media (max-width: 1200px) {
   .task-kpi-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1369,12 +1368,6 @@
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
-  }
-  .task-workspace-grid {
-    grid-template-columns: 1fr;
-  }
-  .workspace-side-col {
-    position: static;
   }
 }
 
@@ -1393,6 +1386,68 @@
 
 @media (max-width: 480px) {
   .task-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==================== SIDEBAR FLEX GRID (3 CARDS SIDE-BY-SIDE) ==================== */
+.sidebar-flex-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.sidebar-flex-card {
+  flex: 1 1 calc(33.333% - 0.5rem);
+  min-width: 180px;
+  margin-bottom: 0 !important;
+}
+
+/* On the right sidebar column (30% of page), 3 cards wrap into 1 column on narrow viewports */
+@media (max-width: 1200px) {
+  .sidebar-flex-card {
+    flex: 1 1 calc(50% - 0.375rem);
+  }
+}
+
+@media (max-width: 1024px) {
+  /* When grid collapses to single column, cards go 3-across again */
+  .sidebar-flex-grid {
+    flex-direction: row;
+  }
+  .sidebar-flex-card {
+    flex: 1 1 calc(33.333% - 0.5rem);
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 640px) {
+  .sidebar-flex-card {
+    flex: 1 1 100%;
+  }
+}
+
+/* ==================== INFO CARDS ROW (FULL WIDTH — 3 EQUAL COLUMNS) ==================== */
+.info-cards-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.info-row-card {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .info-cards-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .info-cards-row {
     grid-template-columns: 1fr;
   }
 }

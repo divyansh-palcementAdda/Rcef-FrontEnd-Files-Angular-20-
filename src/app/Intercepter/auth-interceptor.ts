@@ -98,7 +98,8 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private logoutAndRedirect(): void {
-    this.authService.logout();
+    // Clear auth locally and redirect — no API call needed here since refresh already failed
+    this.authService.clearAuthAndRedirect();
     this.snackBar.open('Session expired. Please log in again.', 'OK', {
       duration: 5000,
       horizontalPosition: 'center',

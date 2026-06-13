@@ -166,6 +166,11 @@ export class AuthApiService {
     this.router.navigate(['/login']);
   }
 
+  /** Called by interceptor when refresh token fails — clears local state and redirects */
+  clearAuthAndRedirect(): void {
+    this.clearAuth();
+  }
+
   private updateUserFromToken(token: string): void {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
