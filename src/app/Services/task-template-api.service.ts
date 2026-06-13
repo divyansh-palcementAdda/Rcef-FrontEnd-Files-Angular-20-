@@ -21,7 +21,22 @@ export interface TaskTemplateFieldDto {
 export interface TaskTemplateProofRequirementDto {
   id?: number;
   proofType: string;
+  proofTypeId?: number;
+  proofTypeName?: string;
   isRequired: boolean;
+  fieldType?: string;
+  options?: string;
+}
+
+export interface ProofTypeDto {
+  id?: number;
+  proofTypeName: string;
+  fieldType?: string;
+  options?: string;
+  description?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TaskTemplateDto {
@@ -75,5 +90,24 @@ export class TaskTemplateApiService {
 
   updateCategory(id: number, dto: TaskTemplateCategoryDto): Observable<ApiResponse<TaskTemplateCategoryDto>> {
     return this.http.put<ApiResponse<TaskTemplateCategoryDto>>(`${this.baseUrl}/categories/${id}`, dto);
+  }
+
+  // Dynamic Proof Types API
+  private readonly proofTypesUrl = `${environment.apiUrl}/proof-types`;
+
+  getAllProofTypes(): Observable<ApiResponse<ProofTypeDto[]>> {
+    return this.http.get<ApiResponse<ProofTypeDto[]>>(this.proofTypesUrl);
+  }
+
+  createProofType(dto: ProofTypeDto): Observable<ApiResponse<ProofTypeDto>> {
+    return this.http.post<ApiResponse<ProofTypeDto>>(this.proofTypesUrl, dto);
+  }
+
+  updateProofType(id: number, dto: ProofTypeDto): Observable<ApiResponse<ProofTypeDto>> {
+    return this.http.put<ApiResponse<ProofTypeDto>>(`${this.proofTypesUrl}/${id}`, dto);
+  }
+
+  deleteProofType(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.proofTypesUrl}/${id}`);
   }
 }

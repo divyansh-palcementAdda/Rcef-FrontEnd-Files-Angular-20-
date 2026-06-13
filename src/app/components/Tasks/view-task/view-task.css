@@ -1451,3 +1451,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Ensure the dropdown menu is not clipped by parent containers and is displayed above cards */
+.dropdown-menu {
+  z-index: 9999 !important;
+}

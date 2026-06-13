@@ -74,11 +74,11 @@
           <div class="dropdown">
             <button
               class="btn btn-outline-secondary btn-sm px-2.5 py-1.5 rounded-3 dropdown-toggle d-flex align-items-center justify-content-center"
-              type="button" id="moreActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+              type="button" id="moreActionsDropdown" aria-expanded="false" (click)="toggleMoreActions($event)"
               style="border-color: #cbd5e1; color: #334155;">
               <i class="bi bi-three-dots"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border p-1 rounded-3"
+            <ul class="dropdown-menu dropdown-menu-end shadow border p-1 rounded-3" [class.show]="isMoreActionsOpen"
               aria-labelledby="moreActionsDropdown" style="font-size: 0.875rem; min-width: 160px;">
               <!-- Start Task -->
               <li
@@ -166,10 +166,8 @@
         </span>
       </div>
     </div>
-
     <!-- Divider Line -->
     <hr class="mb-4" style="color: var(--border-light); opacity: 0.15; border-top: 1.5px solid;">
-
     <!-- SECTION 2: 6 Stats Cards -->
     <div class="task-kpi-grid mb-4">
       <!-- 1. Assigned Users -->
@@ -190,7 +188,6 @@
           {{ task.targetPercentage }}% &rarr;
         </div>
       </div>
-
       <!-- 2. Departments -->
       <div class="kpi-card" (click)="activeTab = 'departments'; scrollToTabs()" style="cursor: pointer;"
         title="View Departments">
@@ -204,7 +201,6 @@
           </div>
         </div>
       </div>
-
       <!-- 3. Requests -->
       <div class="kpi-card" (click)="activeTab = 'requests'; scrollToTabs()"
         style="cursor: pointer; position: relative;" title="View Requests">
@@ -223,7 +219,6 @@
           {{ pendingRequestsCount }} Pending
         </div>
       </div>
-
       <!-- 4. Proof Files -->
       <div class="kpi-card" (click)="activeTab = 'proofs'; scrollToTabs()" style="cursor: pointer;"
         title="View Proof Files">
@@ -719,7 +714,8 @@
                 <span class="meta-label-top d-block"
                   style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TEMPLATE
                   CATEGORY & SUBCATEGORY</span>
-                <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.template.category?.name }} / {{
+                <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.template.category?.name
+                  }} / {{
                   task.template.category?.subcategory }}</span>
               </div>
 
@@ -923,8 +919,7 @@
                   {{ u.fullName.slice(0,2).toUpperCase() }}
                 </div>
               </div>
-              <span *ngIf="assignedUsers.length > 6"
-                class="creator-avatar-circle bg-light text-dark border"
+              <span *ngIf="assignedUsers.length > 6" class="creator-avatar-circle bg-light text-dark border"
                 style="width: 30px; height: 30px; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; justify-content: center;">
                 +{{ assignedUsers.length - 6 }}
               </span>
@@ -969,6 +964,35 @@
           <h6 class="modal-sub-label">Remarks / Completion Notes</h6>
           <div class="p-3 border rounded-3 bg-light text-secondary">
             {{ selectedRequestRemarks }}
+          </div>
+        </div>
+
+        <!-- Configurable Dynamic Proofs -->
+        <div *ngIf="selectedRequestStructuredProof?.customFieldsJson" class="mb-4">
+          <h6 class="modal-sub-label">Template Proof Inputs</h6>
+          <div class="border rounded-3 p-3 bg-light">
+            <div class="d-flex flex-column gap-2">
+              <div
+                *ngFor="let field of getCustomFieldsList(selectedRequestStructuredProof.customFieldsJson); let last = last"
+                class="d-flex justify-content-between align-items-center py-2"
+                [style.border-bottom]="last ? 'none' : '1px solid #e2e8f0'">
+                <span class="fw-semibold text-secondary" style="font-size: 0.9rem;">{{ field.key }}</span>
+                <span class="text-dark fw-medium" style="font-size: 0.9rem;">
+                  <!-- Render file download if it is a GCS file -->
+                  <span *ngIf="field.isFile && getProofFileUrl(field.value, selectedRequestProofs)">
+                    <a [href]="getProofFileUrl(field.value, selectedRequestProofs)" target="_blank"
+                      class="btn btn-xs btn-outline-primary py-1 px-2.5 rounded-3 d-inline-flex align-items-center gap-1.5 fw-semibold"
+                      style="font-size: 0.8rem;">
+                      <i class="bi bi-download"></i> {{ field.value }}
+                    </a>
+                  </span>
+                  <!-- Otherwise render raw text/number -->
+                  <span *ngIf="!field.isFile || !getProofFileUrl(field.value, selectedRequestProofs)">
+                    {{ field.value }}
+                  </span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1216,7 +1240,7 @@
           </div>
 
           <!-- ==================== DYNAMIC TEMPLATE PROOFS (CLOSURE only) ==================== -->
-          <div *ngIf="newRequest.requestType === 'CLOSURE' && task?.template"
+          <div *ngIf="newRequest.requestType === 'CLOSURE' && task && task.template"
             class="mb-4 p-4 border rounded-3 bg-light">
             <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-primary" style="font-size: 0.95rem;">
               <i class="bi bi-shield-lock-fill"></i>Required Template Proof Inputs
@@ -1287,10 +1311,91 @@
                 </button>
               </div>
 
-              <button type="button" class="btn btn-sm btn-outline-primary mt-2 rounded-3" (click)="addTopic()">
+              <button type="button" class="btn type-button btn-sm btn-outline-primary mt-2 rounded-3"
+                (click)="addTopic()">
                 <i class="bi bi-plus-circle me-1"></i> Add Topic
               </button>
             </div>
+
+            <!-- 4. Dynamic/Configurable Proof Inputs -->
+            <div *ngFor="let req of task.template.proofRequirements" class="mt-4 animate__animated animate__fadeIn">
+              <div
+                *ngIf="req.proofType !== 'STUDENT_ENTRIES' && req.proofType !== 'ATTENDANCE_UPLOAD' && req.proofType !== 'TOPICS_LIST'">
+                <label class="form-label fw-semibold">
+                  {{ req.proofTypeName || req.proofType }}
+                  <span class="text-danger" *ngIf="req.isRequired">*</span>
+                </label>
+
+                <!-- TEXT Type -->
+                <div *ngIf="req.fieldType === 'TEXT'">
+                  <input type="text" class="form-control modal-text-input"
+                    [(ngModel)]="dynamicProofValues[req.proofTypeName || req.proofType]" name="proof-{{req.proofType}}"
+                    [required]="req.isRequired">
+                </div>
+
+                <!-- NUMBER Type -->
+                <div *ngIf="req.fieldType === 'NUMBER'">
+                  <input type="number" class="form-control modal-text-input"
+                    [(ngModel)]="dynamicProofValues[req.proofTypeName || req.proofType]" name="proof-{{req.proofType}}"
+                    [required]="req.isRequired">
+                </div>
+
+                <!-- DATE Type -->
+                <div *ngIf="req.fieldType === 'DATE'">
+                  <input type="date" class="form-control modal-datepicker w-100"
+                    [(ngModel)]="dynamicProofValues[req.proofTypeName || req.proofType]" name="proof-{{req.proofType}}"
+                    [required]="req.isRequired">
+                </div>
+
+                <!-- BOOLEAN Type -->
+                <div *ngIf="req.fieldType === 'BOOLEAN'">
+                  <select class="form-select modal-text-input text-dark"
+                    [(ngModel)]="dynamicProofValues[req.proofTypeName || req.proofType]" name="proof-{{req.proofType}}"
+                    [required]="req.isRequired">
+                    <option [value]="null" disabled>Select Option</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+
+                <!-- SELECT Type -->
+                <div *ngIf="req.fieldType === 'SELECT'">
+                  <select class="form-select modal-text-input text-dark"
+                    [(ngModel)]="dynamicProofValues[req.proofTypeName || req.proofType]" name="proof-{{req.proofType}}"
+                    [required]="req.isRequired">
+                    <option [value]="null" disabled>Select Option</option>
+                    <option *ngFor="let opt of (req.options || '').split(',')" [value]="opt.trim()">{{ opt.trim() }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- TEXTAREA Type -->
+                <div *ngIf="req.fieldType === 'TEXTAREA'">
+                  <textarea class="form-control modal-textarea" rows="3"
+                    [(ngModel)]="dynamicProofValues[req.proofTypeName || req.proofType]" name="proof-{{req.proofType}}"
+                    [required]="req.isRequired"></textarea>
+                </div>
+
+                <!-- FILE Type -->
+                <div *ngIf="req.fieldType === 'FILE'">
+                  <input type="file" class="form-control modal-file-input"
+                    (change)="onDynamicFileSelected($event, req.proofTypeName || req.proofType)"
+                    [required]="req.isRequired">
+
+                  <div *ngIf="dynamicProofFiles[req.proofTypeName || req.proofType]"
+                    class="alert alert-success mt-2 mb-0 py-2 d-flex justify-content-between align-items-center rounded-3">
+                    <span class="d-flex align-items-center gap-2">
+                      <i class="bi bi-file-earmark-arrow-up-fill text-success"></i>
+                      <span>{{ dynamicProofFiles[req.proofTypeName || req.proofType].name }} ({{
+                        (dynamicProofFiles[req.proofTypeName || req.proofType].size/1024).toFixed(2) }} KB)</span>
+                    </span>
+                    <button type="button" class="btn-close"
+                      (click)="dynamicProofFiles[req.proofTypeName || req.proofType] = undefined; dynamicProofValues[req.proofTypeName || req.proofType] = null"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <!-- Attach Supporting Documents/Files -->

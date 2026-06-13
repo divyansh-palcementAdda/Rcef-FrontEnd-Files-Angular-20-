@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
@@ -50,6 +50,9 @@ export class ViewTask implements OnInit, OnDestroy {
 
   task?: TaskDto;
   isStarting = false;
+  isMoreActionsOpen = false;
+  dynamicProofValues: { [key: string]: any } = {};
+  dynamicProofFiles: { [key: string]: any } = {};
   isLoading = true;
   isLoadingInstances = false;
   isApproving = false;
@@ -188,6 +191,24 @@ export class ViewTask implements OnInit, OnDestroy {
       if (!hasValidTopic) return false;
     }
 
+    // Dynamic inputs required checks
+    if (this.task.template.proofRequirements) {
+      for (const req of this.task.template.proofRequirements) {
+        const isLegacy = ['STUDENT_ENTRIES', 'ATTENDANCE_UPLOAD', 'TOPICS_LIST'].includes(req.proofType);
+        if (!isLegacy && req.isRequired) {
+          const key = req.proofTypeName || req.proofType;
+          if (req.fieldType === 'FILE') {
+            if (!this.dynamicProofFiles[key]) return false;
+          } else {
+            const val = this.dynamicProofValues[key];
+            if (val === undefined || val === null || val === '' || (typeof val === 'string' && !val.trim())) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+
     return true;
   }
 
@@ -232,6 +253,16 @@ export class ViewTask implements OnInit, OnDestroy {
         queryParams: { taskId: this.taskId }
       });
     }
+  }
+
+  toggleMoreActions(event: Event): void {
+    event.stopPropagation();
+    this.isMoreActionsOpen = !this.isMoreActionsOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeMoreActionsDropdown(event: Event): void {
+    this.isMoreActionsOpen = false;
   }
 
   ngOnDestroy(): void {
@@ -592,6 +623,8 @@ export class ViewTask implements OnInit, OnDestroy {
     this.studentEntriesList = [{ studentName: '', enrollmentId: '' }];
     this.topicsList = [''];
     this.attendanceFile = null;
+    this.dynamicProofValues = {};
+    this.dynamicProofFiles = {};
     this.addRequestModal = new Modal(document.getElementById('addRequestModal')!);
     this.addRequestModal.show();
   }
@@ -650,6 +683,27 @@ export class ViewTask implements OnInit, OnDestroy {
             return;
           }
         }
+
+        // Dynamic inputs validations
+        if (this.task.template.proofRequirements) {
+          for (const req of this.task.template.proofRequirements) {
+            const isLegacy = ['STUDENT_ENTRIES', 'ATTENDANCE_UPLOAD', 'TOPICS_LIST'].includes(req.proofType);
+            if (!isLegacy) {
+              const val = this.dynamicProofValues[req.proofTypeName || req.proofType];
+              if (req.isRequired) {
+                if (req.fieldType === 'FILE') {
+                  if (!this.dynamicProofFiles[req.proofTypeName || req.proofType]) {
+                    alert(`Proof requirement "${req.proofTypeName || req.proofType}" is required.`);
+                    return;
+                  }
+                } else if (val === undefined || val === null || val === '' || (typeof val === 'string' && !val.trim())) {
+                  alert(`Proof requirement "${req.proofTypeName || req.proofType}" is required.`);
+                  return;
+                }
+              }
+            }
+          }
+        }
       } else {
         // Legacy: general tasks closure requires at least one general proof file
         if (this.selectedProofs.length === 0) {
@@ -675,7 +729,15 @@ export class ViewTask implements OnInit, OnDestroy {
 
     // Append template-specific proofs
     if (this.newRequest.requestType === 'CLOSURE' && this.task?.template) {
-      formData.append('customFields', '{}');
+      // Serialize dynamic proof inputs
+      const customFieldsObj = { ...this.dynamicProofValues };
+      formData.append('customFields', JSON.stringify(customFieldsObj));
+
+      // Append dynamic proof files
+      for (const key of Object.keys(this.dynamicProofFiles)) {
+        const file = this.dynamicProofFiles[key];
+        formData.append('proofs', file, file.name);
+      }
 
       if (this.hasProofRequirement('STUDENT_ENTRIES')) {
         const validEntries = this.studentEntriesList.filter(e => e.studentName?.trim() && e.enrollmentId?.trim());
@@ -834,6 +896,52 @@ export class ViewTask implements OnInit, OnDestroy {
   getFileName(url: string): string {
     if (!url) return 'Unknown file';
     return url.split('/').pop()?.split('?')[0] || 'File';
+  }
+
+  onDynamicFileSelected(event: any, key: string): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.dynamicProofFiles[key] = file;
+      this.dynamicProofValues[key] = file.name;
+    }
+  }
+
+  getCustomFieldsList(customFieldsJson: string | undefined): { key: string, value: any, isFile?: boolean }[] {
+    if (!customFieldsJson) return [];
+    try {
+      const parsed = JSON.parse(customFieldsJson);
+      const list: { key: string, value: any, isFile?: boolean }[] = [];
+      for (const k of Object.keys(parsed)) {
+        list.push({
+          key: k,
+          value: parsed[k],
+          isFile: this.isFieldTypeOfFile(k, parsed[k])
+        });
+      }
+      return list;
+    } catch (e) {
+      console.error('Failed to parse custom fields JSON', e);
+      return [];
+    }
+  }
+
+  isFieldTypeOfFile(fieldName: string, value: any): boolean {
+    if (typeof value !== 'string') return false;
+    const ext = value.split('.').pop()?.toLowerCase();
+    if (ext && ['pdf', 'png', 'jpg', 'jpeg', 'xlsx', 'xls', 'csv', 'doc', 'docx', 'txt'].includes(ext)) {
+      return true;
+    }
+    const pr = this.task?.template?.proofRequirements?.find((r: any) => r.proofTypeName === fieldName || r.proofType === fieldName);
+    if (pr && pr.fieldType === 'FILE') {
+      return true;
+    }
+    return false;
+  }
+
+  getProofFileUrl(filename: string, proofs: any[] | undefined): string | null {
+    if (!proofs || !filename) return null;
+    const found = proofs.find(p => p.remarks === filename || (p.fileUrl && p.fileUrl.split('/').pop()?.split('?')[0] === filename));
+    return found ? found.fileUrl : null;
   }
 
   // --- REQUEST APPROVAL / REJECTION ---

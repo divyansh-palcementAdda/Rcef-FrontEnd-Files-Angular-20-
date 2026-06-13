@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TaskTemplateApiService, TaskTemplateDto, TaskTemplateCategoryDto, TaskTemplateFieldDto, TaskTemplateProofRequirementDto } from '../../../Services/task-template-api.service';
+import { TaskTemplateApiService, TaskTemplateDto, TaskTemplateCategoryDto, TaskTemplateFieldDto, TaskTemplateProofRequirementDto, ProofTypeDto } from '../../../Services/task-template-api.service';
 
 @Component({
   selector: 'app-task-template-management',
@@ -12,11 +12,12 @@ import { TaskTemplateApiService, TaskTemplateDto, TaskTemplateCategoryDto, TaskT
   styleUrls: ['./task-template-management.css']
 })
 export class TaskTemplateManagementComponent implements OnInit {
-  activeTab: 'templates' | 'categories' | 'fields' | 'requirements' = 'templates';
+  activeTab: 'templates' | 'categories' | 'fields' | 'requirements' | 'proofTypes' = 'templates';
 
   // Lists
   templates: TaskTemplateDto[] = [];
   categories: TaskTemplateCategoryDto[] = [];
+  proofTypeList: ProofTypeDto[] = [];
   selectedTemplate: TaskTemplateDto | null = null;
 
   // Pagination – Templates
@@ -27,17 +28,24 @@ export class TaskTemplateManagementComponent implements OnInit {
   categoryCurrentPage = 1;
   categoryPageSize = 5;
 
+  // Pagination – Proof Types
+  proofTypeCurrentPage = 1;
+  proofTypePageSize = 5;
+
   // Forms
   templateForm!: FormGroup;
   categoryForm!: FormGroup;
   fieldForm!: FormGroup;
   requirementForm!: FormGroup;
+  proofTypeForm!: FormGroup;
 
   // Edit states
   isEditingTemplate = false;
   editingTemplateId: number | null = null;
   isEditingCategory = false;
   editingCategoryId: number | null = null;
+  isEditingProofType = false;
+  editingProofTypeId: number | null = null;
 
   // UI status
   successMessage: string | null = null;
@@ -46,10 +54,11 @@ export class TaskTemplateManagementComponent implements OnInit {
   // Modal visibility
   showTemplateModal = false;
   showCategoryModal = false;
+  showProofTypeModal = false;
 
   // Options
   fieldTypes = ['TEXT', 'NUMBER', 'PERCENTAGE', 'DATE', 'DROPDOWN', 'MULTISELECT', 'LIST', 'FILE_UPLOAD', 'EXCEL_UPLOAD', 'CSV_UPLOAD', 'BOOLEAN'];
-  proofTypes = ['STUDENT_ENTRIES', 'ATTENDANCE_UPLOAD', 'TOPICS_LIST', 'FILE_UPLOAD'];
+  proofFieldTypes = ['TEXT', 'NUMBER', 'DATE', 'BOOLEAN', 'SELECT', 'FILE', 'TEXTAREA'];
 
   constructor(
     private fb: FormBuilder,
@@ -85,8 +94,16 @@ export class TaskTemplateManagementComponent implements OnInit {
     });
 
     this.requirementForm = this.fb.group({
-      proofType: ['FILE_UPLOAD', Validators.required],
+      proofTypeId: ['', Validators.required],
       isRequired: [true]
+    });
+
+    this.proofTypeForm = this.fb.group({
+      proofTypeName: ['', Validators.required],
+      fieldType: ['FILE', Validators.required],
+      options: [''],
+      description: [''],
+      isActive: [true]
     });
   }
 
@@ -113,6 +130,16 @@ export class TaskTemplateManagementComponent implements OnInit {
         }
       },
       error: (err) => (this.errorMessage = 'Failed to load categories')
+    });
+
+    this.templateService.getAllProofTypes().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.proofTypeList = res.data;
+          this.proofTypeCurrentPage = 1;
+        }
+      },
+      error: (err) => (this.errorMessage = 'Failed to load proof types')
     });
   }
 
@@ -283,7 +310,19 @@ export class TaskTemplateManagementComponent implements OnInit {
 
     this.successMessage = null;
     this.errorMessage = null;
-    const rVal: TaskTemplateProofRequirementDto = this.requirementForm.value;
+    const val = this.requirementForm.value;
+    const pt = this.proofTypeList.find(p => p.id === +val.proofTypeId);
+    if (!pt) return;
+
+    const rVal: TaskTemplateProofRequirementDto = {
+      proofTypeId: pt.id,
+      proofTypeName: pt.proofTypeName,
+      proofType: pt.proofTypeName.toUpperCase().replace(/ /g, "_"),
+      isRequired: val.isRequired,
+      fieldType: pt.fieldType || 'FILE',
+      options: pt.options || ''
+    };
+
     const tpl = this.selectedTemplate;
     const proofRequirements = tpl.proofRequirements ? [...tpl.proofRequirements, rVal] : [rVal];
 
@@ -293,11 +332,11 @@ export class TaskTemplateManagementComponent implements OnInit {
     }).subscribe({
       next: (res) => {
         this.successMessage = 'Proof requirement added successfully';
-        this.requirementForm.reset({ proofType: 'FILE_UPLOAD', isRequired: true });
+        this.requirementForm.reset({ proofTypeId: '', isRequired: true });
         this.selectedTemplate = res.data || null;
         this.loadData();
       },
-      error: (err) => (this.errorMessage = 'Failed to add requirement')
+      error: (err) => (this.errorMessage = err.error?.message || 'Failed to add requirement')
     });
   }
 
@@ -359,6 +398,85 @@ export class TaskTemplateManagementComponent implements OnInit {
   changeCategoryPage(page: number): void {
     if (page < 1 || page > this.categoryTotalPages) return;
     this.categoryCurrentPage = page;
+  }
+
+  // PROOF TYPE CRUD OPERATIONS
+  openCreateProofTypeModal(): void {
+    this.resetProofTypeForm();
+    this.showProofTypeModal = true;
+  }
+
+  saveProofType(): void {
+    if (this.proofTypeForm.invalid) return;
+
+    this.successMessage = null;
+    this.errorMessage = null;
+    const val = this.proofTypeForm.value;
+    const obs = this.isEditingProofType && this.editingProofTypeId
+      ? this.templateService.updateProofType(this.editingProofTypeId, val)
+      : this.templateService.createProofType(val);
+
+    obs.subscribe({
+      next: (res) => {
+        this.successMessage = res.message;
+        this.resetProofTypeForm();
+        this.loadData();
+      },
+      error: (err) => (this.errorMessage = err.error?.message || 'Failed to save proof type')
+    });
+  }
+
+  editProofType(pt: ProofTypeDto): void {
+    this.isEditingProofType = true;
+    this.editingProofTypeId = pt.id || null;
+    this.proofTypeForm.patchValue({
+      proofTypeName: pt.proofTypeName,
+      fieldType: pt.fieldType || 'FILE',
+      options: pt.options || '',
+      description: pt.description,
+      isActive: pt.isActive
+    });
+    this.showProofTypeModal = true;
+  }
+
+  deleteProofType(id: number): void {
+    if (confirm('Are you sure you want to delete this proof type?')) {
+      this.successMessage = null;
+      this.errorMessage = null;
+      this.templateService.deleteProofType(id).subscribe({
+        next: (res) => {
+          this.successMessage = 'Proof type deleted successfully';
+          this.loadData();
+        },
+        error: (err) => (this.errorMessage = err.error?.message || 'Failed to delete proof type')
+      });
+    }
+  }
+
+  resetProofTypeForm(): void {
+    this.isEditingProofType = false;
+    this.editingProofTypeId = null;
+    this.showProofTypeModal = false;
+    this.proofTypeForm.reset({ proofTypeName: '', fieldType: 'FILE', options: '', description: '', isActive: true });
+  }
+
+  // ─── Pagination helpers – Proof Types ─────────────────────────────────────
+  get proofTypeTotalPages(): number {
+    return Math.ceil(this.proofTypeList.length / this.proofTypePageSize) || 1;
+  }
+
+  get paginatedProofTypes(): ProofTypeDto[] {
+    const start = (this.proofTypeCurrentPage - 1) * this.proofTypePageSize;
+    return this.proofTypeList.slice(start, start + this.proofTypePageSize);
+  }
+
+  get proofTypePageNumbers(): number[] {
+    return Array.from({ length: this.proofTypeTotalPages }, (_, i) => i + 1);
+  }
+
+  changeProofTypePage(page: number): void {
+    if (page < 1 || page > this.proofTypeTotalPages) return;
+    this.proofTypeCurrentPage = page;
   }
 
   goBack(): void {
