@@ -197,20 +197,22 @@
                       </label>
                     </div>
 
-                    <div class="max-h-48 overflow-y-auto pr-1">
-                      <div *ngFor="let user of filteredUsersByDept.get(deptId)" class="form-check mb-2"
+                    <div class="max-h-48 overflow-y-auto pr-1 d-flex flex-column gap-2">
+                      <div *ngFor="let user of filteredUsersByDept.get(deptId)"
                         [ngClass]="{ 'hod-highlight': user.role === 'HOD' }">
-                        <input type="checkbox" class="form-check-input custom-checkbox" [id]="'user-' + user.userId"
-                          [checked]="selectedUsersByDeptObj[deptId]?.includes(user.userId)"
-                          (change)="updateUserSelection(deptId, user.userId, $event.target.checked)" [disabled]="
-                            taskForm.value.assignToSelf
-                              ? (user.userId !== currentUser?.userId)
-                              : isUserSelectionDisabled(user)
-                          " />
-                        <label class="form-check-label" [for]="'user-' + user.userId">
-                          {{ user.fullName }}
-                          <small class="text-muted ms-1">({{ user.role }})</small>
-                        </label>
+                        <div class="form-check">
+                          <input type="checkbox" class="form-check-input custom-checkbox" [id]="'user-' + user.userId"
+                            [checked]="selectedUsersByDeptObj[deptId]?.includes(user.userId)"
+                            (change)="updateUserSelection(deptId, user.userId, $event.target.checked)" [disabled]="
+                              taskForm.value.assignToSelf
+                                ? (user.userId !== currentUser?.userId)
+                                : isUserSelectionDisabled(user)
+                            " />
+                          <label class="form-check-label" [for]="'user-' + user.userId">
+                            {{ user.fullName }}
+                            <small class="text-muted ms-1">({{ user.role }})</small>
+                          </label>
+                        </div>
                       </div>
                       <div *ngIf="!(filteredUsersByDept.get(deptId)?.length)" class="text-muted small text-center py-2">
                         No members found in this department.
