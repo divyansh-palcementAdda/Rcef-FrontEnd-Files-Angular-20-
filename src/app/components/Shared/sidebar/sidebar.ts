@@ -18,7 +18,7 @@ interface SidebarLink {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink],
   templateUrl: './sidebar.html',
   styleUrls: ['./sidebar.css']
 })
@@ -44,7 +44,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     private userApiService: UserApiService,
     private jwtService: JwtService,
     private sidebarService: SidebarService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.role = this.authService.getCurrentRole();

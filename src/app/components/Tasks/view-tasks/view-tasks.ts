@@ -46,6 +46,8 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   departmentFilter = '';
   dateFilter = '';
   selectedCard = 'total';
+  categoryFilter = '';
+  templateFilter = '';
 
   // Sorting
   sortBy = 'createdAt';
@@ -140,6 +142,12 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
                 this.selectedCard = 'total';
               }
 
+              const category = params['category'];
+              this.categoryFilter = category || '';
+
+              const template = params['template'] || params['templateTitle'];
+              this.templateFilter = template || '';
+
               this.currentPage = 1;
               this.loadTasksFromServer();
             })
@@ -168,6 +176,14 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
     if (this.departmentFilter) {
       params.departmentName = this.departmentFilter;
+    }
+
+    if (this.categoryFilter) {
+      params.category = this.categoryFilter;
+    }
+
+    if (this.templateFilter) {
+      params.templateTitle = this.templateFilter;
     }
 
     // Map status filter from the toolbar select dropdown
@@ -289,9 +305,52 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.searchTerm = '';
     this.statusFilter = '';
     this.departmentFilter = '';
+    this.categoryFilter = '';
+    this.templateFilter = '';
     this.selectedCard = 'total';
     this.currentPage = 1;
-    this.loadTasksFromServer();
+
+    const hasQueryParams = Object.keys(this.route.snapshot.queryParams).length > 0;
+    if (hasQueryParams) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {},
+        replaceUrl: true
+      });
+    } else {
+      this.loadTasksFromServer();
+    }
+  }
+
+  removeCategoryFilter(): void {
+    this.categoryFilter = '';
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { category: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  removeTemplateFilter(): void {
+    this.templateFilter = '';
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { template: null, templateTitle: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  removeStatusFilter(): void {
+    this.statusFilter = '';
+    this.selectedCard = 'total';
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { status: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   changePage(page: number): void {

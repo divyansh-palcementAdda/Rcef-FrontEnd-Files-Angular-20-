@@ -535,7 +535,7 @@
             <!-- Tab 3: Requests Panel -->
             <div *ngIf="activeTab === 'requests'" class="animate__animated animate__fadeIn">
               <div class="requests-stack">
-                <div *ngFor="let r of task.requests" class="request-item-card" [ngClass]="{
+                <div *ngFor="let r of task.requests || []" class="request-item-card" [ngClass]="{
                   'req-status-pending': r.status === 'PENDING',
                   'req-status-approved': r.status === 'APPROVED',
                   'req-status-rejected': r.status === 'REJECTED'

@@ -368,6 +368,40 @@
       </div>
     </div>
 
+    <!-- Active Filter Chips -->
+    <div *ngIf="categoryFilter || templateFilter || statusFilter" class="stitch-filter-chips animate__animated animate__fadeIn">
+      <span class="stitch-filter-chips-label">Active Filters:</span>
+      
+      <!-- Category Filter Chip -->
+      <span *ngIf="categoryFilter" class="stitch-chip">
+        <span>Category: {{ categoryFilter }}</span>
+        <button class="stitch-chip-close" (click)="removeCategoryFilter()" title="Remove Category filter">
+          <i class="bi bi-x-circle-fill"></i>
+        </button>
+      </span>
+
+      <!-- Template Filter Chip -->
+      <span *ngIf="templateFilter" class="stitch-chip">
+        <span>Template: {{ templateFilter }}</span>
+        <button class="stitch-chip-close" (click)="removeTemplateFilter()" title="Remove Template filter">
+          <i class="bi bi-x-circle-fill"></i>
+        </button>
+      </span>
+
+      <!-- Status Filter Chip -->
+      <span *ngIf="statusFilter" class="stitch-chip">
+        <span>Status: {{ getFilterDisplayName(statusFilter) }}</span>
+        <button class="stitch-chip-close" (click)="removeStatusFilter()" title="Remove Status filter">
+          <i class="bi bi-x-circle-fill"></i>
+        </button>
+      </span>
+
+      <!-- Clear All Button -->
+      <button class="stitch-chip-clear-all" (click)="resetFilters()" title="Clear all filters">
+        Clear All
+      </button>
+    </div>
+
     <!-- ==========================================
        4. DATA GRID TABLE SECTION
        ========================================== -->
