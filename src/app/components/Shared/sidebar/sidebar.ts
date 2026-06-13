@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { JwtService } from '../../../Services/jwt-service';
 import { SidebarService } from '../../../Services/sidebar-service';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 interface SidebarLink {
   label: string;
@@ -20,12 +22,21 @@ interface SidebarLink {
   templateUrl: './sidebar.html',
   styleUrls: ['./sidebar.css']
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   role: string | null = null;
   username: string = 'User';
   fullName: string = 'User';
   isCollapsed = false;
   links: SidebarLink[] = [];
+
+  // Tracks which sidebar link was last explicitly clicked by the user
+  private lastClickedRoute: string | null = null;
+  private lastClickedQueryParams: Record<string, string> | null = null;
+  private routerSub = new Subscription();
+
+  // Tracks the previous URL to detect navigation from view-tasks → task detail
+  private previousUrl: string = '';
+  private currentUrl: string = '';
 
   constructor(
     private authService: AuthApiService,
@@ -48,6 +59,47 @@ export class SidebarComponent implements OnInit {
     this.sidebarService.isCollapsed$.subscribe(collapsed => {
       this.isCollapsed = collapsed;
     });
+
+    // Track URL changes to detect navigation from view-tasks → task detail
+    this.routerSub = this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe((e: any) => {
+        const url: string = e.urlAfterRedirects || e.url;
+
+        this.previousUrl = this.currentUrl;
+        this.currentUrl = url;
+
+        // If user came from /view-tasks?status=... and went to /task/:id or /edit-task
+        // auto-set the lastClicked based on the previous URL's query params
+        if (
+          (url.startsWith('/task/') || url.startsWith('/edit-task')) &&
+          this.previousUrl.startsWith('/view-tasks')
+        ) {
+          // Extract query params from previous view-tasks URL
+          const queryString = this.previousUrl.includes('?')
+            ? this.previousUrl.split('?')[1]
+            : '';
+          const params: Record<string, string> = {};
+          if (queryString) {
+            queryString.split('&').forEach(pair => {
+              const [key, value] = pair.split('=');
+              if (key && value) params[key] = value;
+            });
+          }
+          this.lastClickedRoute = '/view-tasks';
+          this.lastClickedQueryParams = Object.keys(params).length > 0 ? params : null;
+        }
+
+        // If navigating away from task-detail to somewhere unrelated, clear sticky state
+        if (!url.startsWith('/task/') && !url.startsWith('/edit-task') && !url.startsWith('/view-tasks')) {
+          this.lastClickedRoute = null;
+          this.lastClickedQueryParams = null;
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub.unsubscribe();
   }
 
   loadUserProfile(): void {
@@ -80,10 +132,47 @@ export class SidebarComponent implements OnInit {
     this.sidebarService.toggleCollapsed();
   }
 
-  onLinkClick(): void {
+  onLinkClick(link: SidebarLink): void {
+    // Remember which sidebar link was clicked
+    this.lastClickedRoute = link.route;
+    this.lastClickedQueryParams = link.queryParams || null;
+
     if (window.innerWidth < 768) {
       this.sidebarService.setMobileSidebarOpen(false);
     }
+  }
+
+  /**
+   * Returns true if the given link should appear active.
+   * Stays active even when user navigates to child pages like /task/:id or /edit-task
+   */
+  isLinkActive(link: SidebarLink): boolean {
+    const currentUrl = this.router.url;
+
+    // Standard match: current URL matches the link's route
+    if (currentUrl.startsWith(link.route)) {
+      // For query-param-based links, also check the query param matches
+      if (link.queryParams) {
+        const paramKey = Object.keys(link.queryParams)[0];
+        const paramValue = link.queryParams[paramKey];
+        return currentUrl.toLowerCase().includes(`${paramKey}=${paramValue}`.toLowerCase());
+      }
+      return true;
+    }
+
+    // Sticky match: user clicked this link and then navigated to a child page
+    if (
+      this.lastClickedRoute === link.route &&
+      (currentUrl.startsWith('/task/') || currentUrl.startsWith('/edit-task'))
+    ) {
+      if (link.queryParams && this.lastClickedQueryParams) {
+        const paramKey = Object.keys(link.queryParams)[0];
+        return this.lastClickedQueryParams[paramKey] === link.queryParams[paramKey];
+      }
+      return !link.queryParams;
+    }
+
+    return false;
   }
 
   logout(): void {

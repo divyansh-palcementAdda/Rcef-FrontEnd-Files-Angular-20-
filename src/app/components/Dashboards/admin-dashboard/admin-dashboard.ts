@@ -225,7 +225,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   trendsError: string | null = '';
 
   constructor(
-    private router: Router,
+    public router: Router,
     private apiService: ApiService,
     private authService: AuthApiService,
     private jwtService: JwtService
