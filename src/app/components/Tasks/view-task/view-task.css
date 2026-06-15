@@ -300,11 +300,10 @@
   border: 1px solid var(--border-light);
   border-radius: 20px;
   padding: 1.25rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
   box-shadow: var(--shadow-card);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
 }
 .kpi-card:hover {
   transform: translateY(-2px);
@@ -312,40 +311,76 @@
   border-color: #cbd5e1;
 }
 
+/* Row: icon on left, number+label on right */
+.kpi-inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .kpi-icon-wrapper {
   width: 52px;
   height: 52px;
-  border-radius: 50%;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.35rem;
+  flex-shrink: 0;
 }
 .kpi-purple { background-color: #f3e8ff; color: #a855f7; }
-.kpi-blue { background-color: #e0f2fe; color: #0284c7; }
+.kpi-blue   { background-color: #e0f2fe; color: #0284c7; }
 .kpi-yellow { background-color: #fef9c3; color: #ca8a04; }
 .kpi-orange { background-color: #ffedd5; color: #ea580c; }
-.kpi-cyan { background-color: #ecfeff; color: #0891b2; }
-.kpi-rose { background-color: #fff1f2; color: #e11d48; }
+.kpi-cyan   { background-color: #ecfeff; color: #0891b2; }
+.kpi-rose   { background-color: #fff1f2; color: #e11d48; }
 
+/* Right side: number → label stacked */
 .kpi-content {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.kpi-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.kpi-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.kpi-sub-badge {
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #10b981;
+  background: #dcfce7;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.kpi-sub-danger {
+  color: #ef4444;
+  background: #fee2e2;
 }
 
 .kpi-value-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.15rem;
-}
-
-.kpi-number {
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: var(--text-main);
-  line-height: 1.1;
 }
 
 .kpi-badge {
@@ -364,13 +399,6 @@
   font-weight: 650;
   color: #ef4444;
   margin-left: 0.25rem;
-}
-
-.kpi-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
 }
 
 
@@ -1369,24 +1397,148 @@
     justify-content: flex-start;
     flex-wrap: wrap;
   }
+
+  /* Stack Task Briefing + Timeline vertically on tablet */
+  .briefing-timeline-grid {
+    flex-direction: column !important;
+  }
+  .briefing-timeline-grid .sidebar-card {
+    width: 100% !important;
+  }
+
+  /* Stack Request RFC + Status Health vertically on tablet */
+  .rfc-status-grid {
+    flex-direction: column !important;
+  }
+  .rfc-status-grid .sidebar-card {
+    width: 100% !important;
+  }
 }
 
 @media (max-width: 768px) {
   .task-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
+
+  .kpi-card {
+    padding: 1rem 1.25rem;
+    border-radius: 16px;
+  }
+
+  .kpi-number {
+    font-size: 1.6rem;
+  }
+
+  .kpi-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+  }
+
   .tabs-header-bar {
     padding: 0;
   }
+
   .tab-nav-btn {
-    padding: 1rem 0.75rem;
-    font-size: 0.85rem;
+    padding: 0.75rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .tabs-content-pane {
+    padding: 1.25rem 1rem;
+  }
+
+  /* Request cards: stack icon + content vertically */
+  .request-item-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .req-actions-panel {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .req-meta-badges {
+    flex-wrap: wrap;
+  }
+
+  /* Stack briefing + timeline on mobile */
+  .briefing-timeline-grid {
+    flex-direction: column !important;
+  }
+  .briefing-timeline-grid .sidebar-card {
+    width: 100% !important;
+  }
+
+  /* Stack RFC + Status Health on mobile */
+  .rfc-status-grid {
+    flex-direction: column !important;
+  }
+  .rfc-status-grid .sidebar-card {
+    width: 100% !important;
+  }
+
+  /* Hero title smaller on mobile */
+  .hero-title {
+    font-size: 1.5rem !important;
+  }
+
+  /* Table overflow handling */
+  .modern-tab-table th,
+  .modern-tab-table td {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
   .task-kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+
+  .kpi-card {
+    padding: 0.875rem 1rem;
+    border-radius: 14px;
+  }
+
+  .kpi-number {
+    font-size: 1.4rem;
+  }
+
+  .kpi-label {
+    font-size: 0.62rem;
+  }
+
+  .kpi-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    border-radius: 10px;
+  }
+
+  .hero-badge-row {
+    gap: 0.35rem;
+  }
+
+  .badge-status,
+  .badge-overdue,
+  .badge-task-type,
+  .badge-template-cat,
+  .badge-target-count,
+  .badge-requires-approval,
+  .badge-direct-closure,
+  .badge-approved,
+  .badge-pending,
+  .badge-recurring,
+  .badge-one-time {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.55rem;
   }
 }
 
@@ -1455,4 +1607,46 @@
 /* Ensure the dropdown menu is not clipped by parent containers and is displayed above cards */
 .dropdown-menu {
   z-index: 9999 !important;
+}
+
+
+/* ==================== STATUS HEALTH GRID CELLS ==================== */
+.status-health-cell {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  transition: box-shadow 0.15s;
+  overflow: visible;
+}
+.status-health-cell:hover {
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.sh-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+.sh-badge {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 8px;
+  font-weight: 600;
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
 }

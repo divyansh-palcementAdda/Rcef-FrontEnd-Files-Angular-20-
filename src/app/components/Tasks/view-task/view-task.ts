@@ -132,7 +132,8 @@ export class ViewTask implements OnInit, OnDestroy {
 
   // Template Proof States
   studentEntriesList: { studentName: string, enrollmentId: string }[] = [{ studentName: '', enrollmentId: '' }];
-  topicsList: string[] = [''];
+  topicsList: { id: number; value: string }[] = [{ id: Date.now(), value: '' }];
+  private topicIdCounter = Date.now() + 1;
   attendanceFile: File | null = null;
 
   addStudentEntry(): void {
@@ -148,15 +149,19 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   addTopic(): void {
-    this.topicsList.push('');
+    this.topicsList.push({ id: this.topicIdCounter++, value: '' });
   }
 
   removeTopic(index: number): void {
     if (this.topicsList.length > 1) {
       this.topicsList.splice(index, 1);
     } else {
-      this.topicsList[0] = '';
+      this.topicsList[0].value = '';
     }
+  }
+
+  trackTopicById(index: number, topic: { id: number; value: string }): number {
+    return topic.id;
   }
 
   onAttendanceFileSelected(event: any): void {
@@ -187,7 +192,7 @@ export class ViewTask implements OnInit, OnDestroy {
     }
 
     if (this.hasProofRequirement('TOPICS_LIST') && this.isProofRequirementRequired('TOPICS_LIST')) {
-      const hasValidTopic = this.topicsList.some(t => t?.trim());
+      const hasValidTopic = this.topicsList.some(t => t?.value?.trim());
       if (!hasValidTopic) return false;
     }
 
@@ -621,7 +626,8 @@ export class ViewTask implements OnInit, OnDestroy {
     this.newRequest = { requestType: null, remarks: '' };
     this.selectedProofs = [];
     this.studentEntriesList = [{ studentName: '', enrollmentId: '' }];
-    this.topicsList = [''];
+    this.topicsList = [{ id: Date.now(), value: '' }];
+    this.topicIdCounter = Date.now() + 1;
     this.attendanceFile = null;
     this.dynamicProofValues = {};
     this.dynamicProofFiles = {};
@@ -677,7 +683,7 @@ export class ViewTask implements OnInit, OnDestroy {
           }
         }
         if (this.hasProofRequirement('TOPICS_LIST') && this.isProofRequirementRequired('TOPICS_LIST')) {
-          const validTopics = this.topicsList.filter(t => t?.trim());
+          const validTopics = this.topicsList.filter(t => t?.value?.trim());
           if (validTopics.length === 0) {
             alert('At least one topic covered is required.');
             return;
@@ -749,9 +755,9 @@ export class ViewTask implements OnInit, OnDestroy {
       }
 
       if (this.hasProofRequirement('TOPICS_LIST')) {
-        const validTopics = this.topicsList.filter(t => t?.trim());
+        const validTopics = this.topicsList.filter(t => t?.value?.trim());
         validTopics.forEach(topic => {
-          formData.append('topicsCovered', topic.trim());
+          formData.append('topicsCovered', topic.value.trim());
         });
       }
     }
