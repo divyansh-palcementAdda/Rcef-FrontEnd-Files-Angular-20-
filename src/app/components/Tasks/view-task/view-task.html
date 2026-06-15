@@ -859,29 +859,39 @@
           <i class="bi bi-heart-pulse-fill text-danger me-2"></i>Status Health
         </div>
         <div class="sidebar-meta-list">
-          <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
-            <span class="small text-muted fw-bold">Current Status:</span>
-            <span class="badge" [ngClass]="getStatusBadgeClass(task.status)">{{ formatStatus(task.status) }}</span>
+          <div class="sidebar-meta-item py-2">
+            <div class="meta-label-top">CURRENT STATUS</div>
+            <div class="mt-1">
+              <span class="badge" [ngClass]="getStatusBadgeClass(task.status)">{{ formatStatus(task.status) }}</span>
+            </div>
           </div>
-          <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
-            <span class="small text-muted fw-bold">Approval:</span>
-            <span class="badge" [ngClass]="task.approved ? 'bg-success text-white' : 'bg-warning text-dark'">
-              {{ task.approved ? 'Approved' : 'Pending' }}
-            </span>
+          <div class="sidebar-meta-item py-2">
+            <div class="meta-label-top">APPROVAL</div>
+            <div class="mt-1">
+              <span class="badge" [ngClass]="task.approved ? 'bg-success text-white' : 'bg-warning text-dark'">
+                {{ task.approved ? 'Approved' : 'Pending' }}
+              </span>
+            </div>
           </div>
-          <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
-            <span class="small text-muted fw-bold">RFC Status:</span>
-            <span class="badge" [ngClass]="task.rfcCompletedAt ? 'bg-success text-white' : 'bg-secondary text-white'">
-              {{ task.rfcCompletedAt ? 'Completed' : 'Active' }}
-            </span>
+          <div class="sidebar-meta-item py-2">
+            <div class="meta-label-top">RFC STATUS</div>
+            <div class="mt-1">
+              <span class="badge" [ngClass]="task.rfcCompletedAt ? 'bg-success text-white' : 'bg-secondary text-white'">
+                {{ task.rfcCompletedAt ? 'Completed' : 'Active' }}
+              </span>
+            </div>
           </div>
-          <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
-            <span class="small text-muted fw-bold">Recurrence:</span>
-            <span class="badge bg-light text-dark border">{{ task.isRecurring ? 'Recurring' : 'One-time' }}</span>
+          <div class="sidebar-meta-item py-2">
+            <div class="meta-label-top">RECURRENCE</div>
+            <div class="mt-1">
+              <span class="badge bg-light text-dark border">{{ task.isRecurring ? 'Recurring' : 'One-time' }}</span>
+            </div>
           </div>
-          <div class="sidebar-meta-item py-2 d-flex justify-content-between border-0 align-items-center">
-            <span class="small text-muted fw-bold">Task Type:</span>
-            <span class="badge bg-light text-dark border">{{ task.template ? 'Template' : 'Custom' }}</span>
+          <div class="sidebar-meta-item py-2 border-bottom-0 pb-0 mb-0">
+            <div class="meta-label-top">TASK TYPE</div>
+            <div class="mt-1">
+              <span class="badge bg-light text-dark border">{{ task.template ? 'Template' : 'Custom' }}</span>
+            </div>
           </div>
         </div>
       </div>
