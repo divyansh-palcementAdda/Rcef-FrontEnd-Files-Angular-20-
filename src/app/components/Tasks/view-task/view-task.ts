@@ -655,6 +655,9 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   addRequest(): void {
+    if (this.isAddingReq) {
+      return;
+    }
     // Validation
     if (!this.newRequest.requestType) {
       alert('Please select request type.');
@@ -1398,6 +1401,25 @@ showExtensionApprovalModal(request: any): void {
     }
 
     return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+
+  getGroupedStructuredProofs(structuredProofs: any[] | undefined): { name: string, values: string[] }[] {
+    if (!structuredProofs || structuredProofs.length === 0) return [];
+    const map = new Map<string, string[]>();
+    structuredProofs.forEach(p => {
+      const name = p.proofTypeName || 'Input';
+      if (!map.has(name)) {
+        map.set(name, []);
+      }
+      if (p.value) {
+        map.get(name)!.push(p.value);
+      }
+    });
+    return Array.from(map.entries()).map(([name, values]) => ({ name, values }));
+  }
+
+  hasAnyStructuredProofs(): boolean {
+    return this.task?.requests?.some(r => r.structuredProofs && r.structuredProofs.length > 0) || false;
   }
 }
 

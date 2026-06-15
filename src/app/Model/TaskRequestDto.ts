@@ -31,4 +31,14 @@ export interface TaskRequestDto {
 
   /** One‑to‑many proofs belonging to this request */
   proofs?: TaskProofDto[];
+  structuredProof?: any;
+  structuredProofs?: StructuredProofValueDto[];
 }
+
+export interface StructuredProofValueDto {
+  proofTypeId: number;
+  proofTypeName: string;
+  fieldType: string;
+  value: string;
+}
+
