@@ -172,180 +172,188 @@
     <!-- SECTION 2: Task Briefing + Timeline Grid -->
     <div class="d-flex gap-4 mb-4 align-items-start briefing-timeline-grid">
 
-    <!-- Task Briefing Card -->
-    <div class="desc-card flex-grow-1" style="border-left: 4px solid #3b82f6; min-width: 0;">
-      <div class="desc-header d-flex align-items-center gap-2"
-        style="font-size: 0.75rem; font-weight: 700; color: #4b5563; text-transform: uppercase; letter-spacing: 0.05em;">
-        <span
-          style="width: 8px; height: 8px; background-color: #3b82f6; border-radius: 50%; display: inline-block;"></span>
-        Task Briefing
-      </div>
-      <div class="desc-body mt-2">
-        <h3 class="fw-bold text-dark mb-2" style="font-size: 1.25rem;">
-          {{ task.template ? task.template.title : task.title }}
-        </h3>
-        <p class="text-secondary mb-3" style="font-size: 0.925rem; line-height: 1.6;">
-          {{ task.template ? task.template.description : task.description }}
-        </p>
-
-        <!-- Separator -->
-        <hr class="my-3" style="color: var(--border-light); opacity: 0.8;">
-
-        <div class="row g-3">
-          <!-- Template Origin -->
-          <div class="col-md-6" *ngIf="task.template">
-            <span class="meta-label-top d-block"
-              style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TEMPLATE
-              ORIGIN</span>
-            <strong class="text-primary" style="font-size: 0.875rem; font-weight: 600; cursor: pointer;">{{
-              task.template.title }}</strong>
-          </div>
-          <div class="col-md-6" *ngIf="!task.template">
-            <span class="meta-label-top d-block"
-              style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TASK
-              TYPE</span>
-            <strong class="text-dark" style="font-size: 0.875rem; font-weight: 600;">Custom Task</strong>
-          </div>
-
-          <!-- Expected Output -->
-          <div class="col-md-6">
-            <span class="meta-label-top d-block"
-              style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">EXPECTED
-              OUTPUT</span>
-            <strong class="text-dark" style="font-size: 0.875rem; font-weight: 600;">
-              {{ getExpectedOutputsDisplay() }} Proofs (Min {{ task.targetCount || 1 }})
-            </strong>
-          </div>
-
-          <!-- Category & Subcategory -->
-          <div class="col-md-6" *ngIf="task.template">
-            <span class="meta-label-top d-block"
-              style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TEMPLATE
-              CATEGORY & SUBCATEGORY</span>
-            <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.template.category?.name
-              }} / {{
-              task.template.category?.subcategory }}</span>
-          </div>
-
-          <!-- Target Count -->
-          <div class="col-md-6" *ngIf="task.targetCount !== undefined && task.targetCount !== null">
-            <span class="meta-label-top d-block"
-              style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TARGET
-              COUNT</span>
-            <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.targetCount }}
-              completions required</span>
-          </div>
-
-          <!-- Separator before People -->
-          <div class="col-12">
-            <hr class="my-1" style="color: var(--border-light); opacity: 0.6;">
-          </div>
-
-          <!-- Creator -->
-          <div class="col-md-4">
-            <span class="meta-label-top d-block"
-              style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">CREATOR</span>
-            <div class="d-flex align-items-center gap-2 mt-1">
-              <div class="creator-avatar-circle bg-primary" style="width: 28px; height: 28px; font-size: 0.65rem; flex-shrink: 0;">{{ creatorInitials }}</div>
-              <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.createdByName || '—' }}</span>
-            </div>
-          </div>
-
-          <!-- Starter -->
-          <div class="col-md-4" *ngIf="task.startedByName">
-            <span class="meta-label-top d-block"
-              style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">STARTER</span>
-            <div class="d-flex align-items-center gap-2 mt-1">
-              <div class="creator-avatar-circle bg-info" style="width: 28px; height: 28px; font-size: 0.65rem; flex-shrink: 0;">{{ task.startedByName.slice(0,2).toUpperCase() }}</div>
-              <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.startedByName }}</span>
-            </div>
-          </div>
-
-          <!-- Approver -->
-          <div class="col-md-4">
-            <span class="meta-label-top d-block"
-              style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">APPROVER</span>
-            <div class="d-flex align-items-center gap-2 mt-1">
-              <ng-container *ngIf="getApproverName() && getApproverName() !== '—'; else noApprover">
-                <div class="creator-avatar-circle bg-success" style="width: 28px; height: 28px; font-size: 0.65rem; flex-shrink: 0;">{{ getApproverName().slice(0,2).toUpperCase() }}</div>
-                <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ getApproverName() }}</span>
-              </ng-container>
-              <ng-template #noApprover>
-                <div class="creator-avatar-circle bg-secondary" style="width: 28px; height: 28px; font-size: 0.65rem; flex-shrink: 0;"><i class="bi bi-person-dash"></i></div>
-                <span class="text-muted" style="font-size: 0.875rem;">None / Pending</span>
-              </ng-template>
-            </div>
-          </div>
-
-          <!-- Proof Requirements -->
-          <div class="col-12" *ngIf="task.template?.proofRequirements?.length">
-            <span class="meta-label-top d-block mb-1.5"
-              style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">PROOF
-              REQUIREMENTS</span>
-            <div class="d-flex flex-wrap gap-1.5">
-              <span *ngFor="let pr of task.template.proofRequirements"
-                class="badge bg-light text-danger border fw-bold"
-                style="font-size: 0.7rem; padding: 0.3rem 0.6rem; border-radius: 6px;">
-                <i class="bi bi-shield-check me-1"></i>
-                {{ formatProofType(pr.proofType) }} {{ pr.isRequired ? '(Required)' : '(Optional)' }}
-              </span>
-            </div>
-          </div>
+      <!-- Task Briefing Card -->
+      <div class="desc-card flex-grow-1" style="border-left: 4px solid #3b82f6; min-width: 0;">
+        <div class="desc-header d-flex align-items-center gap-2"
+          style="font-size: 0.75rem; font-weight: 700; color: #4b5563; text-transform: uppercase; letter-spacing: 0.05em;">
+          <span
+            style="width: 8px; height: 8px; background-color: #3b82f6; border-radius: 50%; display: inline-block;"></span>
+          Task Briefing
         </div>
-      </div>
-    </div>
+        <div class="desc-body mt-2">
+          <h3 class="fw-bold text-dark mb-2" style="font-size: 1.25rem;">
+            {{ task.template ? task.template.title : task.title }}
+          </h3>
+          <p class="text-secondary mb-3" style="font-size: 0.925rem; line-height: 1.6;">
+            {{ task.template ? task.template.description : task.description }}
+          </p>
 
-    <!-- Timeline & Details Card (side by side with Task Briefing) -->
-    <div class="sidebar-card" style="width: 320px; flex-shrink: 0; align-self: flex-start;">
-      <div class="sidebar-card-title">
-        <i class="bi bi-clock-history info-icon text-indigo"></i>
-        Timeline & Details
-      </div>
-      <div class="sidebar-meta-list">
-        <!-- Dates -->
-        <div class="sidebar-meta-item">
-          <div class="row g-2">
-            <div class="col-6">
-              <div class="meta-label-top">START DATE</div>
-              <div class="meta-date-value">{{ task.startDate | date:'mediumDate' }}</div>
+          <!-- Separator -->
+          <hr class="my-3" style="color: var(--border-light); opacity: 0.8;">
+
+          <div class="row g-3">
+            <!-- Template Origin -->
+            <div class="col-md-6" *ngIf="task.template">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TEMPLATE
+                ORIGIN</span>
+              <strong class="text-primary" style="font-size: 0.875rem; font-weight: 600; cursor: pointer;">{{
+                task.template.title }}</strong>
             </div>
-            <div class="col-6">
-              <div class="meta-label-top">DUE DATE</div>
-              <div class="meta-date-value" [class.overdue-red]="isTaskOverdue()">
-                {{ task.dueDate | date:'mediumDate' }}
+            <div class="col-md-6" *ngIf="!task.template">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TASK
+                TYPE</span>
+              <strong class="text-dark" style="font-size: 0.875rem; font-weight: 600;">Custom Task</strong>
+            </div>
+
+            <!-- Expected Output -->
+            <div class="col-md-6">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">EXPECTED
+                OUTPUT</span>
+              <strong class="text-dark" style="font-size: 0.875rem; font-weight: 600;">
+                {{ getExpectedOutputsDisplay() }} Proofs (Min {{ task.targetCount || 1 }})
+              </strong>
+            </div>
+
+            <!-- Category & Subcategory -->
+            <div class="col-md-6" *ngIf="task.template">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TEMPLATE
+                CATEGORY & SUBCATEGORY</span>
+              <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.template.category?.name
+                }} / {{
+                task.template.category?.subcategory }}</span>
+            </div>
+
+            <!-- Target Count -->
+            <div class="col-md-6" *ngIf="task.targetCount !== undefined && task.targetCount !== null">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">TARGET
+                COUNT</span>
+              <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.targetCount }}
+                completions required</span>
+            </div>
+
+            <!-- Separator before People -->
+            <div class="col-12">
+              <hr class="my-1" style="color: var(--border-light); opacity: 0.6;">
+            </div>
+
+            <!-- Creator -->
+            <div class="col-md-4">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">CREATOR</span>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <div class="creator-avatar-circle bg-primary"
+                  style="width: 28px; height: 28px; font-size: 0.65rem; flex-shrink: 0;">{{ creatorInitials }}</div>
+                <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.createdByName || '—'
+                  }}</span>
+              </div>
+            </div>
+
+            <!-- Starter -->
+            <div class="col-md-4" *ngIf="task.startedByName">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">STARTER</span>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <div class="creator-avatar-circle bg-info"
+                  style="width: 28px; height: 28px; font-size: 0.65rem; flex-shrink: 0;">{{
+                  task.startedByName.slice(0,2).toUpperCase() }}</div>
+                <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ task.startedByName }}</span>
+              </div>
+            </div>
+
+            <!-- Approver -->
+            <div class="col-md-4">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">APPROVER</span>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <ng-container *ngIf="getApproverName() && getApproverName() !== '—'; else noApprover">
+                  <div class="creator-avatar-circle bg-success"
+                    style="width: 28px; height: 28px; font-size: 0.65rem; flex-shrink: 0;">{{
+                    getApproverName().slice(0,2).toUpperCase() }}</div>
+                  <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ getApproverName() }}</span>
+                </ng-container>
+                <ng-template #noApprover>
+                  <div class="creator-avatar-circle bg-secondary"
+                    style="width: 28px; height: 28px; font-size: 0.65rem; flex-shrink: 0;"><i
+                      class="bi bi-person-dash"></i></div>
+                  <span class="text-muted" style="font-size: 0.875rem;">None / Pending</span>
+                </ng-template>
+              </div>
+            </div>
+
+            <!-- Proof Requirements -->
+            <div class="col-12" *ngIf="task.template?.proofRequirements?.length">
+              <span class="meta-label-top d-block mb-1.5"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">PROOF
+                REQUIREMENTS</span>
+              <div class="d-flex flex-wrap gap-1.5">
+                <span *ngFor="let pr of task.template.proofRequirements"
+                  class="badge bg-light text-danger border fw-bold"
+                  style="font-size: 0.7rem; padding: 0.3rem 0.6rem; border-radius: 6px;">
+                  <i class="bi bi-shield-check me-1"></i>
+                  {{ formatProofType(pr.proofType) }} {{ pr.isRequired ? '(Required)' : '(Optional)' }}
+                </span>
               </div>
             </div>
           </div>
         </div>
-        <!-- Created By -->
-        <div class="sidebar-meta-item">
-          <div class="meta-label-top">CREATED BY</div>
-          <div class="creator-profile-cell">
-            <div class="creator-avatar-circle">{{ creatorInitials }}</div>
-            <div class="d-flex flex-column">
-              <span class="creator-name">{{ task.createdByName || '—' }}</span>
-              <span class="extra-small text-muted" *ngIf="task.createdById">ID: #{{ task.createdById }}</span>
+      </div>
+
+      <!-- Timeline & Details Card (side by side with Task Briefing) -->
+      <div class="sidebar-card" style="width: 320px; flex-shrink: 0; align-self: flex-start;">
+        <div class="sidebar-card-title">
+          <i class="bi bi-clock-history info-icon text-indigo"></i>
+          Timeline & Details
+        </div>
+        <div class="sidebar-meta-list">
+          <!-- Dates -->
+          <div class="sidebar-meta-item">
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="meta-label-top">START DATE</div>
+                <div class="meta-date-value">{{ task.startDate | date:'mediumDate' }}</div>
+              </div>
+              <div class="col-6">
+                <div class="meta-label-top">DUE DATE</div>
+                <div class="meta-date-value" [class.overdue-red]="isTaskOverdue()">
+                  {{ task.dueDate | date:'mediumDate' }}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <!-- Started By -->
-        <div class="sidebar-meta-item" *ngIf="task.startedByName">
-          <div class="meta-label-top">STARTED BY</div>
-          <div class="creator-profile-cell">
-            <div class="creator-avatar-circle bg-info">{{ task.startedByName.slice(0,2).toUpperCase() }}</div>
-            <div class="d-flex flex-column">
-              <span class="creator-name">{{ task.startedByName }}</span>
-              <span class="extra-small text-muted">{{ task.startedAt | date:'mediumDate' }}</span>
+          <!-- Created By -->
+          <div class="sidebar-meta-item">
+            <div class="meta-label-top">CREATED BY</div>
+            <div class="creator-profile-cell">
+              <div class="creator-avatar-circle">{{ creatorInitials }}</div>
+              <div class="d-flex flex-column">
+                <span class="creator-name">{{ task.createdByName || '—' }}</span>
+                <span class="extra-small text-muted" *ngIf="task.createdById">ID: #{{ task.createdById }}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <!-- RFC Completed At -->
-        <div class="sidebar-meta-item border-bottom-0 pb-0 mb-0" *ngIf="task.rfcCompletedAt">
-          <div class="meta-label-top">RFC COMPLETED</div>
-          <div class="meta-date-value text-success fw-bold">{{ task.rfcCompletedAt | date:'mediumDate' }}</div>
+          <!-- Started By -->
+          <div class="sidebar-meta-item" *ngIf="task.startedByName">
+            <div class="meta-label-top">STARTED BY</div>
+            <div class="creator-profile-cell">
+              <div class="creator-avatar-circle bg-info">{{ task.startedByName.slice(0,2).toUpperCase() }}</div>
+              <div class="d-flex flex-column">
+                <span class="creator-name">{{ task.startedByName }}</span>
+                <span class="extra-small text-muted">{{ task.startedAt | date:'mediumDate' }}</span>
+              </div>
+            </div>
+          </div>
+          <!-- RFC Completed At -->
+          <div class="sidebar-meta-item border-bottom-0 pb-0 mb-0" *ngIf="task.rfcCompletedAt">
+            <div class="meta-label-top">RFC COMPLETED</div>
+            <div class="meta-date-value text-success fw-bold">{{ task.rfcCompletedAt | date:'mediumDate' }}</div>
+          </div>
         </div>
       </div>
-    </div>
 
     </div><!-- End Briefing + Timeline Grid -->
 
@@ -575,63 +583,74 @@
                       <td>
                         <div class="d-flex flex-column">
                           <span class="fw-bold text-dark" style="font-size: 0.85rem;">#REQ-{{ r.requestId }}</span>
-                          <span class="badge" 
-                                [ngClass]="r.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'" 
-                                style="width: fit-content; font-size: 0.65rem; padding: 0.15rem 0.4rem;">
+                          <span class="badge"
+                            [ngClass]="r.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'"
+                            style="width: fit-content; font-size: 0.65rem; padding: 0.15rem 0.4rem;">
                             {{ r.requestType }}
                           </span>
                         </div>
                       </td>
                       <td>
                         <div class="d-flex flex-column">
-                          <span class="fw-semibold text-dark" style="font-size: 0.875rem;">{{ r.requestedByName }}</span>
+                          <span class="fw-semibold text-dark" style="font-size: 0.875rem;">{{ r.requestedByName
+                            }}</span>
                           <span class="text-muted" style="font-size: 0.725rem;">{{ r.requestedByRole }}</span>
                         </div>
                       </td>
                       <td>
-                        <span class="text-secondary" style="font-size: 0.85rem;">{{ r.requestDate | date:'mediumDate' }}</span>
+                        <span class="text-secondary" style="font-size: 0.85rem;">{{ r.requestDate | date:'mediumDate'
+                          }}</span>
                       </td>
                       <td>
-                        <div class="text-secondary text-truncate" style="max-width: 250px; font-size: 0.85rem;" [title]="r.remarks">
+                        <div class="text-secondary text-truncate mb-1" style="max-width: 250px; font-size: 0.85rem;"
+                          [title]="r.remarks">
                           {{ r.remarks || '—' }}
-                          <div *ngIf="r.structuredProofs?.length" class="mt-1">
-                            <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">+ Structured Data</span>
+                        </div>
+                        <div *ngIf="r.structuredProofs?.length" class="mt-1 text-dark"
+                          style="max-width: 280px; white-space: normal;">
+                          <div *ngFor="let group of getGroupedStructuredProofs(r.structuredProofs)" class="mb-1"
+                            style="line-height: 1.25;">
+                            <span class="badge bg-light text-secondary border me-1" style="font-size: 0.7rem;">{{
+                              group.name }}</span>
+                            <span style="font-size: 0.8rem; font-weight: 500;">{{ group.values.join(', ') }}</span>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <span class="badge rounded-pill px-2.5 py-1" style="font-size: 0.75rem;"
-                          [ngClass]="{
+                        <span class="badge rounded-pill px-2.5 py-1" style="font-size: 0.75rem;" [ngClass]="{
                             'bg-warning text-dark': r.status === 'PENDING',
                             'bg-success text-white': r.status === 'APPROVED',
                             'bg-danger text-white': r.status === 'REJECTED'
                           }">{{ r.status }}</span>
                       </td>
                       <td>
-                        <button *ngIf="r.proofs?.length" class="btn btn-sm btn-outline-primary py-1 px-2 rounded-3 d-inline-flex align-items-center gap-1" 
-                                (click)="openProofsModal(r)" style="font-size: 0.75rem;">
-                          <i class="bi bi-paperclip"></i> {{ r.proofs.length }}
+                        <button *ngIf="r.proofs?.length"
+                          class="btn btn-sm btn-outline-primary py-1 px-2 rounded-3 d-inline-flex align-items-center gap-1"
+                          (click)="openProofsModal(r)" style="font-size: 0.75rem;">
+                          <i class="bi bi-paperclip"></i> {{ r.proofs?.length }}
                         </button>
                         <span *ngIf="!r.proofs?.length" class="text-muted small">None</span>
                       </td>
                       <td class="text-end">
                         <div *ngIf="r.status === 'PENDING'; else processed" class="d-flex justify-content-end gap-1.5">
-                           <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
-                            class="btn btn-sm btn-success rounded-3 px-2.5" (click)="approveClosureRequest(r.requestId)" title="Approve">
+                          <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
+                            class="btn btn-sm btn-success rounded-3 px-2.5" (click)="approveClosureRequest(r.requestId)"
+                            title="Approve">
                             <i class="bi bi-check-lg"></i>
                           </button>
-                          <button *ngIf="r.requestType === 'EXTENSION' && isAdmin" 
-                            class="btn btn-sm btn-primary rounded-3 px-2.5" (click)="showExtensionApprovalModal(r)" title="Approve Extension">
+                          <button *ngIf="r.requestType === 'EXTENSION' && isAdmin"
+                            class="btn btn-sm btn-primary rounded-3 px-2.5" (click)="showExtensionApprovalModal(r)"
+                            title="Approve Extension">
                             <i class="bi bi-calendar-check"></i>
                           </button>
-                          <button *ngIf="canRejectRequest(r)" 
-                            class="btn btn-sm btn-danger rounded-3 px-2.5" (click)="showRejectionModal(r)" title="Reject">
+                          <button *ngIf="canRejectRequest(r)" class="btn btn-sm btn-danger rounded-3 px-2.5"
+                            (click)="showRejectionModal(r)" title="Reject">
                             <i class="bi bi-x-lg"></i>
                           </button>
                         </div>
                         <ng-template #processed>
-                          <span class="fw-bold text-uppercase" style="font-size: 0.7rem;" 
-                                [ngClass]="r.status === 'APPROVED' ? 'text-success' : 'text-danger'">
+                          <span class="fw-bold text-uppercase" style="font-size: 0.7rem;"
+                            [ngClass]="r.status === 'APPROVED' ? 'text-success' : 'text-danger'">
                             {{ r.status }}
                           </span>
                         </ng-template>
@@ -649,7 +668,7 @@
 
             <!-- Tab 4: Proofs Panel -->
             <div *ngIf="activeTab === 'proofs'" class="animate__animated animate__fadeIn">
-              
+
               <!-- File Proofs Section -->
               <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2" style="font-size: 1.1rem;">
                 <i class="bi bi-file-earmark-arrow-up text-primary"></i> File Proofs
@@ -712,7 +731,8 @@
                         </span>
                       </div>
                       <div class="d-flex flex-column gap-3">
-                        <div *ngFor="let group of getGroupedStructuredProofs(r.structuredProofs); let last = last" class="pb-2" [style.border-bottom]="last ? 'none' : '1px dashed #cbd5e1'">
+                        <div *ngFor="let group of getGroupedStructuredProofs(r.structuredProofs); let last = last"
+                          class="pb-2" [style.border-bottom]="last ? 'none' : '1px dashed #cbd5e1'">
                           <h6 class="fw-bold text-primary mb-1" style="font-size: 0.85rem;">{{ group.name }}</h6>
                           <div style="font-size: 0.85rem; color: #475569;" class="ps-2">
                             <div *ngFor="let val of group.values" class="py-0.5">
@@ -724,7 +744,8 @@
                     </div>
                   </div>
                 </ng-container>
-                <div *ngIf="!hasAnyStructuredProofs()" class="col-12 text-center text-muted py-4 bg-light rounded-3 border">
+                <div *ngIf="!hasAnyStructuredProofs()"
+                  class="col-12 text-center text-muted py-4 bg-light rounded-3 border">
                   <i class="bi bi-card-text fs-3 mb-2 d-block"></i>No structured proof values entered yet.
                 </div>
               </div>
@@ -959,7 +980,8 @@
               <div class="sidebar-meta-item py-2">
                 <div class="meta-label-top">CURRENT STATUS</div>
                 <div class="mt-1">
-                  <span class="badge" [ngClass]="getStatusBadgeClass(task.status)">{{ formatStatus(task.status) }}</span>
+                  <span class="badge" [ngClass]="getStatusBadgeClass(task.status)">{{ formatStatus(task.status)
+                    }}</span>
                 </div>
               </div>
               <div class="sidebar-meta-item py-2">
@@ -973,7 +995,8 @@
               <div class="sidebar-meta-item py-2">
                 <div class="meta-label-top">RFC STATUS</div>
                 <div class="mt-1">
-                  <span class="badge" [ngClass]="task.rfcCompletedAt ? 'bg-success text-white' : 'bg-secondary text-white'">
+                  <span class="badge"
+                    [ngClass]="task.rfcCompletedAt ? 'bg-success text-white' : 'bg-secondary text-white'">
                     {{ task.rfcCompletedAt ? 'Completed' : 'Active' }}
                   </span>
                 </div>
@@ -1003,11 +1026,11 @@
     <!-- ==================== SECTION 4: Info Cards Row (Full Width) ==================== -->
     <div class="info-cards-row mt-4">
 
-   
-     
+
+
 
       <!-- Card 3: Related People -->
-      
+
 
     </div>
     <!-- ==================== End Info Cards Row ==================== -->
@@ -1621,6 +1644,4 @@
       </div>
     </div>
   </div>
-</div>
-</div>
 </div>
