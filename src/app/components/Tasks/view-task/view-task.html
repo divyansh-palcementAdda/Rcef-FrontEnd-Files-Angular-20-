@@ -266,7 +266,7 @@
             <span class="meta-label-top d-block"
               style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">APPROVER</span>
             <div class="d-flex align-items-center gap-2 mt-1">
-              <ng-container *ngIf="getApproverName() !== '—'; else noApprover">
+              <ng-container *ngIf="getApproverName() && getApproverName() !== '—'; else noApprover">
                 <div class="creator-avatar-circle bg-success" style="width: 28px; height: 28px; font-size: 0.65rem; flex-shrink: 0;">{{ getApproverName().slice(0,2).toUpperCase() }}</div>
                 <span class="text-dark" style="font-size: 0.875rem; font-weight: 600;">{{ getApproverName() }}</span>
               </ng-container>
@@ -557,92 +557,93 @@
 
             <!-- Tab 3: Requests Panel -->
             <div *ngIf="activeTab === 'requests'" class="animate__animated animate__fadeIn">
-              <div class="requests-stack">
-                <div *ngFor="let r of task.requests || []" class="request-item-card" [ngClass]="{
-                  'req-status-pending': r.status === 'PENDING',
-                  'req-status-approved': r.status === 'APPROVED',
-                  'req-status-rejected': r.status === 'REJECTED'
-                }">
-                  <div class="req-left-icon">
-                    <div class="req-icon-round" [ngClass]="{
-                      'icon-closure': r.requestType === 'CLOSURE',
-                      'icon-extension': r.requestType === 'EXTENSION'
-                    }">
-                      <i class="bi"
-                        [ngClass]="r.requestType === 'CLOSURE' ? 'bi-check2-circle' : 'bi-calendar-plus'"></i>
-                    </div>
-                  </div>
-                  <div class="req-mid-content">
-                    <div class="req-meta-badges">
-                      <span class="req-id-pill">#REQ-{{ r.requestId }}</span>
-                      <span class="req-type-pill"
-                        [ngClass]="r.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'">
-                        {{ r.requestType }} REQUEST
-                      </span>
-                      <span class="badge bg-light text-dark border ms-1">{{ r.requestedByRole }}</span>
-                      <span class="badge ms-1" [ngClass]="{
-                        'bg-warning text-dark': r.status === 'PENDING',
-                        'bg-success text-white': r.status === 'APPROVED',
-                        'bg-danger text-white': r.status === 'REJECTED'
-                      }">{{ r.status }}</span>
-                    </div>
-                    <h4 class="req-title-text">{{ r.remarks || 'No remarks provided.' }}</h4>
-                    <!-- Structured Inputs in Request Card -->
-                    <div *ngIf="r.structuredProofs && r.structuredProofs.length > 0" class="mt-3 mb-3 p-3 rounded bg-light border animate__animated animate__fadeIn" style="font-size: 0.85rem;">
-                      <strong class="text-secondary d-block mb-2 text-uppercase tracking-wider" style="font-size: 0.725rem; font-weight: 700; letter-spacing: 0.05em;">Structured Inputs</strong>
-                      <div class="d-flex flex-column gap-2">
-                        <div *ngFor="let group of getGroupedStructuredProofs(r.structuredProofs)">
-                          <span class="fw-bold text-dark d-block mb-1">{{ group.name }}:</span>
-                          <ul class="list-unstyled ps-2 mb-0">
-                            <li *ngFor="let val of group.values" class="text-secondary d-flex align-items-center gap-1.5 py-0.5">
-                              <i class="bi bi-dot fs-5 text-muted lh-1"></i>
-                              <span>{{ val }}</span>
-                            </li>
-                          </ul>
+              <div class="table-responsive">
+                <table class="table modern-tab-table align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>ID & TYPE</th>
+                      <th>REQUESTER</th>
+                      <th>DATE</th>
+                      <th>REMARKS</th>
+                      <th>STATUS</th>
+                      <th>PROOFS</th>
+                      <th class="text-end">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let r of task.requests || []">
+                      <td>
+                        <div class="d-flex flex-column">
+                          <span class="fw-bold text-dark" style="font-size: 0.85rem;">#REQ-{{ r.requestId }}</span>
+                          <span class="badge" 
+                                [ngClass]="r.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'" 
+                                style="width: fit-content; font-size: 0.65rem; padding: 0.15rem 0.4rem;">
+                            {{ r.requestType }}
+                          </span>
                         </div>
-                      </div>
-                    </div>
-                    <div class="req-details-footer">
-                      <span><i class="bi bi-person"></i> Requested By: <strong>{{ r.requestedByName }}</strong></span>
-                      <span><i class="bi bi-calendar"></i> {{ r.requestDate | date:'mediumDate' }}</span>
-                      <span *ngIf="r.proofs?.length" class="cursor-pointer badge bg-light text-primary border"
-                        (click)="openProofsModal(r)">
-                        <i class="bi bi-paperclip"></i> Proofs: {{ r.proofs?.length }}
-                      </span>
-                      <span *ngIf="r.approvedByName" class="badge bg-light text-success border">
-                        Approved By: {{ r.approvedByName }}
-                      </span>
-                    </div>
-                  </div>
-                  <div class="req-actions-panel">
-                    <div *ngIf="r.status === 'PENDING'; else processedRequest" class="d-flex gap-2">
-                      <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
-                        class="btn-req-action req-btn-approve" (click)="approveClosureRequest(r.requestId)">
-                        Approve
-                      </button>
-                      <button *ngIf="r.requestType === 'EXTENSION' && isAdmin" class="btn-req-action req-btn-approve"
-                        (click)="showExtensionApprovalModal(r)">
-                        Approve
-                      </button>
-                      <button *ngIf="canRejectRequest(r)" class="btn-req-action req-btn-reject"
-                        (click)="showRejectionModal(r)">
-                        Reject
-                      </button>
-                    </div>
-                    <ng-template #processedRequest>
-                      <span class="processed-req-badge" [ngClass]="{
-                        'proc-approved': r.status === 'APPROVED',
-                        'proc-rejected': r.status === 'REJECTED'
-                      }">
-                        {{ r.status }}
-                      </span>
-                    </ng-template>
-                  </div>
-                </div>
-
-                <div *ngIf="!task.requests?.length" class="text-center text-muted py-5 bg-light rounded-3">
-                  <i class="bi bi-inbox fs-2 mb-2 d-block"></i>No requests submitted.
-                </div>
+                      </td>
+                      <td>
+                        <div class="d-flex flex-column">
+                          <span class="fw-semibold text-dark" style="font-size: 0.875rem;">{{ r.requestedByName }}</span>
+                          <span class="text-muted" style="font-size: 0.725rem;">{{ r.requestedByRole }}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="text-secondary" style="font-size: 0.85rem;">{{ r.requestDate | date:'mediumDate' }}</span>
+                      </td>
+                      <td>
+                        <div class="text-secondary text-truncate" style="max-width: 250px; font-size: 0.85rem;" [title]="r.remarks">
+                          {{ r.remarks || '—' }}
+                          <div *ngIf="r.structuredProofs?.length" class="mt-1">
+                            <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">+ Structured Data</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge rounded-pill px-2.5 py-1" style="font-size: 0.75rem;"
+                          [ngClass]="{
+                            'bg-warning text-dark': r.status === 'PENDING',
+                            'bg-success text-white': r.status === 'APPROVED',
+                            'bg-danger text-white': r.status === 'REJECTED'
+                          }">{{ r.status }}</span>
+                      </td>
+                      <td>
+                        <button *ngIf="r.proofs?.length" class="btn btn-sm btn-outline-primary py-1 px-2 rounded-3 d-inline-flex align-items-center gap-1" 
+                                (click)="openProofsModal(r)" style="font-size: 0.75rem;">
+                          <i class="bi bi-paperclip"></i> {{ r.proofs.length }}
+                        </button>
+                        <span *ngIf="!r.proofs?.length" class="text-muted small">None</span>
+                      </td>
+                      <td class="text-end">
+                        <div *ngIf="r.status === 'PENDING'; else processed" class="d-flex justify-content-end gap-1.5">
+                           <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
+                            class="btn btn-sm btn-success rounded-3 px-2.5" (click)="approveClosureRequest(r.requestId)" title="Approve">
+                            <i class="bi bi-check-lg"></i>
+                          </button>
+                          <button *ngIf="r.requestType === 'EXTENSION' && isAdmin" 
+                            class="btn btn-sm btn-primary rounded-3 px-2.5" (click)="showExtensionApprovalModal(r)" title="Approve Extension">
+                            <i class="bi bi-calendar-check"></i>
+                          </button>
+                          <button *ngIf="canRejectRequest(r)" 
+                            class="btn btn-sm btn-danger rounded-3 px-2.5" (click)="showRejectionModal(r)" title="Reject">
+                            <i class="bi bi-x-lg"></i>
+                          </button>
+                        </div>
+                        <ng-template #processed>
+                          <span class="fw-bold text-uppercase" style="font-size: 0.7rem;" 
+                                [ngClass]="r.status === 'APPROVED' ? 'text-success' : 'text-danger'">
+                            {{ r.status }}
+                          </span>
+                        </ng-template>
+                      </td>
+                    </tr>
+                    <tr *ngIf="!task.requests?.length">
+                      <td colspan="7" class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-2 mb-2 d-block"></i>No requests submitted.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
@@ -1620,4 +1621,6 @@
       </div>
     </div>
   </div>
+</div>
+</div>
 </div>
