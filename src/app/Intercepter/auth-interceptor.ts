@@ -11,6 +11,9 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take, finalize } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthApiService } from '../Services/auth-api-service';
+import { HttpContextToken } from '@angular/common/http';
+
+export const SKIP_AUTH = new HttpContextToken<boolean>(() => false);
 
 const PUBLIC_PATHS = [
   '/api/auth/login',
@@ -32,7 +35,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const url = new URL(req.url).pathname;
-    const isPublic = PUBLIC_PATHS.some(p => url.endsWith(p));
+    const isPublic = PUBLIC_PATHS.some(p => url.endsWith(p)) || req.context.get(SKIP_AUTH);
 
     if (isPublic) {
       return next.handle(req);

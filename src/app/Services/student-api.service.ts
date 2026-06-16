@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environment/environment';
+import { SKIP_AUTH } from '../Intercepter/auth-interceptor';
 
 export interface StudentReportingDto {
   userId: number;
@@ -37,6 +38,9 @@ export class StudentApiService {
     if (course) {
       url += `&course=${encodeURIComponent(course)}`;
     }
-    return this.http.get<StudentReportingResponse>(url);
+    return this.http.get<StudentReportingResponse>(url, {
+      context: new HttpContext().set(SKIP_AUTH, true),
+      headers: { 'X-API-KEY': 'Q0NwV0lJc2tVQk1jVjR6R2hSYjV4TjNwWmV2M2hJQW5Kc1RjM0F5Z0RrR1Q=' }
+    });
   }
 }
