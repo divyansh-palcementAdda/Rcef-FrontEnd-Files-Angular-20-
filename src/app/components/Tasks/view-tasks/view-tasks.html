@@ -1,6 +1,6 @@
 <div class="view-tasks-container py-4 px-3 animate__animated animate__fadeIn" [class.loading]="loading">
-  <!-- Loading state / Shimmer Skeletons -->
-  <div *ngIf="loading" class="stitch-grid-container animate__animated animate__fadeIn">
+  <!-- Loading state / Shimmer Skeletons — only on first load, not on search/filter -->
+  <div *ngIf="loading && isInitialLoad" class="stitch-grid-container animate__animated animate__fadeIn">
     <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-light-subtle">
       <div class="stitch-skeleton-cell" style="width: 180px; height: 24px;"></div>
       <div class="d-flex gap-2">
@@ -75,7 +75,7 @@
   </div>
 
   <!-- Main Workspace Content -->
-  <div *ngIf="!loading && !errorMessage && !isForbidden" class="main-content-flow animate__animated animate__fadeIn">
+  <div *ngIf="!isInitialLoad && !errorMessage && !isForbidden" class="main-content-flow animate__animated animate__fadeIn">
 
     <!-- ==========================================
        1. HERO HEADER
@@ -319,8 +319,8 @@
         <div class="stitch-search-wrapper">
           <i class="bi bi-search stitch-search-icon"></i>
           <input type="text" class="stitch-search-input" placeholder="Filter tasks by name, assignee, or ID..."
-            [(ngModel)]="searchTerm" (input)="applyFilters()" />
-          <button *ngIf="searchTerm" class="stitch-clear-btn" type="button" (click)="searchTerm = ''; applyFilters()"
+            [(ngModel)]="searchTerm" (input)="onSearchInput()" />
+          <button *ngIf="searchTerm" class="stitch-clear-btn" type="button" (click)="searchTerm = ''; onSearchInput()"
             title="Clear search">
             <i class="bi bi-x-circle-fill"></i>
           </button>
@@ -362,6 +362,10 @@
 
       <!-- Action Buttons -->
       <div class="stitch-toolbar-right">
+        <!-- Subtle search/filter loading indicator -->
+        <span *ngIf="loading && !isInitialLoad" class="stitch-toolbar-spinner" title="Loading...">
+          <i class="bi bi-arrow-repeat spin-icon"></i>
+        </span>
         <button class="stitch-toolbar-btn" (click)="loadCurrentUserAndTasks()" title="Refresh list">
           <i class="bi bi-arrow-clockwise"></i>
         </button>

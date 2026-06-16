@@ -92,6 +92,14 @@
                   </span>
                 </td>
                 <td class="text-end">
+                    
+                  <button
+                   class="btn btn-sm btn-outline-info border-0 me-1"
+                  (click)="viewTemplatePage(tpl); $event.stopPropagation()"
+                  title="View">
+                  <i class="bi bi-eye"></i>
+                  </button>
+
                   <button class="btn btn-sm btn-outline-primary border-0 me-1"
                     (click)="editTemplate(tpl); $event.stopPropagation()" title="Edit">
                     <i class="bi bi-pencil"></i>
@@ -197,6 +205,7 @@
         </div>
       </div>
 
+      
       <!-- ==================== TAB 2: CATEGORIES ==================== -->
       <div *ngIf="activeTab === 'categories'" class="animate_animated animate_fadeIn">
         <!-- Toolbar -->

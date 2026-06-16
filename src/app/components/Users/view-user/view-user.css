@@ -290,3 +290,118 @@
   font-size: 0.75rem;
   color: var(--text-muted);
 }
+
+/* ── Task Type Breakdown Cards ── */
+.task-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.task-type-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+}
+.task-type-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.task-type-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.task-type-body {
+  flex: 1;
+}
+
+.task-type-count {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.task-type-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.15rem;
+}
+
+.task-type-badge {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2em 0.65em;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Meeting – Blue */
+.task-type-meeting {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+.task-type-badge-meeting {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+/* Consultancy – Purple */
+.task-type-consultancy {
+  background-color: #ede9fe;
+  color: #7c3aed;
+}
+.task-type-badge-consultancy {
+  background-color: #ede9fe;
+  color: #7c3aed;
+}
+
+/* Visits – Teal */
+.task-type-visits {
+  background-color: #ccfbf1;
+  color: #0d9488;
+}
+.task-type-badge-visits {
+  background-color: #ccfbf1;
+  color: #0d9488;
+}
+
+/* Fees – Amber */
+.task-type-fees {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+.task-type-badge-fees {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+/* Forms – Rose */
+.task-type-forms {
+  background-color: #ffe4e6;
+  color: #e11d48;
+}
+.task-type-badge-forms {
+  background-color: #ffe4e6;
+  color: #e11d48;
+}

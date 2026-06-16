@@ -11,8 +11,8 @@
    ========================================== */
 .stitch-hero {
   background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 40%, #e25822 100%);
-  border-radius: 28px;
-  padding: 0.75 rem 2.25 rem ;
+  border-radius: 24px;
+  padding: 24px ;
   position: relative;
   overflow: hidden;
   color: #ffffff;
@@ -106,8 +106,8 @@
 .stitch-hero-glass-card {
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.25);
-  padding: 0.5rem 1rem;
-  border-radius: 16px;
+  padding: 0.3rem 1rem;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   gap: 1.5rem;
@@ -170,6 +170,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
   backdrop-filter: blur(8px);
+  height:45px;
 }
 
 .btn-assign:hover {
@@ -501,7 +502,7 @@
    ========================================== */
 .stitch-stats-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(8, 1fr);
   gap: 0.75rem;
 }
 
