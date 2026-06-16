@@ -548,7 +548,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let r of task.requests || []">
+                    <tr *ngFor="let r of task.requests || []" (click)="openRequestDetailModal(r)" class="cursor-pointer" style="cursor: pointer;" title="Click to view full request details">
                       <td>
                         <div class="d-flex flex-column">
                           <span class="fw-bold text-dark" style="font-size: 0.85rem;">#REQ-{{ r.requestId }}</span>
@@ -571,39 +571,27 @@
                           }}</span>
                       </td>
                       <td>
-                        <div class="text-secondary text-truncate mb-1" style="max-width: 250px; font-size: 0.85rem;"
-                          [title]="r.remarks">
-                          {{ r.remarks || '—' }}
-                        </div>
-                        <div *ngIf="r.structuredProofs?.length" class="mt-1 text-dark"
-                          style="max-width: 280px; white-space: normal;">
-                          <!-- Render non-student selection proofs normally -->
-                          <ng-container *ngFor="let p of r.structuredProofs">
-                            <div *ngIf="!isStudentSelectionProof(p)" class="mb-1" style="line-height: 1.25;">
-                              <span class="badge bg-light text-secondary border me-1" style="font-size: 0.7rem;">
-                                {{ p.proofTypeName || 'Input' }}
+                        <div class="d-flex flex-column gap-1" style="max-width: 220px;">
+                          <!-- Remarks preview -->
+                          <span class="text-secondary text-truncate" style="font-size: 0.85rem;" [title]="r.remarks">
+                            {{ r.remarks || '—' }}
+                          </span>
+                          <!-- Proof summary badges -->
+                          <div *ngIf="r.structuredProofs?.length" class="d-flex flex-wrap gap-1">
+                            <ng-container *ngFor="let p of r.structuredProofs">
+                              <span *ngIf="isStudentSelectionProof(p)"
+                                class="badge bg-light text-primary border"
+                                style="font-size: 0.68rem; padding: 0.2rem 0.5rem;">
+                                <i class="bi bi-people-fill me-1"></i>{{ parseStudentSelection(p.value).length }} Students
                               </span>
-                              <span style="font-size: 0.8rem; font-weight: 500;">{{ p.value }}</span>
-                            </div>
-                          </ng-container>
+                              <span *ngIf="!isStudentSelectionProof(p)"
+                                class="badge bg-light text-secondary border"
+                                style="font-size: 0.68rem; padding: 0.2rem 0.5rem;">
+                                <i class="bi bi-input-cursor me-1"></i>{{ p.proofTypeName || 'Input' }}
+                              </span>
+                            </ng-container>
+                          </div>
 
-                          <!-- Render student selection proofs (expandable list) -->
-                          <ng-container *ngFor="let p of r.structuredProofs">
-                            <div *ngIf="isStudentSelectionProof(p)" class="mb-1" style="line-height: 1.25;">
-                              <div class="d-flex align-items-center gap-1.5 cursor-pointer" (click)="toggleRequestExpansion(r.requestId)">
-                                <span class="badge bg-light text-primary border" style="font-size: 0.7rem;">
-                                  {{ p.proofTypeName || 'Student Entries' }} ({{ parseStudentSelection(p.value).length }})
-                                </span>
-                                <i class="bi" [ngClass]="isRequestExpanded(r.requestId) ? 'bi-chevron-up' : 'bi-chevron-down'" style="font-size: 0.75rem;"></i>
-                              </div>
-                              
-                              <div *ngIf="isRequestExpanded(r.requestId)" class="mt-1 ps-2 border-start" style="font-size: 0.8rem; line-height: 1.4; max-height: 150px; overflow-y: auto;">
-                                <div *ngFor="let s of parseStudentSelection(p.value)" class="text-secondary py-0.5">
-                                  {{ s.studentName }}<span *ngIf="s.course"> - <span class="fw-semibold">{{ s.course }}</span></span>
-                                </div>
-                              </div>
-                            </div>
-                          </ng-container>
                         </div>
                       </td>
                       <td>
@@ -616,7 +604,7 @@
                       <td>
                         <button *ngIf="r.proofs?.length"
                           class="btn btn-sm btn-outline-primary py-1 px-2 rounded-3 d-inline-flex align-items-center gap-1"
-                          (click)="openProofsModal(r)" style="font-size: 0.75rem;">
+                          (click)="$event.stopPropagation(); openProofsModal(r)" style="font-size: 0.75rem;">
                           <i class="bi bi-paperclip"></i> {{ r.proofs?.length }}
                         </button>
                         <span *ngIf="!r.proofs?.length" class="text-muted small">None</span>
@@ -624,17 +612,17 @@
                       <td class="text-end">
                         <div *ngIf="r.status === 'PENDING'; else processed" class="d-flex justify-content-end gap-1.5">
                           <button *ngIf="r.requestType === 'CLOSURE' && canApproveRequest(r)"
-                            class="btn btn-sm btn-success rounded-3 px-2.5" (click)="approveClosureRequest(r.requestId)"
+                            class="btn btn-sm btn-success rounded-3 px-2.5" (click)="$event.stopPropagation(); approveClosureRequest(r.requestId)"
                             title="Approve">
                             <i class="bi bi-check-lg"></i>
                           </button>
                           <button *ngIf="r.requestType === 'EXTENSION' && isAdmin"
-                            class="btn btn-sm btn-primary rounded-3 px-2.5" (click)="showExtensionApprovalModal(r)"
+                            class="btn btn-sm btn-primary rounded-3 px-2.5" (click)="$event.stopPropagation(); showExtensionApprovalModal(r)"
                             title="Approve Extension">
                             <i class="bi bi-calendar-check"></i>
                           </button>
                           <button *ngIf="canRejectRequest(r)" class="btn btn-sm btn-danger rounded-3 px-2.5"
-                            (click)="showRejectionModal(r)" title="Reject">
+                            (click)="$event.stopPropagation(); showRejectionModal(r)" title="Reject">
                             <i class="bi bi-x-lg"></i>
                           </button>
                         </div>
@@ -1200,6 +1188,283 @@
 </div>
 
 <!-- 2. Rejection Reason Modal -->
+<!-- ==================== Request Detail Modal ==================== -->
+<div class="modal fade custom-modern-modal" id="requestDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+    <div class="modal-content" *ngIf="selectedRequest">
+
+      <!-- Header -->
+      <div class="modal-header" style="background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border-bottom: 1px solid #e2e8f0;">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-3 d-flex align-items-center justify-content-center"
+            [ngStyle]="{'background': selectedRequest.requestType === 'CLOSURE' ? '#dcfce7' : '#fef9c3',
+                        'width': '44px', 'height': '44px'}">
+            <i class="bi fs-5"
+              [ngClass]="selectedRequest.requestType === 'CLOSURE' ? 'bi-check-circle-fill text-success' : 'bi-calendar-plus-fill text-warning'"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold mb-0 text-dark">Request #REQ-{{ selectedRequest.requestId }}</h5>
+            <span class="badge mt-1"
+              [ngClass]="selectedRequest.requestType === 'CLOSURE' ? 'type-closure' : 'type-extension'"
+              style="font-size: 0.7rem;">
+              {{ selectedRequest.requestType }}
+            </span>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body p-4">
+
+        <!-- Meta Info Row -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <div class="p-3 rounded-3 bg-light border h-100">
+              <div class="text-muted mb-1" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Requester</div>
+              <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ selectedRequest.requestedByName || '—' }}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">{{ selectedRequest.requestedByRole }}</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 rounded-3 bg-light border h-100">
+              <div class="text-muted mb-1" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Date Submitted</div>
+              <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ selectedRequest.requestDate | date:'mediumDate' }}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">{{ selectedRequest.requestDate | date:'shortTime' }}</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 rounded-3 bg-light border h-100">
+              <div class="text-muted mb-1" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Status</div>
+              <span class="badge rounded-pill px-3 py-2 mt-1" style="font-size: 0.8rem;" [ngClass]="{
+                  'bg-warning text-dark': selectedRequest.status === 'PENDING',
+                  'bg-success text-white': selectedRequest.status === 'APPROVED',
+                  'bg-danger text-white': selectedRequest.status === 'REJECTED'
+                }">{{ selectedRequest.status }}</span>
+            </div>
+          </div>
+          <div class="col-md-3" *ngIf="selectedRequest.approvedByName">
+            <div class="p-3 rounded-3 bg-light border h-100">
+              <div class="text-muted mb-1" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                {{ selectedRequest.status === 'APPROVED' ? 'Approved By' : 'Processed By' }}
+              </div>
+              <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ selectedRequest.approvedByName }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remarks Section -->
+        <div *ngIf="selectedRequest.remarks" class="mb-4">
+          <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+            <i class="bi bi-chat-left-text-fill text-primary"></i> Remarks / Completion Notes
+          </h6>
+          <div class="p-3 border rounded-3 bg-light text-secondary" style="font-size: 0.9rem; line-height: 1.6;">
+            {{ selectedRequest.remarks }}
+          </div>
+        </div>
+
+        <!-- Structured Proofs Section -->
+        <div *ngIf="selectedRequest.structuredProofs?.length" class="mb-4">
+          <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+            <i class="bi bi-shield-lock-fill text-primary"></i> Template Proof Inputs
+          </h6>
+          <div class="d-flex flex-column gap-3">
+
+            <!-- Non-student proofs -->
+            <ng-container *ngFor="let p of selectedRequest.structuredProofs">
+              <div *ngIf="!isStudentSelectionProof(p)" class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-start gap-3">
+                <span class="fw-semibold text-secondary" style="font-size: 0.875rem; min-width: 140px;">{{ p.proofTypeName || 'Input' }}</span>
+                <span class="text-dark fw-medium text-end" style="font-size: 0.875rem;">{{ p.value }}</span>
+              </div>
+            </ng-container>
+
+            <!-- Student Selection proofs -->
+            <ng-container *ngFor="let p of selectedRequest.structuredProofs">
+              <div *ngIf="isStudentSelectionProof(p)">
+                <div class="p-3 border rounded-3 bg-light">
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="fw-bold text-dark" style="font-size: 0.875rem;">
+                      <i class="bi bi-people-fill text-primary me-2"></i>{{ p.proofTypeName || 'Student Entries' }}
+                    </span>
+                    <span class="badge bg-primary text-white rounded-pill px-3">
+                      {{ parseStudentSelection(p.value).length }} Students
+                    </span>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-sm mb-0 bg-white rounded-3 overflow-hidden border">
+                      <thead class="table-light">
+                        <tr>
+                          <th class="ps-3 py-2" style="font-size: 0.75rem;">#</th>
+                          <th class="py-2" style="font-size: 0.75rem;">Student Name</th>
+                          <th class="py-2" style="font-size: 0.75rem;">Enrollment ID</th>
+                          <th class="py-2" style="font-size: 0.75rem;">Course</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let s of parseStudentSelection(p.value); let i = index">
+                          <td class="ps-3 py-2 text-muted" style="font-size: 0.8rem;">{{ i + 1 }}</td>
+                          <td class="py-2 fw-semibold text-dark" style="font-size: 0.85rem;">{{ s.studentName }}</td>
+                          <td class="py-2 text-muted" style="font-size: 0.8rem;">{{ s.enrollmentId || '—' }}</td>
+                          <td class="py-2 text-muted" style="font-size: 0.8rem;">{{ s.course || '—' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+          </div>
+        </div>
+
+        <!-- Legacy Structured Proof (structuredProof object) -->
+        <div *ngIf="selectedRequest.structuredProof && !selectedRequest.structuredProofs?.length" class="mb-4">
+
+          <!-- Custom Fields -->
+          <div *ngIf="selectedRequest.structuredProof?.customFieldsJson" class="mb-3">
+            <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+              <i class="bi bi-input-cursor-text text-primary"></i> Template Proof Inputs
+            </h6>
+            <div class="border rounded-3 bg-light p-3">
+              <div class="d-flex flex-column gap-2">
+                <div *ngFor="let field of getCustomFieldsList(selectedRequest.structuredProof.customFieldsJson); let last = last"
+                  class="d-flex justify-content-between align-items-center py-2"
+                  [style.border-bottom]="last ? 'none' : '1px solid #e2e8f0'">
+                  <span class="fw-semibold text-secondary" style="font-size: 0.875rem;">{{ field.key }}</span>
+                  <span class="text-dark fw-medium" style="font-size: 0.875rem;">
+                    <span *ngIf="field.isFile && getProofFileUrl(field.value, selectedRequest.proofs)">
+                      <a [href]="getProofFileUrl(field.value, selectedRequest.proofs)" target="_blank"
+                        class="btn btn-xs btn-outline-primary py-1 px-2 rounded-3 d-inline-flex align-items-center gap-1 fw-semibold"
+                        style="font-size: 0.78rem;">
+                        <i class="bi bi-download"></i> {{ field.value }}
+                      </a>
+                    </span>
+                    <span *ngIf="!field.isFile || !getProofFileUrl(field.value, selectedRequest.proofs)">{{ field.value }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Student Entries -->
+          <div *ngIf="selectedRequest.structuredProof?.studentEntries?.length" class="mb-3">
+            <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+              <i class="bi bi-people-fill text-primary"></i> Student Entries
+              <span class="badge bg-primary text-white rounded-pill ms-2">{{ selectedRequest.structuredProof.studentEntries.length }}</span>
+            </h6>
+            <div class="table-responsive border rounded-3 overflow-hidden bg-white">
+              <table class="table table-sm mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-3 py-2" style="font-size: 0.75rem;">#</th>
+                    <th class="py-2" style="font-size: 0.75rem;">Student Name</th>
+                    <th class="py-2" style="font-size: 0.75rem;">Enrollment ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let s of selectedRequest.structuredProof.studentEntries; let i = index">
+                    <td class="ps-3 py-2 text-muted" style="font-size: 0.8rem;">{{ i + 1 }}</td>
+                    <td class="py-2 fw-semibold text-dark" style="font-size: 0.85rem;">{{ s.studentName }}</td>
+                    <td class="py-2 text-muted" style="font-size: 0.8rem;">{{ s.enrollmentId }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Topics Covered -->
+          <div *ngIf="selectedRequest.structuredProof?.topicEntries?.length" class="mb-3">
+            <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+              <i class="bi bi-list-check text-success"></i> Topics Covered
+            </h6>
+            <ul class="list-group border rounded-3 bg-white">
+              <li class="list-group-item d-flex align-items-center gap-2 border-0 border-bottom"
+                *ngFor="let t of selectedRequest.structuredProof.topicEntries">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span class="fw-medium" style="font-size: 0.875rem;">{{ t.topicName }}</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- Uploaded Proof Files -->
+        <div *ngIf="selectedRequest.proofs?.length" class="mb-4">
+          <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+            <i class="bi bi-paperclip text-primary"></i> Uploaded Proof Files
+            <span class="badge bg-secondary text-white rounded-pill ms-1">{{ selectedRequest.proofs?.length }}</span>
+          </h6>
+          <div class="row g-2">
+            <div class="col-md-6" *ngFor="let p of selectedRequest.proofs">
+              <div class="modal-proof-file-card">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi fs-3" [ngClass]="{
+                    'bi-file-earmark-pdf-fill text-danger': p.fileType?.toLowerCase()?.includes('pdf'),
+                    'bi-file-earmark-image-fill text-primary': p.fileType?.toLowerCase()?.includes('image') || p.fileType?.toLowerCase()?.includes('png') || p.fileType?.toLowerCase()?.includes('jpg'),
+                    'bi-file-earmark-spreadsheet-fill text-success': p.fileType?.toLowerCase()?.includes('sheet') || p.fileType?.toLowerCase()?.includes('xls') || p.fileType?.toLowerCase()?.includes('csv'),
+                    'bi-file-earmark-text-fill text-secondary': true
+                  }"></i>
+                  <div class="text-truncate">
+                    <strong class="text-dark text-truncate d-block" style="font-size: 0.85rem;">{{ getFileName(p.fileUrl) }}</strong>
+                    <span class="badge bg-light text-secondary border mt-1" style="font-size: 0.7rem;">{{ p.fileType || 'FILE' }}</span>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <a [href]="p.fileUrl" target="_blank" class="btn btn-sm btn-outline-primary w-100 py-1 rounded-3" style="font-size: 0.8rem;">
+                    <i class="bi bi-download me-1"></i> Download File
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="!selectedRequest.remarks && !selectedRequest.structuredProofs?.length && !selectedRequest.structuredProof && !selectedRequest.proofs?.length"
+          class="text-center py-5 text-muted bg-light rounded-3">
+          <i class="bi bi-inbox fs-2 mb-2 d-block"></i>
+          No additional details attached to this request.
+        </div>
+
+      </div>
+
+      <!-- Footer with action buttons -->
+      <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <div class="d-flex w-100 align-items-center justify-content-between">
+          <div class="d-flex gap-2" *ngIf="selectedRequest.status === 'PENDING'">
+            <button *ngIf="selectedRequest.requestType === 'CLOSURE' && canApproveRequest(selectedRequest)"
+              class="btn btn-success px-4 rounded-3 fw-semibold"
+              (click)="approveFromModal(selectedRequest.requestId)"
+              title="Approve this request">
+              <i class="bi bi-check-lg me-1"></i> Approve
+            </button>
+            <button *ngIf="selectedRequest.requestType === 'EXTENSION' && isAdmin"
+              class="btn btn-primary px-4 rounded-3 fw-semibold"
+              (click)="approveExtensionFromModal(selectedRequest)"
+              title="Approve Extension">
+              <i class="bi bi-calendar-check me-1"></i> Approve Extension
+            </button>
+            <button *ngIf="canRejectRequest(selectedRequest)"
+              class="btn btn-danger px-4 rounded-3 fw-semibold"
+              (click)="rejectFromModal(selectedRequest)"
+              title="Reject this request">
+              <i class="bi bi-x-lg me-1"></i> Reject
+            </button>
+          </div>
+          <div *ngIf="selectedRequest.status !== 'PENDING'" class="d-flex align-items-center">
+            <span class="fw-semibold" style="font-size: 0.875rem;"
+              [ngClass]="selectedRequest.status === 'APPROVED' ? 'text-success' : 'text-danger'">
+              <i class="bi me-1" [ngClass]="selectedRequest.status === 'APPROVED' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+              This request was {{ selectedRequest.status | lowercase }}
+            </span>
+          </div>
+          <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 <div class="modal fade custom-modern-modal" id="rejectionModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -1353,91 +1618,127 @@
                   *ngIf="isProofRequirementRequired('STUDENT_ENTRIES')">*</span></label>
 
               <!-- Searchable Student Selector (for fieldType === 'STUDENT_SELECTION') -->
-              <div *ngIf="isStudentSelectionRequirement(); else legacyStudentEntries">
-                <div class="form-text text-muted mb-2">
-                  Select students from CMS database. Search by student name, enrollment ID, or course.
-                  <span class="fw-bold text-primary" *ngIf="task.targetCount">Target Count: {{ task.targetCount }}</span>
+              <div *ngIf="isStudentSelectionRequirement(); else legacyStudentEntries" class="student-selector-widget">
+
+                <!-- Widget Header: description + target count -->
+                <div class="student-selector-header">
+                  <div class="student-selector-desc">
+                    <i class="bi bi-info-circle"></i>
+                    Select students from the CMS database. Search by name, enrollment ID, or course.
+                  </div>
+                  <span *ngIf="task.targetCount" class="student-target-badge">
+                    <i class="bi bi-bullseye"></i> Target: {{ task.targetCount }}
+                  </span>
                 </div>
 
-                <!-- Selected count indicator & clear all -->
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="small fw-semibold text-secondary">
-                    Selected Students: <span class="badge bg-indigo text-white px-2 py-1" style="background-color: #4f46e5 !important;">{{ selectedStudentsList.length }}</span>
-                    <span *ngIf="task.targetCount" class="ms-1 text-muted">(Min: {{ task.targetCount }})</span>
-                  </span>
-                  <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-danger" *ngIf="selectedStudentsList.length > 0" (click)="clearAllSelectedStudents()">
-                    Clear All
+                <!-- Selection bar: count + clear all -->
+                <div class="student-selection-bar">
+                  <div class="student-selection-count">
+                    <span class="selection-count-pill" [class.has-selections]="selectedStudentsList.length > 0">
+                      {{ selectedStudentsList.length }}
+                    </span>
+                    <span class="selection-count-label">
+                      student{{ selectedStudentsList.length !== 1 ? 's' : '' }} selected
+                      <span *ngIf="task.targetCount" class="selection-min-hint">(min {{ task.targetCount }})</span>
+                    </span>
+                  </div>
+                  <button *ngIf="selectedStudentsList.length > 0"
+                    type="button" class="student-clear-btn"
+                    (click)="clearAllSelectedStudents()">
+                    <i class="bi bi-x-circle"></i> Clear all
                   </button>
                 </div>
 
-                <!-- Selected Student Chips (Slack style) -->
-                <div class="selected-student-chips d-flex flex-wrap gap-1.5 mb-3 p-2 border rounded-3 bg-white" style="min-height: 42px;">
-                  <div *ngIf="selectedStudentsList.length === 0" class="text-muted small align-self-center ps-1">
-                    No students selected. Use checkbox below to select.
-                  </div>
-                  <div *ngFor="let student of selectedStudentsList" class="badge bg-light text-dark border d-inline-flex align-items-center gap-1.5 px-2.5 py-1.5 rounded-pill" style="font-size: 0.775rem;">
-                    <span class="fw-semibold">{{ student.studentName }}</span>
-                    <span class="text-muted" style="font-size: 0.7rem;">({{ student.course }})</span>
-                    <button type="button" class="btn-close p-0" style="font-size: 0.55rem; width: 0.5em; height: 0.5em;" (click)="toggleStudentSelection(student)"></button>
-                  </div>
-                </div>
-
-                <!-- Search Input with loading spinner inside -->
-                <div class="position-relative mb-2">
-                  <span class="position-absolute top-50 start-0 translate-middle-y ps-3 text-muted">
-                    <i class="bi bi-search"></i>
+                <!-- Selected chips area -->
+                <div class="student-chips-area" [class.is-empty]="selectedStudentsList.length === 0">
+                  <span *ngIf="selectedStudentsList.length === 0" class="student-chips-placeholder">
+                    <i class="bi bi-person-plus"></i> No students selected yet — use the list below
                   </span>
-                  <input type="text" class="form-control modal-text-input ps-5" placeholder="Search by student name, enrollment ID, or course..." [value]="studentSearchQuery" (input)="onStudentSearchInput($event)">
-                  <span class="position-absolute top-50 end-0 translate-middle-y pe-3" *ngIf="studentsLoading">
-                    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                  <span *ngFor="let student of selectedStudentsList" class="student-chip">
+                    <span class="student-chip-avatar">{{ student.studentName.slice(0,1).toUpperCase() }}</span>
+                    <span class="student-chip-name">{{ student.studentName }}</span>
+                    <span class="student-chip-course">{{ student.course }}</span>
+                    <button type="button" class="student-chip-remove" (click)="toggleStudentSelection(student)" title="Remove">
+                      <i class="bi bi-x"></i>
+                    </button>
                   </span>
                 </div>
 
-                <!-- Search Results Dropdown List (Ant Design style) -->
-                <div class="student-search-results border rounded-3 bg-white shadow-sm overflow-auto mb-2" style="max-height: 220px;" (scroll)="onStudentListScroll($event)">
-                  <!-- Error / Retry -->
-                  <div *ngIf="studentSearchError" class="p-3 text-center text-danger small d-flex flex-column align-items-center gap-1">
-                    <span>{{ studentSearchError }}</span>
-                    <button type="button" class="btn btn-sm btn-primary rounded-3 px-3 py-1" (click)="loadStudents(true)">Retry</button>
+                <!-- Search input -->
+                <div class="student-search-box">
+                  <i class="bi bi-search student-search-icon" [class.searching]="studentsLoading"></i>
+                  <input
+                    type="text"
+                    class="student-search-input"
+                    placeholder="Search by name, enrollment ID, or course…"
+                    [(ngModel)]="studentSearchQuery"
+                    [ngModelOptions]="{standalone: true}"
+                    (ngModelChange)="onStudentSearchInput({target: {value: $event}})"
+                    autocomplete="off"
+                  />
+                  <span *ngIf="studentsLoading" class="student-search-spinner">
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                  </span>
+                  <button *ngIf="studentSearchQuery && !studentsLoading" type="button"
+                    class="student-search-clear" (click)="studentSearchQuery = ''; loadStudents(true)">
+                    <i class="bi bi-x-circle-fill"></i>
+                  </button>
+                </div>
+
+                <!-- Results list -->
+                <div class="student-results-list" (scroll)="onStudentListScroll($event)">
+
+                  <!-- Error state -->
+                  <div *ngIf="studentSearchError" class="student-list-state">
+                    <i class="bi bi-wifi-off text-danger" style="font-size: 1.5rem;"></i>
+                    <span class="text-danger fw-semibold">{{ studentSearchError }}</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-3 px-3"
+                      (click)="loadStudents(true)">
+                      <i class="bi bi-arrow-clockwise me-1"></i>Retry
+                    </button>
                   </div>
 
-                  <!-- Initial / Search Loading -->
-                  <div *ngIf="studentsLoading && studentPage === 0" class="p-4 text-center text-muted small">
-                    <div class="spinner-border spinner-border-sm text-indigo mb-2" style="color: #4f46e5;" role="status"></div>
-                    <div>Loading student database...</div>
+                  <!-- Initial loading -->
+                  <div *ngIf="studentsLoading && studentPage === 0" class="student-list-state">
+                    <div class="spinner-border" style="color: #4f46e5; width: 1.5rem; height: 1.5rem;" role="status"></div>
+                    <span class="text-muted">Loading students…</span>
                   </div>
 
-                  <!-- Search Results list -->
-                  <div *ngIf="!studentSearchError && (!studentsLoading || studentPage > 0)">
-                    <div *ngFor="let s of studentSearchResults" 
-                         class="d-flex align-items-start gap-2.5 p-2.5 border-bottom hover-bg-light cursor-pointer" 
-                         style="border-color: #f1f5f9 !important;"
-                         (click)="toggleStudentSelection(s)">
-                      <div class="form-check m-0 mt-0.5">
-                        <input type="checkbox" class="form-check-input" [checked]="isStudentSelected(s)" (click)="$event.stopPropagation(); toggleStudentSelection(s)">
-                      </div>
-                      <div class="d-flex flex-column">
-                        <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ s.studentName }}</span>
-                        <div class="text-secondary small d-flex flex-wrap gap-2 mt-0.5" style="font-size: 0.725rem;">
-                          <span><strong>Enrollment:</strong> {{ s.enrollmentId }}</span>
-                          <span class="text-muted">|</span>
-                          <span><strong>Course:</strong> {{ s.course }}</span>
+                  <!-- Results -->
+                  <ng-container *ngIf="!studentSearchError && (!studentsLoading || studentPage > 0)">
+
+                    <label *ngFor="let s of studentSearchResults"
+                      class="student-result-row"
+                      [class.is-selected]="isStudentSelected(s)"
+                      (click)="toggleStudentSelection(s)">
+                      <input type="checkbox" class="student-checkbox" [checked]="isStudentSelected(s)"
+                        (click)="$event.stopPropagation()">
+                      <div class="student-result-info">
+                        <span class="student-result-name">{{ s.studentName }}</span>
+                        <div class="student-result-meta">
+                          <span class="student-meta-chip"><i class="bi bi-hash"></i>{{ s.enrollmentId }}</span>
+                          <span class="student-meta-divider"></span>
+                          <span class="student-meta-chip"><i class="bi bi-mortarboard"></i>{{ s.course }}</span>
                         </div>
                       </div>
-                    </div>
+                      <i *ngIf="isStudentSelected(s)" class="bi bi-check-circle-fill student-check-icon"></i>
+                    </label>
 
                     <!-- No results -->
-                    <div *ngIf="studentSearchResults.length === 0 && !studentsLoading" class="p-4 text-center text-muted small">
-                      <i class="bi bi-person-exclamation fs-3 d-block mb-1"></i>
-                      No students found matching your search.
+                    <div *ngIf="studentSearchResults.length === 0 && !studentsLoading" class="student-list-state">
+                      <i class="bi bi-person-exclamation text-muted" style="font-size: 1.75rem;"></i>
+                      <span class="text-muted">No students found<span *ngIf="studentSearchQuery"> for "<strong>{{ studentSearchQuery }}</strong>"</span></span>
                     </div>
 
-                    <!-- Loading more scroll indicator -->
-                    <div *ngIf="studentsLoading && studentPage > 0" class="p-2 text-center text-muted small border-top">
-                      <div class="spinner-border spinner-border-sm text-indigo" role="status"></div>
+                    <!-- Load-more spinner -->
+                    <div *ngIf="studentsLoading && studentPage > 0" class="student-list-load-more">
+                      <div class="spinner-border spinner-border-sm" style="color: #4f46e5;" role="status"></div>
+                      <span>Loading more…</span>
                     </div>
-                  </div>
+
+                  </ng-container>
                 </div>
+
               </div>
 
               <!-- Legacy Student Entries input rows -->

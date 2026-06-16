@@ -120,7 +120,9 @@ export class ViewTask implements OnInit, OnDestroy {
   selectedRequestProofs: any[] = [];
   selectedRequestStructuredProof: any = null;
   selectedRequestRemarks = '';
+  selectedRequest: TaskRequestDto | null = null;
   private proofsModal?: Modal;
+  private requestDetailModal?: Modal;
   private subscriptions = new Subscription();
 
   // Add Request Modal State
@@ -1070,6 +1072,38 @@ export class ViewTask implements OnInit, OnDestroy {
     this.selectedRequestRemarks = request.remarks || '';
     this.proofsModal = new Modal(document.getElementById('proofsModal')!);
     this.proofsModal.show();
+  }
+
+  openRequestDetailModal(request: TaskRequestDto): void {
+    this.selectedRequest = request;
+    this.requestDetailModal = new Modal(document.getElementById('requestDetailModal')!);
+    this.requestDetailModal.show();
+  }
+
+  approveFromModal(requestId: number): void {
+    if (!confirm('Are you sure you want to approve this closure request?')) return;
+    this.requestDetailModal?.hide();
+    this.requestService.approveRequest(this.taskId, requestId, {}).subscribe({
+      next: (res) => {
+        if (res.success) {
+          alert('Closure request approved successfully!');
+          this.reloadTask();
+        } else {
+          alert(res.message || 'Failed to approve closure request.');
+        }
+      },
+      error: () => alert('Failed to approve closure request. Please try again.')
+    });
+  }
+
+  approveExtensionFromModal(request: any): void {
+    this.requestDetailModal?.hide();
+    this.showExtensionApprovalModal(request);
+  }
+
+  rejectFromModal(request: any): void {
+    this.requestDetailModal?.hide();
+    this.showRejectionModal(request);
   }
 
   getFileName(url: string): string {
