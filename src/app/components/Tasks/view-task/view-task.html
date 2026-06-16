@@ -439,7 +439,10 @@
               Departments
             </button>
             <button class="tab-nav-btn" [class.active]="activeTab === 'requests'" (click)="activeTab = 'requests'">
-              Requests <span class="tab-count-badge" *ngIf="task.requests?.length">{{ task.requests?.length }}</span>
+              Requests
+              <span class="tab-count-badge" *ngIf="task?.requests?.length">
+                {{ task?.requests?.length }}
+              </span>
             </button>
             <button class="tab-nav-btn" [class.active]="activeTab === 'proofs'" (click)="activeTab = 'proofs'">
               Proofs
@@ -709,8 +712,9 @@
                     </div>
                   </div>
                 </div>
-                <div *ngIf="!allProofs?.length" class="col-12 text-center text-muted py-4 bg-light rounded-3 border">
-                  <i class="bi bi-paperclip fs-3 mb-2 d-block"></i>No proof files uploaded yet.
+                <div *ngIf="allProofs.length === 0"
+                  class="col-12 text-center text-muted py-4 bg-light rounded-3 border"> <i
+                    class="bi bi-paperclip fs-3 mb-2 d-block"></i>No proof files uploaded yet.
                 </div>
               </div>
 
