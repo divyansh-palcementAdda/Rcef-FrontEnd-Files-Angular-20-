@@ -6,8 +6,8 @@ import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { TaskDto } from '../../../Model/TaskDto';
 import { JwtService } from '../../../Services/jwt-service';
-import { Subscription, of } from 'rxjs';
-import { finalize, catchError } from 'rxjs/operators';
+import { Subscription, of, Subject } from 'rxjs';
+import { finalize, catchError, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { userDto } from '../../../Model/userDto';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { ModalService } from '../../../Services/modal-service';
@@ -35,6 +35,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
   // UI States
   loading = false;
+  isInitialLoad = true;
   loadingMessage = 'Loading tasks...';
   errorMessage: string | null = null;
   isForbidden = false;
@@ -80,6 +81,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   };
 
   private subscriptions = new Subscription();
+  private searchSubject = new Subject<string>();
 
   constructor(
     private apiService: TaskApiService,
@@ -91,7 +93,46 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.loadCurrentUserAndTasks();
+    // Subscribe to queryParams (not snapshot) so it re-fires on every navigation
+    // to this same route — this correctly resets filters when sidebar/dashboard
+    // links navigate to /view-tasks with different or no query params.
+    this.subscriptions.add(
+      this.route.queryParams.subscribe(params => {
+        const status = params['status'];
+        this.statusFilter = status ? status.toUpperCase() : '';
+
+        if (this.statusFilter === 'IN_PROGRESS') {
+          this.selectedCard = 'active';
+        } else if (this.statusFilter === 'PENDING') {
+          this.selectedCard = 'pending';
+        } else if (this.statusFilter === 'CLOSED') {
+          this.selectedCard = 'completed';
+        } else {
+          this.selectedCard = 'total';
+        }
+
+        this.categoryFilter = params['category'] || '';
+        this.templateFilter = params['template'] || params['templateTitle'] || '';
+
+        // Reset user-driven filters on every navigation
+        this.searchTerm = '';
+        this.departmentFilter = '';
+        this.currentPage = 1;
+
+        this.loadCurrentUserAndTasks();
+      })
+    );
+
+    // Debounce search — only fires API call 400ms after user stops typing
+    this.subscriptions.add(
+      this.searchSubject.pipe(
+        debounceTime(400),
+        distinctUntilChanged()
+      ).subscribe(() => {
+        this.currentPage = 1;
+        this.loadTasksFromServer();
+      })
+    );
 
     this.subscriptions.add(
       this.modalService.modalClosed$.subscribe(event => {
@@ -102,7 +143,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Load current user → then decide which tasks to load */
+  /** Load current user → then load tasks. Safe to call for refresh button. */
   loadCurrentUserAndTasks(): void {
     const token = this.jwtService.getAccessToken();
     if (!token) {
@@ -116,6 +157,12 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // If user info already loaded, skip profile fetch and go straight to tasks
+    if (this.currentUserId === userId && this.currentUserRole !== null) {
+      this.loadTasksFromServer();
+      return;
+    }
+
     this.currentUserId = userId;
     this.loading = true;
     this.loadingMessage = 'Loading user profile...';
@@ -125,33 +172,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         next: (user: userDto) => {
           this.currentUserRole = user.role;
           this.currentUserDeptIds = user.departmentIds || [];
-
-          // Subscribe to query params once user is loaded
-          this.subscriptions.add(
-            this.route.queryParams.subscribe(params => {
-              const status = params['status'];
-              this.statusFilter = status ? status.toUpperCase() : '';
-
-              if (this.statusFilter === 'IN_PROGRESS') {
-                this.selectedCard = 'active';
-              } else if (this.statusFilter === 'PENDING') {
-                this.selectedCard = 'pending';
-              } else if (this.statusFilter === 'CLOSED') {
-                this.selectedCard = 'completed';
-              } else {
-                this.selectedCard = 'total';
-              }
-
-              const category = params['category'];
-              this.categoryFilter = category || '';
-
-              const template = params['template'] || params['templateTitle'];
-              this.templateFilter = template || '';
-
-              this.currentPage = 1;
-              this.loadTasksFromServer();
-            })
-          );
+          this.loadTasksFromServer();
         },
         error: (err) => {
           console.error('Failed to load user profile:', err);
@@ -249,6 +270,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
             this.isEmpty = this.tasks.length === 0;
             this.errorMessage = null;
             this.isForbidden = false;
+            this.isInitialLoad = false;
           } else {
             this.handleError(res, res?.message || 'Error searching tasks');
           }
@@ -301,6 +323,11 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.loadTasksFromServer();
   }
 
+  /** Called on every search keystroke — debounced, won't flash the skeleton */
+  onSearchInput(): void {
+    this.searchSubject.next(this.searchTerm);
+  }
+
   resetFilters(): void {
     this.searchTerm = '';
     this.statusFilter = '';
@@ -309,48 +336,26 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.templateFilter = '';
     this.selectedCard = 'total';
     this.currentPage = 1;
-
-    const hasQueryParams = Object.keys(this.route.snapshot.queryParams).length > 0;
-    if (hasQueryParams) {
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {},
-        replaceUrl: true
-      });
-    } else {
-      this.loadTasksFromServer();
-    }
+    this.loadTasksFromServer();
   }
 
   removeCategoryFilter(): void {
     this.categoryFilter = '';
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { category: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
+    this.currentPage = 1;
+    this.loadTasksFromServer();
   }
 
   removeTemplateFilter(): void {
     this.templateFilter = '';
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { template: null, templateTitle: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
+    this.currentPage = 1;
+    this.loadTasksFromServer();
   }
 
   removeStatusFilter(): void {
     this.statusFilter = '';
     this.selectedCard = 'total';
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { status: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
+    this.currentPage = 1;
+    this.loadTasksFromServer();
   }
 
   changePage(page: number): void {

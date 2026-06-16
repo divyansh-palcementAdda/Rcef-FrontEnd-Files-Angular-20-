@@ -56,9 +56,11 @@ export class TaskTemplateManagementComponent implements OnInit {
   showCategoryModal = false;
   showProofTypeModal = false;
 
+
   // Options
   fieldTypes = ['TEXT', 'NUMBER', 'PERCENTAGE', 'DATE', 'DROPDOWN', 'MULTISELECT', 'LIST', 'FILE_UPLOAD', 'EXCEL_UPLOAD', 'CSV_UPLOAD', 'BOOLEAN'];
   proofFieldTypes = ['TEXT', 'NUMBER', 'DATE', 'BOOLEAN', 'SELECT', 'FILE', 'TEXTAREA'];
+
 
   constructor(
     private fb: FormBuilder,
@@ -71,6 +73,10 @@ export class TaskTemplateManagementComponent implements OnInit {
   ngOnInit(): void {
     this.loadData();
   }
+
+  viewTemplatePage(template: any) {
+  this.router.navigate(['/view-template-task', template.id]);
+}
 
   private initForms(): void {
     this.templateForm = this.fb.group({

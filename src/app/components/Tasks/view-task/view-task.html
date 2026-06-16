@@ -59,7 +59,7 @@
           <button *ngIf="canEditDelete()"
             class="btn btn-outline-secondary btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold"
             (click)="editTask()" style="font-size: 0.85rem; border-color: #cbd5e1; color: #334155;">
-            <i class="bi bi-pencil"></i> Edit Task
+             Edit Task
           </button>
 
           <!-- Add Request (For Assigned Users) -->
@@ -67,45 +67,11 @@
             class="btn btn-primary btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold"
             (click)="openAddRequestModal()"
             style="font-size: 0.85rem; background-color: #4f46e5; border-color: #4f46e5;">
-            <i class="bi bi-plus-lg"></i> Add Request
+             Add Request
           </button>
 
           <!-- More Actions Dropdown -->
-          <div class="dropdown">
-            <button
-              class="btn btn-outline-secondary btn-sm px-2.5 py-1.5 rounded-3 dropdown-toggle d-flex align-items-center justify-content-center"
-              type="button" id="moreActionsDropdown" aria-expanded="false" (click)="toggleMoreActions($event)"
-              style="border-color: #cbd5e1; color: #334155;">
-              <i class="bi bi-three-dots"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border p-1 rounded-3" [class.show]="isMoreActionsOpen"
-              aria-labelledby="moreActionsDropdown" style="font-size: 0.875rem; min-width: 160px;">
-              <!-- Start Task -->
-              <li
-                *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')">
-                <button class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" (click)="startTask()"
-                  [disabled]="isStarting">
-                  <i [class]="isStarting ? 'bi bi-arrow-repeat spinner' : 'bi bi-play-fill text-success'"></i>
-                  {{ isStarting ? 'Starting...' : 'Start Task' }}
-                </button>
-              </li>
-              <!-- Approve Task -->
-              <li *ngIf="task.requiresApproval && isAdmin && !task.approved">
-                <button class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" (click)="approveTask()"
-                  [disabled]="isApproving">
-                  <i [class]="isApproving ? 'bi bi-arrow-repeat spinner' : 'bi bi-check-circle-fill text-primary'"></i>
-                  {{ isApproving ? 'Approving...' : 'Approve Task' }}
-                </button>
-              </li>
-              <!-- Refresh Action -->
-              <li>
-                <button class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" (click)="reloadTask()">
-                  <i class="bi bi-arrow-clockwise text-secondary"></i>
-                  Refresh Details
-                </button>
-              </li>
-            </ul>
-          </div>
+         
         </div>
       </div>
 

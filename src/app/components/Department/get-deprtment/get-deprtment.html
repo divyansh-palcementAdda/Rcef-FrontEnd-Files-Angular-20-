@@ -35,17 +35,7 @@
       </div>
 
       <div class="stitch-hero-right">
-        <!-- Health Score glass card -->
-        <div class="stitch-hero-glass-card">
-          <div class="stitch-glass-info">
-            <span class="stitch-glass-label">HEALTH</span>
-            <span class="stitch-glass-value">94%</span>
-          </div>
-          <div class="stitch-glass-icon">
-            <i class="bi bi-graph-up-arrow"></i>
-          </div>
-        </div>
-
+       
         <button class="stitch-hero-btn btn-assign" (click)="assignNewTask()">
           <i class="bi bi-clipboard-plus-fill me-1.5"></i>
           <span>Assign Task</span>
@@ -61,138 +51,7 @@
       </div>
     </div>
 
-    <!-- 2 & 3. DUAL COLUMN ROW: HEAD CARD & HEALTH CARD -->
-    <div class="stitch-row mb-4">
-      <!-- Left Column: Department Head -->
-      <div class="stitch-col-head">
-        <div class="stitch-head-card">
-          <div class="card-header-row">
-            <span class="card-header-title">
-              <i class="bi bi-shield-check-fill text-primary"></i> Department Head
-            </span>
-            <i class="bi bi-three-dots text-muted cursor-pointer fs-5"></i>
-          </div>
 
-          <div class="card-profile-section" *ngIf="hodUser">
-            <div class="avatar-container">
-              <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=256&q=80" alt="HOD Profile" class="avatar-img" />
-              <span class="online-indicator"></span>
-            </div>
-            <h3 class="profile-name">{{ hodUser.fullName }}</h3>
-            <span class="profile-role-badge">Executive Lead</span>
-          </div>
-
-          <div class="card-profile-section text-center py-4" *ngIf="!hodUser">
-            <div class="avatar-container empty-avatar mx-auto">
-              <i class="bi bi-person-fill fs-2 text-muted"></i>
-            </div>
-            <h3 class="profile-name text-muted fs-6 mt-2">No HOD Assigned</h3>
-          </div>
-
-          <div class="profile-divider"></div>
-
-          <div class="profile-meta-list" *ngIf="hodUser">
-            <div class="profile-meta-item">
-              <div class="meta-info">
-                <span class="meta-label">EMAIL</span>
-                <span class="meta-value">{{ hodUser.email }}</span>
-              </div>
-              <i class="bi bi-envelope text-muted"></i>
-            </div>
-
-            <div class="profile-meta-item">
-              <div class="meta-info">
-                <span class="meta-label">USERNAME</span>
-                <span class="meta-value">@{{ hodUser.username }}</span>
-              </div>
-              <i class="bi bi-at text-muted"></i>
-            </div>
-
-            <div class="profile-meta-item">
-              <div class="meta-info">
-                <span class="meta-label">STATUS</span>
-                <span class="meta-value-status text-success">Active Now</span>
-              </div>
-              <i class="bi bi-circle-fill text-success fs-7"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column: Department Health -->
-      <div class="stitch-col-health">
-        <div class="stitch-health-card">
-          <div class="card-header-row mb-3">
-            <span class="card-header-title">
-              <i class="bi bi-heart-pulse-fill text-primary"></i> Department Health
-            </span>
-            <span class="last-sync-label">Last sync: 2 min ago</span>
-          </div>
-
-          <div class="progress-metrics-list mb-4">
-            <!-- Project Completion -->
-            <div class="progress-metric-item">
-              <div class="progress-label-row">
-                <span class="metric-name">Project Completion</span>
-                <span class="metric-percentage text-indigo">82%</span>
-              </div>
-              <div class="progress-bar-track">
-                <div class="progress-bar-fill bg-indigo" style="width: 82%;"></div>
-              </div>
-            </div>
-
-            <!-- Team Efficiency -->
-            <div class="progress-metric-item">
-              <div class="progress-label-row">
-                <span class="metric-name">Team Efficiency</span>
-                <span class="metric-percentage text-green">94%</span>
-              </div>
-              <div class="progress-bar-track">
-                <div class="progress-bar-fill bg-green" style="width: 94%;"></div>
-              </div>
-            </div>
-
-            <!-- System Reliability -->
-            <div class="progress-metric-item">
-              <div class="progress-label-row">
-                <span class="metric-name">System Reliability</span>
-                <span class="metric-percentage text-cyan">99.9%</span>
-              </div>
-              <div class="progress-bar-track">
-                <div class="progress-bar-fill bg-cyan" style="width: 99.9%;"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="recent-events-section">
-            <span class="section-subtitle">RECENT EVENTS</span>
-            <div class="events-list">
-              <!-- Event 1 -->
-              <div class="event-item">
-                <div class="event-icon-circle bg-indigo-subtle text-indigo">
-                  <i class="bi bi-check2"></i>
-                </div>
-                <div class="event-details">
-                  <span class="event-text"><strong>Divyansh</strong> completed the 'Q3 Audit' task</span>
-                  <span class="event-time">14 minutes ago</span>
-                </div>
-              </div>
-
-              <!-- Event 2 -->
-              <div class="event-item">
-                <div class="event-icon-circle bg-warning-subtle text-warning">
-                  <i class="bi bi-exclamation-triangle-fill"></i>
-                </div>
-                <div class="event-details">
-                  <span class="event-text">New high-priority task assigned to <strong>Academic</strong></span>
-                  <span class="event-time">2 hours ago</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- 4. STATISTICS KPI CARDS -->
     <div class="stitch-stats-grid mb-4">
@@ -258,6 +117,52 @@
         <span class="stat-title">PROGRESS</span>
         <span class="stat-number">{{ deptTaskStats[4]?.count || 0 }}</span>
       </div>
+
+      <!-- card 8 Accadmic -->
+       <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
+        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <span class="stat-title">Form Task</span>
+        <span class="stat-number">5</span>
+      </div>
+
+
+      <!-- card 9 Admissions -->
+          <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
+        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <span class="stat-title">Visits Task</span>
+        <span class="stat-number">4</span>
+      </div>
+
+
+        <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
+        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <span class="stat-title">Fees Task</span>
+        <span class="stat-number">4</span>
+      </div>
+
+
+       <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
+        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <span class="stat-title">Consultancy Task</span>
+        <span class="stat-number">4</span>
+      </div>
+
+       <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
+        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <span class="stat-title">Meeting Task</span>
+        <span class="stat-number">4</span>
+      </div>
+
     </div>
 
     <!-- 5. TABS & DATA GRID TABLE SECTION -->

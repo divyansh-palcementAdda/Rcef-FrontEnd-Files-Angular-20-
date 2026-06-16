@@ -1229,3 +1229,24 @@
 .stitch-chip-clear-all:hover {
   background-color: #e0e7ff;
 }
+
+/* Toolbar spinner for search/filter loading (non-blocking) */
+.stitch-toolbar-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  color: #4f46e5;
+  font-size: 1.1rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  display: inline-block;
+  animation: spin 0.75s linear infinite;
+}

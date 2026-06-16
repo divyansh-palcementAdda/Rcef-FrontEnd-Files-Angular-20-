@@ -28,6 +28,7 @@ import { RolePermissionManagementComponent } from './components/RolesPermissions
 import { SubDepartmentManagementComponent } from './components/SubDepartments/sub-departments';
 import { HierarchyViewerComponent } from './components/HierarchyTree/hierarchy-tree';
 import { TaskTemplateManagementComponent } from './components/Tasks/task-template-management/task-template-management';
+import {ViewTemplateTaskComponent} from './components/Tasks/view-task-template/view-template-task.component'
 
 import { ModalRedirectGuard } from './Guards/modal-redirect.guard';
 
@@ -112,6 +113,11 @@ export const routes: Routes = [
   { path: 'sub-departments', component: SubDepartmentManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'] } },
   { path: 'hierarchy-tree', component: HierarchyViewerComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['USER_VIEW'] } },
   { path: 'task-templates', component: TaskTemplateManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['TASK_CREATE'] } },
+  {
+  path: 'view-template-task/:id',
+  component: ViewTemplateTaskComponent,
+  canActivate: [AuthGuard]
+},
 
   // Wildcard route for a 404 page
   { path: '**', redirectTo: '' },
