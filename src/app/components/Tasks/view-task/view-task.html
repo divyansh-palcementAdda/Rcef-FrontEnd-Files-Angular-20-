@@ -611,12 +611,33 @@
                         </div>
                         <div *ngIf="r.structuredProofs?.length" class="mt-1 text-dark"
                           style="max-width: 280px; white-space: normal;">
-                          <div *ngFor="let group of getGroupedStructuredProofs(r.structuredProofs)" class="mb-1"
-                            style="line-height: 1.25;">
-                            <span class="badge bg-light text-secondary border me-1" style="font-size: 0.7rem;">{{
-                              group.name }}</span>
-                            <span style="font-size: 0.8rem; font-weight: 500;">{{ group.values.join(', ') }}</span>
-                          </div>
+                          <!-- Render non-student selection proofs normally -->
+                          <ng-container *ngFor="let p of r.structuredProofs">
+                            <div *ngIf="!isStudentSelectionProof(p)" class="mb-1" style="line-height: 1.25;">
+                              <span class="badge bg-light text-secondary border me-1" style="font-size: 0.7rem;">
+                                {{ p.proofTypeName || 'Input' }}
+                              </span>
+                              <span style="font-size: 0.8rem; font-weight: 500;">{{ p.value }}</span>
+                            </div>
+                          </ng-container>
+
+                          <!-- Render student selection proofs (expandable list) -->
+                          <ng-container *ngFor="let p of r.structuredProofs">
+                            <div *ngIf="isStudentSelectionProof(p)" class="mb-1" style="line-height: 1.25;">
+                              <div class="d-flex align-items-center gap-1.5 cursor-pointer" (click)="toggleRequestExpansion(r.requestId)">
+                                <span class="badge bg-light text-primary border" style="font-size: 0.7rem;">
+                                  {{ p.proofTypeName || 'Student Entries' }} ({{ parseStudentSelection(p.value).length }})
+                                </span>
+                                <i class="bi" [ngClass]="isRequestExpanded(r.requestId) ? 'bi-chevron-up' : 'bi-chevron-down'" style="font-size: 0.75rem;"></i>
+                              </div>
+                              
+                              <div *ngIf="isRequestExpanded(r.requestId)" class="mt-1 ps-2 border-start" style="font-size: 0.8rem; line-height: 1.4; max-height: 150px; overflow-y: auto;">
+                                <div *ngFor="let s of parseStudentSelection(p.value)" class="text-secondary py-0.5">
+                                  {{ s.studentName }}<span *ngIf="s.course"> - <span class="fw-semibold">{{ s.course }}</span></span>
+                                </div>
+                              </div>
+                            </div>
+                          </ng-container>
                         </div>
                       </td>
                       <td>
@@ -735,15 +756,34 @@
                         </span>
                       </div>
                       <div class="d-flex flex-column gap-3">
-                        <div *ngFor="let group of getGroupedStructuredProofs(r.structuredProofs); let last = last"
-                          class="pb-2" [style.border-bottom]="last ? 'none' : '1px dashed #cbd5e1'">
-                          <h6 class="fw-bold text-primary mb-1" style="font-size: 0.85rem;">{{ group.name }}</h6>
-                          <div style="font-size: 0.85rem; color: #475569;" class="ps-2">
-                            <div *ngFor="let val of group.values" class="py-0.5">
-                              • {{ val }}
+                        <!-- Non-Student Selection proofs -->
+                        <ng-container *ngFor="let p of r.structuredProofs">
+                          <div *ngIf="!isStudentSelectionProof(p)" class="pb-2 border-bottom-dashed">
+                            <h6 class="fw-bold text-primary mb-1" style="font-size: 0.85rem;">{{ p.proofTypeName || 'Input' }}</h6>
+                            <div style="font-size: 0.85rem; color: #475569;" class="ps-2">
+                              • {{ p.value }}
                             </div>
                           </div>
-                        </div>
+                        </ng-container>
+
+                        <!-- Student Selection proofs -->
+                        <ng-container *ngFor="let p of r.structuredProofs">
+                          <div *ngIf="isStudentSelectionProof(p)" class="pb-2">
+                            <h6 class="fw-bold text-primary mb-1" style="font-size: 0.85rem;">{{ p.proofTypeName || 'Student Entries' }}</h6>
+                            <hr class="my-1.5" style="border-top: 1px solid #cbd5e1; opacity: 0.5;">
+                            <div class="student-selection-proof-list">
+                              <div *ngFor="let s of parseStudentSelection(p.value); let last = last" 
+                                   [class.mb-3]="!last" [class.pb-2]="!last" [class.border-bottom]="!last" 
+                                   style="border-color: #cbd5e1 !important;">
+                                <div class="fw-bold text-dark" style="font-size: 0.875rem;">{{ s.studentName }}</div>
+                                <div class="text-secondary" style="font-size: 0.775rem; line-height: 1.4;" *ngIf="s.enrollmentId || s.course">
+                                  <span *ngIf="s.enrollmentId">Enrollment: {{ s.enrollmentId }}<br></span>
+                                  <span *ngIf="s.course">Course: {{ s.course }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </ng-container>
                       </div>
                     </div>
                   </div>
@@ -1341,36 +1381,127 @@
             <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-primary" style="font-size: 0.95rem;">
               <i class="bi bi-shield-lock-fill"></i>Required Template Proof Inputs
             </h6>
-
-            <!-- 1. STUDENT_ENTRIES Section -->
+                 <!-- 1. STUDENT_ENTRIES Section -->
             <div *ngIf="hasProofRequirement('STUDENT_ENTRIES')" class="mb-4">
               <label class="form-label fw-semibold">Admitted Students Listing <span class="text-danger"
                   *ngIf="isProofRequirementRequired('STUDENT_ENTRIES')">*</span></label>
-              <div class="form-text text-muted mb-3">Provide Student Names and their Enrollment IDs.</div>
 
-              <div *ngFor="let entry of studentEntriesList; let i = index"
-                class="row g-2 mb-2 align-items-center animate__animated animate__fadeIn">
-                <div class="col-md-5">
-                  <input type="text" class="form-control modal-text-input" placeholder="Student Name"
-                    [(ngModel)]="entry.studentName" name="studentName-{{i}}"
-                    [required]="isProofRequirementRequired('STUDENT_ENTRIES')">
+              <!-- Searchable Student Selector (for fieldType === 'STUDENT_SELECTION') -->
+              <div *ngIf="isStudentSelectionRequirement(); else legacyStudentEntries">
+                <div class="form-text text-muted mb-2">
+                  Select students from CMS database. Search by student name, enrollment ID, or course.
+                  <span class="fw-bold text-primary" *ngIf="task.targetCount">Target Count: {{ task.targetCount }}</span>
                 </div>
-                <div class="col-md-5">
-                  <input type="text" class="form-control modal-text-input" placeholder="Enrollment ID"
-                    [(ngModel)]="entry.enrollmentId" name="enrollmentId-{{i}}"
-                    [required]="isProofRequirementRequired('STUDENT_ENTRIES')">
-                </div>
-                <div class="col-md-2 text-end">
-                  <button type="button" class="btn btn-outline-danger py-2 px-2.5 rounded-3"
-                    (click)="removeStudentEntry(i)">
-                    <i class="bi bi-trash"></i>
+
+                <!-- Selected count indicator & clear all -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="small fw-semibold text-secondary">
+                    Selected Students: <span class="badge bg-indigo text-white px-2 py-1" style="background-color: #4f46e5 !important;">{{ selectedStudentsList.length }}</span>
+                    <span *ngIf="task.targetCount" class="ms-1 text-muted">(Min: {{ task.targetCount }})</span>
+                  </span>
+                  <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-danger" *ngIf="selectedStudentsList.length > 0" (click)="clearAllSelectedStudents()">
+                    Clear All
                   </button>
+                </div>
+
+                <!-- Selected Student Chips (Slack style) -->
+                <div class="selected-student-chips d-flex flex-wrap gap-1.5 mb-3 p-2 border rounded-3 bg-white" style="min-height: 42px;">
+                  <div *ngIf="selectedStudentsList.length === 0" class="text-muted small align-self-center ps-1">
+                    No students selected. Use checkbox below to select.
+                  </div>
+                  <div *ngFor="let student of selectedStudentsList" class="badge bg-light text-dark border d-inline-flex align-items-center gap-1.5 px-2.5 py-1.5 rounded-pill" style="font-size: 0.775rem;">
+                    <span class="fw-semibold">{{ student.studentName }}</span>
+                    <span class="text-muted" style="font-size: 0.7rem;">({{ student.course }})</span>
+                    <button type="button" class="btn-close p-0" style="font-size: 0.55rem; width: 0.5em; height: 0.5em;" (click)="toggleStudentSelection(student)"></button>
+                  </div>
+                </div>
+
+                <!-- Search Input with loading spinner inside -->
+                <div class="position-relative mb-2">
+                  <span class="position-absolute top-50 start-0 translate-middle-y ps-3 text-muted">
+                    <i class="bi bi-search"></i>
+                  </span>
+                  <input type="text" class="form-control modal-text-input ps-5" placeholder="Search by student name, enrollment ID, or course..." [value]="studentSearchQuery" (input)="onStudentSearchInput($event)">
+                  <span class="position-absolute top-50 end-0 translate-middle-y pe-3" *ngIf="studentsLoading">
+                    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                  </span>
+                </div>
+
+                <!-- Search Results Dropdown List (Ant Design style) -->
+                <div class="student-search-results border rounded-3 bg-white shadow-sm overflow-auto mb-2" style="max-height: 220px;" (scroll)="onStudentListScroll($event)">
+                  <!-- Error / Retry -->
+                  <div *ngIf="studentSearchError" class="p-3 text-center text-danger small d-flex flex-column align-items-center gap-1">
+                    <span>{{ studentSearchError }}</span>
+                    <button type="button" class="btn btn-sm btn-primary rounded-3 px-3 py-1" (click)="loadStudents(true)">Retry</button>
+                  </div>
+
+                  <!-- Initial / Search Loading -->
+                  <div *ngIf="studentsLoading && studentPage === 0" class="p-4 text-center text-muted small">
+                    <div class="spinner-border spinner-border-sm text-indigo mb-2" style="color: #4f46e5;" role="status"></div>
+                    <div>Loading student database...</div>
+                  </div>
+
+                  <!-- Search Results list -->
+                  <div *ngIf="!studentSearchError && (!studentsLoading || studentPage > 0)">
+                    <div *ngFor="let s of studentSearchResults" 
+                         class="d-flex align-items-start gap-2.5 p-2.5 border-bottom hover-bg-light cursor-pointer" 
+                         style="border-color: #f1f5f9 !important;"
+                         (click)="toggleStudentSelection(s)">
+                      <div class="form-check m-0 mt-0.5">
+                        <input type="checkbox" class="form-check-input" [checked]="isStudentSelected(s)" (click)="$event.stopPropagation(); toggleStudentSelection(s)">
+                      </div>
+                      <div class="d-flex flex-column">
+                        <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ s.studentName }}</span>
+                        <div class="text-secondary small d-flex flex-wrap gap-2 mt-0.5" style="font-size: 0.725rem;">
+                          <span><strong>Enrollment:</strong> {{ s.enrollmentId }}</span>
+                          <span class="text-muted">|</span>
+                          <span><strong>Course:</strong> {{ s.course }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- No results -->
+                    <div *ngIf="studentSearchResults.length === 0 && !studentsLoading" class="p-4 text-center text-muted small">
+                      <i class="bi bi-person-exclamation fs-3 d-block mb-1"></i>
+                      No students found matching your search.
+                    </div>
+
+                    <!-- Loading more scroll indicator -->
+                    <div *ngIf="studentsLoading && studentPage > 0" class="p-2 text-center text-muted small border-top">
+                      <div class="spinner-border spinner-border-sm text-indigo" role="status"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <button type="button" class="btn btn-sm btn-outline-primary mt-2 rounded-3" (click)="addStudentEntry()">
-                <i class="bi bi-plus-circle me-1"></i> Add Student Row
-              </button>
+              <!-- Legacy Student Entries input rows -->
+              <ng-template #legacyStudentEntries>
+                <div class="form-text text-muted mb-3">Provide Student Names and their Enrollment IDs.</div>
+
+                <div *ngFor="let entry of studentEntriesList; let i = index"
+                  class="row g-2 mb-2 align-items-center animate__animated animate__fadeIn">
+                  <div class="col-md-5">
+                    <input type="text" class="form-control modal-text-input" placeholder="Student Name"
+                      [(ngModel)]="entry.studentName" name="studentName-{{i}}"
+                      [required]="isProofRequirementRequired('STUDENT_ENTRIES')">
+                  </div>
+                  <div class="col-md-5">
+                    <input type="text" class="form-control modal-text-input" placeholder="Enrollment ID"
+                      [(ngModel)]="entry.enrollmentId" name="enrollmentId-{{i}}"
+                      [required]="isProofRequirementRequired('STUDENT_ENTRIES')">
+                  </div>
+                  <div class="col-md-2 text-end">
+                    <button type="button" class="btn btn-outline-danger py-2 px-2.5 rounded-3"
+                      (click)="removeStudentEntry(i)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <button type="button" class="btn type-button btn-sm btn-outline-primary mt-2 rounded-3" (click)="addStudentEntry()">
+                  <i class="bi bi-plus-circle me-1"></i> Add Student Row
+                </button>
+              </ng-template>
             </div>
 
             <!-- 2. ATTENDANCE_UPLOAD Section -->

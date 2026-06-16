@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { StudentApiService, StudentReportingDto } from '../../../Services/student-api.service';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { UserApiService } from '../../../Services/UserApiService';
@@ -13,7 +14,7 @@ import { JwtService } from '../../../Services/jwt-service';
 import { Modal } from 'bootstrap';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
-import { TaskRequestDto } from '../../../Model/TaskRequestDto';
+import { TaskRequestDto, StructuredProofValueDto } from '../../../Model/TaskRequestDto';
 
 interface EnrichedDepartment {
   id: number;
@@ -130,6 +131,18 @@ export class ViewTask implements OnInit, OnDestroy {
 
   selectedProofs: File[] = [];
 
+  // Student Search and Selection
+  studentSearchResults: StudentReportingDto[] = [];
+  selectedStudentsList: StudentReportingDto[] = [];
+  studentSearchQuery: string = '';
+  studentPage: number = 0;
+  studentPageSize: number = 20;
+  studentsLoading: boolean = false;
+  hasMoreStudents: boolean = true;
+  studentSearchError: string | null = null;
+  private searchDebounceTimer: any = null;
+  expandedRequests: { [requestId: number]: boolean } = {};
+
   // Template Proof States
   studentEntriesList: { studentName: string, enrollmentId: string }[] = [{ studentName: '', enrollmentId: '' }];
   topicsList: { id: number; value: string }[] = [{ id: Date.now(), value: '' }];
@@ -179,12 +192,22 @@ export class ViewTask implements OnInit, OnDestroy {
     return this.task?.template?.proofRequirements?.find((pr: any) => pr.proofType === type)?.isRequired || false;
   }
 
+  getProofRequirementFieldType(type: string): string {
+    return this.task?.template?.proofRequirements?.find((pr: any) => pr.proofType === type)?.fieldType || 'TEXT';
+  }
+
   get isTemplateClosureValid(): boolean {
     if (!this.task?.template || this.newRequest.requestType !== 'CLOSURE') return true;
 
     if (this.hasProofRequirement('STUDENT_ENTRIES') && this.isProofRequirementRequired('STUDENT_ENTRIES')) {
-      const hasValidEntry = this.studentEntriesList.some(e => e.studentName?.trim() && e.enrollmentId?.trim());
-      if (!hasValidEntry) return false;
+      const isStudentSelection = this.isStudentSelectionRequirement();
+      if (isStudentSelection) {
+        const targetCount = this.task?.targetCount ?? 1;
+        if (this.selectedStudentsList.length < targetCount) return false;
+      } else {
+        const hasValidEntry = this.studentEntriesList.some(e => e.studentName?.trim() && e.enrollmentId?.trim());
+        if (!hasValidEntry) return false;
+      }
     }
 
     if (this.hasProofRequirement('ATTENDANCE_UPLOAD') && this.isProofRequirementRequired('ATTENDANCE_UPLOAD')) {
@@ -227,7 +250,8 @@ export class ViewTask implements OnInit, OnDestroy {
     private deptService: DepartmentApiService,
     private userService: UserApiService,
     private jwtService: JwtService,
-    private requestService: RequestApiService
+    private requestService: RequestApiService,
+    private studentApiService: StudentApiService
   ) { }
 
   ngOnInit(): void {
@@ -315,7 +339,7 @@ export class ViewTask implements OnInit, OnDestroy {
       })
     );
   }
- private applyRequestFilters(): void {
+  private applyRequestFilters(): void {
 
     if (!this.task?.requests) return;
 
@@ -323,7 +347,7 @@ export class ViewTask implements OnInit, OnDestroy {
       this.canViewRequest(r)
     );
   }
-  
+
   // =========================================================
   // ✅ ROLE HELPERS
   // =========================================================
@@ -342,24 +366,24 @@ export class ViewTask implements OnInit, OnDestroy {
 
   canApproveRequest(request: TaskRequestDto): boolean {
 
-  if (!this.task || !request) return false;
+    if (!this.task || !request) return false;
 
-  // ✅ ADMIN → full access
-  if (this.isAdmin) return true;
+    // ✅ ADMIN → full access
+    if (this.isAdmin) return true;
 
-  // ✅ HOD → strict rules
-  if (this.isHod) {
+    // ✅ HOD → strict rules
+    if (this.isHod) {
 
-    const isClosure = request.requestType === 'CLOSURE';
-    // const isTaskApproved = this.task.approved === true;
-    // const isCreatedByHod = this.task.createdById === this.currentUserId;
-    const isRequesterTeacher = request.requestedByRole === 'TEACHER';
+      const isClosure = request.requestType === 'CLOSURE';
+      // const isTaskApproved = this.task.approved === true;
+      // const isCreatedByHod = this.task.createdById === this.currentUserId;
+      const isRequesterTeacher = request.requestedByRole === 'TEACHER';
 
-    return isClosure && isRequesterTeacher;
+      return isClosure && isRequesterTeacher;
+    }
+
+    return false;
   }
-
-  return false;
-}
 
   canRejectRequest(request: any): boolean {
     return this.canApproveRequest(request);
@@ -623,7 +647,7 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   openAddRequestModal(): void {
-    this.newRequest = { requestType: null, remarks: '' };
+    this.newRequest = { requestType: 'CLOSURE', remarks: '' };
     this.selectedProofs = [];
     this.studentEntriesList = [{ studentName: '', enrollmentId: '' }];
     this.topicsList = [{ id: Date.now(), value: '' }];
@@ -631,8 +655,140 @@ export class ViewTask implements OnInit, OnDestroy {
     this.attendanceFile = null;
     this.dynamicProofValues = {};
     this.dynamicProofFiles = {};
+
+    // Reset Student Selection state
+    this.selectedStudentsList = [];
+    this.studentSearchQuery = '';
+    this.studentPage = 0;
+    this.studentSearchResults = [];
+    this.hasMoreStudents = true;
+    this.studentSearchError = null;
+
     this.addRequestModal = new Modal(document.getElementById('addRequestModal')!);
     this.addRequestModal.show();
+
+    // Fetch initial list of students if template is STUDENT_SELECTION
+    if (this.isStudentSelectionRequirement()) {
+      this.loadStudents(true);
+    }
+  }
+
+  loadStudents(reset: boolean = false): void {
+    if (this.studentsLoading) return;
+    if (reset) {
+      this.studentPage = 0;
+      this.studentSearchResults = [];
+      this.hasMoreStudents = true;
+      this.studentSearchError = null;
+    }
+    if (!this.hasMoreStudents) return;
+
+    this.studentsLoading = true;
+    this.studentApiService.getStudents(this.studentSearchQuery, this.studentPage, this.studentPageSize).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          if (res.data.length < this.studentPageSize) {
+            this.hasMoreStudents = false;
+          }
+          this.studentSearchResults = [...this.studentSearchResults, ...res.data];
+          this.studentPage++;
+        } else {
+          this.studentSearchError = res.message || 'Failed to fetch students';
+        }
+        this.studentsLoading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching students:', err);
+        this.studentSearchError = 'Network error. Please try again.';
+        this.studentsLoading = false;
+      }
+    });
+  }
+
+  onStudentSearchInput(event: any): void {
+    const query = event.target.value;
+    this.studentSearchQuery = query;
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+    this.searchDebounceTimer = setTimeout(() => {
+      this.loadStudents(true);
+    }, 300);
+  }
+
+  onStudentListScroll(event: any): void {
+    const el = event.target;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 20) {
+      if (this.hasMoreStudents && !this.studentsLoading) {
+        this.loadStudents();
+      }
+    }
+  }
+
+  toggleStudentSelection(student: StudentReportingDto): void {
+    const idx = this.selectedStudentsList.findIndex(s => s.userId === student.userId || s.enrollmentId === student.enrollmentId);
+    if (idx > -1) {
+      this.selectedStudentsList.splice(idx, 1);
+    } else {
+      this.selectedStudentsList.push(student);
+    }
+    this.syncSelectedStudentsToEntries();
+  }
+
+  isStudentSelected(student: StudentReportingDto): boolean {
+    return this.selectedStudentsList.some(s => s.userId === student.userId || s.enrollmentId === student.enrollmentId);
+  }
+
+  clearAllSelectedStudents(): void {
+    this.selectedStudentsList = [];
+    this.syncSelectedStudentsToEntries();
+  }
+
+  syncSelectedStudentsToEntries(): void {
+    this.studentEntriesList = this.selectedStudentsList.map(s => ({
+      studentName: s.studentName,
+      enrollmentId: s.enrollmentId,
+      userId: s.userId,
+      course: s.course
+    }));
+  }
+
+  isStudentSelection(fieldType: string | undefined): boolean {
+    return fieldType === 'STUDENT_SELECTION';
+  }
+
+  isStudentSelectionRequirement(): boolean {
+    if (!this.task?.template?.proofRequirements) return false;
+    return this.task.template.proofRequirements.some((pr: any) =>
+      pr.fieldType === 'STUDENT_SELECTION' ||
+      pr.proofType === 'STUDENT_ENTRIES' ||
+      pr.proofTypeName === 'Student Entries'
+    );
+  }
+
+  isStudentSelectionProof(p: StructuredProofValueDto): boolean {
+    if (!p) return false;
+    return p.fieldType === 'STUDENT_SELECTION' ||
+           p.proofTypeName === 'Student Entries' ||
+           p.proofTypeName === 'STUDENT_ENTRIES';
+  }
+
+  parseStudentSelection(value: string | undefined): any[] {
+    if (!value) return [];
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      console.error('Failed to parse student selection JSON:', e);
+      return [{ studentName: value, enrollmentId: '', course: '' }];
+    }
+  }
+
+  toggleRequestExpansion(requestId: number): void {
+    this.expandedRequests[requestId] = !this.expandedRequests[requestId];
+  }
+
+  isRequestExpanded(requestId: number): boolean {
+    return !!this.expandedRequests[requestId];
   }
 
   onProofsSelected(event: any): void {
@@ -673,10 +829,19 @@ export class ViewTask implements OnInit, OnDestroy {
     if (this.newRequest.requestType === 'CLOSURE') {
       if (this.task?.template) {
         if (this.hasProofRequirement('STUDENT_ENTRIES') && this.isProofRequirementRequired('STUDENT_ENTRIES')) {
-          const validEntries = this.studentEntriesList.filter(e => e.studentName?.trim() && e.enrollmentId?.trim());
-          if (validEntries.length === 0) {
-            alert('At least one student entry (Name and Enrollment ID) is required.');
-            return;
+          const isStudentSelection = this.isStudentSelectionRequirement();
+          if (isStudentSelection) {
+            const targetCount = this.task?.targetCount ?? 1;
+            if (this.selectedStudentsList.length < targetCount) {
+              alert(`At least ${targetCount} student entries are required.`);
+              return;
+            }
+          } else {
+            const validEntries = this.studentEntriesList.filter(e => e.studentName?.trim() && e.enrollmentId?.trim());
+            if (validEntries.length === 0) {
+              alert('At least one student entry (Name and Enrollment ID) is required.');
+              return;
+            }
           }
         }
         if (this.hasProofRequirement('ATTENDANCE_UPLOAD') && this.isProofRequirementRequired('ATTENDANCE_UPLOAD')) {
@@ -749,8 +914,13 @@ export class ViewTask implements OnInit, OnDestroy {
       }
 
       if (this.hasProofRequirement('STUDENT_ENTRIES')) {
-        const validEntries = this.studentEntriesList.filter(e => e.studentName?.trim() && e.enrollmentId?.trim());
-        formData.append('studentEntries', JSON.stringify(validEntries));
+        const isStudentSelection = this.isStudentSelectionRequirement();
+        if (isStudentSelection) {
+          formData.append('studentEntries', JSON.stringify(this.studentEntriesList));
+        } else {
+          const validEntries = this.studentEntriesList.filter(e => e.studentName?.trim() && e.enrollmentId?.trim());
+          formData.append('studentEntries', JSON.stringify(validEntries));
+        }
       }
 
       if (this.hasProofRequirement('ATTENDANCE_UPLOAD') && this.attendanceFile) {
@@ -974,7 +1144,7 @@ export class ViewTask implements OnInit, OnDestroy {
     });
   }
 
-showExtensionApprovalModal(request: any): void {
+  showExtensionApprovalModal(request: any): void {
 
     if (!this.isAdmin) {
       alert('Only Admin can approve extension');
@@ -1018,7 +1188,7 @@ showExtensionApprovalModal(request: any): void {
     });
   }
 
- showRejectionModal(request: any): void {
+  showRejectionModal(request: any): void {
 
     if (!this.canRejectRequest(request)) {
       alert('Not allowed');
@@ -1049,14 +1219,14 @@ showExtensionApprovalModal(request: any): void {
           this.reloadTask();
         } else {
           alert(res.message || 'Failed to reject request.');
-                    this.reloadTask();
+          this.reloadTask();
 
         }
       },
       error: (error) => {
         console.error('Error rejecting request:', error);
         alert('Failed to reject request. Please try again.');
-                  this.reloadTask();
+        this.reloadTask();
 
       }
     });
@@ -1159,7 +1329,7 @@ showExtensionApprovalModal(request: any): void {
     const diffTime = dueDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
-  
+
   isInstanceOverdue(instance: TaskDto): boolean {
     if (!instance?.dueDate || instance.status === 'CLOSED') return false;
 
@@ -1358,7 +1528,7 @@ showExtensionApprovalModal(request: any): void {
       this.task.requests.forEach(req => {
         const typeLabel = req.requestType === 'EXTENSION' ? 'Extension' : 'Closure';
         const isExtension = req.requestType === 'EXTENSION';
-        
+
         // Submission Event
         events.push({
           title: `${typeLabel} Request Submitted`,
