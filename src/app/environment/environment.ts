@@ -9,6 +9,7 @@ export const environment = {
 
   production: true,
   apiUrl: 'https://dev.areyoureporting.com/api',
-  wsUrl: 'https://dev.areyoureporting.com/ws-notifications'
+  wsUrl: 'https://dev.areyoureporting.com/ws-notifications',
+  integrationApiKey: 'Q0NwV0lJc2tVQk1jVjR6R2hSYjV4TjNwWmV2M2hJQW5Kc1RjM0F5Z0RrR1Q='
 };
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../environment/environment';
 import { SKIP_AUTH } from '../Intercepter/auth-interceptor';
 
@@ -26,11 +26,12 @@ export interface StudentReportingResponse {
   providedIn: 'root'
 })
 export class StudentApiService {
-  private readonly baseUrl = `${environment.apiUrl}/students/reporting/students`;
+  private readonly baseUrl = `https://cms.areyoureporting.com/api/students/reporting/students`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getStudents(search?: string, page: number = 0, size: number = 20, course?: string): Observable<StudentReportingResponse> {
+    console.log('Student API called');
     let url = `${this.baseUrl}?page=${page}&size=${size}`;
     if (search) {
       url += `&search=${encodeURIComponent(search)}`;
@@ -40,7 +41,16 @@ export class StudentApiService {
     }
     return this.http.get<StudentReportingResponse>(url, {
       context: new HttpContext().set(SKIP_AUTH, true),
-      headers: { 'X-API-KEY': 'Q0NwV0lJc2tVQk1jVjR6R2hSYjV4TjNwWmV2M2hJQW5Kc1RjM0F5Z0RrR1Q=' }
-    });
+      headers: { 'X-API-KEY': environment.integrationApiKey }
+    }).pipe(
+      tap({
+        next: (res) => {
+          console.log(`Student API call completed. success=${res.success}`);
+        },
+        error: (err) => {
+          console.log(`Student API call failed. status=${err.status}`);
+        }
+      })
+    );
   }
 }

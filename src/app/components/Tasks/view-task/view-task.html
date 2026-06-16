@@ -406,8 +406,8 @@
             </button>
             <button class="tab-nav-btn" [class.active]="activeTab === 'requests'" (click)="activeTab = 'requests'">
               Requests
-              <span class="tab-count-badge" *ngIf="task?.requests?.length">
-                {{ task?.requests?.length }}
+              <span class="tab-count-badge" *ngIf="task.requests?.length">
+                {{ task.requests?.length }}
               </span>
             </button>
             <button class="tab-nav-btn" [class.active]="activeTab === 'proofs'" (click)="activeTab = 'proofs'">
