@@ -103,6 +103,51 @@ export class BottomNavComponent implements OnInit {
     });
   }
 
+  hasPermission(permission: string): boolean {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.role === 'SUPER_ADMIN') return true;
+      const permissions = payload.permissions as string[] || [];
+      return permissions.includes(permission);
+    } catch {
+      return false;
+    }
+  }
+
+  isLinkActive(link: BottomNavLink): boolean {
+    const currentUrl = this.router.url;
+
+    // Standard match: current URL matches the link's route
+    if (currentUrl.startsWith(link.route)) {
+      // For query-param-based links, also check the query param matches
+      if (link.queryParams) {
+        const paramKey = Object.keys(link.queryParams)[0];
+        const paramValue = link.queryParams[paramKey];
+        return currentUrl.toLowerCase().includes(`${paramKey}=${paramValue}`.toLowerCase());
+      }
+      // Special exact check for dashboards
+      if (link.route === '/admin' || link.route === '/hod' || link.route === '/teacher') {
+        return currentUrl.split('?')[0] === link.route;
+      }
+      // For the main Tasks link (no query params), exclude if URL has query parameters matching other links
+      if (link.route === '/view-tasks') {
+        const lowerUrl = currentUrl.toLowerCase();
+        if (
+          lowerUrl.includes('status=self') ||
+          lowerUrl.includes('status=approval') ||
+          lowerUrl.includes('status=selfassigned') ||
+          lowerUrl.includes('view=self')
+        ) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   private buildLinks(): void {
     const r = this.role ? this.role.toUpperCase() : '';
 
@@ -110,15 +155,17 @@ export class BottomNavComponent implements OnInit {
       // Primary Links (Max 5 items)
       this.primaryLinks = [
         { label: 'Dashboard', route: '/admin', icon: 'dashboard' },
-        { label: 'Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'tasks' },
-        { label: 'Users', route: '/add-user', icon: 'users' },
+        { label: 'Tasks', route: '/view-tasks', icon: 'tasks' },
+        { label: 'Users', route: '/viewAllUsers', icon: 'users' },
         { label: 'Departments', route: '/departments', icon: 'departments' },
         { label: 'Hierarchy', route: '/hierarchy-tree', icon: 'hierarchy' }
       ];
       // Secondary/More Sheet Links
       this.moreLinks = [
+        { label: 'Self Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'tasks' },
         { label: 'Pending Approvals', route: '/view-tasks', queryParams: { status: 'Approval' }, icon: 'approvals' },
         { label: 'Add Task', route: '/add-task', icon: 'add-task' },
+        { label: 'Add User', route: '/add-user', icon: 'add-user' },
         { label: 'Add Department', route: '/add-department', icon: 'add-department' },
         { label: 'Sub-Departments', route: '/sub-departments', icon: 'sub-departments' },
         { label: 'Recurring Tasks', route: '/createRecurring', icon: 'recurring' },
@@ -126,27 +173,49 @@ export class BottomNavComponent implements OnInit {
         { label: 'Roles & Permissions', route: '/roles-permissions', icon: 'permissions' }
       ];
     } else if (r === 'HOD') {
-      // Primary Links (Max 4 items)
+      // Primary Links
       this.primaryLinks = [
         { label: 'Dashboard', route: '/hod', icon: 'dashboard' },
-        { label: 'My Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'tasks' },
-        { label: 'Users', route: '/viewAllUsers', icon: 'users' },
-        { label: 'Hierarchy', route: '/hierarchy-tree', icon: 'hierarchy' }
+        { label: 'Tasks', route: '/view-tasks', icon: 'tasks' },
+        { label: 'Users', route: '/viewAllUsers', icon: 'users' }
       ];
+      
+      const hasDept = this.hasPermission('DEPARTMENT_CREATE');
+      if (hasDept) {
+        this.primaryLinks.push({ label: 'Departments', route: '/departments', icon: 'departments' });
+      } else {
+        this.primaryLinks.push({ label: 'Hierarchy', route: '/hierarchy-tree', icon: 'hierarchy' });
+      }
+
       // Secondary/More Sheet Links
       this.moreLinks = [
+        { label: 'My Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'tasks' },
         { label: 'Add Task', route: '/add-task', icon: 'add-task' },
         { label: 'Self-Assigned Tasks', route: '/view-tasks', queryParams: { status: 'selfAssigned' }, icon: 'tasks' },
         { label: 'Task Requests', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'approvals' }
       ];
+      
+      if (hasDept) {
+        this.moreLinks.push({ label: 'Hierarchy', route: '/hierarchy-tree', icon: 'hierarchy' });
+      }
     } else if (r === 'TEACHER') {
-      // Primary Links (All of them)
+      // Primary Links
       this.primaryLinks = [
         { label: 'Dashboard', route: '/teacher', icon: 'dashboard' },
+        { label: 'Tasks', route: '/view-tasks', icon: 'tasks' }
+      ];
+      if (this.hasPermission('USER_VIEW')) {
+        this.primaryLinks.push({ label: 'Users', route: '/viewAllUsers', icon: 'users' });
+      }
+      if (this.hasPermission('DEPARTMENT_CREATE')) {
+        this.primaryLinks.push({ label: 'Departments', route: '/departments', icon: 'departments' });
+      }
+      
+      // Secondary/More Sheet Links
+      this.moreLinks = [
         { label: 'My Tasks', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'tasks' },
         { label: 'Requests', route: '/task-requests', icon: 'approvals' }
       ];
-      this.moreLinks = []; // Empty, only Profile and Logout will show in bottom sheet
     }
   }
 }

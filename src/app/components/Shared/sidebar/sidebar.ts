@@ -157,6 +157,18 @@ export class SidebarComponent implements OnInit, OnDestroy {
         const paramValue = link.queryParams[paramKey];
         return currentUrl.toLowerCase().includes(`${paramKey}=${paramValue}`.toLowerCase());
       }
+      // For the main Tasks link (no query params), exclude if URL has query parameters matching other links
+      if (link.route === '/view-tasks') {
+        const lowerUrl = currentUrl.toLowerCase();
+        if (
+          lowerUrl.includes('status=self') ||
+          lowerUrl.includes('status=approval') ||
+          lowerUrl.includes('status=selfassigned') ||
+          lowerUrl.includes('view=self')
+        ) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -183,12 +195,28 @@ export class SidebarComponent implements OnInit, OnDestroy {
     });
   }
 
+  hasPermission(permission: string): boolean {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.role === 'SUPER_ADMIN') return true;
+      const permissions = payload.permissions as string[] || [];
+      return permissions.includes(permission);
+    } catch {
+      return false;
+    }
+  }
+
   private buildLinks(): void {
     const r = this.role ? this.role.toUpperCase() : '';
 
     if (r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'SUB_ADMIN') {
       this.links = [
         { label: 'Dashboard', route: '/admin', icon: 'bi-grid-fill' },
+        { label: 'Tasks', route: '/view-tasks', icon: 'bi-list-check' },
+        { label: 'Users', route: '/viewAllUsers', icon: 'bi-people' },
+        { label: 'Departments', route: '/departments', icon: 'bi-building' },
         { label: 'Self Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-list-check' },
         { label: 'Pending Approvals', route: '/view-tasks', queryParams: { status: 'Approval' }, icon: 'bi-check2-circle' },
         { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle-fill' },
@@ -204,19 +232,35 @@ export class SidebarComponent implements OnInit, OnDestroy {
     } else if (r === 'HOD') {
       this.links = [
         { label: 'Dashboard', route: '/hod', icon: 'bi-grid-fill' },
+        { label: 'Tasks', route: '/view-tasks', icon: 'bi-list-check' },
+        { label: 'Users', route: '/viewAllUsers', icon: 'bi-people' }
+      ];
+      if (this.hasPermission('DEPARTMENT_CREATE')) {
+        this.links.push({ label: 'Departments', route: '/departments', icon: 'bi-building' });
+      }
+      this.links.push(
         { label: 'My Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-list-check' },
         { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle-fill' },
         { label: 'Self-Assigned Tasks', route: '/view-tasks', queryParams: { status: 'selfAssigned' }, icon: 'bi-person-check-fill' },
         { label: 'Task Requests', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'bi-clock-history' },
         { label: 'Team Members', route: '/viewAllUsers', icon: 'bi-people-fill' },
         { label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' }
-      ];
+      );
     } else if (r === 'TEACHER') {
       this.links = [
         { label: 'Dashboard', route: '/teacher', icon: 'bi-grid-fill' },
+        { label: 'Tasks', route: '/view-tasks', icon: 'bi-list-check' }
+      ];
+      if (this.hasPermission('USER_VIEW')) {
+        this.links.push({ label: 'Users', route: '/viewAllUsers', icon: 'bi-people' });
+      }
+      if (this.hasPermission('DEPARTMENT_CREATE')) {
+        this.links.push({ label: 'Departments', route: '/departments', icon: 'bi-building' });
+      }
+      this.links.push(
         { label: 'My Tasks', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'bi-list-check' },
         { label: 'Task Requests', route: '/task-requests', icon: 'bi-clock-history' }
-      ];
+      );
     }
   }
 }

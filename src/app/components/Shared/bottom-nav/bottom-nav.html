@@ -4,8 +4,7 @@
     <a *ngFor="let link of primaryLinks" 
        [routerLink]="link.route" 
        [queryParams]="link.queryParams"
-       routerLinkActive="active"
-       [routerLinkActiveOptions]="{exact: link.route === '/admin' || link.route === '/hod' || link.route === '/teacher'}"
+       [class.active]="isLinkActive(link)"
        class="bottom-nav-item">
       <span class="bottom-nav-icon">
         <ng-container [ngSwitch]="link.icon">
@@ -63,7 +62,7 @@
       <a *ngFor="let link of moreLinks"
          [routerLink]="link.route"
          [queryParams]="link.queryParams"
-         routerLinkActive="active"
+         [class.active]="isLinkActive(link)"
          (click)="closeMoreSheet()"
          class="sheet-link-item d-flex align-items-center gap-3 p-3 rounded-3 transition text-decoration-none">
         <span class="sheet-link-icon">
