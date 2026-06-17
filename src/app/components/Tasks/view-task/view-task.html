@@ -1410,9 +1410,9 @@
               <div class="modal-proof-file-card">
                 <div class="d-flex align-items-center gap-2">
                   <i class="bi fs-3" [ngClass]="{
-                    'bi-file-earmark-pdf-fill text-danger': p.fileType?.toLowerCase()?.includes('pdf'),
-                    'bi-file-earmark-image-fill text-primary': p.fileType?.toLowerCase()?.includes('image') || p.fileType?.toLowerCase()?.includes('png') || p.fileType?.toLowerCase()?.includes('jpg'),
-                    'bi-file-earmark-spreadsheet-fill text-success': p.fileType?.toLowerCase()?.includes('sheet') || p.fileType?.toLowerCase()?.includes('xls') || p.fileType?.toLowerCase()?.includes('csv'),
+                    'bi-file-earmark-pdf-fill text-danger': (p.fileType || '').toLowerCase().includes('pdf'),
+                    'bi-file-earmark-image-fill text-primary': (p.fileType || '').toLowerCase().includes('image') || (p.fileType || '').toLowerCase().includes('png') || (p.fileType || '').toLowerCase().includes('jpg'),
+                    'bi-file-earmark-spreadsheet-fill text-success': (p.fileType || '').toLowerCase().includes('sheet') || (p.fileType || '').toLowerCase().includes('xls') || (p.fileType || '').toLowerCase().includes('csv'),
                     'bi-file-earmark-text-fill text-secondary': true
                   }"></i>
                   <div class="text-truncate">

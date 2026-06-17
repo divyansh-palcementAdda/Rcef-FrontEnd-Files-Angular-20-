@@ -54,94 +54,115 @@
 
 
     <!-- 4. STATISTICS KPI CARDS -->
-    <div class="stitch-stats-grid mb-4">
-      <!-- Card 1: Members -->
-      <div class="stitch-stat-card" [class.selected]="selectedCard === 'members'" (click)="selectedCard = 'members'; collapsed.users = false; collapsed.tasks = true;">
-        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
-          <i class="bi bi-people-fill"></i>
-        </div>
-        <span class="stat-title">MEMBERS</span>
-        <span class="stat-number">{{ userCount }}</span>
+
+    <!-- Task Stats Section (includes Members) -->
+    <div class="stitch-task-stats-section mb-4">
+      <div class="stitch-section-label mb-2">
+        <i class="bi bi-clipboard-data-fill me-1"></i>
+        <span>Task Overview</span>
       </div>
 
-      <!-- Card 2: Total Tasks -->
-      <div class="stitch-stat-card" [class.selected]="selectedCard === 'total'" (click)="collapsed.tasks = false; collapsed.users = true; resetTaskFilters()">
-        <div class="stat-icon-wrapper text-blue bg-blue-subtle">
-          <i class="bi bi-folder-fill"></i>
-        </div>
-        <span class="stat-title">TOTAL</span>
-        <span class="stat-number">{{ taskCount }}</span>
-      </div>
+      <!-- Status Cards (Members + Task Stats together) -->
+      <div class="stitch-stats-grid mb-2">
 
-      <!-- Card 3: Pending -->
-      <div class="stitch-stat-card" [class.selected]="selectedCard === 'PENDING'" (click)="filterTasksByStatus('PENDING'); collapsed.users = true;">
-        <div class="stat-icon-wrapper text-warning bg-warning-subtle">
-          <i class="bi bi-hourglass-split"></i>
-        </div>
-        <span class="stat-title">PENDING</span>
-        <span class="stat-number">{{ deptTaskStats[0]?.count || 0 }}</span>
-      </div>
-
-      <!-- Card 4: Upcoming -->
-      <div class="stitch-stat-card" [class.selected]="selectedCard === 'UPCOMING'" (click)="filterTasksByStatus('UPCOMING'); collapsed.users = true;">
-        <div class="stat-icon-wrapper text-info bg-info-subtle">
-          <i class="bi bi-calendar-event"></i>
-        </div>
-        <span class="stat-title">UPCOMING</span>
-        <span class="stat-number">{{ deptTaskStats[1]?.count || 0 }}</span>
-      </div>
-
-      <!-- Card 5: Delayed -->
-      <div class="stitch-stat-card" [class.selected]="selectedCard === 'DELAYED'" (click)="filterTasksByStatus('DELAYED'); collapsed.users = true;">
-        <div class="stat-icon-wrapper text-danger bg-danger-subtle">
-          <i class="bi bi-exclamation-triangle-fill"></i>
-        </div>
-        <span class="stat-title">DELAYED</span>
-        <span class="stat-number">{{ deptTaskStats[2]?.count || 0 }}</span>
-      </div>
-
-      <!-- Card 6: Closed -->
-      <div class="stitch-stat-card" [class.selected]="selectedCard === 'CLOSED'" (click)="filterTasksByStatus('CLOSED'); collapsed.users = true;">
-        <div class="stat-icon-wrapper text-success bg-success-subtle">
-          <i class="bi bi-check-circle-fill"></i>
-        </div>
-        <span class="stat-title">CLOSED</span>
-        <span class="stat-number">{{ deptTaskStats[3]?.count || 0 }}</span>
-      </div>
-
-      <!-- Card 7: Progress -->
-      <div class="stitch-stat-card" [class.selected]="selectedCard === 'IN_PROGRESS'" (click)="filterTasksByStatus('IN_PROGRESS'); collapsed.users = true;">
-        <div class="stat-icon-wrapper text-primary bg-primary-subtle">
-          <i class="bi bi-arrow-repeat"></i>
-        </div>
-        <span class="stat-title">PROGRESS</span>
-        <span class="stat-number">{{ deptTaskStats[4]?.count || 0 }}</span>
-      </div>
-
-      <!-- card 8+ : Dynamic template-task breakdown from API -->
-      <ng-container *ngIf="loadingTypeSummary">
-        <div class="stitch-stat-card" *ngFor="let s of [1,2,3,4,5]">
-          <div class="stat-icon-wrapper bg-secondary-subtle text-secondary" style="opacity:0.4;">
-            <i class="bi bi-tag-fill"></i>
+        <!-- Members -->
+        <div class="stitch-stat-card" [class.selected]="selectedCard === 'members'" (click)="selectedCard = 'members'; collapsed.users = false; collapsed.tasks = true;">
+          <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
+            <i class="bi bi-people-fill"></i>
           </div>
-          <span class="stat-title" style="opacity:0.4;">...</span>
-          <span class="stat-number" style="opacity:0.4;">-</span>
+          <span class="stat-title">MEMBERS</span>
+          <span class="stat-number">{{ userCount }}</span>
         </div>
-      </ng-container>
 
-      <ng-container *ngIf="!loadingTypeSummary">
-        <div class="stitch-stat-card"
-             *ngFor="let t of deptTypeSummary"
-             [class.selected]="selectedCard === t.templateTitle"
-             (click)="filterTasksByType(t.templateTitle)">
+        <!-- Total Tasks -->
+        <div class="stitch-stat-card" [class.selected]="selectedCard === 'total'" (click)="collapsed.tasks = false; collapsed.users = true; resetTaskFilters()">
+          <div class="stat-icon-wrapper text-blue bg-blue-subtle">
+            <i class="bi bi-folder-fill"></i>
+          </div>
+          <span class="stat-title">TOTAL</span>
+          <span class="stat-number">{{ taskCount }}</span>
+        </div>
+
+        <!-- Pending -->
+        <div class="stitch-stat-card" [class.selected]="selectedCard === 'PENDING'" (click)="filterTasksByStatus('PENDING'); collapsed.users = true;">
+          <div class="stat-icon-wrapper text-warning bg-warning-subtle">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <span class="stat-title">PENDING</span>
+          <span class="stat-number">{{ deptTaskStats[0]?.count || 0 }}</span>
+        </div>
+
+        <!-- Upcoming -->
+        <div class="stitch-stat-card" [class.selected]="selectedCard === 'UPCOMING'" (click)="filterTasksByStatus('UPCOMING'); collapsed.users = true;">
+          <div class="stat-icon-wrapper text-info bg-info-subtle">
+            <i class="bi bi-calendar-event"></i>
+          </div>
+          <span class="stat-title">UPCOMING</span>
+          <span class="stat-number">{{ deptTaskStats[1]?.count || 0 }}</span>
+        </div>
+
+        <!-- Delayed -->
+        <div class="stitch-stat-card" [class.selected]="selectedCard === 'DELAYED'" (click)="filterTasksByStatus('DELAYED'); collapsed.users = true;">
+          <div class="stat-icon-wrapper text-danger bg-danger-subtle">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <span class="stat-title">DELAYED</span>
+          <span class="stat-number">{{ deptTaskStats[2]?.count || 0 }}</span>
+        </div>
+
+        <!-- Closed -->
+        <div class="stitch-stat-card" [class.selected]="selectedCard === 'CLOSED'" (click)="filterTasksByStatus('CLOSED'); collapsed.users = true;">
+          <div class="stat-icon-wrapper text-success bg-success-subtle">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <span class="stat-title">CLOSED</span>
+          <span class="stat-number">{{ deptTaskStats[3]?.count || 0 }}</span>
+        </div>
+
+        <!-- In Progress -->
+        <div class="stitch-stat-card" [class.selected]="selectedCard === 'IN_PROGRESS'" (click)="filterTasksByStatus('IN_PROGRESS'); collapsed.users = true;">
           <div class="stat-icon-wrapper text-primary bg-primary-subtle">
-            <i class="bi bi-tag-fill"></i>
+            <i class="bi bi-arrow-repeat"></i>
           </div>
-          <span class="stat-title text-truncate" style="max-width:100px;" [title]="t.templateTitle">{{ t.templateTitle }}</span>
-          <span class="stat-number">{{ t.count }}</span>
+          <span class="stat-title">PROGRESS</span>
+          <span class="stat-number">{{ deptTaskStats[4]?.count || 0 }}</span>
         </div>
-      </ng-container>
 
+      </div>
+
+      <!-- Task Type Cards (dynamic) -->
+      <div class="stitch-section-label mb-2 mt-3">
+        <i class="bi bi-tags-fill me-1"></i>
+        <span>By Task Type</span>
+      </div>
+      <div class="stitch-stats-grid">
+
+        <!-- Loading skeletons -->
+        <ng-container *ngIf="loadingTypeSummary">
+          <div class="stitch-stat-card" *ngFor="let s of [1,2,3,4,5]">
+            <div class="stat-icon-wrapper bg-secondary-subtle text-secondary" style="opacity:0.4;">
+              <i class="bi bi-tag-fill"></i>
+            </div>
+            <span class="stat-title" style="opacity:0.4;">...</span>
+            <span class="stat-number" style="opacity:0.4;">-</span>
+          </div>
+        </ng-container>
+
+        <!-- Actual type cards -->
+        <ng-container *ngIf="!loadingTypeSummary">
+          <div class="stitch-stat-card"
+               *ngFor="let t of deptTypeSummary"
+               [class.selected]="selectedCard === t.templateTitle"
+               (click)="filterTasksByType(t.templateTitle)">
+            <div class="stat-icon-wrapper text-primary bg-primary-subtle">
+              <i class="bi bi-tag-fill"></i>
+            </div>
+            <span class="stat-title text-truncate" style="max-width:100px;" [title]="t.templateTitle">{{ t.templateTitle }}</span>
+            <span class="stat-number">{{ t.count }}</span>
+          </div>
+        </ng-container>
+
+      </div>
     </div>
 
     <!-- 5. TABS & DATA GRID TABLE SECTION -->
