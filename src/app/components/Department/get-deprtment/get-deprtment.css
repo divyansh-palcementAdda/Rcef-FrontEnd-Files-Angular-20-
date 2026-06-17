@@ -913,19 +913,24 @@
 }
 
 .btn-back-link {
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1.5px solid #d1d5db;
   color: #4b5563;
   font-size: 0.8rem;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
   cursor: pointer;
-  padding: 0;
-  transition: color 0.15s ease;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  transition: all 0.18s ease;
+  text-decoration: none;
 }
 
 .btn-back-link:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
   color: #111827;
 }
 

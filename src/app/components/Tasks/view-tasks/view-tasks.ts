@@ -11,6 +11,7 @@ import { finalize, catchError, debounceTime, distinctUntilChanged } from 'rxjs/o
 import { userDto } from '../../../Model/userDto';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { ModalService } from '../../../Services/modal-service';
+import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -27,6 +28,7 @@ interface ApiResponse<T> {
 })
 export class ViewTasksComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   // Task Data
   tasks: TaskDto[] = [];
@@ -407,29 +409,39 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
   deleteTask(event: Event, taskId?: number): void {
     event.stopPropagation();
-    if (!taskId || !confirm('Are you sure you want to delete this task? This action cannot be undone.')) return;
+    if (!taskId) return;
 
-    this.loading = true;
-    this.loadingMessage = 'Deleting task...';
-    this.subscriptions.add(
-      this.apiService.deleteTask(taskId)
-        .pipe(
-          finalize(() => this.loading = false),
-          catchError(err => {
-            this.handleError(err, 'Failed to delete task.');
-            return of({ success: false } as ApiResponse<null>);
+    this.confirmDialog.confirm({
+      title: 'Delete Task',
+      message: 'Are you sure you want to delete this task? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.loading = true;
+      this.loadingMessage = 'Deleting task...';
+      this.subscriptions.add(
+        this.apiService.deleteTask(taskId)
+          .pipe(
+            finalize(() => this.loading = false),
+            catchError(err => {
+              this.handleError(err, 'Failed to delete task.');
+              return of({ success: false } as ApiResponse<null>);
+            })
+          )
+          .subscribe(res => {
+            if (res?.success) {
+              this.tasks = this.tasks.filter(t => t.taskId !== taskId);
+              this.applyFilters();
+              this.calculateStats(this.tasks);
+            } else {
+              this.handleError(res, res?.message || 'Delete failed');
+            }
           })
-        )
-        .subscribe(res => {
-          if (res?.success) {
-            this.tasks = this.tasks.filter(t => t.taskId !== taskId);
-            this.applyFilters();
-            this.calculateStats(this.tasks);
-          } else {
-            this.handleError(res, res?.message || 'Delete failed');
-          }
-        })
-    );
+      );
+    });
   }
 
   getStatusClass(status?: string): string {

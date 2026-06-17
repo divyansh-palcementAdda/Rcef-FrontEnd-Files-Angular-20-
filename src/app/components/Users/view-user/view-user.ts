@@ -14,6 +14,7 @@ import { forkJoin } from 'rxjs';
 import { TaskStatus } from '../../../Model/TaskStatus';
 import { JwtService } from '../../../Services/jwt-service';
 import { DatePipe } from '@angular/common';
+import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 
 @Component({
   selector: 'app-view-user',
@@ -71,7 +72,8 @@ export class ViewUserComponent implements OnInit {
     private userService: UserApiService,
     private taskService: TaskApiService,
     private deptService: DepartmentApiService,
-    private auditLogService: AuditLogApiService
+    private auditLogService: AuditLogApiService,
+    private confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -207,13 +209,13 @@ export class ViewUserComponent implements OnInit {
 
   getTaskStatusClass(status: string): string {
     const map: any = {
-      'PENDING': 'border-amber-200 bg-amber-50 text-amber-800',
-      'UPCOMING': 'border-blue-200 bg-blue-50 text-blue-800',
-      'DELAYED': 'border-red-200 bg-red-50 text-red-800',
-      'CLOSED': 'border-emerald-200 bg-emerald-50 text-emerald-800',
-      'IN_PROGRESS': 'border-indigo-200 bg-indigo-50 text-indigo-800'
+      'PENDING':     'task-status-pending',
+      'UPCOMING':    'task-status-upcoming',
+      'DELAYED':     'task-status-delayed',
+      'CLOSED':      'task-status-closed',
+      'IN_PROGRESS': 'task-status-in-progress'
     };
-    return map[status] || 'border-gray-200 bg-gray-50 text-gray-800';
+    return map[status] || 'task-status-default';
   }
 
   applyFilters(): void {
@@ -411,24 +413,28 @@ formatTime(timestamp: string | Date): string {
   editUser(): void {
     if (this.canEditDelete()) {
       this.router.navigate(['/edit-user', this.userId]);
-    } else {
-      alert('You do not have permission to edit this user.');
     }
   }
 
   deleteUser(): void {
-    if (!this.canEditDelete() || !confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      return;
-    }
+    if (!this.canEditDelete()) return;
 
-    this.userService.deleteUser(this.userId).subscribe({
-      next: () => {
-        alert('User deleted successfully.');
-        this.goBack();
-      },
-      error: (err) => {
-        alert(err?.error?.message || 'Failed to delete user');
-      }
+    this.confirmDialog.confirm({
+      title: 'Delete User',
+      message: 'Are you sure you want to delete this user? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.userService.deleteUser(this.userId).subscribe({
+        next: () => {
+          this.goBack();
+        },
+        error: (err) => {
+          this.errorMessage = err?.error?.message || 'Failed to delete user';
+        }
+      });
     });
   }
 
@@ -436,16 +442,25 @@ formatTime(timestamp: string | Date): string {
     if (!this.canEditDelete() || !this.userId) return;
 
     const action = this.user?.status === 'ACTIVE' ? 'deactivate' : 'activate';
-    if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+    const actionLabel = this.user?.status === 'ACTIVE' ? 'Deactivate' : 'Activate';
 
-    this.userService.toggleUserStatus(this.userId).subscribe({
-      next: () => {
-        this.loadUserDetails();
-      },
-      error: (err) => {
-        console.error('Failed to toggle user status:', err);
-        alert('Failed to update user status.');
-      }
+    this.confirmDialog.confirm({
+      title: `${actionLabel} User`,
+      message: `Are you sure you want to ${action} this user?`,
+      confirmText: actionLabel,
+      cancelText: 'Cancel',
+      type: this.user?.status === 'ACTIVE' ? 'danger' : 'warning'
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.userService.toggleUserStatus(this.userId).subscribe({
+        next: () => {
+          this.loadUserDetails();
+        },
+        error: (err) => {
+          console.error('Failed to toggle user status:', err);
+          this.errorMessage = 'Failed to update user status.';
+        }
+      });
     });
   }
 

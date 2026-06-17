@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TaskTemplateApiService, TaskTemplateDto, TaskTemplateCategoryDto, TaskTemplateFieldDto, TaskTemplateProofRequirementDto, ProofTypeDto } from '../../../Services/task-template-api.service';
+import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 
 @Component({
   selector: 'app-task-template-management',
@@ -65,7 +66,8 @@ export class TaskTemplateManagementComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private templateService: TaskTemplateApiService,
-    private router: Router
+    private router: Router,
+    private confirmDialog: ConfirmDialogService
   ) {
     this.initForms();
   }
@@ -247,14 +249,21 @@ export class TaskTemplateManagementComponent implements OnInit {
   }
 
   deleteTemplate(id: number): void {
-    if (confirm('Are you sure you want to deactivate this template?')) {
+    this.confirmDialog.confirm({
+      title: 'Deactivate Template',
+      message: 'Are you sure you want to deactivate this template?',
+      confirmText: 'Deactivate',
+      cancelText: 'Cancel',
+      type: 'warning'
+    }).then(confirmed => {
+      if (!confirmed) return;
       this.templateService.deleteTemplate(id).subscribe({
         next: (res) => {
           this.successMessage = 'Template deactivated successfully';
           this.loadData();
         }
       });
-    }
+    });
   }
 
   resetTemplateForm(): void {
@@ -446,7 +455,14 @@ export class TaskTemplateManagementComponent implements OnInit {
   }
 
   deleteProofType(id: number): void {
-    if (confirm('Are you sure you want to delete this proof type?')) {
+    this.confirmDialog.confirm({
+      title: 'Delete Proof Type',
+      message: 'Are you sure you want to delete this proof type?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
       this.successMessage = null;
       this.errorMessage = null;
       this.templateService.deleteProofType(id).subscribe({
@@ -456,7 +472,7 @@ export class TaskTemplateManagementComponent implements OnInit {
         },
         error: (err) => (this.errorMessage = err.error?.message || 'Failed to delete proof type')
       });
-    }
+    });
   }
 
   resetProofTypeForm(): void {

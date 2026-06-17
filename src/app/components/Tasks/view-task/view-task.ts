@@ -15,6 +15,7 @@ import { Modal } from 'bootstrap';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { TaskRequestDto, StructuredProofValueDto } from '../../../Model/TaskRequestDto';
+import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 
 interface EnrichedDepartment {
   id: number;
@@ -253,7 +254,8 @@ export class ViewTask implements OnInit, OnDestroy {
     private userService: UserApiService,
     private jwtService: JwtService,
     private requestService: RequestApiService,
-    private studentApiService: StudentApiService
+    private studentApiService: StudentApiService,
+    private confirmDialog: ConfirmDialogService
   ) { }
 
   ngOnInit(): void {
@@ -528,14 +530,12 @@ export class ViewTask implements OnInit, OnDestroy {
   // --- VIEW INSTANCE DETAILS ---
 
   viewInstanceDetails(instanceId: number): void {
-    // First try to find in cached instances
     const cachedInstance = this.recurredInstances.find(i => i.taskId === instanceId);
 
     if (cachedInstance) {
       this.selectedInstance = cachedInstance;
       this.openViewInstanceModal();
     } else {
-      // Fetch fresh data if not in cache
       this.isLoading = true;
       this.taskService.getTaskById(instanceId).subscribe({
         next: (res) => {
@@ -543,13 +543,13 @@ export class ViewTask implements OnInit, OnDestroy {
             this.selectedInstance = res.data;
             this.openViewInstanceModal();
           } else {
-            alert('Failed to load instance details');
+            this.errorMessage = 'Failed to load instance details.';
           }
           this.isLoading = false;
         },
         error: (error) => {
           console.error('Error loading instance details:', error);
-          alert('Failed to load instance details');
+          this.errorMessage = 'Failed to load instance details.';
           this.isLoading = false;
         }
       });
@@ -800,7 +800,7 @@ export class ViewTask implements OnInit, OnDestroy {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.size > maxSize) {
-        alert(`File "${file.name}" exceeds 10MB limit.`);
+        this.errorMessage = `File "${file.name}" exceeds 10MB limit.`;
         continue;
       }
       this.selectedProofs.push(file);
@@ -818,12 +818,12 @@ export class ViewTask implements OnInit, OnDestroy {
     }
     // Validation
     if (!this.newRequest.requestType) {
-      alert('Please select request type.');
+      this.errorMessage = 'Please select request type.';
       return;
     }
 
     if (this.newRequest.requestType === 'EXTENSION' && !this.newRequest.remarks?.trim()) {
-      alert('Reason is required for extension.');
+      this.errorMessage = 'Reason is required for extension.';
       return;
     }
 
@@ -835,27 +835,27 @@ export class ViewTask implements OnInit, OnDestroy {
           if (isStudentSelection) {
             const targetCount = this.task?.targetCount ?? 1;
             if (this.selectedStudentsList.length < targetCount) {
-              alert(`At least ${targetCount} student entries are required.`);
+              this.errorMessage = `At least ${targetCount} student entries are required.`;
               return;
             }
           } else {
             const validEntries = this.studentEntriesList.filter(e => e.studentName?.trim() && e.enrollmentId?.trim());
             if (validEntries.length === 0) {
-              alert('At least one student entry (Name and Enrollment ID) is required.');
+              this.errorMessage = 'At least one student entry (Name and Enrollment ID) is required.';
               return;
             }
           }
         }
         if (this.hasProofRequirement('ATTENDANCE_UPLOAD') && this.isProofRequirementRequired('ATTENDANCE_UPLOAD')) {
           if (!this.attendanceFile) {
-            alert('Attendance sheet file (Excel/CSV) is required.');
+            this.errorMessage = 'Attendance sheet file (Excel/CSV) is required.';
             return;
           }
         }
         if (this.hasProofRequirement('TOPICS_LIST') && this.isProofRequirementRequired('TOPICS_LIST')) {
           const validTopics = this.topicsList.filter(t => t?.value?.trim());
           if (validTopics.length === 0) {
-            alert('At least one topic covered is required.');
+            this.errorMessage = 'At least one topic covered is required.';
             return;
           }
         }
@@ -869,11 +869,11 @@ export class ViewTask implements OnInit, OnDestroy {
               if (req.isRequired) {
                 if (req.fieldType === 'FILE') {
                   if (!this.dynamicProofFiles[req.proofTypeName || req.proofType]) {
-                    alert(`Proof requirement "${req.proofTypeName || req.proofType}" is required.`);
+                    this.errorMessage = `Proof requirement "${req.proofTypeName || req.proofType}" is required.`;
                     return;
                   }
                 } else if (val === undefined || val === null || val === '' || (typeof val === 'string' && !val.trim())) {
-                  alert(`Proof requirement "${req.proofTypeName || req.proofType}" is required.`);
+                  this.errorMessage = `Proof requirement "${req.proofTypeName || req.proofType}" is required.`;
                   return;
                 }
               }
@@ -883,13 +883,14 @@ export class ViewTask implements OnInit, OnDestroy {
       } else {
         // Legacy: general tasks closure requires at least one general proof file
         if (this.selectedProofs.length === 0) {
-          alert('At least one proof file is required for closure.');
+          this.errorMessage = 'At least one proof file is required for closure.';
           return;
         }
       }
     }
 
     this.isAddingReq = true;
+    this.errorMessage = '';
 
     const formData = new FormData();
     formData.append('requestType', this.newRequest.requestType);
@@ -942,44 +943,45 @@ export class ViewTask implements OnInit, OnDestroy {
     ).subscribe({
       next: (res) => {
         if (res.success) {
-          alert('Request submitted successfully!');
           this.addRequestModal?.hide();
           this.reloadTask();
         } else {
-          alert(res.message || 'Failed to submit request.');
+          this.errorMessage = res.message || 'Failed to submit request.';
         }
       },
       error: (err) => {
-        const msg = err.error?.message || 'Server error. Please try again.';
-        alert('Error: ' + msg);
+        this.errorMessage = err.error?.message || 'Server error. Please try again.';
         console.error('Error adding request:', err);
       }
     });
   }
 
   startTask(): void {
-    if (!confirm('Are you sure you want to start this task?')) {
-      return;
-    }
+    this.confirmDialog.confirm({
+      title: 'Start Task',
+      message: 'Are you sure you want to start this task?',
+      confirmText: 'Start',
+      cancelText: 'Cancel',
+      type: 'info'
+    }).then(confirmed => {
+      if (!confirmed) return;
 
-    this.isStarting = true;
-
-    this.taskService.startTask(this.taskId).pipe(
-      finalize(() => this.isStarting = false)
-    ).subscribe({
-      next: (res) => {
-        if (res.success) {
-          alert('Task started successfully!');
-          this.reloadTask();
-        } else {
-          alert(res.message || 'Failed to start task.');
+      this.isStarting = true;
+      this.taskService.startTask(this.taskId).pipe(
+        finalize(() => this.isStarting = false)
+      ).subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.reloadTask();
+          } else {
+            this.errorMessage = res.message || 'Failed to start task.';
+          }
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.message || 'Server error. Please try again.';
+          console.error('Error starting task:', err);
         }
-      },
-      error: (err) => {
-        const msg = err.error?.message || 'Server error. Please try again.';
-        alert('Error: ' + msg);
-        console.error('Error starting task:', err);
-      }
+      });
     });
   }
 
@@ -1081,18 +1083,27 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   approveFromModal(requestId: number): void {
-    if (!confirm('Are you sure you want to approve this closure request?')) return;
-    this.requestDetailModal?.hide();
-    this.requestService.approveRequest(this.taskId, requestId, {}).subscribe({
-      next: (res) => {
-        if (res.success) {
-          alert('Closure request approved successfully!');
-          this.reloadTask();
-        } else {
-          alert(res.message || 'Failed to approve closure request.');
+    this.confirmDialog.confirm({
+      title: 'Approve Closure Request',
+      message: 'Are you sure you want to approve this closure request?',
+      confirmText: 'Approve',
+      cancelText: 'Cancel',
+      type: 'info'
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.requestDetailModal?.hide();
+      this.requestService.approveRequest(this.taskId, requestId, {}).subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.reloadTask();
+          } else {
+            this.errorMessage = res.message || 'Failed to approve closure request.';
+          }
+        },
+        error: () => {
+          this.errorMessage = 'Failed to approve closure request. Please try again.';
         }
-      },
-      error: () => alert('Failed to approve closure request. Please try again.')
+      });
     });
   }
 
@@ -1160,28 +1171,33 @@ export class ViewTask implements OnInit, OnDestroy {
   // --- REQUEST APPROVAL / REJECTION ---
 
   approveClosureRequest(requestId: number): void {
-    if (!confirm('Are you sure you want to approve this closure request?')) return;
-
-    this.requestService.approveRequest(this.taskId, requestId, {}).subscribe({
-      next: (res) => {
-        if (res.success) {
-          alert('Closure request approved successfully!');
-          this.reloadTask();
-        } else {
-          alert(res.message || 'Failed to approve closure request.');
+    this.confirmDialog.confirm({
+      title: 'Approve Closure Request',
+      message: 'Are you sure you want to approve this closure request?',
+      confirmText: 'Approve',
+      cancelText: 'Cancel',
+      type: 'info'
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.requestService.approveRequest(this.taskId, requestId, {}).subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.reloadTask();
+          } else {
+            this.errorMessage = res.message || 'Failed to approve closure request.';
+          }
+        },
+        error: (error) => {
+          console.error('Error approving closure request:', error);
+          this.errorMessage = 'Failed to approve closure request. Please try again.';
         }
-      },
-      error: (error) => {
-        console.error('Error approving closure request:', error);
-        alert('Failed to approve closure request. Please try again.');
-      }
+      });
     });
   }
 
   showExtensionApprovalModal(request: any): void {
-
     if (!this.isAdmin) {
-      alert('Only Admin can approve extension');
+      this.errorMessage = 'Only Admin can approve extension.';
       return;
     }
 
@@ -1192,10 +1208,9 @@ export class ViewTask implements OnInit, OnDestroy {
     this.extensionModal.show();
   }
 
-
   confirmExtensionApproval(): void {
     if (!this.extensionRequestId || !this.extensionDueDate) {
-      alert('Please select a new due date.');
+      this.errorMessage = 'Please select a new due date.';
       return;
     }
 
@@ -1209,23 +1224,21 @@ export class ViewTask implements OnInit, OnDestroy {
       next: (res) => {
         if (res.success) {
           this.extensionModal?.hide();
-          alert('Extension approved successfully!');
           this.reloadTask();
         } else {
-          alert(res.message || 'Failed to approve extension.');
+          this.errorMessage = res.message || 'Failed to approve extension.';
         }
       },
       error: (err) => {
         console.error('Approve failed:', err);
-        alert('Failed to approve extension. Please try again.');
+        this.errorMessage = 'Failed to approve extension. Please try again.';
       }
     });
   }
 
   showRejectionModal(request: any): void {
-
     if (!this.canRejectRequest(request)) {
-      alert('Not allowed');
+      this.errorMessage = 'You are not allowed to reject this request.';
       return;
     }
 
@@ -1235,9 +1248,10 @@ export class ViewTask implements OnInit, OnDestroy {
     this.rejectionModal = new Modal(document.getElementById('rejectionModal')!);
     this.rejectionModal.show();
   }
+
   confirmRejection(): void {
     if (!this.rejectionRequestId || !this.rejectionReason?.trim()) {
-      alert('Please provide a rejection reason.');
+      this.errorMessage = 'Please provide a rejection reason.';
       return;
     }
 
@@ -1249,19 +1263,16 @@ export class ViewTask implements OnInit, OnDestroy {
       next: (res) => {
         if (res.success) {
           this.rejectionModal?.hide();
-          alert('Request rejected successfully!');
           this.reloadTask();
         } else {
-          alert(res.message || 'Failed to reject request.');
+          this.errorMessage = res.message || 'Failed to reject request.';
           this.reloadTask();
-
         }
       },
       error: (error) => {
         console.error('Error rejecting request:', error);
-        alert('Failed to reject request. Please try again.');
+        this.errorMessage = 'Failed to reject request. Please try again.';
         this.reloadTask();
-
       }
     });
   }
@@ -1273,24 +1284,31 @@ export class ViewTask implements OnInit, OnDestroy {
   approveTask(): void {
     if (!this.task?.taskId || this.isApproving) return;
 
-    if (!confirm('Are you sure you want to approve this entire task?')) return;
+    this.confirmDialog.confirm({
+      title: 'Approve Task',
+      message: 'Are you sure you want to approve this entire task?',
+      confirmText: 'Approve',
+      cancelText: 'Cancel',
+      type: 'info'
+    }).then(confirmed => {
+      if (!confirmed) return;
 
-    this.isApproving = true;
-    this.taskService.approveTask(this.task.taskId).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.task = res.data;
-          alert('Task approved successfully!');
-        } else {
-          alert(res.message || 'Failed to approve task.');
+      this.isApproving = true;
+      this.taskService.approveTask(this.task!.taskId!).subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.task = res.data;
+          } else {
+            this.errorMessage = res.message || 'Failed to approve task.';
+          }
+          this.isApproving = false;
+        },
+        error: (error) => {
+          console.error('Error approving task:', error);
+          this.errorMessage = 'Failed to approve task. Please try again.';
+          this.isApproving = false;
         }
-        this.isApproving = false;
-      },
-      error: (error) => {
-        console.error('Error approving task:', error);
-        alert('Failed to approve task. Please try again.');
-        this.isApproving = false;
-      }
+      });
     });
   }
 

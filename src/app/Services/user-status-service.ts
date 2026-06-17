@@ -10,49 +10,36 @@ export class UserStatusService {
   constructor(private userService: UserApiService) {}
 
   /**
-   * 🔹 Toggles user active/inactive status with confirmation
+   * Toggles user active/inactive status (no confirm — caller handles confirmation)
    */
-  async toggleUserStatus(user: userDto): Promise<void> {
-    if (!user || !user.userId) return;
-
-    const action = user.status === 'ACTIVE' ? 'Deactivate' : 'Activate';
-    const confirmMsg = `Are you sure you want to ${action.toLowerCase()} this user (${user.fullName})?`;
-
-    if (!confirm(confirmMsg)) return;
+  async toggleUserStatus(user: userDto): Promise<{ success: boolean; message: string }> {
+    if (!user || !user.userId) {
+      return { success: false, message: 'Invalid user' };
+    }
 
     try {
       const response = await firstValueFrom(
         this.userService.toggleUserStatus(user.userId)
       );
-
-      alert(response?.message || `User ${action.toLowerCase()}d successfully.`);
-      // You can refresh component data after this call
+      const action = user.status === 'ACTIVE' ? 'deactivated' : 'activated';
+      return { success: true, message: response?.message || `User ${action} successfully.` };
     } catch (err: any) {
-      alert(err?.error?.message || `Failed to ${action.toLowerCase()} user.`);
+      const action = user.status === 'ACTIVE' ? 'deactivate' : 'activate';
+      return { success: false, message: err?.error?.message || `Failed to ${action} user.` };
     }
   }
 
   /**
-   * 🔹 Handle case where admin tries to add an existing but inactive user
+   * Reactivates an inactive user (no confirm — caller handles confirmation)
    */
   async handleInactiveUser(existingUser: userDto): Promise<boolean> {
-    const confirmMsg = `⚠️ This user (${existingUser.fullName}) already exists but is inactive.
-Would you like to reactivate this user?`;
-
-    const confirmAction = confirm(confirmMsg);
-
-    if (confirmAction) {
-      try {
-        const response = await firstValueFrom(
-          this.userService.toggleUserStatus(existingUser.userId)
-        );
-        alert(response?.message || 'User reactivated successfully.');
-        return true;
-      } catch (err: any) {
-        alert(err?.error?.message || 'Failed to reactivate user.');
-        return false;
-      }
+    try {
+      const response = await firstValueFrom(
+        this.userService.toggleUserStatus(existingUser.userId)
+      );
+      return true;
+    } catch (err: any) {
+      return false;
     }
-    return false; // Cancelled
   }
 }

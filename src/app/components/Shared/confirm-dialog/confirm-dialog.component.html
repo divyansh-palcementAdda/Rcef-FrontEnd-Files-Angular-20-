@@ -1,0 +1,26 @@
+<div class="confirm-overlay" *ngIf="visible" (click)="cancel()">
+  <div class="confirm-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" [attr.aria-labelledby]="'confirm-title'">
+    
+    <!-- Icon -->
+    <div class="confirm-icon-wrapper" [ngClass]="iconBgClass">
+      <i class="bi" [ngClass]="iconClass"></i>
+    </div>
+
+    <!-- Content -->
+    <div class="confirm-body">
+      <h5 class="confirm-title" id="confirm-title">{{ title }}</h5>
+      <p class="confirm-message">{{ current?.options?.message }}</p>
+    </div>
+
+    <!-- Actions -->
+    <div class="confirm-actions">
+      <button class="btn-cancel" (click)="cancel()">
+        {{ current?.options?.cancelText || 'Cancel' }}
+      </button>
+      <button class="btn-confirm" [ngClass]="confirmBtnClass" (click)="confirm()" cdkFocusInitial>
+        {{ current?.options?.confirmText || 'Confirm' }}
+      </button>
+    </div>
+
+  </div>
+</div>

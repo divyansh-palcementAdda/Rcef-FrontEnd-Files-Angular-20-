@@ -41,6 +41,9 @@
 
     <!-- SECTION 1: Premium Task Header (Direct Page Layout, borderless matching Figma) -->
     <div class="task-header-section mb-4">
+      
+      
+
       <div class="d-flex justify-content-between align-items-center mb-3">
         <!-- Breadcrumb link -->
         <nav aria-label="breadcrumb">
@@ -61,6 +64,14 @@
             (click)="editTask()" style="font-size: 0.85rem; border-color: #cbd5e1; color: #334155;">
              Edit Task
           </button>
+
+        
+  <button
+    class="btn btn-outline-secondary btn-sm"
+    (click)="goBack()">
+    Back
+  </button>
+
 
           <!-- Add Request (For Assigned Users) -->
           <button *ngIf="isAssignedToCurrentUser && task.status === 'IN_PROGRESS'"

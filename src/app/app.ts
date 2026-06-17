@@ -17,6 +17,7 @@ import { EditUser } from './components/Users/edit-user/edit-user';
 import { UpdateTaskComponent } from './components/Tasks/update-task/update-task';
 import { ModalService } from './Services/modal-service';
 import { SidebarService } from './Services/sidebar-service';
+import { ConfirmDialogComponent } from './components/Shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-root',
@@ -32,7 +33,8 @@ import { SidebarService } from './Services/sidebar-service';
     AddDepartmentComponent,
     AddTaskComponent,
     EditUser,
-    UpdateTaskComponent
+    UpdateTaskComponent,
+    ConfirmDialogComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
