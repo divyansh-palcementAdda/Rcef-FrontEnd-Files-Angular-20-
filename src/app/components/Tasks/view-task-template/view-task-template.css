@@ -1,0 +1,107 @@
+.bg-gradient-emerald {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+.text-emerald-800 {
+  color: #065f46 !important;
+}
+
+.bg-emerald-100 {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+}
+
+.bg-emerald-50 {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+}
+
+.whitespace-pre-wrap {
+  white-space: pre-wrap;
+}
+
+.rounded-4 {
+  border-radius: 1rem !important;
+}
+
+.fs-7 {
+  font-size: 0.8rem !important;
+}
+
+.text-dark-badge {
+  color: #1e293b !important;
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+/* Header style and interactions */
+.header-title {
+  letter-spacing: -0.01em;
+}
+
+.hover-icon {
+  transition: all 0.2s ease-in-out;
+}
+
+.hover-icon:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  transform: translateX(-3px);
+}
+
+.hover-shadow {
+  transition: all 0.2s ease-in-out;
+}
+
+.hover-shadow:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Fade-in transitions */
+.animate__animated {
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate__fadeIn {
+  animation-name: fadeIn;
+}
+
+/* Adjust layout border details */
+.border-slate-100 {
+  border-color: #f1f5f9 !important;
+}
+
+.border-slate-200 {
+  border-color: #e2e8f0 !important;
+}
+
+.bg-slate-50 {
+  background-color: #f8fafc !important;
+}
+
+.bg-light {
+  background-color: #f8fafc !important;
+}
+
+/* Table overrides */
+.table thead th {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  font-size: 0.825rem;
+  text-transform: uppercase;
+}
+
+.table tbody td {
+  font-size: 0.9rem;
+}
