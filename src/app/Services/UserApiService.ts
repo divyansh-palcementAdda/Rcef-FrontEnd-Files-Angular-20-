@@ -5,15 +5,22 @@ import { Observable, forkJoin, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { userDto } from '../Model/userDto';
 
+export interface TemplateTaskSummaryDto {
+  templateId?: number;       // optional template ID
+  templateTitle: string;     // e.g. "Visits Task", "Meeting Task" — from API
+  count: number;             // total tasks of this template for the user
+  tasks?: any[];             // optional embedded task list
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class UserApiService {
 
- 
+
   private apiUrl = `${environment.apiUrl}/user`; // <-- correct base
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllUsers(): Observable<userDto[]> {
     console.log('Fetching all users from:', this.apiUrl);
@@ -21,9 +28,9 @@ export class UserApiService {
       catchError(err => this.handleError(err, 'fetch all users'))
     );
   }
-updateUser(userId: number, payload: any) {
-  return this.http.put(`${this.apiUrl}/${userId}`, payload);
-}
+  updateUser(userId: number, payload: any) {
+    return this.http.put(`${this.apiUrl}/${userId}`, payload);
+  }
 
   createUser(payload: any): Observable<any> {
     console.log('Creating user with payload:', payload);
@@ -60,8 +67,26 @@ updateUser(userId: number, payload: any) {
     );
   }
 
+  /**
+   * GET /api/user/{userId}/template-task-summary
+   * Handles both plain-array and { data: [...] } wrapped responses.
+   */
+  getUserTaskTemplateSummary(userId: number): Observable<TemplateTaskSummaryDto[]> {
+    return this.http.get<any>(
+      `${this.apiUrl}/${userId}/template-task-summary`
+    ).pipe(
+      map((res: any) => {
+        if (Array.isArray(res)) return res as TemplateTaskSummaryDto[];
+        if (res && Array.isArray(res.data)) return res.data as TemplateTaskSummaryDto[];
+        return [];
+      }),
+      catchError(err => this.handleError(err, 'fetch user task template summary'))
+    );
+  }
+
+
   toggleUserStatus(userId: number): Observable<{ success: boolean; message: string }> {
-    
+
     return this.http.put<{ success: boolean; message: string }>(
       `${this.apiUrl}/${userId}/toggle-status`,
       {}

@@ -144,63 +144,48 @@
       <!-- Task Type Breakdown Cards -->
       <h6 class="fw-semibold mb-3 mt-2" style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;">
         Task Type Breakdown
+        <span *ngIf="loadingTypeSummary" class="spinner-border spinner-border-sm ms-2 text-primary" role="status"></span>
       </h6>
       <div class="task-type-grid">
 
-        <!-- Meeting Task -->
-        <div class="task-type-card">
-          <div>
-            <div class="task-type-count">0</div>
-            <div class="task-type-label">Meeting Tasks</div>
+        <!-- Loading skeleton cards -->
+        <ng-container *ngIf="loadingTypeSummary">
+          <div class="task-type-card skeleton-card" *ngFor="let s of [1,2,3,4,5]">
+            <div>
+              <div class="skeleton-line" style="width:40px; height:24px; margin-bottom:6px;"></div>
+              <div class="skeleton-line" style="width:90px; height:12px;"></div>
+            </div>
+            <div class="task-type-icon-box task-type-default" style="opacity:0.3;">
+              <i class="bi bi-tag"></i>
+            </div>
           </div>
-          <div class="task-type-icon-box task-type-meeting">
-            <i class="bi bi-people-fill"></i>
-          </div>
-        </div>
+        </ng-container>
 
-        <!-- Consultancy Task -->
-        <div class="task-type-card">
-          <div>
-            <div class="task-type-count">0</div>
-            <div class="task-type-label">Consultancy Tasks</div>
-          </div>
-          <div class="task-type-icon-box task-type-consultancy">
-            <i class="bi bi-chat-square-text-fill"></i>
-          </div>
-        </div>
+        <!-- Dynamic cards from API -->
+        <ng-container *ngIf="!loadingTypeSummary">
 
-        <!-- Visits Task -->
-        <div class="task-type-card">
-          <div>
-            <div class="task-type-count">0</div>
-            <div class="task-type-label">Visits Tasks</div>
+          <!-- Populated cards -->
+          <div *ngFor="let summary of taskTypeSummary"
+               class="task-type-card"
+               [class.task-type-card--active]="taskTypeFilter === summary.templateTitle"
+               (click)="selectTaskType(summary.templateTitle)"
+               style="cursor:pointer;"
+               [title]="'Click to filter by ' + summary.templateTitle">
+            <div>
+              <div class="task-type-count">{{ summary.count }}</div>
+              <div class="task-type-label">{{ summary.templateTitle }}</div>
+            </div>
+            <div class="task-type-icon-box" [ngClass]="getTypeCssClass(summary.templateTitle)">
+              <i class="bi" [ngClass]="getTypeIcon(summary.templateTitle)"></i>
+            </div>
           </div>
-          <div class="task-type-icon-box task-type-visits">
-            <i class="bi bi-geo-alt-fill"></i>
-          </div>
-        </div>
 
-        <!-- Fees Task -->
-        <div class="task-type-card">
-          <div>
-            <div class="task-type-count">0</div>
-            <div class="task-type-label">Fees Tasks</div>
+          <!-- Empty state when API returns nothing -->
+          <div *ngIf="taskTypeSummary.length === 0" class="col-12 text-muted small py-2">
+            <i class="bi bi-info-circle me-1"></i>No task type data available for this user.
           </div>
-          <div class="task-type-icon-box task-type-fees">
-            <i class="bi bi-cash-coin"></i>
-          </div>
-        </div>
 
-        <!-- Forms Task -->
-        <div class="task-type-card">
-          <div>
-            <div class="task-type-count">0</div>
-            <div class="task-type-label">Forms Tasks</div>
-          </div>
-          <div class="task-type-icon-box task-type-forms">
-            <i class="bi bi-file-earmark-text-fill"></i>
-          </div>
-        </div>
+        </ng-container>
 
       </div>
     </div>
@@ -223,13 +208,23 @@
 
           <!-- Tasks Tab Pane -->
           <div *ngIf="activeTab === 'tasks'" class="animate__animated animate__fadeIn">
+
+            <!-- Active task-type filter badge -->
+            <div *ngIf="taskTypeFilter" class="mb-2 d-flex align-items-center gap-2">
+              <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                <i class="bi bi-funnel-fill me-1"></i>
+                Filtered by: <strong>{{ taskTypeFilter }}</strong>
+                <button class="btn-close btn-close-sm ms-2" style="font-size:0.65rem;"
+                        (click)="selectTaskType(taskTypeFilter)" aria-label="Clear type filter"></button>
+              </span>
+            </div>
             
             <div class="row g-2 mb-3">
               <div class="col-sm-8">
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-search"></i></span>
                   <input type="text" class="form-control" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search tasks by title...">
-                  <button class="btn btn-outline-secondary" (click)="resetFilters()" *ngIf="searchTerm || statusFilter">
+                  <button class="btn btn-outline-secondary" (click)="resetFilters()" *ngIf="searchTerm || statusFilter || taskTypeFilter">
                     <i class="bi bi-x"></i>
                   </button>
                 </div>

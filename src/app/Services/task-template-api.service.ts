@@ -56,6 +56,88 @@ export interface ApiResponse<T> {
   status?: number;
 }
 
+export interface TaskTemplateDetailsCategoryDto {
+  id?: number;
+  name: string;
+  subcategory?: string | null;
+}
+
+export interface TaskTemplateDetailsFieldDto {
+  id?: number;
+  fieldName: string;
+  fieldType: string;
+  required: boolean;
+  options?: string;
+}
+
+export interface TaskTemplateDetailsProofRequirementDto {
+  proofTypeId?: number;
+  proofTypeName?: string;
+  fieldType?: string;
+  required: boolean;
+  options?: string;
+}
+
+export interface StatusBreakdown {
+  PENDING: number;
+  UPCOMING: number;
+  IN_PROGRESS: number;
+  CLOSED: number;
+  DELAYED: number;
+  EXTENDED: number;
+  REQUEST_FOR_EXTENSION: number;
+  REQUEST_FOR_CLOSURE: number;
+}
+
+export interface TemplateAnalytics {
+  totalTasks: number;
+  statusBreakdown: StatusBreakdown;
+}
+
+export interface TemplateUser {
+  userId: number;
+  fullName: string;
+  role: string;
+  totalTasks: number;
+  statusBreakdown: StatusBreakdown;
+}
+
+export interface TemplateDepartment {
+  departmentId: number;
+  departmentName: string;
+  totalTasks: number;
+  statusBreakdown: StatusBreakdown;
+}
+
+export interface UserBreakdownDto {
+  userId: number;
+  fullName: string;
+  role: string;
+  taskCount: number;
+}
+
+export interface DepartmentBreakdownDto {
+  departmentId: number;
+  departmentName: string;
+  taskCount: number;
+}
+
+export interface TaskTemplateDetailsDto {
+  templateId: number;
+  title: string;
+  description: string;
+  category: TaskTemplateDetailsCategoryDto;
+  fields: TaskTemplateDetailsFieldDto[];
+  proofRequirements: TaskTemplateDetailsProofRequirementDto[];
+  analytics?: TemplateAnalytics;
+  users?: TemplateUser[];
+  departments?: TemplateDepartment[];
+  userBreakdown?: UserBreakdownDto[];
+  departmentBreakdown?: DepartmentBreakdownDto[];
+  active: boolean;
+}
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -82,6 +164,10 @@ export class TaskTemplateApiService {
 
   deleteTemplate(id: number): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
+  }
+
+  getTemplateDetails(templateId: number): Observable<TaskTemplateDetailsDto> {
+    return this.http.get<TaskTemplateDetailsDto>(`${this.baseUrl}/${templateId}/details`);
   }
 
   createCategory(dto: TaskTemplateCategoryDto): Observable<ApiResponse<TaskTemplateCategoryDto>> {

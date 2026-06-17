@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
-import { UserApiService } from '../../../Services/UserApiService';
+import { UserApiService, TemplateTaskSummaryDto } from '../../../Services/UserApiService';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { AuditLogApiService } from '../../../Services/audit-log-api-service'; 
 import { userDto } from '../../../Model/userDto';
@@ -64,6 +64,29 @@ export class ViewUserComponent implements OnInit {
   enrichedDepartments: any[] = [];
   recentActivity: any[] = [];
   loadingLogs = false;
+
+  // ── Task Type Breakdown (from API) ──
+  taskTypeSummary: TemplateTaskSummaryDto[] = [
+    { templateTitle: 'Meeting Task',      count: 0 },
+    { templateTitle: 'Consultancy Task',  count: 0 },
+    { templateTitle: 'Visits Task',       count: 0 },
+    { templateTitle: 'Fees Task',         count: 0 },
+    { templateTitle: 'Forms Task',        count: 0 },
+  ];
+  taskTypeFilter = '';        // holds the selected templateTitle value
+  loadingTypeSummary = false;
+
+  /**
+   * Keyword → icon/CSS mapping.
+   * Matched by doing a case-insensitive substring check on templateTitle.
+   */
+  private readonly typeKeywords: Array<{ keyword: string; icon: string; cssClass: string }> = [
+    { keyword: 'meeting',     icon: 'bi-people-fill',            cssClass: 'task-type-meeting' },
+    { keyword: 'consultancy', icon: 'bi-chat-square-text-fill',  cssClass: 'task-type-consultancy' },
+    { keyword: 'visit',       icon: 'bi-geo-alt-fill',           cssClass: 'task-type-visits' },
+    { keyword: 'fee',         icon: 'bi-cash-coin',              cssClass: 'task-type-fees' },
+    { keyword: 'form',        icon: 'bi-file-earmark-text-fill', cssClass: 'task-type-forms' },
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -166,6 +189,7 @@ export class ViewUserComponent implements OnInit {
         this.updateTaskStats();
         this.applyFilters();
         this.loadRecentActivity();
+        this.loadTaskTypeSummary();
         this.isLoading = false;
       },
       error: (err) => {
@@ -173,6 +197,76 @@ export class ViewUserComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  /** The 5 default card definitions (always shown, count updated from API) */
+  private readonly defaultTypeCards: TemplateTaskSummaryDto[] = [
+    { templateTitle: 'Meeting Task',      count: 0 },
+    { templateTitle: 'Consultancy Task',  count: 0 },
+    { templateTitle: 'Visits Task',       count: 0 },
+    { templateTitle: 'Fees Task',         count: 0 },
+    { templateTitle: 'Forms Task',        count: 0 },
+  ];
+
+  /** Fetch template-task-summary; always show 5 cards (merge with defaults) */
+  private loadTaskTypeSummary(): void {
+    this.loadingTypeSummary = true;
+    this.userService.getUserTaskTemplateSummary(this.userId).subscribe({
+      next: (data) => {
+        const apiData = data || [];
+        if (apiData.length > 0) {
+          // API returned real data — use it directly
+          this.taskTypeSummary = apiData;
+        } else {
+          // API returned empty — show defaults with count 0
+          this.taskTypeSummary = [...this.defaultTypeCards];
+        }
+        this.loadingTypeSummary = false;
+      },
+      error: (err) => {
+        console.warn('Could not load task type summary:', err);
+        // On failure: try client-side fallback first, then defaults
+        const fallback = this.buildFallbackTypeSummary();
+        this.taskTypeSummary = fallback.length > 0 ? fallback : [...this.defaultTypeCards];
+        this.loadingTypeSummary = false;
+      }
+    });
+  }
+
+  /** Fallback: group loaded tasks by their template title when API fails */
+  private buildFallbackTypeSummary(): TemplateTaskSummaryDto[] {
+    const countMap = new Map<string, number>();
+    this.userTasks.forEach(t => {
+      const title = t.template?.title || t.templateId?.toString() || 'Other';
+      countMap.set(title, (countMap.get(title) || 0) + 1);
+    });
+    return Array.from(countMap.entries()).map(([templateTitle, count]) => ({ templateTitle, count }));
+  }
+
+  /** Returns Bootstrap icon class by matching keywords in templateTitle */
+  getTypeIcon(templateTitle: string): string {
+    const lower = templateTitle.toLowerCase();
+    const match = this.typeKeywords.find(k => lower.includes(k.keyword));
+    return match?.icon ?? 'bi-tag';
+  }
+
+  /** Returns CSS modifier class by matching keywords in templateTitle */
+  getTypeCssClass(templateTitle: string): string {
+    const lower = templateTitle.toLowerCase();
+    const match = this.typeKeywords.find(k => lower.includes(k.keyword));
+    return match?.cssClass ?? 'task-type-default';
+  }
+
+  /** The card label is simply the templateTitle returned by the API */
+  getTypeLabel(summary: TemplateTaskSummaryDto): string {
+    return summary.templateTitle;
+  }
+
+  /** Toggle task-type filter; clicking the active card again clears it */
+  selectTaskType(templateTitle: string): void {
+    this.taskTypeFilter = (this.taskTypeFilter === templateTitle) ? '' : templateTitle;
+    this.setActiveTab('tasks');
+    this.applyFilters();
   }
 
   private prepareDepartments(): void {
@@ -220,11 +314,14 @@ export class ViewUserComponent implements OnInit {
 
   applyFilters(): void {
     this.filteredTasks = this.userTasks.filter(task => {
-      const matchesSearch = !this.searchTerm || 
+      const matchesSearch = !this.searchTerm ||
         task.title?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         task.description?.toLowerCase().includes(this.searchTerm.toLowerCase());
       const matchesStatus = !this.statusFilter || task.status === this.statusFilter;
-      return matchesSearch && matchesStatus;
+      // Match against task.template?.title (the field the API populates on each task)
+      const matchesTemplate = !this.taskTypeFilter ||
+        (task.template?.title || '').toLowerCase() === this.taskTypeFilter.toLowerCase();
+      return matchesSearch && matchesStatus && matchesTemplate;
     });
     this.totalPages = Math.ceil(this.filteredTasks.length / this.pageSize) || 1;
     if (this.currentPage > this.totalPages) this.currentPage = 1;
@@ -233,6 +330,7 @@ export class ViewUserComponent implements OnInit {
   resetFilters(): void {
     this.searchTerm = '';
     this.statusFilter = '';
+    this.taskTypeFilter = '';
     this.applyFilters();
   }
 
