@@ -3,7 +3,15 @@ import { Observable, throwError } from 'rxjs';
 import { Department } from '../Model/department';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environment/environment';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
+
+export interface DeptTemplateTaskSummary {
+  templateId?: number;
+  templateTitle: string;
+  totalTasks?: number;
+  count: number;
+  statusBreakdown?: Record<string, number>;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -56,6 +64,20 @@ export class DepartmentApiService {
   }
   getDepartmentById(id: number): Observable<Department> {
     return this.http.get<Department>(`${this.apiUrl}/${id}`);
+  }
+
+  /** GET /api/department/{departmentId}/template-task-summary */
+  getDepartmentTaskTemplateSummary(departmentId: number): Observable<DeptTemplateTaskSummary[]> {
+    return this.http.get<any>(`${this.apiUrl}/${departmentId}/template-task-summary`).pipe(
+      map((res: any) => {
+        let items: any[] = [];
+        if (Array.isArray(res))                      items = res;
+        else if (Array.isArray(res?.data))            items = res.data;
+        else if (Array.isArray(res?.templateBreakdown)) items = res.templateBreakdown;
+        return items.map(i => ({ ...i, count: i.totalTasks ?? i.count ?? 0 }));
+      }),
+      catchError(err => this.handleError(err, 'fetch department template task summary'))
+    );
   }
   // ---------------- SubDepartment APIs ----------------
   getAllSubDepartments(): Observable<any[]> {

@@ -56,7 +56,7 @@
     <!-- 4. STATISTICS KPI CARDS -->
     <div class="stitch-stats-grid mb-4">
       <!-- Card 1: Members -->
-      <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
+      <div class="stitch-stat-card" [class.selected]="selectedCard === 'members'" (click)="selectedCard = 'members'; collapsed.users = false; collapsed.tasks = true;">
         <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
           <i class="bi bi-people-fill"></i>
         </div>
@@ -65,7 +65,7 @@
       </div>
 
       <!-- Card 2: Total Tasks -->
-      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && !taskStatusFilter" (click)="collapsed.tasks = false; collapsed.users = true; resetTaskFilters()">
+      <div class="stitch-stat-card" [class.selected]="selectedCard === 'total'" (click)="collapsed.tasks = false; collapsed.users = true; resetTaskFilters()">
         <div class="stat-icon-wrapper text-blue bg-blue-subtle">
           <i class="bi bi-folder-fill"></i>
         </div>
@@ -74,7 +74,7 @@
       </div>
 
       <!-- Card 3: Pending -->
-      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'PENDING'" (click)="filterTasksByStatus('PENDING'); collapsed.users = true;">
+      <div class="stitch-stat-card" [class.selected]="selectedCard === 'PENDING'" (click)="filterTasksByStatus('PENDING'); collapsed.users = true;">
         <div class="stat-icon-wrapper text-warning bg-warning-subtle">
           <i class="bi bi-hourglass-split"></i>
         </div>
@@ -83,7 +83,7 @@
       </div>
 
       <!-- Card 4: Upcoming -->
-      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'UPCOMING'" (click)="filterTasksByStatus('UPCOMING'); collapsed.users = true;">
+      <div class="stitch-stat-card" [class.selected]="selectedCard === 'UPCOMING'" (click)="filterTasksByStatus('UPCOMING'); collapsed.users = true;">
         <div class="stat-icon-wrapper text-info bg-info-subtle">
           <i class="bi bi-calendar-event"></i>
         </div>
@@ -92,7 +92,7 @@
       </div>
 
       <!-- Card 5: Delayed -->
-      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'DELAYED'" (click)="filterTasksByStatus('DELAYED'); collapsed.users = true;">
+      <div class="stitch-stat-card" [class.selected]="selectedCard === 'DELAYED'" (click)="filterTasksByStatus('DELAYED'); collapsed.users = true;">
         <div class="stat-icon-wrapper text-danger bg-danger-subtle">
           <i class="bi bi-exclamation-triangle-fill"></i>
         </div>
@@ -101,7 +101,7 @@
       </div>
 
       <!-- Card 6: Closed -->
-      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'CLOSED'" (click)="filterTasksByStatus('CLOSED'); collapsed.users = true;">
+      <div class="stitch-stat-card" [class.selected]="selectedCard === 'CLOSED'" (click)="filterTasksByStatus('CLOSED'); collapsed.users = true;">
         <div class="stat-icon-wrapper text-success bg-success-subtle">
           <i class="bi bi-check-circle-fill"></i>
         </div>
@@ -110,7 +110,7 @@
       </div>
 
       <!-- Card 7: Progress -->
-      <div class="stitch-stat-card" [class.selected]="!collapsed.tasks && taskStatusFilter === 'IN_PROGRESS'" (click)="filterTasksByStatus('IN_PROGRESS'); collapsed.users = true;">
+      <div class="stitch-stat-card" [class.selected]="selectedCard === 'IN_PROGRESS'" (click)="filterTasksByStatus('IN_PROGRESS'); collapsed.users = true;">
         <div class="stat-icon-wrapper text-primary bg-primary-subtle">
           <i class="bi bi-arrow-repeat"></i>
         </div>
@@ -118,50 +118,29 @@
         <span class="stat-number">{{ deptTaskStats[4]?.count || 0 }}</span>
       </div>
 
-      <!-- card 8 Accadmic -->
-       <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
-        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
-          <i class="bi bi-people-fill"></i>
+      <!-- card 8+ : Dynamic template-task breakdown from API -->
+      <ng-container *ngIf="loadingTypeSummary">
+        <div class="stitch-stat-card" *ngFor="let s of [1,2,3,4,5]">
+          <div class="stat-icon-wrapper bg-secondary-subtle text-secondary" style="opacity:0.4;">
+            <i class="bi bi-tag-fill"></i>
+          </div>
+          <span class="stat-title" style="opacity:0.4;">...</span>
+          <span class="stat-number" style="opacity:0.4;">-</span>
         </div>
-        <span class="stat-title">Form Task</span>
-        <span class="stat-number">5</span>
-      </div>
+      </ng-container>
 
-
-      <!-- card 9 Admissions -->
-          <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
-        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
-          <i class="bi bi-people-fill"></i>
+      <ng-container *ngIf="!loadingTypeSummary">
+        <div class="stitch-stat-card"
+             *ngFor="let t of deptTypeSummary"
+             [class.selected]="selectedCard === t.templateTitle"
+             (click)="filterTasksByType(t.templateTitle)">
+          <div class="stat-icon-wrapper text-primary bg-primary-subtle">
+            <i class="bi bi-tag-fill"></i>
+          </div>
+          <span class="stat-title text-truncate" style="max-width:100px;" [title]="t.templateTitle">{{ t.templateTitle }}</span>
+          <span class="stat-number">{{ t.count }}</span>
         </div>
-        <span class="stat-title">Visits Task</span>
-        <span class="stat-number">4</span>
-      </div>
-
-
-        <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
-        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
-          <i class="bi bi-people-fill"></i>
-        </div>
-        <span class="stat-title">Fees Task</span>
-        <span class="stat-number">4</span>
-      </div>
-
-
-       <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
-        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
-          <i class="bi bi-people-fill"></i>
-        </div>
-        <span class="stat-title">Consultancy Task</span>
-        <span class="stat-number">4</span>
-      </div>
-
-       <div class="stitch-stat-card" [class.selected]="!collapsed.users" (click)="collapsed.users = false; collapsed.tasks = true;">
-        <div class="stat-icon-wrapper text-indigo bg-indigo-subtle">
-          <i class="bi bi-people-fill"></i>
-        </div>
-        <span class="stat-title">Meeting Task</span>
-        <span class="stat-number">4</span>
-      </div>
+      </ng-container>
 
     </div>
 

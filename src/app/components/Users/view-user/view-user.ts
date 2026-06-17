@@ -81,11 +81,16 @@ export class ViewUserComponent implements OnInit {
    * Matched by doing a case-insensitive substring check on templateTitle.
    */
   private readonly typeKeywords: Array<{ keyword: string; icon: string; cssClass: string }> = [
-    { keyword: 'meeting',     icon: 'bi-people-fill',            cssClass: 'task-type-meeting' },
-    { keyword: 'consultancy', icon: 'bi-chat-square-text-fill',  cssClass: 'task-type-consultancy' },
-    { keyword: 'visit',       icon: 'bi-geo-alt-fill',           cssClass: 'task-type-visits' },
-    { keyword: 'fee',         icon: 'bi-cash-coin',              cssClass: 'task-type-fees' },
-    { keyword: 'form',        icon: 'bi-file-earmark-text-fill', cssClass: 'task-type-forms' },
+    { keyword: 'meeting',      icon: 'bi-people-fill',            cssClass: 'task-type-meeting' },
+    { keyword: 'consultancy',  icon: 'bi-chat-square-text-fill',  cssClass: 'task-type-consultancy' },
+    { keyword: 'visit',        icon: 'bi-geo-alt-fill',           cssClass: 'task-type-visits' },
+    { keyword: 'fee',          icon: 'bi-cash-coin',              cssClass: 'task-type-fees' },
+    { keyword: 'form',         icon: 'bi-file-earmark-text-fill', cssClass: 'task-type-forms' },
+    { keyword: 'field',        icon: 'bi-map-fill',               cssClass: 'task-type-visits' },
+    { keyword: 'document',     icon: 'bi-camera-video-fill',      cssClass: 'task-type-forms' },
+    { keyword: 'movie',        icon: 'bi-film',                   cssClass: 'task-type-forms' },
+    { keyword: 'syllabus',     icon: 'bi-journal-bookmark-fill',  cssClass: 'task-type-consultancy' },
+    { keyword: 'research',     icon: 'bi-search',                 cssClass: 'task-type-meeting' },
   ];
 
   constructor(

@@ -96,7 +96,7 @@ export class ViewTask implements OnInit, OnDestroy {
   replyText = '';
 
   get pendingRequestsCount(): number {
-    return this.task?.requests?.filter(r => r.status === 'PENDING').length || 0;
+    return this.task?.requests?.filter(r => r.status?.toUpperCase() === 'PENDING').length || 0;
   }
 
   getApproverName(): string {

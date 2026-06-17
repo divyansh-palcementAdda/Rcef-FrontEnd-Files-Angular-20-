@@ -8,7 +8,9 @@ import { userDto } from '../Model/userDto';
 export interface TemplateTaskSummaryDto {
   templateId?: number;       // optional template ID
   templateTitle: string;     // e.g. "Visits Task", "Meeting Task" — from API
-  count: number;             // total tasks of this template for the user
+  count: number;             // normalized total (mapped from totalTasks or count)
+  totalTasks?: number;       // raw field name returned by the API
+  statusBreakdown?: Record<string, number>; // e.g. { PENDING: 0, IN_PROGRESS: 1, ... }
   tasks?: any[];             // optional embedded task list
 }
 
@@ -76,12 +78,27 @@ export class UserApiService {
       `${this.apiUrl}/${userId}/template-task-summary`
     ).pipe(
       map((res: any) => {
-        if (Array.isArray(res)) return res as TemplateTaskSummaryDto[];
-        if (res && Array.isArray(res.data)) return res.data as TemplateTaskSummaryDto[];
+        // Shape 1: plain array  →  [ { templateTitle, totalTasks, ... }, ... ]
+        if (Array.isArray(res)) return this.normalizeTypeSummary(res);
+
+        // Shape 2: { data: [...] }
+        if (res && Array.isArray(res.data)) return this.normalizeTypeSummary(res.data);
+
+        // Shape 3 (actual API): { userId, userName, totalTemplateTasks, templateBreakdown: [...] }
+        if (res && Array.isArray(res.templateBreakdown)) return this.normalizeTypeSummary(res.templateBreakdown);
+
         return [];
       }),
       catchError(err => this.handleError(err, 'fetch user task template summary'))
     );
+  }
+
+  /** Normalise each item so count = totalTasks ?? count (whichever is present) */
+  private normalizeTypeSummary(items: any[]): TemplateTaskSummaryDto[] {
+    return items.map(item => ({
+      ...item,
+      count: item.totalTasks ?? item.count ?? 0,
+    }));
   }
 
 

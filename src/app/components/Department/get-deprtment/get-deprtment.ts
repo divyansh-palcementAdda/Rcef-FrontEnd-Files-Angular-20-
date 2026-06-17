@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
-import { DepartmentApiService } from '../../../Services/department-api-service';
+import { DepartmentApiService, DeptTemplateTaskSummary } from '../../../Services/department-api-service';
 import { userDto } from '../../../Model/userDto';
 import { TaskDto } from '../../../Model/TaskDto';
 import { TaskStatus } from '../../../Model/TaskStatus';
@@ -40,11 +40,16 @@ export class GetDepartment implements OnInit {
 
   loading = true;
   loadingTasks = false;
+  loadingTypeSummary = false;
   errorMessage: string | null = null;
   collapsed = { tasks: true, users: false };
+  selectedCard: string = 'members'; // tracks which KPI card is active
+
+  deptTypeSummary: DeptTemplateTaskSummary[] = [];
 
   taskSearch = '';
   taskStatusFilter = '';
+  taskTypeFilter = '';   // filters by template title (e.g. 'Forms Task')
   taskPage = 1;
   taskPageSize = 8;
   taskFiltered: TaskDto[] = [];
@@ -128,6 +133,7 @@ export class GetDepartment implements OnInit {
         this.loading = false;
         this.loadDepartmentTasks();
         this.initUserFilter();
+        this.loadDeptTypeSummary();
       },
       error: (err) => {
         this.loading = false;
@@ -154,6 +160,21 @@ export class GetDepartment implements OnInit {
     });
   }
 
+  loadDeptTypeSummary(): void {
+    this.loadingTypeSummary = true;
+    this.deptSrv.getDepartmentTaskTemplateSummary(this.departmentId).subscribe({
+      next: (data) => {
+        this.deptTypeSummary = data || [];
+        this.loadingTypeSummary = false;
+      },
+      error: (err) => {
+        console.warn('Could not load dept type summary:', err);
+        this.deptTypeSummary = [];
+        this.loadingTypeSummary = false;
+      }
+    });
+  }
+
   toggleCollapse(section: 'tasks' | 'users'): void {
     this.collapsed[section] = !this.collapsed[section];
   }
@@ -163,7 +184,9 @@ export class GetDepartment implements OnInit {
       const matchSearch = !this.taskSearch ||
         t.title?.toLowerCase().includes(this.taskSearch.toLowerCase());
       const matchStatus = !this.taskStatusFilter || t.status === this.taskStatusFilter;
-      return matchSearch && matchStatus;
+      const matchType = !this.taskTypeFilter ||
+        (t.template?.title || '').toLowerCase() === this.taskTypeFilter.toLowerCase();
+      return matchSearch && matchStatus && matchType;
     });
     this.taskPage = 1;
   }
@@ -171,13 +194,26 @@ export class GetDepartment implements OnInit {
   resetTaskFilters(): void {
     this.taskSearch = '';
     this.taskStatusFilter = '';
+    this.taskTypeFilter = '';
+    this.selectedCard = 'total';
     this.applyTaskFilters();
   }
 
   filterTasksByStatus(status: string): void {
     this.taskStatusFilter = status;
+    this.taskTypeFilter = '';
+    this.selectedCard = status;
     this.applyTaskFilters();
     this.collapsed.tasks = false;
+  }
+
+  filterTasksByType(templateTitle: string): void {
+    this.taskTypeFilter = templateTitle;
+    this.taskStatusFilter = '';
+    this.selectedCard = templateTitle;
+    this.applyTaskFilters();
+    this.collapsed.tasks = false;
+    this.collapsed.users = true;
   }
 
   changeTaskPage(p: number): void {
