@@ -40,6 +40,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private dataSub?: Subscription;
   dashboardData?: DashboardDto;
 
+  showTemplateModal = false;
+
   pieChartData!: ChartConfiguration<'pie'>['data'];
   barChartData!: ChartConfiguration<'bar'>['data'];
   lineChartData!: ChartConfiguration<'line'>['data'];
