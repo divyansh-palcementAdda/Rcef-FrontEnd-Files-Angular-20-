@@ -7,7 +7,8 @@
   </div>
 
   <!-- ==================== Forbidden Access ==================== -->
-  <div *ngIf="isForbidden && !isLoading" class="alert alert-danger text-center shadow-sm rounded-4 py-5 animate__animated animate__fadeIn">
+  <div *ngIf="isForbidden && !isLoading"
+    class="alert alert-danger text-center shadow-sm rounded-4 py-5 animate__animated animate__fadeIn">
     <i class="bi bi-shield-x fs-1 mb-3 d-block text-danger"></i>
     <h4 class="fw-bold mb-3">Access Restricted</h4>
     <p class="mb-0">You do not have sufficient permissions to view this user's details.</p>
@@ -17,7 +18,8 @@
   </div>
 
   <!-- ==================== Error Alert ==================== -->
-  <div *ngIf="errorMessage && !isLoading && !isForbidden" class="alert alert-danger mb-4 animate__animated animate__fadeIn">
+  <div *ngIf="errorMessage && !isLoading && !isForbidden"
+    class="alert alert-danger mb-4 animate__animated animate__fadeIn">
     <div class="d-flex justify-content-between align-items-center">
       <span><i class="bi bi-exclamation-triangle-fill me-2"></i>Failed to load user profile: {{ errorMessage }}</span>
       <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
@@ -26,7 +28,7 @@
 
   <!-- ==================== Main Content workspace ==================== -->
   <div *ngIf="user && !isLoading && !isForbidden" class="animate__animated animate__fadeIn">
-    
+
     <!-- Top Header & Breadcrumbs navigation -->
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
       <nav aria-label="breadcrumb">
@@ -39,7 +41,7 @@
           <li class="breadcrumb-item active" aria-current="page">{{ user.fullName }}</li>
         </ol>
       </nav>
-      
+
       <div class="d-flex gap-2">
         <button class="btn btn-secondary px-3" title="Refresh Profile Data" (click)="loadUserDetails()">
           <i class="bi bi-arrow-clockwise"></i>
@@ -54,12 +56,13 @@
     <!-- Profile Overview Card -->
     <div class="card p-4 border-0 mb-4">
       <div class="d-flex flex-wrap align-items-center gap-4">
-        
+
         <div class="avatar-wrapper">
           <div class="profile-avatar-circle">
             {{ user.fullName.charAt(0) }}
           </div>
-          <div class="status-indicator" [ngClass]="user.status === 'ACTIVE' ? 'status-active' : 'status-inactive'"></div>
+          <div class="status-indicator" [ngClass]="user.status === 'ACTIVE' ? 'status-active' : 'status-inactive'">
+          </div>
         </div>
 
         <div class="flex-grow-1">
@@ -98,10 +101,8 @@
           <button class="btn btn-outline-primary" (click)="editUser()" *ngIf="canEditDelete()">
             <i class="bi bi-pencil me-1"></i> Edit Profile
           </button>
-          <button class="btn" 
-            [ngClass]="user.status === 'ACTIVE' ? 'btn-outline-danger' : 'btn-outline-success'"
-            (click)="toggleUserStatus()" 
-            *ngIf="canEditDelete()">
+          <button class="btn" [ngClass]="user.status === 'ACTIVE' ? 'btn-outline-danger' : 'btn-outline-success'"
+            (click)="toggleUserStatus()" *ngIf="canEditDelete()">
             <i class="bi me-1" [ngClass]="user.status === 'ACTIVE' ? 'bi-person-dash' : 'bi-person-check'"></i>
             {{ user.status === 'ACTIVE' ? 'Deactivate' : 'Activate' }}
           </button>
@@ -113,28 +114,28 @@
     <!-- Performance Stats Overview Section -->
     <div class="mb-4">
       <h5 class="fw-bold mb-3" style="color: var(--text-main);">Performance Metrics</h5>
-      
+
       <div class="performance-grid">
-        
+
         <div *ngFor="let stat of taskStats" class="perf-card"
-             (click)="statusFilter = stat.label; setActiveTab('tasks'); applyFilters()">
+          (click)="statusFilter = stat.label; setActiveTab('tasks'); applyFilters()">
           <div>
             <div class="perf-count">{{ stat.count }}</div>
             <div class="perf-label text-truncate" style="max-width: 140px;">{{ stat.label.replace('_', ' ') }}</div>
           </div>
           <div class="perf-icon-box" [ngClass]="'bg-' + stat.color + '-subtle text-' + stat.color"
-               style="background-color: var(--bg-color); border: 1px solid var(--border-color);">
+            style="background-color: var(--bg-color); border: 1px solid var(--border-color);">
             <i class="bi" [ngClass]="stat.icon"></i>
           </div>
         </div>
-        
+
         <div class="perf-card">
           <div>
             <div class="perf-count text-primary">{{ userTasks.length }}</div>
             <div class="perf-label">Total Assigned</div>
           </div>
           <div class="perf-icon-box bg-primary-subtle text-primary"
-               style="background-color: var(--primary-subtle); border: 1px solid var(--primary-subtle);">
+            style="background-color: var(--primary-subtle); border: 1px solid var(--primary-subtle);">
             <i class="bi bi-clipboard-data"></i>
           </div>
         </div>
@@ -142,9 +143,11 @@
       </div>
 
       <!-- Task Type Breakdown Cards -->
-      <h6 class="fw-semibold mb-3 mt-2" style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;">
+      <h6 class="fw-semibold mb-3 mt-2"
+        style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;">
         Task Type Breakdown
-        <span *ngIf="loadingTypeSummary" class="spinner-border spinner-border-sm ms-2 text-primary" role="status"></span>
+        <span *ngIf="loadingTypeSummary" class="spinner-border spinner-border-sm ms-2 text-primary"
+          role="status"></span>
       </h6>
       <div class="task-type-grid">
 
@@ -165,12 +168,10 @@
         <ng-container *ngIf="!loadingTypeSummary">
 
           <!-- Populated cards -->
-          <div *ngFor="let summary of taskTypeSummary"
-               class="task-type-card"
-               [class.task-type-card--active]="taskTypeFilter === summary.templateTitle"
-               (click)="selectTaskType(summary.templateTitle)"
-               style="cursor:pointer;"
-               [title]="'Click to filter by ' + summary.templateTitle">
+          <div *ngFor="let summary of taskTypeSummary" class="task-type-card"
+            [class.task-type-card--active]="taskTypeFilter === summary.templateTitle"
+            (click)="selectTaskType(summary.templateTitle)" style="cursor:pointer;"
+            [title]="'Click to filter by ' + summary.templateTitle">
             <div>
               <div class="task-type-count">{{ summary.count }}</div>
               <div class="task-type-label">{{ summary.templateTitle }}</div>
@@ -192,17 +193,20 @@
 
     <!-- Main Dashboard Panels Grid -->
     <div class="dashboard-grid">
-      
+
       <!-- Left Column: Tasks, Departments, Activity logs -->
       <div>
         <div class="panel-card">
-          
+
           <div class="panel-header">
             <h5 class="panel-title"><i class="bi bi-list-task text-primary"></i>Workspace Details</h5>
             <div class="panel-tabs">
-              <button class="btn-tab" [class.active]="activeTab === 'tasks'" (click)="setActiveTab('tasks')">Tasks</button>
-              <button class="btn-tab" [class.active]="activeTab === 'departments'" (click)="setActiveTab('departments')">Departments</button>
-              <button class="btn-tab" [class.active]="activeTab === 'logs'" (click)="setActiveTab('logs')">Activity</button>
+              <button class="btn-tab" [class.active]="activeTab === 'tasks'"
+                (click)="setActiveTab('tasks')">Tasks</button>
+              <button class="btn-tab" [class.active]="activeTab === 'departments'"
+                (click)="setActiveTab('departments')">Departments</button>
+              <button class="btn-tab" [class.active]="activeTab === 'logs'"
+                (click)="setActiveTab('logs')">Activity</button>
             </div>
           </div>
 
@@ -215,16 +219,18 @@
                 <i class="bi bi-funnel-fill me-1"></i>
                 Filtered by: <strong>{{ taskTypeFilter }}</strong>
                 <button class="btn-close btn-close-sm ms-2" style="font-size:0.65rem;"
-                        (click)="selectTaskType(taskTypeFilter)" aria-label="Clear type filter"></button>
+                  (click)="selectTaskType(taskTypeFilter)" aria-label="Clear type filter"></button>
               </span>
             </div>
-            
+
             <div class="row g-2 mb-3">
               <div class="col-sm-8">
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-search"></i></span>
-                  <input type="text" class="form-control" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search tasks by title...">
-                  <button class="btn btn-outline-secondary" (click)="resetFilters()" *ngIf="searchTerm || statusFilter || taskTypeFilter">
+                  <input type="text" class="form-control" [(ngModel)]="searchTerm" (input)="applyFilters()"
+                    placeholder="Search tasks by title...">
+                  <button class="btn btn-outline-secondary" (click)="resetFilters()"
+                    *ngIf="searchTerm || statusFilter || taskTypeFilter">
                     <i class="bi bi-x"></i>
                   </button>
                 </div>
@@ -284,7 +290,8 @@
             </div>
 
             <!-- Tasks Pagination controls -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 pt-3 border-top" *ngIf="filteredTasks.length > 0">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 pt-3 border-top"
+              *ngIf="filteredTasks.length > 0">
               <div class="small text-muted">
                 Showing {{ startIndex }}-{{ endIndex }} of {{ filteredTasks.length }} tasks
               </div>
@@ -320,7 +327,7 @@
                     <i class="bi bi-building text-primary"></i>
                     <span>{{ dept.name }}</span>
                   </div>
-                  
+
                   <ul class="meta-list mb-3">
                     <li class="meta-item py-1">
                       <span class="meta-label">Head In-Charge</span>
@@ -331,7 +338,7 @@
                       <span class="meta-value">{{ dept.userCount }} members</span>
                     </li>
                   </ul>
-                  
+
                   <button class="btn btn-sm btn-outline-primary mt-auto" (click)="viewDepartment(dept.id)">
                     View Department <i class="bi bi-arrow-right ms-1"></i>
                   </button>
@@ -345,10 +352,11 @@
 
           <!-- Activity Logs Tab Pane -->
           <div *ngIf="activeTab === 'logs'" class="animate__animated animate__fadeIn">
-            
+
             <div class="input-group mb-3">
               <span class="input-group-text"><i class="bi bi-search"></i></span>
-              <input type="text" class="form-control" [(ngModel)]="searchTermLogs" (input)="applyFiltersLogs()" placeholder="Search activities...">
+              <input type="text" class="form-control" [(ngModel)]="searchTermLogs" (input)="applyFiltersLogs()"
+                placeholder="Search activities...">
               <button class="btn btn-outline-secondary" (click)="resetFiltersLogs()" *ngIf="searchTermLogs">
                 <i class="bi bi-x"></i>
               </button>
@@ -356,27 +364,29 @@
 
             <div class="activity-timeline">
               <div *ngFor="let log of paginatedLogs" class="activity-item">
-                <div class="activity-icon-box" 
-                     [ngClass]="log.action.includes('Create') || log.action.includes('Approve') ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary'"
-                     style="background-color: var(--bg-color); border: 1px solid var(--border-color);">
+                <div class="activity-icon-box"
+                  [ngClass]="log.action.includes('Create') || log.action.includes('Approve') ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary'"
+                  style="background-color: var(--bg-color); border: 1px solid var(--border-color);">
                   <i class="bi" [ngClass]="log.action.includes('Delete') ? 'bi-trash' : 'bi-journal-check'"></i>
                 </div>
                 <div class="activity-content border-bottom pb-2">
                   <div class="activity-title">{{ log.action }} • {{ log.entity }}</div>
                   <div class="activity-details">{{ log.details || 'No additional details provided.' }}</div>
                   <div class="activity-time text-muted small mt-1">
-                    <i class="bi bi-clock-history me-1"></i>{{ formatDate(log.timestamp) }} at {{ formatTime(log.timestamp) }}
+                    <i class="bi bi-clock-history me-1"></i>{{ formatDate(log.timestamp) }} at {{
+                    formatTime(log.timestamp) }}
                   </div>
                 </div>
               </div>
-              
+
               <div *ngIf="filteredLogs.length === 0" class="text-center py-4 text-muted">
                 <i class="bi bi-journal-x fs-3 mb-2 d-block"></i> No activity logs matching filters.
               </div>
             </div>
 
             <!-- Logs Pagination controls -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 pt-3 border-top" *ngIf="filteredLogs.length > 0">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 pt-3 border-top"
+              *ngIf="filteredLogs.length > 0">
               <div class="small text-muted">
                 Showing logs pagination
               </div>
@@ -386,16 +396,20 @@
                     <a class="page-link" (click)="changePageLogs(1)"><i class="bi bi-chevron-double-left"></i></a>
                   </li>
                   <li class="page-item" [class.disabled]="currentPageLogs === 1">
-                    <a class="page-link" (click)="changePageLogs(currentPageLogs - 1)"><i class="bi bi-chevron-left"></i></a>
+                    <a class="page-link" (click)="changePageLogs(currentPageLogs - 1)"><i
+                        class="bi bi-chevron-left"></i></a>
                   </li>
-                  <li class="page-item" *ngFor="let page of getPageNumbersLogs()" [class.active]="currentPageLogs === page">
+                  <li class="page-item" *ngFor="let page of getPageNumbersLogs()"
+                    [class.active]="currentPageLogs === page">
                     <a class="page-link" (click)="changePageLogs(page)">{{ page }}</a>
                   </li>
                   <li class="page-item" [class.disabled]="currentPageLogs === totalPagesLogs">
-                    <a class="page-link" (click)="changePageLogs(currentPageLogs + 1)"><i class="bi bi-chevron-right"></i></a>
+                    <a class="page-link" (click)="changePageLogs(currentPageLogs + 1)"><i
+                        class="bi bi-chevron-right"></i></a>
                   </li>
                   <li class="page-item" [class.disabled]="currentPageLogs === totalPagesLogs">
-                    <a class="page-link" (click)="changePageLogs(totalPagesLogs)"><i class="bi bi-chevron-double-right"></i></a>
+                    <a class="page-link" (click)="changePageLogs(totalPagesLogs)"><i
+                        class="bi bi-chevron-double-right"></i></a>
                   </li>
                 </ul>
               </nav>
@@ -408,7 +422,7 @@
 
       <!-- Right Column: Quick actions, Recent activities overview, User info metadata -->
       <div>
-        
+
         <!-- Quick Actions Panel -->
         <div class="panel-card">
           <div class="panel-header">
@@ -427,7 +441,8 @@
               <i class="bi bi-arrow-clockwise"></i>
               <span>Refresh Workspace Data</span>
             </button>
-            <button class="quick-action-btn danger" (click)="toggleUserStatus()" *ngIf="canEditDelete() && user.status === 'ACTIVE'">
+            <button class="quick-action-btn danger" (click)="toggleUserStatus()"
+              *ngIf="canEditDelete() && user.status === 'ACTIVE'">
               <i class="bi bi-person-dash"></i>
               <span>Deactivate Profile</span>
             </button>

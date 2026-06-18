@@ -10,6 +10,7 @@ import { JwtService } from '../../../Services/jwt-service';
 import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../Services/modal-service';
+import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 
 @Component({
   selector: 'app-view-all-users',
@@ -36,7 +37,7 @@ export class ViewAllUserss implements OnInit {
 
   // Role-based data
   private currentUserId!: number;
-   currentRole!: string;          // ADMIN | HOD
+  currentRole!: string;          // ADMIN | HOD
   private hodDepartmentId?: number;      // only for HOD
 
   private modalService = inject(ModalService);
@@ -46,7 +47,8 @@ export class ViewAllUserss implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private authApiService: AuthApiService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private confirmDialog: ConfirmDialogService
   ) {
     this.modalService.modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.success) {
@@ -85,7 +87,7 @@ export class ViewAllUserss implements OnInit {
     }
 
     this.currentUserId = decoded['userId'];
-    this.currentRole   = (decoded['role'] as string ?? '').toUpperCase();
+    this.currentRole = (decoded['role'] as string ?? '').toUpperCase();
 
     if (this.currentRole === 'HOD') {
       // HOD needs department → fetch full user DTO
@@ -153,16 +155,16 @@ export class ViewAllUserss implements OnInit {
    *  The rest of the component stays **exactly the same** (filters,
    *  pagination, delete, edit, view …)
    * ---------------------------------------------------------------- */
- /** Apply search and status filters */
+  /** Apply search and status filters */
   applyFilters(): void {
     this.filteredUsers = this.users.filter(user => {
       const matchesSearch = !this.searchTerm ||
         user.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      user.departmentNames.some(name =>
-  name.toLowerCase().includes(this.searchTerm.toLowerCase())
-)
- ||
+        user.departmentNames.some(name =>
+          name.toLowerCase().includes(this.searchTerm.toLowerCase())
+        )
+        ||
         user.role.toLowerCase().includes(this.searchTerm.toLowerCase());
 
       const matchesStatus = !this.statusFilter || user.status === this.statusFilter;
@@ -174,7 +176,7 @@ export class ViewAllUserss implements OnInit {
     this.currentPage = 1;
   }
 
-   /** Reset filters */
+  /** Reset filters */
   resetFilters(): void {
     this.searchTerm = '';
     this.statusFilter = '';
@@ -186,12 +188,12 @@ export class ViewAllUserss implements OnInit {
     if (page >= 1 && page <= this.totalPages) this.currentPage = page;
   }
 
-   /** Generate array of page numbers for pagination */
+  /** Generate array of page numbers for pagination */
   getPageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
-    get paginatedUsers(): userDto[] {
+  get paginatedUsers(): userDto[] {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredUsers.slice(start, start + this.pageSize);
   }
@@ -205,55 +207,79 @@ export class ViewAllUserss implements OnInit {
     this.router.navigate(['/user', userId]);
   }
 
-   /** Get paginated users for current page */
+  /** Get paginated users for current page */
 
 
   /** Navigate to user details page */
-  
+
 
   /** View user (button click) */
-  
+
   /** Edit user (button click) */
   editUser(event: Event, userId: number): void {
     event.stopPropagation();
     this.router.navigate(['/user/edit', userId]);
   }
 
- deleteUser(event: Event, userId: number): void {
-  event.stopPropagation();
+  deleteUser(event: Event, userId: number): void {
+    event.stopPropagation();
 
-  if (confirm('Are you sure you want to delete this user?')) {
-    this.apiService.deleteUser(userId).subscribe({
-      next: () => {
-        this.users = this.users.filter(u => u.userId !== userId);
-        this.applyFilters();
-      },
-      error: (err: any) => {
-        alert(err?.error?.message || 'Failed to delete user.');
-      }
-    });
-  }
-}
-activateUser(event: Event, userId: number): void {
-  event.stopPropagation();
+    this.confirmDialog.confirm({
+      title: 'Deactivate User',
+      message: 'Are you sure you want to deactivate this user?',
+      confirmText: 'Deactivate',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
 
-  if (confirm('Are you sure you want to activate this user?')) {
-    this.apiService.toggleUserStatus(userId).subscribe({
-      next: (res) => {
-        // Optimistically update status to ACTIVE
-        const user = this.users.find(u => u.userId === userId);
-        if (user) {
-          user.status = 'ACTIVE';
+      if (!confirmed) return;
+
+      this.apiService.deleteUser(userId).subscribe({
+        next: () => {
+          this.users = this.users.filter(u => u.userId !== userId);
+          this.applyFilters();
+        },
+        error: (err: any) => {
+          this.errorMessage =
+            err?.error?.message || 'Failed to deactivate user.';
         }
-        this.applyFilters();
-        // Optional: this.toastr.success(res.message || 'User activated successfully');
-      },
-      error: (err: any) => {
-        alert(err?.error?.message || 'Failed to activate user.');
-      }
+      });
+
     });
   }
-}
+
+  activateUser(event: Event, userId: number): void {
+    event.stopPropagation();
+
+    this.confirmDialog.confirm({
+      title: 'Activate User',
+      message: 'Are you sure you want to activate this user?',
+      confirmText: 'Activate',
+      cancelText: 'Cancel',
+      type: 'info'
+    }).then(confirmed => {
+
+      if (!confirmed) return;
+
+      this.apiService.toggleUserStatus(userId).subscribe({
+        next: () => {
+          const user = this.users.find(u => u.userId === userId);
+
+          if (user) {
+            user.status = 'ACTIVE';
+          }
+
+          this.applyFilters();
+        },
+        error: (err: any) => {
+          this.errorMessage =
+            err?.error?.message || 'Failed to activate user.';
+        }
+      });
+
+    });
+  }
+
   goBackToDashboard() {
     const token = this.jwtService.getAccessToken();
     if (token) {
@@ -268,4 +294,3 @@ activateUser(event: Event, userId: number): void {
 
 
 
-  

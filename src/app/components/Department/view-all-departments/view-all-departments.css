@@ -20,12 +20,12 @@
   padding-left: 2.75rem !important;
   border-radius: 10px;
   border: 1px solid #ECEEF2;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   min-height: 46px;
   font-size: 0.875rem;
   color: #334155;
   transition: all 0.2s ease;
- 
+
 }
 
 .search-input:focus {
@@ -55,6 +55,7 @@
   transition: all 0.2s ease;
   cursor: pointer;
 }
+
 .mobile-dept-card:hover {
   border-color: var(--primary-color);
   box-shadow: var(--shadow-sm);
@@ -67,6 +68,7 @@
   justify-content: center;
   gap: 0.25rem;
 }
+
 .pagination .page-item .page-link {
   color: var(--text-main);
   background-color: var(--card-bg);
@@ -78,18 +80,37 @@
   cursor: pointer;
   transition: all 0.15s ease;
 }
+
 .pagination .page-item .page-link:hover {
   background-color: var(--bg-color);
   border-color: var(--text-muted);
 }
+
 .pagination .page-item.active .page-link {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
   color: #ffffff;
 }
+
 .pagination .page-item.disabled .page-link {
   color: var(--text-muted);
   opacity: 0.5;
   cursor: not-allowed;
   background-color: var(--bg-color);
+}
+
+/* Active Status */
+.status-active {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border: 1px solid #10b981;
+  font-weight: 600;
+}
+
+/* Inactive Status */
+.status-inactive {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #ef4444;
+  font-weight: 600;
 }

@@ -75,7 +75,8 @@
   </div>
 
   <!-- Main Workspace Content -->
-  <div *ngIf="!isInitialLoad && !errorMessage && !isForbidden" class="main-content-flow animate__animated animate__fadeIn">
+  <div *ngIf="!isInitialLoad && !errorMessage && !isForbidden"
+    class="main-content-flow animate__animated animate__fadeIn">
 
     <!-- ==========================================
        1. HERO HEADER
@@ -113,7 +114,8 @@
       <!-- Left Column Metrics (2x2 Grid) -->
       <div class="stitch-analytics-left">
         <!-- Card 1: Total Tasks -->
-        <div class="stitch-metric-card card-total" [class.selected]="selectedCard === 'total'" (click)="selectCard('total')">
+        <div class="stitch-metric-card card-total" [class.selected]="selectedCard === 'total'"
+          (click)="selectCard('total')">
           <div *ngIf="selectedCard === 'total'" class="stitch-selected-check-badge">
             <i class="bi bi-check-circle-fill"></i>
           </div>
@@ -136,7 +138,8 @@
         </div>
 
         <!-- Card 2: Active Tasks -->
-        <div class="stitch-metric-card card-active" [class.selected]="selectedCard === 'active'" (click)="selectCard('active')">
+        <div class="stitch-metric-card card-active" [class.selected]="selectedCard === 'active'"
+          (click)="selectCard('active')">
           <div *ngIf="selectedCard === 'active'" class="stitch-selected-check-badge">
             <i class="bi bi-check-circle-fill"></i>
           </div>
@@ -159,7 +162,8 @@
         </div>
 
         <!-- Card 3: Pending Tasks -->
-        <div class="stitch-metric-card card-pending" [class.selected]="selectedCard === 'pending'" (click)="selectCard('pending')">
+        <div class="stitch-metric-card card-pending" [class.selected]="selectedCard === 'pending'"
+          (click)="selectCard('pending')">
           <div *ngIf="selectedCard === 'pending'" class="stitch-selected-check-badge">
             <i class="bi bi-check-circle-fill"></i>
           </div>
@@ -182,7 +186,8 @@
         </div>
 
         <!-- Card 4: Completed Tasks -->
-        <div class="stitch-metric-card card-completed" [class.selected]="selectedCard === 'completed'" (click)="selectCard('completed')">
+        <div class="stitch-metric-card card-completed" [class.selected]="selectedCard === 'completed'"
+          (click)="selectCard('completed')">
           <div *ngIf="selectedCard === 'completed'" class="stitch-selected-check-badge">
             <i class="bi bi-check-circle-fill"></i>
           </div>
@@ -219,7 +224,8 @@
             <!-- Health statistics list -->
             <div class="stitch-health-list">
               <!-- Overdue -->
-              <div class="stitch-health-item health-item-overdue" [class.selected]="selectedCard === 'overdue'" (click)="selectCard('overdue')">
+              <div class="stitch-health-item health-item-overdue" [class.selected]="selectedCard === 'overdue'"
+                (click)="selectCard('overdue')">
                 <div class="stitch-health-item-left">
                   <div class="stitch-health-item-icon-wrapper health-icon-overdue">
                     <i class="bi bi-exclamation-triangle-fill"></i>
@@ -232,12 +238,14 @@
                 <div class="stitch-health-item-right">
                   <span class="stitch-health-item-count health-count-overdue">{{ taskStats.overdue }}</span>
                   <i *ngIf="selectedCard !== 'overdue'" class="bi bi-chevron-right stitch-health-item-chevron"></i>
-                  <i *ngIf="selectedCard === 'overdue'" class="bi bi-check-circle-fill stitch-selected-check-icon text-danger"></i>
+                  <i *ngIf="selectedCard === 'overdue'"
+                    class="bi bi-check-circle-fill stitch-selected-check-icon text-danger"></i>
                 </div>
               </div>
 
               <!-- Extensions -->
-              <div class="stitch-health-item health-item-extensions" [class.selected]="selectedCard === 'extensionRequests'" (click)="selectCard('extensionRequests')">
+              <div class="stitch-health-item health-item-extensions"
+                [class.selected]="selectedCard === 'extensionRequests'" (click)="selectCard('extensionRequests')">
                 <div class="stitch-health-item-left">
                   <div class="stitch-health-item-icon-wrapper health-icon-extensions">
                     <i class="bi bi-clock-history"></i>
@@ -248,14 +256,18 @@
                   </div>
                 </div>
                 <div class="stitch-health-item-right">
-                  <span class="stitch-health-item-count health-count-extensions">{{ taskStats.extensionRequests }}</span>
-                  <i *ngIf="selectedCard !== 'extensionRequests'" class="bi bi-chevron-right stitch-health-item-chevron"></i>
-                  <i *ngIf="selectedCard === 'extensionRequests'" class="bi bi-check-circle-fill stitch-selected-check-icon text-warning"></i>
+                  <span class="stitch-health-item-count health-count-extensions">{{ taskStats.extensionRequests
+                    }}</span>
+                  <i *ngIf="selectedCard !== 'extensionRequests'"
+                    class="bi bi-chevron-right stitch-health-item-chevron"></i>
+                  <i *ngIf="selectedCard === 'extensionRequests'"
+                    class="bi bi-check-circle-fill stitch-selected-check-icon text-warning"></i>
                 </div>
               </div>
 
               <!-- Closures -->
-              <div class="stitch-health-item health-item-closures" [class.selected]="selectedCard === 'closureRequests'" (click)="selectCard('closureRequests')">
+              <div class="stitch-health-item health-item-closures" [class.selected]="selectedCard === 'closureRequests'"
+                (click)="selectCard('closureRequests')">
                 <div class="stitch-health-item-left">
                   <div class="stitch-health-item-icon-wrapper health-icon-closures">
                     <i class="bi bi-shield-check"></i>
@@ -267,13 +279,16 @@
                 </div>
                 <div class="stitch-health-item-right">
                   <span class="stitch-health-item-count health-count-closures">{{ taskStats.closureRequests }}</span>
-                  <i *ngIf="selectedCard !== 'closureRequests'" class="bi bi-chevron-right stitch-health-item-chevron"></i>
-                  <i *ngIf="selectedCard === 'closureRequests'" class="bi bi-check-circle-fill stitch-selected-check-icon text-success"></i>
+                  <i *ngIf="selectedCard !== 'closureRequests'"
+                    class="bi bi-chevron-right stitch-health-item-chevron"></i>
+                  <i *ngIf="selectedCard === 'closureRequests'"
+                    class="bi bi-check-circle-fill stitch-selected-check-icon text-success"></i>
                 </div>
               </div>
 
               <!-- Upcoming -->
-              <div class="stitch-health-item health-item-upcoming" [class.selected]="selectedCard === 'upcoming'" (click)="selectCard('upcoming')">
+              <div class="stitch-health-item health-item-upcoming" [class.selected]="selectedCard === 'upcoming'"
+                (click)="selectCard('upcoming')">
                 <div class="stitch-health-item-left">
                   <div class="stitch-health-item-icon-wrapper health-icon-upcoming">
                     <i class="bi bi-calendar-event"></i>
@@ -286,7 +301,8 @@
                 <div class="stitch-health-item-right">
                   <span class="stitch-health-item-count health-count-upcoming">{{ taskStats.upcoming }}</span>
                   <i *ngIf="selectedCard !== 'upcoming'" class="bi bi-chevron-right stitch-health-item-chevron"></i>
-                  <i *ngIf="selectedCard === 'upcoming'" class="bi bi-check-circle-fill stitch-selected-check-icon text-info"></i>
+                  <i *ngIf="selectedCard === 'upcoming'"
+                    class="bi bi-check-circle-fill stitch-selected-check-icon text-info"></i>
                 </div>
               </div>
             </div>
@@ -373,9 +389,10 @@
     </div>
 
     <!-- Active Filter Chips -->
-    <div *ngIf="categoryFilter || templateFilter || statusFilter" class="stitch-filter-chips animate__animated animate__fadeIn">
+    <div *ngIf="categoryFilter || templateFilter || statusFilter"
+      class="stitch-filter-chips animate__animated animate__fadeIn">
       <span class="stitch-filter-chips-label">Active Filters:</span>
-      
+
       <!-- Category Filter Chip -->
       <span *ngIf="categoryFilter" class="stitch-chip">
         <span>Category: {{ categoryFilter }}</span>
@@ -493,10 +510,10 @@
               <!-- Assignee -->
               <td data-label="Assignee">
                 <div class="stitch-assignee-layout" *ngIf="task.assignedToNames && task.assignedToNames.length > 0">
-                  <div class="stitch-assignee-avatar"
+                  <!-- <div class="stitch-assignee-avatar"
                     [style.background-color]="getAvatarColor(task.assignedToNames[0])">
                     {{ getInitials(task.assignedToNames[0]) }}
-                  </div>
+                  </div> -->
                   <div class="stitch-assignee-info">
                     <span class="stitch-assignee-name">{{ task.assignedToNames[0] }}</span>
                     <span class="stitch-assignee-role">{{ task.assignedUsers?.[0]?.role || 'Super Admin' }}</span>
@@ -507,7 +524,7 @@
               </td>
               <td data-label="Timeline">
                 <div class="stitch-timeline-wrapper" [class.timeline-urgent]="isOverdue(task)">
-                  <i class="bi bi-calendar-event stitch-timeline-calendar-icon"></i>
+                  <!-- <i class="bi bi-calendar-event stitch-timeline-calendar-icon"></i> -->
                   <div class="stitch-timeline-info">
                     <!-- Date Part -->
                     <span class="stitch-timeline-date">{{ formatDate(task.dueDate).split(' (')[0] }}</span>
@@ -516,7 +533,7 @@
                       [ngClass]="isOverdue(task) ? 'timeline-urgent' : 'timeline-normal'">
                       {{ formatDate(task.dueDate).includes(' (') ? formatDate(task.dueDate).split(' (')[1].replace(')',
                       '') : '' }}
-                      <span *ngIf="isOverdue(task)"> (Overdue)</span>
+                      <!-- <span *ngIf="isOverdue(task)"> (Overdue)</span> -->
                     </span>
                   </div>
                 </div>
@@ -611,7 +628,7 @@
 
     <!-- Empty State -->
     <div *ngIf="isEmpty || filteredTasks.length === 0" class="empty-state-card animate__animated animate__fadeIn">
-      
+
       <h4 class="fw-bold text-main">No tasks found</h4>
       <p class="text-muted mb-4 small">
         {{ (searchTerm || statusFilter) ? 'We couldn\'t find any assignments matching your current search or filter

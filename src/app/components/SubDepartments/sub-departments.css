@@ -14,6 +14,7 @@
   overflow: hidden;
   transition: all 0.2s ease;
 }
+
 .glass-card:hover {
   box-shadow: var(--shadow-md);
 }
@@ -50,10 +51,12 @@
   justify-content: space-between;
   color: var(--text-main);
 }
+
 .list-group-item-premium:hover {
   background-color: var(--bg-color);
   border-color: var(--text-muted);
 }
+
 .list-group-item-premium.active {
   background-color: var(--primary-subtle) !important;
   border-color: var(--primary-color) !important;
@@ -71,10 +74,12 @@
   font-weight: 600;
   transition: all 0.15s ease;
 }
+
 .tab-nav-btn:hover {
   color: var(--text-main);
   background-color: var(--bg-color);
 }
+
 .tab-nav-btn.active {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
@@ -87,4 +92,11 @@
   background-color: var(--bg-color) !important;
   border: 1px solid var(--border-color) !important;
   color: var(--text-muted) !important;
+}
+
+.form-select {
+  min-width: 170px;
+  padding-right: 2.25rem !important;
+  background-position: right .75rem center !important;
+  background-size: 16px 12px !important;
 }

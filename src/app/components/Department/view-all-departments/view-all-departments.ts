@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Department } from '../../../Model/department';
+import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
@@ -31,6 +32,8 @@ export class ViewDepartmentsComponent implements OnInit {
   pageSize = 8;
   totalPages = 1;
   private subscriptions = new Subscription();
+  private confirmDialogService = inject(ConfirmDialogService);
+
 
   constructor(
     private apiService: DepartmentApiService,
@@ -40,6 +43,8 @@ export class ViewDepartmentsComponent implements OnInit {
     private route: ActivatedRoute
   ) {
     inject(ModalService).modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
+
+
       if (event.success) {
         if (this.isZeroDueView) {
           this.loadZeroDueDepartments();
@@ -180,14 +185,17 @@ export class ViewDepartmentsComponent implements OnInit {
     event.stopPropagation();
     if (!departmentId) return;
 
-    if (!confirm('Are you sure you want to delete this department?')) return;
-
-    this.apiService.deleteDepartment(departmentId).subscribe({
-      next: () => {
-        this.departments = this.departments.filter(d => d.departmentId !== departmentId);
-        this.applyFilters();
-      },
-      error: err => this.handleError(err, 'Failed to delete department.')
+    // Use ConfirmDialogService for a custom confirmation modal
+    this.confirmDialogService.confirm('Are you sure you want to delete this department?').then((confirmed) => {
+      if (confirmed) {
+        this.apiService.deleteDepartment(departmentId).subscribe({
+          next: () => {
+            this.departments = this.departments.filter(d => d.departmentId !== departmentId);
+            this.applyFilters();
+          },
+          error: err => this.handleError(err, 'Failed to delete department.')
+        });
+      }
     });
   }
 }
