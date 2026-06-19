@@ -451,3 +451,9 @@ textarea.form-control {
   .modal-form-body { padding: 20px; }
   .modal-form-footer { padding: 12px 20px; }
 }
+
+/* Fix for date input validation icon overlapping native calendar icon */
+input[type="date"].form-control.is-invalid {
+  background-image: none !important;
+  padding-right: 16px !important;
+}

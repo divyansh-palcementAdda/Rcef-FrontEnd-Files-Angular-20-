@@ -462,3 +462,9 @@ textarea.form-control {
     padding: 12px 20px;
   }
 }
+
+/* Fix for date input validation icon overlapping native calendar icon */
+input[type="date"].form-control.is-invalid {
+  background-image: none !important;
+  padding-right: 16px !important;
+}
