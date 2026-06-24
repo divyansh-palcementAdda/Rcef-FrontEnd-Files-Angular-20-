@@ -59,6 +59,26 @@
   }
 }
 
+@media (max-width: 576px) {
+  .app-content {
+    padding: 0.75rem 0.75rem 96px 0.75rem !important;
+  }
+
+  .main-content {
+    padding: 1.25rem 0.75rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .app-content {
+    padding: 0.6rem 0.6rem 92px 0.6rem !important;
+  }
+
+  .main-content {
+    padding: 1rem 0.6rem;
+  }
+}
+
 
 /* ==========================================================================
    PREMIUM MODAL & BACKDROP STYLING (Inspired by Linear/Notion/Stripe)
@@ -138,15 +158,68 @@ body.modal-open .modal-backdrop-overlay {
 /* Responsive fullscreen on mobile/tablet */
 @media (max-width: 768px) {
   .modal-backdrop-overlay {
-    padding: 0.5rem;
+    padding: 0.35rem;
   }
   .modal-window-wrapper {
-    max-width: 95vw !important;
-    width: 95vw !important;
-    height: 95vh !important;
-    max-height: 95vh !important;
-    border-radius: 24px !important;
+    max-width: calc(100vw - 0.7rem) !important;
+    width: calc(100vw - 0.7rem) !important;
+    height: calc(100vh - 0.7rem) !important;
+    max-height: calc(100vh - 0.7rem) !important;
+    border-radius: 20px !important;
     border: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-backdrop-overlay {
+    padding: 0.25rem;
+  }
+
+  .modal-window-wrapper {
+    width: calc(100vw - 0.5rem) !important;
+    max-width: calc(100vw - 0.5rem) !important;
+    height: calc(100vh - 0.5rem) !important;
+    max-height: calc(100vh - 0.5rem) !important;
+    border-radius: 16px !important;
+  }
+
+  .modal-form-header,
+  .modal-form-body,
+  .modal-form-footer {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .form-section-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-section-header {
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-section-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 360px) {
+  .modal-window-wrapper {
+    width: calc(100vw - 0.35rem) !important;
+    max-width: calc(100vw - 0.35rem) !important;
+    height: calc(100vh - 0.35rem) !important;
+    max-height: calc(100vh - 0.35rem) !important;
+    border-radius: 14px !important;
+  }
+
+  .modal-form-header,
+  .modal-form-body,
+  .modal-form-footer {
+    padding-left: 0.8rem !important;
+    padding-right: 0.8rem !important;
   }
 }
 

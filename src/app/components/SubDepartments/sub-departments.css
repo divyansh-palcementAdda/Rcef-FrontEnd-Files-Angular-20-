@@ -100,3 +100,100 @@
   background-position: right .75rem center !important;
   background-size: 16px 12px !important;
 }
+
+/* Keep the mappings table readable on small screens */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive .table {
+  min-width: 980px;
+  margin-bottom: 0;
+}
+
+.table-responsive .table thead th {
+  white-space: nowrap;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+}
+
+.table-responsive .table td {
+  vertical-align: middle;
+}
+
+.table-responsive .table td:first-child,
+.table-responsive .table td:nth-child(2),
+.table-responsive .table td:last-child {
+  white-space: nowrap;
+}
+
+.table-responsive .table td:nth-child(3),
+.table-responsive .table td:nth-child(4),
+.table-responsive .table td:nth-child(5) {
+  white-space: nowrap;
+}
+
+.table-responsive .form-select {
+  min-width: 220px;
+}
+
+@media (max-width: 768px) {
+  .subdept-container {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .card-header-gradient {
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .card-body-scroll {
+    padding: 1rem;
+    max-height: 420px;
+  }
+
+  .tab-nav-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .form-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .table-responsive .table {
+    min-width: 920px;
+  }
+}
+
+@media (max-width: 480px) {
+  .list-group-item-premium {
+    padding: 0.7rem 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .table-responsive .table {
+    min-width: 860px;
+  }
+
+  .table-responsive .table thead th {
+    font-size: 0.72rem;
+    padding: 0.7rem 0.75rem;
+  }
+
+  .table-responsive .table td {
+    padding: 0.7rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .table-responsive .form-select {
+    min-width: 180px;
+  }
+}

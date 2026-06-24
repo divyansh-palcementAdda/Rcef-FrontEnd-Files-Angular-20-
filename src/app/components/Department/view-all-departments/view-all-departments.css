@@ -114,3 +114,55 @@
   border: 1px solid #ef4444;
   font-weight: 600;
 }
+
+@media (max-width: 768px) {
+  .departments-container {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .search-input {
+    min-height: 42px;
+    padding-left: 2.5rem !important;
+    font-size: 0.85rem;
+  }
+
+  .search-icon {
+    left: 16px;
+    font-size: 0.85rem;
+  }
+
+  .mobile-dept-card {
+    padding: 1rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+  }
+
+  .pagination .page-item .page-link {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.825rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input {
+    min-height: 40px;
+    padding-left: 2.25rem !important;
+  }
+
+  .mobile-dept-card {
+    padding: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .pagination {
+    gap: 0.15rem;
+  }
+
+  .pagination .page-item .page-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+}

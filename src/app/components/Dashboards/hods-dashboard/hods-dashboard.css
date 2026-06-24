@@ -18,7 +18,7 @@
 }
 
 .announcement-box {
-  width: 480px;
+  width: min(480px, calc(100vw - 1rem));
   max-width: 90%;
   animation: zoomIn 0.3s ease-out;
 }
@@ -35,4 +35,11 @@
 @keyframes zoomIn {
   from { transform: scale(0.9); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 480px) {
+  .announcement-box {
+    width: calc(100vw - 0.75rem);
+    max-width: 100%;
+  }
 }

@@ -270,3 +270,55 @@
 small {
   font-size: 0.8rem;
 }
+
+@media (max-width: 480px) {
+  .modal-form-header {
+    padding: 14px 16px !important;
+  }
+
+  .modal-form-body {
+    padding: 16px !important;
+  }
+
+  .modal-form-footer {
+    padding: 10px 16px !important;
+  }
+
+  .form-section-card {
+    padding: 16px;
+  }
+
+  .form-section-header {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .input-group-text {
+    width: 38px;
+    padding: 0 8px 0 10px;
+  }
+
+  .input-group .form-control,
+  .input-group .form-select {
+    min-height: 42px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .modal-form-header {
+    padding: 12px 14px !important;
+  }
+
+  .modal-form-body {
+    padding: 14px !important;
+  }
+
+  .modal-form-footer {
+    padding: 10px 14px !important;
+  }
+
+  .form-section-card {
+    padding: 14px;
+  }
+}

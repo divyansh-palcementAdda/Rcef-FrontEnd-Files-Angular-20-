@@ -13,3 +13,22 @@
 .glass-footer a:hover {
   color: #34D399;
 }
+
+@media (max-width: 768px) {
+  .glass-footer {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .glass-footer .container,
+  .glass-footer .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .glass-footer {
+    font-size: 0.9rem;
+  }
+}

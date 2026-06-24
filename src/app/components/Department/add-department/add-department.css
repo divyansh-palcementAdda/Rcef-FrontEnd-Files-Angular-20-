@@ -296,3 +296,60 @@ textarea.form-control {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+@media (max-width: 480px) {
+  .dept-form-header {
+    padding: 1.25rem 1rem;
+  }
+
+  .dept-form-body {
+    padding: 1.25rem 1rem;
+  }
+
+  .form-section-card {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .form-section-header {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .input-group-text {
+    width: 38px;
+    padding: 0 8px 0 10px;
+  }
+
+  .input-group .form-control,
+  .input-group .form-select {
+    min-height: 42px;
+    padding: 10px 12px;
+  }
+
+  .modal-form-header {
+    padding: 14px 16px !important;
+  }
+
+  .modal-form-body {
+    padding: 16px !important;
+  }
+
+  .modal-form-footer {
+    padding: 10px 16px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .dept-form-header {
+    padding: 1rem 0.85rem;
+  }
+
+  .dept-form-body {
+    padding: 1rem 0.85rem;
+  }
+
+  .form-section-card {
+    padding: 14px;
+  }
+}

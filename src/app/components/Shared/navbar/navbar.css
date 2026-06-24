@@ -167,6 +167,37 @@
   }
 }
 
+@media (max-width: 480px) {
+  .glass-navbar {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .pulse-logo {
+    height: 34px;
+  }
+
+  .menu-toggle {
+    font-size: 1.5rem;
+  }
+
+  .nav-links {
+    top: 60px;
+    width: min(220px, calc(100vw - 0.75rem));
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .glass-navbar {
+    padding: 0.55rem 0.6rem;
+  }
+
+  .nav-links {
+    width: min(210px, calc(100vw - 0.5rem));
+    padding: 0.875rem;
+  }
+}
+
 /* DROPDOWN MENU Z-INDEX FIX */
 .dropdown-menu {
   z-index: 1050 !important;

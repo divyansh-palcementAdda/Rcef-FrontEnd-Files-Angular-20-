@@ -120,3 +120,44 @@
   border: 1px solid var(--border-color) !important;
   color: var(--text-muted) !important;
 }
+
+@media (max-width: 768px) {
+  .management-container {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .card-header-gradient {
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .card-body-scroll {
+    padding: 1rem;
+    max-height: 420px;
+  }
+
+  .tab-nav-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .perm-checkbox-card {
+    padding: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .list-group-item-premium {
+    padding: 0.7rem 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .override-select {
+    width: 100%;
+    min-width: 0;
+  }
+}

@@ -259,3 +259,66 @@
   font-weight: 500;
   margin-bottom: 1.5rem;
 }
+
+@media (max-width: 480px) {
+  .login-wrapper {
+    padding: 12px;
+  }
+
+  .login-card {
+    padding: 1.75rem 1.25rem;
+    border-radius: 16px !important;
+  }
+
+  .login-logo {
+    width: 60px;
+    height: 60px;
+    padding: 10px;
+  }
+
+  .brand-title {
+    font-size: 1.8rem;
+  }
+
+  .form-input {
+    padding: 12px 42px 12px 42px;
+    font-size: 0.9rem;
+  }
+
+  .btn-gradient {
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+
+  .error-alert,
+  .success-alert {
+    padding: 0.65rem 1rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-wrapper {
+    padding: 8px;
+  }
+
+  .login-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .brand-title {
+    font-size: 1.55rem;
+  }
+
+  .badge-glass {
+    font-size: 0.75rem;
+    padding: 0.45rem 0.8rem;
+  }
+
+  .input-icon {
+    left: 14px;
+  }
+
+  .password-toggle-btn {
+    right: 10px;
+  }
+}

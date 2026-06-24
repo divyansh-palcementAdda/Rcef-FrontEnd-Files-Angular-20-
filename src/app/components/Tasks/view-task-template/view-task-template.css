@@ -193,3 +193,49 @@
   color: #059669;
   background: rgba(16, 185, 129, 0.05);
 }
+
+@media (max-width: 768px) {
+  .table thead th {
+    font-size: 0.75rem;
+  }
+
+  .table tbody td {
+    font-size: 0.85rem;
+  }
+
+  .avatar-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 0.78rem;
+  }
+
+  .nav-tabs .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .table thead th {
+    font-size: 0.7rem;
+  }
+
+  .table tbody td {
+    font-size: 0.8rem;
+  }
+
+  .avatar-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 0.72rem;
+  }
+
+  .nav-tabs {
+    gap: 0.25rem;
+  }
+
+  .nav-tabs .nav-link {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.8rem;
+  }
+}

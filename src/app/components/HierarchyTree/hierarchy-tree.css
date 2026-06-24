@@ -160,3 +160,62 @@
   margin-bottom: 0.4rem;
   border: 1px solid var(--border-color);
 }
+
+@media (max-width: 768px) {
+  .hierarchy-container {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .tree-view {
+    padding: 1.5rem 1rem;
+    border-radius: 10px;
+  }
+
+  .tree-list ul {
+    padding-left: 1.5rem;
+  }
+
+  .tree-list li {
+    padding: 0.6rem 0;
+  }
+
+  .node-card {
+    min-width: 0;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .avatar-placeholder {
+    width: 56px;
+    height: 56px;
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tree-view {
+    padding: 1rem 0.85rem;
+  }
+
+  .tree-list ul {
+    padding-left: 1rem;
+  }
+
+  .node-card {
+    padding: 0.6rem 0.85rem;
+  }
+
+  .role-icon-indicator {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
+
+  .perm-pill {
+    font-size: 0.675rem;
+    padding: 0.25rem 0.55rem;
+  }
+}

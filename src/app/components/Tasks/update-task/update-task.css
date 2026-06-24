@@ -457,3 +457,51 @@ input[type="date"].form-control.is-invalid {
   background-image: none !important;
   padding-right: 16px !important;
 }
+
+@media (max-width: 480px) {
+  .task-form-header {
+    padding: 18px 16px;
+  }
+
+  .task-form-body {
+    padding: 16px;
+  }
+
+  .modal-form-header {
+    padding: 14px 16px !important;
+  }
+
+  .modal-form-body {
+    padding: 16px !important;
+  }
+
+  .modal-form-footer {
+    padding: 10px 16px !important;
+  }
+
+  .task-type-container {
+    flex-direction: column;
+  }
+
+  .task-type-btn {
+    width: 100%;
+  }
+
+  .directory-card {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .task-form-header {
+    padding: 16px 14px;
+  }
+
+  .task-form-body {
+    padding: 14px;
+  }
+
+  .directory-card {
+    padding: 12px;
+  }
+}
