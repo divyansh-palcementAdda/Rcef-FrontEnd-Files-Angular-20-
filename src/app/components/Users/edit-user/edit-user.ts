@@ -153,6 +153,15 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         deptControl?.setValidators([Validators.required]);
       }
       deptControl?.updateValueAndValidity();
+
+      const subDeptControl = this.editForm.get('subDepartmentId');
+      if (role === 'HOD' || role === 'TEACHER') {
+        subDeptControl?.setValidators([Validators.required]);
+      } else {
+        subDeptControl?.clearValidators();
+        subDeptControl?.setValue(null);
+      }
+      subDeptControl?.updateValueAndValidity();
     });
     if (roleSub) this.subscriptions.push(roleSub);
   }
@@ -269,7 +278,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         d => d.name.toLowerCase() === 'administration'
       );
       this.selectedDepartments = adminDept ? [adminDept.departmentId] : [];
-    } else if (role === 'HOD') {
+    } else if (role === 'HOD' || role === 'SUB_ADMIN') {
       if (this.selectedDepartments.length > 1) {
         this.selectedDepartments = [this.selectedDepartments[0]];
       }
@@ -287,7 +296,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         d => d.name.toLowerCase() === 'administration'
       );
       this.selectedDepartments = adminDept ? [adminDept.departmentId] : [];
-    } else if (role === 'HOD') {
+    } else if (role === 'HOD' || role === 'SUB_ADMIN') {
       if (checked) {
         this.selectedDepartments = [deptId];
       } else {
@@ -316,8 +325,8 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       return dept.name.toLowerCase() !== 'administration';
     }
     
-    if (role === 'HOD') {
-      // HOD can only select one department
+    if (role === 'HOD' || role === 'SUB_ADMIN') {
+      // HOD and SUB_ADMIN can only select one department
       return this.selectedDepartments.length >= 1 && 
              !this.selectedDepartments.includes(dept.departmentId);
     }

@@ -53,4 +53,12 @@ export class StudentApiService {
       })
     );
   }
+
+  getStudentCounts(studentUserIds: number[]): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/student-reports/counts?studentUserIds=${studentUserIds.join(',')}`);
+  }
+
+  getStudentReportDetails(studentUserId: number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/student-reports/student/${studentUserId}`);
+  }
 }

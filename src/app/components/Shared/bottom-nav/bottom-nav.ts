@@ -15,7 +15,7 @@ interface BottomNavLink {
 @Component({
   selector: 'app-bottom-nav',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink],
   templateUrl: './bottom-nav.html',
   styleUrls: ['./bottom-nav.css']
 })
@@ -23,7 +23,7 @@ export class BottomNavComponent implements OnInit {
   role: string | null = null;
   username: string = 'User';
   fullName: string = 'User';
-  
+
   primaryLinks: BottomNavLink[] = [];
   moreLinks: BottomNavLink[] = [];
   isMoreOpen = false;
@@ -33,7 +33,7 @@ export class BottomNavComponent implements OnInit {
     private router: Router,
     private userApiService: UserApiService,
     private jwtService: JwtService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.role = this.authService.getCurrentRole();
@@ -179,7 +179,7 @@ export class BottomNavComponent implements OnInit {
         { label: 'Tasks', route: '/view-tasks', icon: 'tasks' },
         { label: 'Users', route: '/viewAllUsers', icon: 'users' }
       ];
-      
+
       const hasDept = this.hasPermission('DEPARTMENT_CREATE');
       if (hasDept) {
         this.primaryLinks.push({ label: 'Departments', route: '/departments', icon: 'departments' });
@@ -194,7 +194,7 @@ export class BottomNavComponent implements OnInit {
         { label: 'Self-Assigned Tasks', route: '/view-tasks', queryParams: { status: 'selfAssigned' }, icon: 'tasks' },
         { label: 'Task Requests', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'approvals' }
       ];
-      
+
       if (hasDept) {
         this.moreLinks.push({ label: 'Hierarchy', route: '/hierarchy-tree', icon: 'hierarchy' });
       }
@@ -210,7 +210,7 @@ export class BottomNavComponent implements OnInit {
       if (this.hasPermission('DEPARTMENT_CREATE')) {
         this.primaryLinks.push({ label: 'Departments', route: '/departments', icon: 'departments' });
       }
-      
+
       // Secondary/More Sheet Links
       this.moreLinks = [
         { label: 'My Tasks', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'tasks' },

@@ -107,6 +107,15 @@ export class AddUserComponent implements OnInit {
         deptControl?.setValidators([Validators.required]);
       }
       deptControl?.updateValueAndValidity();
+
+      const subDeptControl = this.userForm.get('subDepartmentId');
+      if (role === 'HOD' || role === 'TEACHER') {
+        subDeptControl?.setValidators([Validators.required]);
+      } else {
+        subDeptControl?.clearValidators();
+        subDeptControl?.setValue(null);
+      }
+      subDeptControl?.updateValueAndValidity();
     });
   }
 
@@ -186,7 +195,7 @@ export class AddUserComponent implements OnInit {
         (d) => d.name.toLowerCase() === 'administration'
       );
       this.selectedDepartments = adminDept ? [adminDept.departmentId] : [];
-    } else if (role === 'HOD') {
+    } else if (role === 'HOD' || role === 'SUB_ADMIN') {
       this.selectedDepartments = event.target.checked ? [deptId] : [];
     } else {
       if (event.target.checked) {
@@ -205,7 +214,7 @@ export class AddUserComponent implements OnInit {
   isDeptDisabled(dept: any): boolean {
     const role = this.userForm.get('role')?.value;
     if (role === 'ADMIN' && dept.name.toLowerCase() !== 'administration') return true;
-    if (role === 'HOD' && this.selectedDepartments.length >= 1 && !this.selectedDepartments.includes(dept.departmentId))
+    if ((role === 'HOD' || role === 'SUB_ADMIN') && this.selectedDepartments.length >= 1 && !this.selectedDepartments.includes(dept.departmentId))
       return true;
     return false;
   }

@@ -145,6 +145,9 @@ export class ViewTask implements OnInit, OnDestroy {
   studentSearchError: string | null = null;
   private searchDebounceTimer: any = null;
   expandedRequests: { [requestId: number]: boolean } = {};
+  studentReportCounts: { [key: number]: any } = {};
+  studentReportHistories: { [key: number]: any[] } = {};
+  expandedStudentHistories: { [key: number]: boolean } = {};
 
   // Template Proof States
   studentEntriesList: { studentName: string, enrollmentId: string }[] = [{ studentName: '', enrollmentId: '' }];
@@ -426,6 +429,7 @@ export class ViewTask implements OnInit, OnDestroy {
         this.loadComments();
         this.computeStats();
         this.fetchRelatedEntities();
+        this.fetchCountsForProofStudents();
       },
       error: () => {
         this.isForbidden = true;
@@ -461,6 +465,7 @@ export class ViewTask implements OnInit, OnDestroy {
         this.loadComments();
         this.computeStats();
         this.fetchRelatedEntities();
+        this.fetchCountsForProofStudents();
       },
       error: () => {
         this.isForbidden = true;
@@ -482,6 +487,7 @@ export class ViewTask implements OnInit, OnDestroy {
           this.loadComments();
           this.computeStats();
           this.fetchRelatedEntities();
+          this.fetchCountsForProofStudents();
 
           if (this.task.isRecurring && this.isAdmin) {
             this.loadRecurredInstances();
@@ -694,6 +700,20 @@ export class ViewTask implements OnInit, OnDestroy {
           }
           this.studentSearchResults = [...this.studentSearchResults, ...res.data];
           this.studentPage++;
+
+          const userIds = res.data.map(s => s.userId).filter(id => id !== undefined && id !== null);
+          if (userIds.length > 0) {
+            this.studentApiService.getStudentCounts(userIds).subscribe({
+              next: (counts) => {
+                if (counts) {
+                  counts.forEach(c => {
+                    this.studentReportCounts[c.studentUserId] = c;
+                  });
+                }
+              },
+              error: (err) => console.error('Error fetching student report counts:', err)
+            });
+          }
         } else {
           this.studentSearchError = res.message || 'Failed to fetch students';
         }
@@ -1642,6 +1662,81 @@ export class ViewTask implements OnInit, OnDestroy {
 
   hasAnyStructuredProofs(): boolean {
     return this.task?.requests?.some(r => r.structuredProofs && r.structuredProofs.length > 0) || false;
+  }
+
+  fetchCountsForProofStudents(): void {
+    const studentUserIds: number[] = [];
+    if (this.task?.requests) {
+      this.task.requests.forEach(r => {
+        if (r.structuredProof?.studentEntries) {
+          r.structuredProof.studentEntries.forEach((s: any) => {
+            if (s.userId && !studentUserIds.includes(s.userId)) {
+              studentUserIds.push(s.userId);
+            }
+          });
+        }
+        if (r.structuredProofs) {
+          r.structuredProofs.forEach(p => {
+            if (this.isStudentSelectionProof(p)) {
+              const students = this.parseStudentSelection(p.value);
+              students.forEach((s: any) => {
+                if (s.userId && !studentUserIds.includes(s.userId)) {
+                  studentUserIds.push(s.userId);
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+    if (studentUserIds.length > 0) {
+      this.studentApiService.getStudentCounts(studentUserIds).subscribe({
+        next: (counts) => {
+          if (counts) {
+            counts.forEach(c => {
+              this.studentReportCounts[c.studentUserId] = c;
+            });
+          }
+        },
+        error: (err) => console.error('Error fetching student report counts:', err)
+      });
+    }
+  }
+
+  getStudentReportCounts(student: any): any {
+    if (!student) return null;
+    const userId = student.userId || student.studentUserId;
+    if (!userId) return null;
+    return this.studentReportCounts[userId];
+  }
+
+  isReportHistoryExpanded(student: any): boolean {
+    if (!student) return false;
+    const userId = student.userId || student.studentUserId;
+    return !!this.expandedStudentHistories[userId];
+  }
+
+  toggleReportHistory(student: any, event: Event): void {
+    event.stopPropagation();
+    const userId = student.userId || student.studentUserId;
+    if (!userId) return;
+    this.expandedStudentHistories[userId] = !this.expandedStudentHistories[userId];
+    if (this.expandedStudentHistories[userId] && !this.studentReportHistories[userId]) {
+      this.studentApiService.getStudentReportDetails(userId).subscribe({
+        next: (res) => {
+          this.studentReportHistories[userId] = res.reports || [];
+        },
+        error: (err) => {
+          console.error('Error fetching student report details:', err);
+        }
+      });
+    }
+  }
+
+  getStudentReportHistory(student: any): any[] | null {
+    if (!student) return null;
+    const userId = student.userId || student.studentUserId;
+    return this.studentReportHistories[userId] || null;
   }
 }
 
