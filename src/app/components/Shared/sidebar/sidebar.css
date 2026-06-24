@@ -142,7 +142,7 @@
     position: fixed;
     top: 0;
     left: -280px;
-    width: 280px;
+    width: min(280px, calc(100vw - 1rem));
     height: 100vh;
     z-index: 10000;
     box-shadow: 0 0 20px rgba(15, 23, 42, 0.15);
@@ -151,5 +151,12 @@
   
   .collapse-toggle-btn {
     display: none !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .sidebar-wrapper {
+    width: min(260px, calc(100vw - 0.5rem));
+    left: -260px;
   }
 }

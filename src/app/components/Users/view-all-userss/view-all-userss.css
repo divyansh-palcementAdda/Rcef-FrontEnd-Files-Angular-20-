@@ -32,6 +32,29 @@
   box-shadow: var(--shadow-sm);
 }
 
+.mobile-user-card > .d-flex:first-child {
+  gap: 0.75rem;
+}
+
+.mobile-user-card > .d-flex:first-child > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mobile-user-card > .d-flex:first-child > .badge {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  margin-left: 0.5rem;
+}
+
+.mobile-user-card h6,
+.mobile-user-card .text-muted.small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
 /* Pagination Overrides */
 .pagination {
   margin-top: 1.5rem;
@@ -64,4 +87,44 @@
   opacity: 0.5;
   cursor: not-allowed;
   background-color: var(--bg-color);
+}
+
+@media (max-width: 768px) {
+  .users-container {
+    padding: 0 0.25rem;
+  }
+
+  .mobile-user-card {
+    padding: 1rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+  }
+
+  .pagination .page-item .page-link {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.825rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-user-card {
+    padding: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .row-actions {
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .pagination {
+    gap: 0.15rem;
+  }
+
+  .pagination .page-item .page-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
 }

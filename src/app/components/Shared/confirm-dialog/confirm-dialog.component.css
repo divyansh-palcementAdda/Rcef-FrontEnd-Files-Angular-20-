@@ -23,7 +23,7 @@
   border-radius: 20px;
   padding: 2rem 2rem 1.75rem;
   width: 100%;
-  max-width: 400px;
+  max-width: min(400px, calc(100vw - 1rem));
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18), 0 4px 16px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
@@ -167,5 +167,38 @@
   }
   .btn-cancel:hover {
     background: #475569;
+  }
+}
+
+@media (max-width: 480px) {
+  .confirm-dialog {
+    padding: 1.25rem 1rem 1rem;
+    border-radius: 16px;
+  }
+
+  .confirm-icon-wrapper {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 1rem;
+  }
+
+  .confirm-title {
+    font-size: 1rem;
+  }
+
+  .confirm-message {
+    font-size: 0.85rem;
+  }
+
+  .confirm-actions {
+    gap: 0.5rem;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 360px) {
+  .confirm-dialog {
+    max-width: calc(100vw - 0.5rem);
+    padding: 1rem 0.85rem 0.9rem;
   }
 }

@@ -30,7 +30,7 @@
 }
 
 .bulletin-ticker .message {
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.1vw, 1rem);
   font-weight: 500;
   letter-spacing: 0.3px;
 }
@@ -53,6 +53,28 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .bulletin-container {
+    padding: 10px 14px;
+  }
+
+  .bulletin-ticker {
+    gap: 12px;
+  }
+
   .bulletin-ticker { font-size: 0.9rem; }
   .bulletin-ticker .icon { font-size: 0.75rem; padding: 3px 8px; }
+}
+
+@media (max-width: 480px) {
+  .bulletin-container {
+    padding: 8px 12px;
+  }
+
+  .bulletin-ticker {
+    gap: 10px;
+  }
+
+  .bulletin-ticker .message {
+    font-size: 0.86rem;
+  }
 }

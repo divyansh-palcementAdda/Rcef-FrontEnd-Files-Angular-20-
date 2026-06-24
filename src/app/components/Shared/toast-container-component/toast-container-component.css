@@ -4,7 +4,7 @@
 
 .toast {
   pointer-events: auto;
-  min-width: 300px;
+  min-width: min(300px, calc(100vw - 1rem));
   max-width: 400px;
 }
 
@@ -14,4 +14,11 @@
 
 .toast-body {
   word-wrap: break-word;
+}
+
+@media (max-width: 360px) {
+  .toast {
+    min-width: calc(100vw - 0.5rem);
+    max-width: calc(100vw - 0.5rem);
+  }
 }

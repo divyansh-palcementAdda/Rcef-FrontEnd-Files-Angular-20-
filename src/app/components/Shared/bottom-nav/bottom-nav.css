@@ -54,6 +54,7 @@
     flex: 1;
     min-width: 0;
     gap: 4px;
+    line-height: 1;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     background: none;
     border: none;
@@ -70,12 +71,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 24px;
+    height: 24px;
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     color: currentColor;
   }
 
   .bottom-nav-item:hover .bottom-nav-icon {
-    transform: translateY(-2px);
+    transform: scale(1.05);
   }
 
   .bottom-nav-item.active {
@@ -83,7 +86,7 @@
   }
 
   .bottom-nav-item.active .bottom-nav-icon {
-    transform: translateY(-2px) scale(1.1);
+    transform: scale(1.08);
   }
 
   .bottom-nav-label {
@@ -213,6 +216,42 @@
   .sheet-logout-btn {
     border-radius: 8px !important;
     font-size: 0.85rem !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .bottom-nav-capsule {
+    width: calc(100% - 0.75rem);
+    max-width: none;
+    height: 66px;
+    margin-bottom: 8px;
+    padding: 0 8px;
+  }
+
+  .bottom-nav-item {
+    font-size: 0.65rem;
+    gap: 2px;
+  }
+
+  .bottom-nav-item svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .bottom-nav-label {
+    display: none;
+  }
+
+  .bottom-nav-capsule {
+    width: calc(100% - 0.5rem);
+    height: 60px;
+    padding: 0 4px;
+  }
+
+  .bottom-nav-item {
+    justify-content: center;
   }
 }
 

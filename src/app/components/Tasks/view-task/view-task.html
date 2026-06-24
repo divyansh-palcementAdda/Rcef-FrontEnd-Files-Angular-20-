@@ -44,9 +44,9 @@
 
 
 
-      <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="task-header-top-row d-flex justify-content-between align-items-center mb-3">
         <!-- Breadcrumb link -->
-        <nav aria-label="breadcrumb">
+        <nav aria-label="breadcrumb" class="task-header-breadcrumb">
           <ol class="breadcrumb mb-0" style="--bs-breadcrumb-divider: '>'; font-size: 0.85rem;">
             <li class="breadcrumb-item">
               <a (click)="goBack()" class="text-decoration-none text-muted"
@@ -57,10 +57,10 @@
         </nav>
 
         <!-- Action Buttons aligned on the right -->
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 task-header-actions">
           <!-- Edit Task (Creators/Admins) -->
           <button *ngIf="canEditDelete()"
-            class="btn btn-outline-secondary btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold"
+            class="btn btn-outline-secondary btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold task-header-action-btn"
             (click)="editTask()" style="font-size: 0.85rem; border-color: #cbd5e1; color: #334155;">
             Edit Task
           </button>
@@ -70,11 +70,17 @@
             Back
           </button>
 
+          <button class="btn btn-outline-secondary btn-sm task-header-action-btn" (click)="goBack()">
+            Back
+          </button>
+
 
           <!-- Start Task (For Assigned Users) -->
           <button
             *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')"
-            class="btn btn-success btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold"
+            class="btn btn-success btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold" <button
+            *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')"
+            class="btn btn-success btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold task-header-action-btn"
             (click)="startTask()" [disabled]="isStarting"
             style="font-size: 0.85rem; background-color: #10b981; border-color: #10b981; color: white;">
             <i [class]="isStarting ? 'bi bi-hourglass-split' : 'bi bi-play-circle'"></i>
@@ -83,7 +89,7 @@
 
           <!-- Add Request (For Assigned Users) -->
           <button *ngIf="isAssignedToCurrentUser && task.status === 'IN_PROGRESS'"
-            class="btn btn-primary btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold"
+            class="btn btn-primary btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold task-header-action-btn"
             (click)="openAddRequestModal()"
             style="font-size: 0.85rem; background-color: #4f46e5; border-color: #4f46e5;">
             Add Request
