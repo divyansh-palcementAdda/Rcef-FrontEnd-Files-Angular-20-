@@ -61,7 +61,7 @@ export class App {
     ).subscribe((event: any) => {
       const url = event.urlAfterRedirects || event.url || '';
       const path = url.split('?')[0];
-      this.isHomeActive = path === '/' || path === '/home' || path === '';
+      this.isHomeActive = path === '/' || path === '/home' || path === '' || path === '/login';
     });
 
     // Listen to query parameters to open modals
