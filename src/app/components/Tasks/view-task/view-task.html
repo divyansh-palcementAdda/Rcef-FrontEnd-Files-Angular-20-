@@ -78,8 +78,6 @@
           <!-- Start Task (For Assigned Users) -->
           <button
             *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')"
-            class="btn btn-success btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold" <button
-            *ngIf="isAssignedToCurrentUser && (task.status === 'PENDING' || task.status === 'DELAYED' || task.status === 'EXTENDED')"
             class="btn btn-success btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold task-header-action-btn"
             (click)="startTask()" [disabled]="isStarting"
             style="font-size: 0.85rem; background-color: #10b981; border-color: #10b981; color: white;">
