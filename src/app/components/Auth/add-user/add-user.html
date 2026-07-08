@@ -1,13 +1,18 @@
 <div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
-  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" [class.card]="!isModal" [class.shadow]="!isModal" [class.rounded-4]="!isModal" [class.border-0]="!isModal" [class.modal-form-card]="isModal" novalidate>
-    
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" [class.card]="!isModal" [class.shadow]="!isModal"
+    [class.rounded-4]="!isModal" [class.border-0]="!isModal" [class.modal-form-card]="isModal" novalidate>
+
     <!-- Form Header -->
-    <div [class.card-header]="!isModal" [class.text-white]="!isModal" [class.text-center]="!isModal" [class.p-4]="!isModal" [class.table_head]="!isModal" [class.modal-form-header]="isModal" [class.d-flex]="isModal" [class.align-items-center]="isModal" [class.justify-content-between]="isModal">
+    <div [class.card-header]="!isModal" [class.text-white]="!isModal" [class.text-center]="!isModal"
+      [class.p-4]="!isModal" [class.table_head]="!isModal" [class.modal-form-header]="isModal" [class.d-flex]="isModal"
+      [class.align-items-center]="isModal" [class.justify-content-between]="isModal">
       <div>
         <h3 class="mb-0 fw-bold" [style.color]="isModal ? 'var(--text-main)' : '#ffffff'">Add User</h3>
-        <p class="mb-0 text-muted small" [style.color]="isModal ? 'var(--text-muted)' : 'rgba(255,255,255,0.75)'">Create and configure a new user account</p>
+        <p class="mb-0 text-muted small" [style.color]="isModal ? 'var(--text-muted)' : 'rgba(255,255,255,0.75)'">Create
+          and configure a new user account</p>
       </div>
-      <button *ngIf="isModal" type="button" class="modal-close-btn-inline ms-auto" (click)="cancel()" aria-label="Close">
+      <button *ngIf="isModal" type="button" class="modal-close-btn-inline ms-auto" (click)="cancel()"
+        aria-label="Close">
         <i class="bi bi-x-lg fs-5"></i>
       </button>
     </div>
@@ -15,11 +20,13 @@
     <!-- Form Body -->
     <div [class.card-body]="!isModal" [class.p-4]="!isModal" [class.modal-form-body]="isModal">
       <!-- Alerts -->
-      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+      <div *ngIf="successMessage"
+        class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
         <span><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}</span>
         <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
       </div>
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+      <div *ngIf="errorMessage"
+        class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
         <span><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}</span>
         <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
@@ -54,14 +61,16 @@
                 {{ otpValidated ? 'Verified' : 'Send OTP' }}
               </button>
             </div>
-            <small class="text-muted   d-block mt-1 narration">Verification code will be dispatched to this email.</small>
+            <small class="text-muted   d-block mt-1 narration">Verification code will be dispatched to this
+              email.</small>
           </div>
           <!-- OTP Input -->
           <div class="col-md-6 animate__animated animate__fadeIn" *ngIf="otpSent && !otpValidated">
             <label class="form-label">Enter OTP <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
-              <input type="text" class="form-control" [(ngModel)]="otpInput" [ngModelOptions]="{standalone: true}" placeholder="6-digit OTP">
+              <input type="text" class="form-control" [(ngModel)]="otpInput" [ngModelOptions]="{standalone: true}"
+                placeholder="6-digit OTP">
               <button type="button" class="btn btn-outline-success" (click)="verifyOtp()">Verify</button>
             </div>
           </div>
@@ -92,13 +101,16 @@
             <label class="form-label">Password <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-key"></i></span>
-              <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password" placeholder="Create a strong password">
-              <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()" tabindex="-1">
+              <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password"
+                placeholder="Create a strong password">
+              <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()"
+                tabindex="-1">
                 <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </button>
             </div>
             <div class="progress mt-2" style="height: 6px;">
-              <div class="progress-bar" [style.width.%]="passwordStrength.score" [style.backgroundColor]="passwordStrength.color"></div>
+              <div class="progress-bar" [style.width.%]="passwordStrength.score"
+                [style.backgroundColor]="passwordStrength.color"></div>
             </div>
             <small class="text-muted d-block mt-1">{{ passwordStrength.label }} password strength</small>
           </div>
@@ -128,7 +140,8 @@
           </div>
           <!-- Parent User -->
           <div class="col-md-6 animate__animated animate__fadeIn" *ngIf="userForm.get('role')?.value">
-            <label class="form-label">Reports To (Supervisor) <span class="text-danger" *ngIf="userForm.get('role')?.value !== 'SUPER_ADMIN'">*</span></label>
+            <label class="form-label">Reports To (Supervisor) <span class="text-danger"
+                *ngIf="userForm.get('role')?.value !== 'SUPER_ADMIN'">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
               <select class="form-select" formControlName="parentUserId">
@@ -138,7 +151,8 @@
                 </option>
               </select>
             </div>
-            <div *ngIf="userForm.get('parentUserId')?.touched && userForm.get('parentUserId')?.errors?.['required']" class="text-danger small mt-1">
+            <div *ngIf="userForm.get('parentUserId')?.touched && userForm.get('parentUserId')?.errors?.['required']"
+              class="text-danger small mt-1">
               Supervisor reporting assignment is required.
             </div>
           </div>
@@ -146,7 +160,8 @@
       </div>
 
       <!-- Department Assignment Card -->
-      <div class="form-section-card animate__animated animate__fadeIn" *ngIf="userForm.get('role')?.value && userForm.get('role')?.value !== 'SUPER_ADMIN'">
+      <div class="form-section-card animate__animated animate__fadeIn"
+        *ngIf="userForm.get('role')?.value && userForm.get('role')?.value !== 'SUPER_ADMIN'">
         <div class="form-section-header">
           <div class="form-section-icon"><i class="bi bi-diagram-3"></i></div>
           <div class="form-section-title-wrapper">
@@ -156,7 +171,8 @@
         </div>
         <div class="row g-3">
           <!-- SubDepartment -->
-          <div class="col-md-6" *ngIf="(userForm.get('role')?.value === 'HOD' || userForm.get('role')?.value === 'TEACHER') && subDepartments.length > 0">
+          <div class="col-md-6"
+            *ngIf="(userForm.get('role')?.value === 'HOD' || userForm.get('role')?.value === 'TEACHER') && subDepartments.length > 0">
             <label class="form-label">Sub-Department <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
@@ -167,18 +183,22 @@
                 </option>
               </select>
             </div>
-            <div *ngIf="userForm.get('subDepartmentId')?.touched && userForm.get('subDepartmentId')?.errors?.['required']" class="text-danger small mt-1">
+            <div
+              *ngIf="userForm.get('subDepartmentId')?.touched && userForm.get('subDepartmentId')?.errors?.['required']"
+              class="text-danger small mt-1">
               Sub-department assignment is required.
             </div>
           </div>
           <!-- Department List -->
           <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-              <label class="form-label mb-0 fw-semibold">Select Departments Access <span class="text-danger">*</span></label>
+              <label class="form-label mb-0 fw-semibold">Select Departments Access <span
+                  class="text-danger">*</span></label>
               <div class="col-md-4">
                 <div class="input-group input-group-sm">
                   <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
-                  <input type="text" class="form-control border-0 bg-transparent" placeholder="Search departments..." [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}" />
+                  <input type="text" class="form-control border-0 bg-transparent" placeholder="Search departments..."
+                    [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}" />
                 </div>
               </div>
             </div>
@@ -209,7 +229,9 @@
         <div class="alert alert-secondary mb-0 py-2.5 d-flex align-items-start gap-2 bg-light border text-muted">
           <i class="bi bi-info-circle-fill text-primary fs-5 mt-0.5"></i>
           <span style="font-size: 0.85rem; line-height: 1.4;">
-            Permissions are automatically inherited based on the selected role (<strong>{{ userForm.get('role')?.value }}</strong>). Administrators can review and override specific permissions inside the <strong>Roles & Permissions</strong> dashboard setting.
+            Permissions are automatically inherited based on the selected role (<strong>{{ userForm.get('role')?.value
+              }}</strong>). Administrators can review and override specific permissions inside the <strong>Roles &
+              Permissions</strong> dashboard setting.
           </span>
         </div>
       </div>
