@@ -29,6 +29,8 @@ import { SubDepartmentManagementComponent } from './components/SubDepartments/su
 import { HierarchyViewerComponent } from './components/HierarchyTree/hierarchy-tree';
 import { TaskTemplateManagementComponent } from './components/Tasks/task-template-management/task-template-management';
 import {ViewTemplateTaskComponent} from './components/Tasks/view-task-template/view-template-task.component'
+import { SubjectManagementComponent } from './components/Subjects/subject-management/subject-management';
+import { SubjectDetailComponent } from './components/Subjects/subject-detail/subject-detail';
 
 import { ModalRedirectGuard } from './Guards/modal-redirect.guard';
 
@@ -118,6 +120,8 @@ export const routes: Routes = [
   component: ViewTemplateTaskComponent,
   canActivate: [AuthGuard]
 },
+  { path: 'subjects', component: SubjectManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUBJECT_VIEW'] } },
+  { path: 'subject/:id', component: SubjectDetailComponent, canActivate: [AuthGuard] },
 
   // Wildcard route for a 404 page
   { path: '**', redirectTo: '' },

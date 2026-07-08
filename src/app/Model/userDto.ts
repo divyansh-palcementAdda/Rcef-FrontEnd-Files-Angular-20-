@@ -20,4 +20,10 @@ export interface userDto {
   upcomingTasks: number;   // count of upcoming tasks
   delayedTasks: number;    // count of delayed tasks
   closedTasks: number;     // count of closed tasks
+
+  // Subject assignments (optional — populated by backend)
+  subjectIds?: number[];
+  subjectNames?: string[];
+  subjectCodes?: string[];
 }
+

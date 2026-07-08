@@ -1,0 +1,209 @@
+<div class="detail-container">
+  <!-- Header -->
+  <div class="detail-header" *ngIf="subjectDetail">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()" title="Back to Subjects">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div>
+        <div class="title-row">
+          <h1 class="subject-title">{{ subjectDetail.subjectName }}</h1>
+          <span class="status-badge" [class.active]="subjectDetail.isActive" [class.inactive]="!subjectDetail.isActive">
+            {{ subjectDetail.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+        <p class="subject-sub">{{ subjectDetail.departmentName }} &rarr; {{ subjectDetail.subDepartmentName }}</p>
+      </div>
+    </div>
+    <div class="code-badge-wrapper">
+      <span class="code-badge">{{ subjectDetail.subjectCode }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <span>Loading subject details...</span>
+  </div>
+
+  <div *ngIf="!loading && subjectDetail" class="detail-content">
+    
+    <!-- Grid Layout: Sidebar Stats & Main Content -->
+    <div class="content-grid">
+      
+      <!-- Main Content (Assigned Users, Audit Activity) -->
+      <div class="main-column">
+        <!-- Description -->
+        <div class="card desc-card" *ngIf="subjectDetail.description">
+          <h3 class="card-title"><i class="bi bi-info-circle-fill text-indigo"></i> Description</h3>
+          <p class="description-text">{{ subjectDetail.description }}</p>
+        </div>
+
+        <!-- Assigned Users List -->
+        <div class="card users-card">
+          <h3 class="card-title"><i class="bi bi-people-fill text-blue"></i> Assigned Users</h3>
+          
+          <div class="table-responsive" *ngIf="subjectDetail.assignedUsers && subjectDetail.assignedUsers.length > 0">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Assigned At</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of subjectDetail.assignedUsers">
+                  <td>
+                    <div class="user-cell">
+                      <div class="avatar">{{ user.fullName.charAt(0) }}</div>
+                      <span class="name">{{ user.fullName }}</span>
+                    </div>
+                  </td>
+                  <td>{{ user.email }}</td>
+                  <td>
+                    <span class="role-badge" [ngClass]="getRoleBadgeClass(user.role)">
+                      {{ user.role }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(user.subjectAssignedAt) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="empty-list" *ngIf="!subjectDetail.assignedUsers || subjectDetail.assignedUsers.length === 0">
+            <i class="bi bi-person-x"></i>
+            <p>No users assigned to this subject yet.</p>
+          </div>
+        </div>
+
+        <!-- Recent Audit Logs -->
+        <div class="card logs-card">
+          <h3 class="card-title"><i class="bi bi-clock-history text-purple"></i> Recent Activity Logs</h3>
+          
+          <div class="activity-timeline" *ngIf="subjectDetail.recentActivity && subjectDetail.recentActivity.length > 0">
+            <div class="timeline-item" *ngFor="let log of subjectDetail.recentActivity">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <span class="timeline-action">{{ log.action }}</span>
+                  <span class="timeline-time">{{ formatDate(log.timestamp) }}</span>
+                </div>
+                <p class="timeline-details">{{ log.details }}</p>
+                <span class="timeline-user">By: {{ log.performedBy }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-list" *ngIf="!subjectDetail.recentActivity || subjectDetail.recentActivity.length === 0">
+            <i class="bi bi-journal-x"></i>
+            <p>No recent activity logged for this subject.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Sidebar (Task Analytics Breakdown) -->
+      <div class="sidebar-column" *ngIf="subjectDetail.analytics">
+        
+        <!-- User Counts -->
+        <div class="card sidebar-card user-breakdown">
+          <h3 class="card-title"><i class="bi bi-person-badge"></i> User Breakdown</h3>
+          <div class="breakdown-list">
+            <div class="breakdown-item">
+              <span>Total Users</span>
+              <strong>{{ subjectDetail.analytics.totalUsers }}</strong>
+            </div>
+            <div class="breakdown-item">
+              <span>Teachers</span>
+              <strong>{{ subjectDetail.analytics.totalTeachers }}</strong>
+            </div>
+            <div class="breakdown-item">
+              <span>HODs</span>
+              <strong>{{ subjectDetail.analytics.totalHods }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Task Statistics -->
+        <div class="card sidebar-card task-analytics">
+          <h3 class="card-title"><i class="bi bi-pie-chart-fill"></i> Task Statistics</h3>
+          
+          <div class="total-tasks-badge">
+            <span class="num">{{ subjectDetail.analytics.totalTasks }}</span>
+            <span class="lbl">Total Tasks</span>
+          </div>
+
+          <div class="stat-list">
+            <div class="stat-row">
+              <span class="dot pending"></span>
+              <span class="label">Pending</span>
+              <span class="val">{{ subjectDetail.analytics.pendingTasks }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="dot upcoming"></span>
+              <span class="label">Upcoming</span>
+              <span class="val">{{ subjectDetail.analytics.upcomingTasks }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="dot in-progress"></span>
+              <span class="label">In Progress</span>
+              <span class="val">{{ subjectDetail.analytics.inProgressTasks }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="dot closed"></span>
+              <span class="label">Closed</span>
+              <span class="val">{{ subjectDetail.analytics.closedTasks }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="dot delayed"></span>
+              <span class="label">Delayed</span>
+              <span class="val">{{ subjectDetail.analytics.delayedTasks }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="dot extended"></span>
+              <span class="label">Extended</span>
+              <span class="val">{{ subjectDetail.analytics.extendedTasks }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="dot rfc"></span>
+              <span class="label">RFC (Closure Requests)</span>
+              <span class="val">{{ subjectDetail.analytics.requestForClosure }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="dot rfe"></span>
+              <span class="label">RFE (Extension Requests)</span>
+              <span class="val">{{ subjectDetail.analytics.requestForExtension }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Creation & Update Metadata -->
+        <div class="card sidebar-card meta-card">
+          <h3 class="card-title"><i class="bi bi-info-circle"></i> Info</h3>
+          <div class="meta-list">
+            <div class="meta-row">
+              <span>Created By</span>
+              <strong>{{ subjectDetail.createdByName || 'System' }}</strong>
+            </div>
+            <div class="meta-row">
+              <span>Created At</span>
+              <strong>{{ formatDate(subjectDetail.createdAt) }}</strong>
+            </div>
+            <div class="meta-row" *ngIf="subjectDetail.updatedByName">
+              <span>Updated By</span>
+              <strong>{{ subjectDetail.updatedByName }}</strong>
+            </div>
+            <div class="meta-row" *ngIf="subjectDetail.updatedByName">
+              <span>Updated At</span>
+              <strong>{{ formatDate(subjectDetail.updatedAt) }}</strong>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      
+    </div>
+
+  </div>
+</div>

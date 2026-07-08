@@ -103,11 +103,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   loadUserProfile(): void {
-    const token = localStorage.getItem('accessToken');
+    const token = this.authService.getAccessToken();
     if (token) {
       const userId = this.jwtService.getUserIdFromToken(token);
       if (userId) {
-        this.userApiService.getUserById(userId).subscribe({
+        this.userApiService.getCurrentUserProfile(userId).subscribe({
           next: (user) => {
             if (user && user.fullName) {
               this.fullName = user.fullName;
@@ -196,16 +196,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   hasPermission(permission: string): boolean {
-    const token = localStorage.getItem('accessToken');
-    if (!token) return false;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.role === 'SUPER_ADMIN') return true;
-      const permissions = payload.permissions as string[] || [];
-      return permissions.includes(permission);
-    } catch {
-      return false;
-    }
+    return this.authService.hasPermission(permission);
   }
 
   private buildLinks(): void {
@@ -224,6 +215,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         { label: 'Add Department', route: '/add-department', icon: 'bi-building-fill' },
         { label: 'Departments', route: '/departments', icon: 'bi-layers-fill' },
         { label: 'Sub-Departments', route: '/sub-departments', icon: 'bi-diagram-2-fill' },
+        { label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' },
         { label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' },
         { label: 'Recurring Tasks', route: '/createRecurring', icon: 'bi-arrow-repeat' },
         { label: 'Task Templates', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' },
@@ -237,6 +229,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
       ];
       if (this.hasPermission('DEPARTMENT_CREATE')) {
         this.links.push({ label: 'Departments', route: '/departments', icon: 'bi-building' });
+      }
+      if (this.hasPermission('SUBJECT_VIEW')) {
+        this.links.push({ label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' });
       }
       this.links.push(
         { label: 'My Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-list-check' },
@@ -256,6 +251,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
       }
       if (this.hasPermission('DEPARTMENT_CREATE')) {
         this.links.push({ label: 'Departments', route: '/departments', icon: 'bi-building' });
+      }
+      if (this.hasPermission('SUBJECT_VIEW')) {
+        this.links.push({ label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' });
       }
       this.links.push(
         { label: 'My Tasks', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'bi-list-check' },

@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { environment } from '../environment/environment';
 import { JWTResponseDTO } from '../Model/jwtresponse-dto';
 import { LoginRequestDTO } from '../Model/login-request-dto';
+import { UserApiService } from './UserApiService';
 
 
 /* --------------------------------------------------------------------- */
@@ -38,6 +39,7 @@ export class AuthApiService {
   
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly userApiService = inject(UserApiService);
 
   private readonly apiUrl = `${environment.apiUrl}/auth`;
 
@@ -49,10 +51,17 @@ export class AuthApiService {
   private readonly usernameSubject$ = new BehaviorSubject<string>('User');
   readonly username$ = this.usernameSubject$.asObservable();
 
+  /* ---------- permissions ---------- */
+  private readonly permissions$ = new BehaviorSubject<string[]>([]);
+  readonly permissionsObservable$ = this.permissions$.asObservable();
+
   constructor() {
     const token = this.getAccessToken();
     this.loggedIn$.next(!!token);
-    if (token) this.updateUserFromToken(token);
+    if (token) {
+      this.updateUserFromToken(token);
+      this.loadUserPermissions().subscribe();
+    }
   }
 
   /* ----------------------------------------------------------------- */
@@ -155,12 +164,19 @@ export class AuthApiService {
   private handleAuthSuccess(dto: JWTResponseDTO): void {
     this.setAccessToken(dto.accessToken);
     if (dto.refreshToken) this.setRefreshToken(dto.refreshToken);
+    if (dto.permissions) {
+      this.permissions$.next(dto.permissions);
+    } else {
+      this.loadUserPermissions().subscribe();
+    }
     this.loggedIn$.next(true);
   }
 
   private clearAuth(): void {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    this.permissions$.next([]);
+    this.userApiService.clearCurrentUserProfile();
     this.loggedIn$.next(false);
     this.usernameSubject$.next('User');
     this.router.navigate(['/login']);
@@ -195,6 +211,33 @@ export class AuthApiService {
 
       return throwError(() => new Error(msg));
     };
+  }
+
+  loadUserPermissions(): Observable<string[]> {
+    const token = this.getAccessToken();
+    if (!token) {
+      this.permissions$.next([]);
+      return of([]);
+    }
+    return this.http.get<ApiResult<string[]>>(`${this.apiUrl}/permissions`).pipe(
+      map(res => this.unwrapResult(res, 'Load permissions failed')),
+      tap(perms => this.permissions$.next(perms || [])),
+      catchError(() => {
+        this.permissions$.next([]);
+        return of([]);
+      })
+    );
+  }
+
+  hasPermission(permission: string): boolean {
+    const token = this.getAccessToken();
+    if (!token) return false;
+    
+    const role = this.getCurrentRole();
+    if (role === 'SUPER_ADMIN') return true;
+
+    const permissions = this.permissions$.value || [];
+    return permissions.includes(permission);
   }
 
   /* ----------------------------------------------------------------- */

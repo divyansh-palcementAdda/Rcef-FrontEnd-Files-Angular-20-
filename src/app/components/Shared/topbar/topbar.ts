@@ -40,11 +40,11 @@ export class TopbarComponent implements OnInit {
   }
 
   loadUserProfile(): void {
-    const token = localStorage.getItem('accessToken');
+    const token = this.authService.getAccessToken();
     if (token) {
       const userId = this.jwtService.getUserIdFromToken(token);
       if (userId) {
-        this.userApiService.getUserById(userId).subscribe({
+        this.userApiService.getCurrentUserProfile(userId).subscribe({
           next: (user) => {
             if (user && user.fullName) {
               this.fullName = user.fullName;

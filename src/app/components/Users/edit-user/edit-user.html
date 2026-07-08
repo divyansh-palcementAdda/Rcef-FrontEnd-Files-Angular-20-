@@ -282,6 +282,36 @@
           </div>
         </div>
 
+        <!-- Subject Access Mapping (Only for HOD / Teacher and if sub-department selected) -->
+        <div class="form-section-card animate__animated animate__fadeIn" *ngIf="(editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER') && editForm.get('subDepartmentId')?.value">
+          <div class="form-section-header">
+            <div class="form-section-icon"><i class="bi bi-book"></i></div>
+            <div class="form-section-title-wrapper">
+              <h4 class="form-section-title">Subject Access</h4>
+              <p class="form-section-subtitle">Map user to specific academic subjects</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Select Subjects <span class="text-muted small">(Hold Ctrl or Cmd to select multiple)</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-journals"></i></span>
+                <select multiple class="form-select" formControlName="subjectIds" style="height: 120px;">
+                  <option *ngFor="let sub of allSubjects" [value]="sub.id">
+                    {{ sub.subjectName }} ({{ sub.subjectCode }})
+                  </option>
+                </select>
+              </div>
+              <div *ngIf="allSubjects.length === 0" class="text-muted small mt-2">
+                <i class="bi bi-info-circle me-1"></i> No subjects available for the selected sub-department.
+              </div>
+              <div class="field-hint mt-2">
+                User will gain task visibility/assignment rights for tasks categorized under these subjects.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- System Permissions -->
         <div class="form-section-card animate__animated animate__fadeIn" *ngIf="editForm.get('role')?.value">
           <div class="form-section-header">

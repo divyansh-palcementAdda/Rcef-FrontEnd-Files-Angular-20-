@@ -1,5 +1,5 @@
 // src/app/interceptors/auth.interceptor.ts
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {
   HttpEvent,
   HttpHandler,
@@ -29,7 +29,7 @@ export class AuthInterceptor implements HttpInterceptor {
   private refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
   constructor(
-    private authService: AuthApiService,
+    private injector: Injector,
     private snackBar: MatSnackBar
   ) {}
 
@@ -41,7 +41,8 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(req);
     }
 
-    const accessToken = this.authService.getAccessToken();
+    const authService = this.injector.get(AuthApiService);
+    const accessToken = authService.getAccessToken();
     const authReq = accessToken
       ? req.clone({ setHeaders: { Authorization: `Bearer ${accessToken}` } })
       : req;
@@ -75,16 +76,17 @@ export class AuthInterceptor implements HttpInterceptor {
     this.isRefreshing = true;
     this.refreshTokenSubject.next(null);
 
-    const refreshToken = this.authService.getRefreshToken();
+    const authService = this.injector.get(AuthApiService);
+    const refreshToken = authService.getRefreshToken();
     if (!refreshToken) {
       this.logoutAndRedirect();
       return throwError(() => new Error('No refresh token'));
     }
 
-    return this.authService.refreshToken(refreshToken).pipe(
+    return authService.refreshToken(refreshToken).pipe(
       switchMap((response: any) => {
         const newToken = response.accessToken;
-        this.authService.setAccessToken(newToken);
+        authService.setAccessToken(newToken);
         this.refreshTokenSubject.next(newToken);
         return next.handle(
           request.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } })
@@ -102,7 +104,8 @@ export class AuthInterceptor implements HttpInterceptor {
 
   private logoutAndRedirect(): void {
     // Clear auth locally and redirect — no API call needed here since refresh already failed
-    this.authService.clearAuthAndRedirect();
+    const authService = this.injector.get(AuthApiService);
+    authService.clearAuthAndRedirect();
     this.snackBar.open('Session expired. Please log in again.', 'OK', {
       duration: 5000,
       horizontalPosition: 'center',

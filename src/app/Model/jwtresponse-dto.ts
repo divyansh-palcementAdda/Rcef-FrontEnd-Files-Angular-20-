@@ -8,4 +8,5 @@ export interface JWTResponseDTO {
   username: string;
   email: string;
   role: RoleDTO;
+  permissions?: string[];
 }

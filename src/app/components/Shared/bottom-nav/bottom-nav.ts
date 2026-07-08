@@ -48,11 +48,11 @@ export class BottomNavComponent implements OnInit {
   }
 
   loadUserProfile(): void {
-    const token = localStorage.getItem('accessToken');
+    const token = this.authService.getAccessToken();
     if (token) {
       const userId = this.jwtService.getUserIdFromToken(token);
       if (userId) {
-        this.userApiService.getUserById(userId).subscribe({
+        this.userApiService.getCurrentUserProfile(userId).subscribe({
           next: (user) => {
             if (user && user.fullName) {
               this.fullName = user.fullName;
@@ -104,16 +104,7 @@ export class BottomNavComponent implements OnInit {
   }
 
   hasPermission(permission: string): boolean {
-    const token = localStorage.getItem('accessToken');
-    if (!token) return false;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.role === 'SUPER_ADMIN') return true;
-      const permissions = payload.permissions as string[] || [];
-      return permissions.includes(permission);
-    } catch {
-      return false;
-    }
+    return this.authService.hasPermission(permission);
   }
 
   isLinkActive(link: BottomNavLink): boolean {

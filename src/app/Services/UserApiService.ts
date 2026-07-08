@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environment/environment';
-import { Observable, forkJoin, of, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, forkJoin, of, throwError, BehaviorSubject } from 'rxjs';
+import { map, catchError, tap, shareReplay } from 'rxjs/operators';
 import { userDto } from '../Model/userDto';
 
 export interface TemplateTaskSummaryDto {
@@ -19,10 +19,40 @@ export interface TemplateTaskSummaryDto {
 })
 export class UserApiService {
 
-
   private apiUrl = `${environment.apiUrl}/user`; // <-- correct base
+  private readonly currentUser$ = new BehaviorSubject<userDto | null>(null);
+  readonly currentUserProfile$ = this.currentUser$.asObservable();
+
+  private profileRequest$: Observable<userDto> | null = null;
 
   constructor(private http: HttpClient) { }
+
+  getCurrentUserProfile(userId: number): Observable<userDto> {
+    const cached = this.currentUser$.value;
+    if (cached && cached.userId === userId) {
+      return of(cached);
+    }
+    if (this.profileRequest$) {
+      return this.profileRequest$;
+    }
+
+    this.profileRequest$ = this.getUserById(userId).pipe(
+      tap(user => {
+        this.currentUser$.next(user);
+        this.profileRequest$ = null;
+      }),
+      catchError(err => {
+        this.profileRequest$ = null;
+        return throwError(() => err);
+      }),
+      shareReplay(1)
+    );
+    return this.profileRequest$;
+  }
+
+  clearCurrentUserProfile(): void {
+    this.currentUser$.next(null);
+  }
 
   getAllUsers(): Observable<userDto[]> {
     console.log('Fetching all users from:', this.apiUrl);

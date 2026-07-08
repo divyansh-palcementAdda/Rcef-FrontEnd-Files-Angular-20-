@@ -54,14 +54,13 @@ export const RoleGuard: CanActivateFn = (
   // Check allowed permissions or roles defined on the route
   // -------------------------------------------
   const requiredPermissions = (route.data['permissions'] as string[]) ?? [];
-  const tokenPermissions = (payload.permissions as string[]) ?? [];
 
   if (role === 'SUPER_ADMIN') {
     return true;
   }
 
   if (requiredPermissions.length > 0) {
-    const hasPermission = requiredPermissions.every(p => tokenPermissions.includes(p));
+    const hasPermission = requiredPermissions.every(p => authSrv.hasPermission(p));
     if (hasPermission) {
       return true;
     }

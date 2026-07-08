@@ -248,10 +248,9 @@ export class Home {
     this.email.set(input.value);
   }
 
-dashboard() {
-    const token = localStorage.getItem('accessToken');
+  dashboard() {
+    const token = this.authService.getAccessToken();
     if (token) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
       this.authService.goToDashboard();
     } else {
       this.router.navigate(['/login']);

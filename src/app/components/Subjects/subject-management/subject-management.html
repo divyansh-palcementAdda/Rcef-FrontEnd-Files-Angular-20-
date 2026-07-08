@@ -1,0 +1,361 @@
+<!-- Subject Management Page -->
+<div class="subject-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div>
+        <h1 class="page-title">Subject Management</h1>
+        <p class="page-subtitle">Manage subjects, assign teachers, and view analytics</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn" [class.active]="activeTab === 'subjects'" (click)="activeTab = 'subjects'; loadSubjects()">
+      <i class="bi bi-book-fill"></i> Subjects
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'assign'" (click)="activeTab = 'assign'"
+            [disabled]="!assignSubjectId">
+      <i class="bi bi-person-plus-fill"></i>
+      User Assignment
+      <span *ngIf="assignSubjectName" class="tab-badge">{{ assignSubjectName }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'analytics'" (click)="activeTab = 'analytics'"
+            [disabled]="!analyticsSubjectId">
+      <i class="bi bi-bar-chart-fill"></i> Analytics
+    </button>
+  </div>
+
+  <!-- ================================================ -->
+  <!-- TAB 1: SUBJECTS -->
+  <!-- ================================================ -->
+  <div *ngIf="activeTab === 'subjects'" class="tab-content">
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Department</label>
+        <select [(ngModel)]="selectedDeptId" (change)="onDeptChange()">
+          <option [ngValue]="null">All Departments</option>
+          <option *ngFor="let d of departments" [ngValue]="d.departmentId">{{ d.name }}</option>
+        </select>
+      </div>
+      <div class="filter-group" *ngIf="selectedDeptId">
+        <label>Sub-Department</label>
+        <select [(ngModel)]="selectedSubDeptId" (change)="onSubDeptChange()">
+          <option [ngValue]="null">All Sub-Departments</option>
+          <option *ngFor="let sd of subDepartments" [ngValue]="sd.id">{{ sd.name }}</option>
+        </select>
+      </div>
+      <button class="btn-primary" (click)="openCreate()">
+        <i class="bi bi-plus-lg"></i> New Subject
+      </button>
+    </div>
+
+    <!-- Inline Create/Edit Form -->
+    <div class="form-card" *ngIf="isEditing || editingId === null && form.subjectName !== undefined && !isEditing">
+      <div class="form-card" *ngIf="editingId !== null || (!isEditing && form.subjectName !== '')">
+        <!-- Form content -->
+      </div>
+    </div>
+
+    <div class="form-card" *ngIf="form.subjectName !== undefined && (isEditing || editingId === -1)">
+    </div>
+
+    <!-- Subject Form Panel (shown when openCreate/openEdit called) -->
+    <ng-container *ngIf="isEditing">
+      <div class="form-card slide-in">
+        <h3 class="form-title">{{ isEditing && editingId ? 'Edit Subject' : 'New Subject' }}</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Subject Name <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="form.subjectName" placeholder="e.g. Mathematics" maxlength="150" />
+          </div>
+          <div class="form-group">
+            <label>Department <span class="required">*</span></label>
+            <select [(ngModel)]="form.departmentId" (change)="onFormDeptChange()">
+              <option [ngValue]="0" disabled>Select Department</option>
+              <option *ngFor="let d of departments" [ngValue]="d.departmentId">{{ d.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Sub-Department <span class="required">*</span></label>
+            <select [(ngModel)]="form.subDepartmentId" [disabled]="!form.departmentId">
+              <option value="" disabled>Select Sub-Department</option>
+              <option *ngFor="let sd of formSubDepts" [ngValue]="sd.id">{{ sd.name }}</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Description</label>
+            <textarea [(ngModel)]="form.description" placeholder="Optional description..." rows="2" maxlength="500"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" (click)="saveSubject()" [disabled]="saving">
+            <span *ngIf="saving"><i class="bi bi-hourglass-split"></i> Saving…</span>
+            <span *ngIf="!saving"><i class="bi bi-check-lg"></i> {{ editingId ? 'Update' : 'Create' }} Subject</span>
+          </button>
+          <button class="btn-outline" (click)="cancelForm()">Cancel</button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Subject Create Form (shown when !isEditing but openCreate called) -->
+    <ng-container *ngIf="!isEditing && form.departmentId > 0">
+      <div class="form-card slide-in">
+        <h3 class="form-title">New Subject</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Subject Name <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="form.subjectName" placeholder="e.g. Mathematics" maxlength="150" />
+          </div>
+          <div class="form-group">
+            <label>Department <span class="required">*</span></label>
+            <select [(ngModel)]="form.departmentId" (change)="onFormDeptChange()">
+              <option [ngValue]="0" disabled>Select Department</option>
+              <option *ngFor="let d of departments" [ngValue]="d.departmentId">{{ d.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Sub-Department <span class="required">*</span></label>
+            <select [(ngModel)]="form.subDepartmentId" [disabled]="!form.departmentId">
+              <option value="" disabled>Select Sub-Department</option>
+              <option *ngFor="let sd of formSubDepts" [ngValue]="sd.id">{{ sd.name }}</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Description</label>
+            <textarea [(ngModel)]="form.description" placeholder="Optional description..." rows="2" maxlength="500"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" (click)="saveSubject()" [disabled]="saving">
+            <span *ngIf="saving"><i class="bi bi-hourglass-split"></i> Saving…</span>
+            <span *ngIf="!saving"><i class="bi bi-check-lg"></i> Create Subject</span>
+          </button>
+          <button class="btn-outline" (click)="cancelForm()">Cancel</button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Subject List -->
+    <div class="section-header">
+      <span class="section-count">{{ subjects.length }} subject{{ subjects.length !== 1 ? 's' : '' }}</span>
+      <button class="btn-outline-sm" (click)="loadSubjects()">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+      </button>
+    </div>
+
+    <div *ngIf="loadingSubjects" class="loading-state">
+      <div class="spinner"></div>
+      <span>Loading subjects…</span>
+    </div>
+
+    <div *ngIf="!loadingSubjects && subjects.length === 0" class="empty-state">
+      <i class="bi bi-book"></i>
+      <p>No subjects found. Create one to get started.</p>
+    </div>
+
+    <div class="subjects-grid" *ngIf="!loadingSubjects && subjects.length > 0">
+      <div class="subject-card" *ngFor="let s of subjects" [class.inactive]="!s.isActive">
+        <div class="subject-card-header">
+          <div class="subject-info">
+            <span class="subject-code">{{ s.subjectCode }}</span>
+            <h3 class="subject-name">{{ s.subjectName }}</h3>
+          </div>
+          <span class="status-badge" [class.active]="s.isActive" [class.inactive-badge]="!s.isActive">
+            {{ s.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+        <div class="subject-meta">
+          <span class="meta-item"><i class="bi bi-building"></i> {{ s.departmentName }}</span>
+          <span class="meta-item"><i class="bi bi-diagram-2"></i> {{ s.subDepartmentName }}</span>
+        </div>
+        <p class="subject-desc" *ngIf="s.description">{{ s.description }}</p>
+        <div class="subject-actions">
+          <button class="action-btn" title="View detail" (click)="viewDetail(s)">
+            <i class="bi bi-eye"></i>
+          </button>
+          <button class="action-btn" title="Edit" (click)="openEdit(s)">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="action-btn" title="Assign Users" (click)="openAssignTab(s)">
+            <i class="bi bi-person-plus"></i>
+          </button>
+          <button class="action-btn" title="Analytics" (click)="loadAnalytics(s)">
+            <i class="bi bi-bar-chart"></i>
+          </button>
+          <button class="action-btn danger" *ngIf="s.isActive" title="Deactivate" (click)="deleteSubject(s)">
+            <i class="bi bi-archive"></i>
+          </button>
+          <button class="action-btn success" *ngIf="!s.isActive" title="Activate" (click)="activateSubject(s)">
+            <i class="bi bi-check-circle"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================ -->
+  <!-- TAB 2: USER ASSIGNMENT -->
+  <!-- ================================================ -->
+  <div *ngIf="activeTab === 'assign'" class="tab-content">
+    <div *ngIf="!assignSubjectId" class="empty-state">
+      <i class="bi bi-arrow-left-circle"></i>
+      <p>Select a subject from the Subjects tab to manage user assignments.</p>
+      <button class="btn-outline" (click)="activeTab = 'subjects'">Go to Subjects</button>
+    </div>
+
+    <ng-container *ngIf="assignSubjectId">
+      <div class="assign-header">
+        <h2>Assign Users to <strong>{{ assignSubjectName }}</strong></h2>
+        <p class="assign-hint">
+          <i class="bi bi-info-circle"></i>
+          Users listed are filtered by subject's sub-department.
+          Subject assignment does <strong>not</strong> change a user's primary department or sub-department.
+        </p>
+      </div>
+
+      <div class="assign-layout">
+        <!-- Available Users -->
+        <div class="assign-panel">
+          <h4 class="panel-title">Available Users
+            <span class="panel-count">{{ unassignedUsers.length }}</span>
+          </h4>
+          <div *ngIf="loadingUsers" class="loading-state-sm"><div class="spinner-sm"></div></div>
+          <div class="user-list" *ngIf="!loadingUsers">
+            <div class="user-item" *ngFor="let u of unassignedUsers"
+                 [class.selected]="isUserSelected(u.userId)"
+                 (click)="toggleUserSelection(u.userId)">
+              <div class="user-avatar">{{ u.fullName.charAt(0) }}</div>
+              <div class="user-info">
+                <span class="user-name">{{ u.fullName }}</span>
+                <span class="user-role-badge role-{{ u.role.toLowerCase() }}">{{ u.role }}</span>
+              </div>
+              <i class="bi" [class.bi-check-circle-fill]="isUserSelected(u.userId)"
+                 [class.bi-circle]="!isUserSelected(u.userId)"></i>
+            </div>
+            <div *ngIf="unassignedUsers.length === 0" class="empty-state-sm">All eligible users assigned.</div>
+          </div>
+          <button class="btn-primary mt-2" (click)="assignSelectedUsers()"
+                  [disabled]="selectedUserIdsToAdd.length === 0 || savingAssignment">
+            <i class="bi bi-plus-lg"></i>
+            Assign {{ selectedUserIdsToAdd.length > 0 ? '(' + selectedUserIdsToAdd.length + ')' : '' }}
+          </button>
+        </div>
+
+        <!-- Assigned Users -->
+        <div class="assign-panel">
+          <h4 class="panel-title">Assigned Users
+            <span class="panel-count">{{ assignedUsers.length }}</span>
+          </h4>
+          <div *ngIf="loadingAssignedUsers" class="loading-state-sm"><div class="spinner-sm"></div></div>
+          <div class="user-list" *ngIf="!loadingAssignedUsers">
+            <div class="user-item assigned" *ngFor="let u of assignedUsers">
+              <div class="user-avatar">{{ u.fullName.charAt(0) }}</div>
+              <div class="user-info">
+                <span class="user-name">{{ u.fullName }}</span>
+                <span class="user-role-badge role-{{ u.role.toLowerCase() }}">{{ u.role }}</span>
+              </div>
+              <button class="btn-remove" (click)="removeUser(u.userId)" title="Remove from subject">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+            <div *ngIf="assignedUsers.length === 0" class="empty-state-sm">No users assigned yet.</div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- ================================================ -->
+  <!-- TAB 3: ANALYTICS -->
+  <!-- ================================================ -->
+  <div *ngIf="activeTab === 'analytics'" class="tab-content">
+    <div *ngIf="!analyticsSubjectId" class="empty-state">
+      <i class="bi bi-bar-chart"></i>
+      <p>Select a subject from the Subjects tab to view analytics.</p>
+      <button class="btn-outline" (click)="activeTab = 'subjects'">Go to Subjects</button>
+    </div>
+
+    <div *ngIf="loadingAnalytics" class="loading-state">
+      <div class="spinner"></div><span>Loading analytics…</span>
+    </div>
+
+    <ng-container *ngIf="selectedAnalytics && !loadingAnalytics">
+      <div class="analytics-header">
+        <h2>{{ selectedAnalytics.subjectName }}</h2>
+        <p>{{ selectedAnalytics.departmentName }} → {{ selectedAnalytics.subDepartmentName }}</p>
+        <span class="subject-code-badge">{{ selectedAnalytics.subjectCode }}</span>
+      </div>
+
+      <!-- User Stats -->
+      <div class="stats-section">
+        <h3 class="stats-title">User Statistics</h3>
+        <div class="stats-grid">
+          <div class="stat-card stat-blue">
+            <div class="stat-num">{{ selectedAnalytics.totalUsers }}</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-card stat-teal">
+            <div class="stat-num">{{ selectedAnalytics.totalTeachers }}</div>
+            <div class="stat-label">Teachers</div>
+          </div>
+          <div class="stat-card stat-purple">
+            <div class="stat-num">{{ selectedAnalytics.totalHods }}</div>
+            <div class="stat-label">HODs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Stats -->
+      <div class="stats-section">
+        <h3 class="stats-title">Task Statistics <span class="stat-note">(via assigned users)</span></h3>
+        <div class="stats-grid">
+          <div class="stat-card stat-dark">
+            <div class="stat-num">{{ selectedAnalytics.totalTasks }}</div>
+            <div class="stat-label">Total Tasks</div>
+          </div>
+          <div class="stat-card stat-orange">
+            <div class="stat-num">{{ selectedAnalytics.pendingTasks }}</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-card stat-yellow">
+            <div class="stat-num">{{ selectedAnalytics.upcomingTasks }}</div>
+            <div class="stat-label">Upcoming</div>
+          </div>
+          <div class="stat-card stat-indigo">
+            <div class="stat-num">{{ selectedAnalytics.inProgressTasks }}</div>
+            <div class="stat-label">In Progress</div>
+          </div>
+          <div class="stat-card stat-green">
+            <div class="stat-num">{{ selectedAnalytics.closedTasks }}</div>
+            <div class="stat-label">Closed</div>
+          </div>
+          <div class="stat-card stat-red">
+            <div class="stat-num">{{ selectedAnalytics.delayedTasks }}</div>
+            <div class="stat-label">Delayed</div>
+          </div>
+          <div class="stat-card stat-amber">
+            <div class="stat-num">{{ selectedAnalytics.extendedTasks }}</div>
+            <div class="stat-label">Extended</div>
+          </div>
+          <div class="stat-card stat-slate">
+            <div class="stat-num">{{ selectedAnalytics.requestForClosure }}</div>
+            <div class="stat-label">RFC</div>
+          </div>
+          <div class="stat-card stat-slate">
+            <div class="stat-num">{{ selectedAnalytics.requestForExtension }}</div>
+            <div class="stat-label">RFE</div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+</div>

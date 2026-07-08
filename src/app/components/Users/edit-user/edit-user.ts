@@ -13,6 +13,8 @@ import { DepartmentApiService } from '../../../Services/department-api-service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { Department } from '../../../Model/department';
 import { AuthApiService } from '../../../Services/auth-api-service';
+import { SubjectApiService } from '../../../Services/subject-api.service';
+import { SubjectDto } from '../../../Model/subject';
 
 @Component({
   selector: 'app-edit-user',
@@ -47,6 +49,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
   allUsers: any[] = [];
   filteredParentUsers: any[] = [];
   subDepartments: any[] = [];
+  allSubjects: SubjectDto[] = [];
 
   /** Password toggle */
   showPassword = false;
@@ -64,7 +67,8 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     private router: Router,
     private userApi: UserApiService,
     private deptApi: DepartmentApiService,
-    private authService: AuthApiService
+    private authService: AuthApiService,
+    private subjectApi: SubjectApiService
   ) {}
 
   ngOnInit(): void {
@@ -121,7 +125,8 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       role: [{ value: '', disabled: !this.isCurrentUserAdmin }, Validators.required],
       departmentIds: [[], Validators.required],
       parentUserId: [null],
-      subDepartmentId: [null]
+      subDepartmentId: [null],
+      subjectIds: [[]]
     });
 
     // Password strength calculation
@@ -164,6 +169,12 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       subDeptControl?.updateValueAndValidity();
     });
     if (roleSub) this.subscriptions.push(roleSub);
+
+    // SubDepartment change listener to reload subjects
+    const subDeptSub = this.editForm.get('subDepartmentId')?.valueChanges.subscribe((subDeptId) => {
+      this.onSubDepartmentChange(subDeptId);
+    });
+    if (subDeptSub) this.subscriptions.push(subDeptSub);
   }
 
   private loadAllUsers(): void {
@@ -188,6 +199,24 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'ADMIN' && u.userId !== this.userId);
     } else if (selectedRole === 'ADMIN') {
       this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'SUPER_ADMIN' && u.userId !== this.userId);
+    }
+  }
+
+  onSubDepartmentChange(subDeptId: string | null): void {
+    this.allSubjects = [];
+    if (subDeptId) {
+      this.subjectApi.getSubjectsBySubDepartment(subDeptId).subscribe({
+        next: (subs: SubjectDto[]) => {
+          this.allSubjects = subs;
+          // Filter selected subjectIds to only keep active ones for the new subdept
+          const currentSelected = this.editForm.get('subjectIds')?.value || [];
+          const validIds = currentSelected.filter((id: number) => subs.some((s: SubjectDto) => s.id === id));
+          this.editForm.get('subjectIds')?.setValue(validIds);
+        },
+        error: (err: any) => console.error('Failed to load subjects for sub-department', err)
+      });
+    } else {
+      this.editForm.get('subjectIds')?.setValue([]);
     }
   }
 
@@ -240,12 +269,16 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
           role: user.role,
           departmentIds: deptIds,
           parentUserId: user.parentUserId || null,
-          subDepartmentId: user.subDepartmentId || null
+          subDepartmentId: user.subDepartmentId || null,
+          subjectIds: user.subjectIds || []
         });
 
         this.selectedDepartments = deptIds;
         this.onDepartmentChange();
         this.onRoleChange(user.role);
+        if (user.subDepartmentId) {
+          this.onSubDepartmentChange(user.subDepartmentId);
+        }
         this.isLoading = false;
       },
       error: (err) => {
@@ -378,7 +411,8 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       role: formValue.role,
       departmentIds: this.selectedDepartments,
       parentUserId: formValue.parentUserId,
-      subDepartmentId: formValue.subDepartmentId
+      subDepartmentId: formValue.subDepartmentId,
+      subjectIds: formValue.subjectIds || []
     };
 
     // Only include password if provided
