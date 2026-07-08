@@ -190,12 +190,7 @@ export class AddUserComponent implements OnInit {
   updateDepartmentSelection(event: any, deptId: number) {
     const role = this.userForm.get('role')?.value;
 
-    if (role === 'ADMIN') {
-      const adminDept = this.departments.find(
-        (d) => d.name.toLowerCase() === 'administration'
-      );
-      this.selectedDepartments = adminDept ? [adminDept.departmentId] : [];
-    } else if (role === 'HOD' || role === 'SUB_ADMIN') {
+    if (role === 'HOD' || role === 'SUB_ADMIN') {
       this.selectedDepartments = event.target.checked ? [deptId] : [];
     } else {
       if (event.target.checked) {
@@ -213,7 +208,6 @@ export class AddUserComponent implements OnInit {
 
   isDeptDisabled(dept: any): boolean {
     const role = this.userForm.get('role')?.value;
-    if (role === 'ADMIN' && dept.name.toLowerCase() !== 'administration') return true;
     if ((role === 'HOD' || role === 'SUB_ADMIN') && this.selectedDepartments.length >= 1 && !this.selectedDepartments.includes(dept.departmentId))
       return true;
     return false;
