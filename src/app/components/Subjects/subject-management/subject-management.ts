@@ -51,6 +51,7 @@ export class SubjectManagementComponent implements OnInit {
 
   // ---- Form state ----
   isEditing = false;
+  showCreateForm = false;
   editingId: number | null = null;
   form: SubjectRequest = {
     subjectName: '',
@@ -170,6 +171,7 @@ export class SubjectManagementComponent implements OnInit {
   // ===================================================
   openCreate(): void {
     this.isEditing = false;
+    this.showCreateForm = true;
     this.editingId = null;
     this.form = {
       subjectName: '',
@@ -228,6 +230,7 @@ export class SubjectManagementComponent implements OnInit {
         this.saving = false;
         this.editingId = null;
         this.isEditing = false;
+        this.showCreateForm = false;
         this.loadSubjects();
       },
       error: (err: any) => {
@@ -239,6 +242,7 @@ export class SubjectManagementComponent implements OnInit {
 
   cancelForm(): void {
     this.isEditing = false;
+    this.showCreateForm = false;
     this.editingId = null;
   }
 

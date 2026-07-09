@@ -20,13 +20,13 @@
       <i class="bi bi-book-fill"></i> Subjects
     </button>
     <button class="tab-btn" [class.active]="activeTab === 'assign'" (click)="activeTab = 'assign'"
-            [disabled]="!assignSubjectId">
+      [disabled]="!assignSubjectId">
       <i class="bi bi-person-plus-fill"></i>
       User Assignment
       <span *ngIf="assignSubjectName" class="tab-badge">{{ assignSubjectName }}</span>
     </button>
     <button class="tab-btn" [class.active]="activeTab === 'analytics'" (click)="activeTab = 'analytics'"
-            [disabled]="!analyticsSubjectId">
+      [disabled]="!analyticsSubjectId">
       <i class="bi bi-bar-chart-fill"></i> Analytics
     </button>
   </div>
@@ -67,81 +67,97 @@
     <div class="form-card" *ngIf="form.subjectName !== undefined && (isEditing || editingId === -1)">
     </div>
 
-    <!-- Subject Form Panel (shown when openCreate/openEdit called) -->
-    <ng-container *ngIf="isEditing">
-      <div class="form-card slide-in">
-        <h3 class="form-title">{{ isEditing && editingId ? 'Edit Subject' : 'New Subject' }}</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Subject Name <span class="required">*</span></label>
-            <input type="text" [(ngModel)]="form.subjectName" placeholder="e.g. Mathematics" maxlength="150" />
-          </div>
-          <div class="form-group">
-            <label>Department <span class="required">*</span></label>
-            <select [(ngModel)]="form.departmentId" (change)="onFormDeptChange()">
-              <option [ngValue]="0" disabled>Select Department</option>
-              <option *ngFor="let d of departments" [ngValue]="d.departmentId">{{ d.name }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Sub-Department <span class="required">*</span></label>
-            <select [(ngModel)]="form.subDepartmentId" [disabled]="!form.departmentId">
-              <option value="" disabled>Select Sub-Department</option>
-              <option *ngFor="let sd of formSubDepts" [ngValue]="sd.id">{{ sd.name }}</option>
-            </select>
-          </div>
-          <div class="form-group full">
-            <label>Description</label>
-            <textarea [(ngModel)]="form.description" placeholder="Optional description..." rows="2" maxlength="500"></textarea>
+    <!-- Subject Edit Modal -->
+    <div class="modal-backdrop" *ngIf="isEditing" (click)="cancelForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">{{ isEditing && editingId ? 'Edit Subject' : 'New Subject' }}</h3>
+          <button class="modal-close" (click)="cancelForm()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Subject Name <span class="required">*</span></label>
+              <input type="text" [(ngModel)]="form.subjectName" placeholder="e.g. Mathematics" maxlength="150" />
+            </div>
+            <div class="form-group">
+              <label>Department <span class="required">*</span></label>
+              <select [(ngModel)]="form.departmentId" (change)="onFormDeptChange()">
+                <option [ngValue]="0" disabled>Select Department</option>
+                <option *ngFor="let d of departments" [ngValue]="d.departmentId">{{ d.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Sub-Department <span class="required">*</span></label>
+              <select [(ngModel)]="form.subDepartmentId" [disabled]="!form.departmentId">
+                <option value="" disabled>Select Sub-Department</option>
+                <option *ngFor="let sd of formSubDepts" [ngValue]="sd.id">{{ sd.name }}</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Description</label>
+              <textarea [(ngModel)]="form.description" placeholder="Optional description..." rows="3"
+                maxlength="500"></textarea>
+            </div>
           </div>
         </div>
-        <div class="form-actions">
+        <div class="modal-footer">
+          <button class="btn-outline" (click)="cancelForm()">Cancel</button>
           <button class="btn-primary" (click)="saveSubject()" [disabled]="saving">
             <span *ngIf="saving"><i class="bi bi-hourglass-split"></i> Saving…</span>
             <span *ngIf="!saving"><i class="bi bi-check-lg"></i> {{ editingId ? 'Update' : 'Create' }} Subject</span>
           </button>
-          <button class="btn-outline" (click)="cancelForm()">Cancel</button>
         </div>
       </div>
-    </ng-container>
+    </div>
 
-    <!-- Subject Create Form (shown when !isEditing but openCreate called) -->
-    <ng-container *ngIf="!isEditing && form.departmentId > 0">
-      <div class="form-card slide-in">
-        <h3 class="form-title">New Subject</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Subject Name <span class="required">*</span></label>
-            <input type="text" [(ngModel)]="form.subjectName" placeholder="e.g. Mathematics" maxlength="150" />
-          </div>
-          <div class="form-group">
-            <label>Department <span class="required">*</span></label>
-            <select [(ngModel)]="form.departmentId" (change)="onFormDeptChange()">
-              <option [ngValue]="0" disabled>Select Department</option>
-              <option *ngFor="let d of departments" [ngValue]="d.departmentId">{{ d.name }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Sub-Department <span class="required">*</span></label>
-            <select [(ngModel)]="form.subDepartmentId" [disabled]="!form.departmentId">
-              <option value="" disabled>Select Sub-Department</option>
-              <option *ngFor="let sd of formSubDepts" [ngValue]="sd.id">{{ sd.name }}</option>
-            </select>
-          </div>
-          <div class="form-group full">
-            <label>Description</label>
-            <textarea [(ngModel)]="form.description" placeholder="Optional description..." rows="2" maxlength="500"></textarea>
+    <!-- Subject Create Modal -->
+    <div class="modal-backdrop" *ngIf="showCreateForm" (click)="cancelForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">New Subject</h3>
+          <button class="modal-close" (click)="cancelForm()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Subject Name <span class="required">*</span></label>
+              <input type="text" [(ngModel)]="form.subjectName" placeholder="e.g. Mathematics" maxlength="150" />
+            </div>
+            <div class="form-group">
+              <label>Department <span class="required">*</span></label>
+              <select [(ngModel)]="form.departmentId" (change)="onFormDeptChange()">
+                <option [ngValue]="0" disabled>Select Department</option>
+                <option *ngFor="let d of departments" [ngValue]="d.departmentId">{{ d.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Sub-Department <span class="required">*</span></label>
+              <select [(ngModel)]="form.subDepartmentId" [disabled]="!form.departmentId">
+                <option value="" disabled>Select Sub-Department</option>
+                <option *ngFor="let sd of formSubDepts" [ngValue]="sd.id">{{ sd.name }}</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Description</label>
+              <textarea [(ngModel)]="form.description" placeholder="Optional description..." rows="3"
+                maxlength="500"></textarea>
+            </div>
           </div>
         </div>
-        <div class="form-actions">
+        <div class="modal-footer">
+          <button class="btn-outline" (click)="cancelForm()">Cancel</button>
           <button class="btn-primary" (click)="saveSubject()" [disabled]="saving">
             <span *ngIf="saving"><i class="bi bi-hourglass-split"></i> Saving…</span>
             <span *ngIf="!saving"><i class="bi bi-check-lg"></i> Create Subject</span>
           </button>
-          <button class="btn-outline" (click)="cancelForm()">Cancel</button>
         </div>
       </div>
-    </ng-container>
+    </div>
 
     <!-- Subject List -->
     <div class="section-header">
@@ -227,23 +243,24 @@
           <h4 class="panel-title">Available Users
             <span class="panel-count">{{ unassignedUsers.length }}</span>
           </h4>
-          <div *ngIf="loadingUsers" class="loading-state-sm"><div class="spinner-sm"></div></div>
+          <div *ngIf="loadingUsers" class="loading-state-sm">
+            <div class="spinner-sm"></div>
+          </div>
           <div class="user-list" *ngIf="!loadingUsers">
-            <div class="user-item" *ngFor="let u of unassignedUsers"
-                 [class.selected]="isUserSelected(u.userId)"
-                 (click)="toggleUserSelection(u.userId)">
+            <div class="user-item" *ngFor="let u of unassignedUsers" [class.selected]="isUserSelected(u.userId)"
+              (click)="toggleUserSelection(u.userId)">
               <div class="user-avatar">{{ u.fullName.charAt(0) }}</div>
               <div class="user-info">
                 <span class="user-name">{{ u.fullName }}</span>
                 <span class="user-role-badge role-{{ u.role.toLowerCase() }}">{{ u.role }}</span>
               </div>
               <i class="bi" [class.bi-check-circle-fill]="isUserSelected(u.userId)"
-                 [class.bi-circle]="!isUserSelected(u.userId)"></i>
+                [class.bi-circle]="!isUserSelected(u.userId)"></i>
             </div>
             <div *ngIf="unassignedUsers.length === 0" class="empty-state-sm">All eligible users assigned.</div>
           </div>
           <button class="btn-primary mt-2" (click)="assignSelectedUsers()"
-                  [disabled]="selectedUserIdsToAdd.length === 0 || savingAssignment">
+            [disabled]="selectedUserIdsToAdd.length === 0 || savingAssignment">
             <i class="bi bi-plus-lg"></i>
             Assign {{ selectedUserIdsToAdd.length > 0 ? '(' + selectedUserIdsToAdd.length + ')' : '' }}
           </button>
@@ -254,7 +271,9 @@
           <h4 class="panel-title">Assigned Users
             <span class="panel-count">{{ assignedUsers.length }}</span>
           </h4>
-          <div *ngIf="loadingAssignedUsers" class="loading-state-sm"><div class="spinner-sm"></div></div>
+          <div *ngIf="loadingAssignedUsers" class="loading-state-sm">
+            <div class="spinner-sm"></div>
+          </div>
           <div class="user-list" *ngIf="!loadingAssignedUsers">
             <div class="user-item assigned" *ngFor="let u of assignedUsers">
               <div class="user-avatar">{{ u.fullName.charAt(0) }}</div>
