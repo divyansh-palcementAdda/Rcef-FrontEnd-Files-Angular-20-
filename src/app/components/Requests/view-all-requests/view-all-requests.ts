@@ -93,7 +93,7 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     }
 
     this.currentUserId = decoded['userId'];
-    this.currentRole = (decoded['role'] as string || '').toUpperCase();
+    this.currentRole = (this.authApiService.getCurrentRole() ?? '').toUpperCase();
 
     this.loadRequests();
   }

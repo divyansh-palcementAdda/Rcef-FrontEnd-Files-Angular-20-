@@ -33,9 +33,11 @@ export const RoleGuard: CanActivateFn = (
   // NOTE: Token may be expired but still readable 
   // -------------------------------------------
   let role: string | undefined;
+  let payload: any;
 
   try {
-    role = authSrv.getCurrentRole() ?? undefined;
+    payload = JSON.parse(atob(token.split('.')[1]));
+    role = payload.roleName ?? payload.role;
   } catch (err) {
     console.error('[RoleGuard] Invalid JWT payload', err);
     snack.open('Invalid session. Please log in again.', 'Close', { duration: 3000 });
