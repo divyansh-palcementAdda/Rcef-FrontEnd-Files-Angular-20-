@@ -189,6 +189,20 @@
               Sub-department assignment is required.
             </div>
           </div>
+          <!-- Main Subject -->
+          <div class="col-md-6">
+            <label class="form-label">Main Subject</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-book"></i></span>
+              <select class="form-select" formControlName="mainSubjectId">
+                <option [ngValue]="null" disabled selected>Select Main Subject</option>
+                <option *ngFor="let subject of subjects" [value]="subject.id">
+                  {{ subject.subjectName }} ({{ subject.subjectCode }})
+                </option>
+              </select>
+            </div>
+            <small class="text-muted d-block mt-1 narration">Select the primary subject for this user.</small>
+          </div>
           <!-- Department List -->
           <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">

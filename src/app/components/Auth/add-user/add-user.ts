@@ -6,6 +6,7 @@ import { ApiService } from '../../../Services/api-service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
+import { SubjectApiService } from '../../../Services/subject-api.service';
 import { forkJoin, of } from 'rxjs';
 
 @Component({
@@ -44,12 +45,16 @@ export class AddUserComponent implements OnInit {
   filteredParentUsers: any[] = [];
   subDepartments: any[] = [];
 
+  // Subjects
+  subjects: any[] = [];
+
   constructor(
     private fb: FormBuilder,
     private departmentApiService: DepartmentApiService,
     private apiService: ApiService,
     private userApiService: UserApiService,
     private authApiService: AuthApiService,
+    private subjectApiService: SubjectApiService,
     private route : ActivatedRoute
   ) {
     this.userForm = this.fb.group({
@@ -60,7 +65,8 @@ export class AddUserComponent implements OnInit {
       role: ['', Validators.required],
       departmentIds: [[], Validators.required],
       parentUserId: [null],
-      subDepartmentId: [null]
+      subDepartmentId: [null],
+      mainSubjectId: [null]
     });
   }
 
@@ -78,6 +84,7 @@ export class AddUserComponent implements OnInit {
     console.log('Preselected Department ID:', this.departmentId);
     this.loadDepartments();
     this.loadAllUsers();
+    this.loadSubjects();
 
     // Set dynamic roles list based on logged-in user role
     const currentRole = this.authApiService.getCurrentRole() || '';
@@ -161,6 +168,13 @@ export class AddUserComponent implements OnInit {
     this.departmentApiService.getAllDepartments().subscribe({
       next: (data) => (this.departments = data),
       error: (err) => console.error('Failed to load departments', err)
+    });
+  }
+
+  loadSubjects(): void {
+    this.subjectApiService.getAllSubjects().subscribe({
+      next: (data) => (this.subjects = data),
+      error: (err) => console.error('Failed to load subjects', err)
     });
   }
 
