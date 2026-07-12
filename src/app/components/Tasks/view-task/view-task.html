@@ -759,10 +759,10 @@
                                   *ngIf="s.enrollmentId || s.course || getStudentReportCounts(s)">
                                   <span *ngIf="s.enrollmentId">Enrollment : {{ s.enrollmentId }}<br></span>
                                   <span *ngIf="s.course">Course : {{ s.course }}<br></span>
-                                  <!-- <span *ngIf="getStudentReportCounts(s)">
+                                  <span *ngIf="getStudentReportCounts(s)">
                                     Forms Reported : {{ getStudentReportCounts(s).formReportCount }}<br>
                                     Fees Reported : {{ getStudentReportCounts(s).feesReportCount }}
-                                  </span> -->
+                                  </span>
                                   <div class="mt-2"
                                     *ngIf="showWhoReported && getStudentReportCounts(s) && getStudentReportCounts(s).totalReports > 0">
                                     <button type="button" class="btn btn-xs btn-link p-0 text-decoration-none"

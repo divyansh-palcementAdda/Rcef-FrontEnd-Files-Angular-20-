@@ -435,6 +435,9 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
               if (currentRole === 'SUPER_ADMIN') {
                 return true; // SUPER_ADMIN can see everyone
               }
+              if (currentRole === 'HOD') {
+                return this.canHodAssignToUser(u);
+              }
               // Allow seeing self (so they can assign to self if they want) or users below them
               return u.userId === this.currentUser.userId || this.isUserBelow(u, this.currentUser);
             })
@@ -646,6 +649,26 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     return false;
   }
 
+  canHodAssignToUser(u: userDto): boolean {
+    if (!this.currentUser) return false;
+    if (u.userId === this.currentUser.userId) return true;
+
+    const targetRole = u.role;
+    if (targetRole === 'SUPER_ADMIN' || targetRole === 'ADMIN' || targetRole === 'SUB_ADMIN') {
+      return false;
+    }
+    if (targetRole === 'HOD') {
+      return this.isUserBelow(u, this.currentUser);
+    }
+
+    // For TEACHER / STAFF / other roles:
+    const sharesDept = u.departmentIds?.some(id => this.currentUser?.departmentIds?.includes(id));
+    const subDept = this.subDepartments.find(sub => sub.id === u.subDepartmentId);
+    const sharesSubDept = !!(subDept && subDept.department && this.currentUser?.departmentIds?.includes(subDept.department.departmentId));
+
+    return !!(sharesDept || sharesSubDept || this.isUserBelow(u, this.currentUser));
+  }
+
   isUserSelectionDisabled(user: userDto): boolean {
     if (!this.currentUser) return true;
 
@@ -683,15 +706,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     }
 
     if (currentRole === 'HOD') {
-      // HOD can assign tasks to Teachers belonging to their department and hierarchy
-      if (targetRole !== 'TEACHER') {
-        return true;
-      }
-      const sameDept = user.departmentIds?.some((id) =>
-        this.currentUser?.departmentIds?.includes(id)
-      );
-      const isDescendant = this.isUserBelow(user, this.currentUser);
-      return !(sameDept && isDescendant);
+      return !this.canHodAssignToUser(user);
     }
 
     return true;

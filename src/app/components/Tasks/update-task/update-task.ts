@@ -558,6 +558,17 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
         for (const dept of this.departments) {
           const usersInDept = active
             .filter((u) => u.departmentIds?.includes(dept.departmentId))
+            .filter((u) => {
+              if (!this.currentUser) return false;
+              const currentRole = (this.currentUser.role ?? '').toString().toUpperCase();
+              if (currentRole.includes('ADMIN')) {
+                return true; // admins can see all active users in department
+              }
+              if (currentRole.includes('HOD')) {
+                return this.canHodAssignToUser(u);
+              }
+              return u.userId === this.currentUser.userId || this.isUserBelow(u, this.currentUser);
+            })
             .sort((a, b) => (a.role === 'HOD' ? -1 : b.role === 'HOD' ? 1 : 0));
           this.usersByDepartment.set(dept.departmentId, usersInDept);
           this.filteredUsersByDept.set(dept.departmentId, [...usersInDept]);
@@ -750,6 +761,26 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     return false;
   }
 
+  canHodAssignToUser(u: userDto): boolean {
+    if (!this.currentUser) return false;
+    if (u.userId === this.currentUser.userId) return true;
+
+    const targetRole = u.role;
+    if (targetRole === 'SUPER_ADMIN' || targetRole === 'ADMIN' || targetRole === 'SUB_ADMIN') {
+      return false;
+    }
+    if (targetRole === 'HOD') {
+      return this.isUserBelow(u, this.currentUser);
+    }
+
+    // For TEACHER / STAFF / other roles:
+    const sharesDept = u.departmentIds?.some(id => this.currentUser?.departmentIds?.includes(id));
+    const subDept = this.subDepartments.find(sub => sub.id === u.subDepartmentId);
+    const sharesSubDept = !!(subDept && subDept.department && this.currentUser?.departmentIds?.includes(subDept.department.departmentId));
+
+    return !!(sharesDept || sharesSubDept || this.isUserBelow(u, this.currentUser));
+  }
+
   isUserSelectionDisabled(user: userDto): boolean {
     if (!this.currentUser) return true;
 
@@ -758,10 +789,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     if (role.includes('ADMIN')) return false;
 
     if (role.includes('HOD')) {
-      const sameDept = user.departmentIds?.some(id =>
-        this.currentUser?.departmentIds?.includes(id)
-      );
-      return !(user.userId === this.currentUser.userId || sameDept);
+      return !this.canHodAssignToUser(user);
     }
 
     return true;
