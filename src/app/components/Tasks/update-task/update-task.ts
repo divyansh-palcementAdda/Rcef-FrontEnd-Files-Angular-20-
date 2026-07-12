@@ -88,6 +88,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   statuses = [...this.allowedStatuses];
 
   currentUser: userDto | null = null;
+  isFormInitializing = false;
 
   /* ---------- UI STATE ---------- */
   isSubmitting = false;
@@ -289,15 +290,19 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
             titleCtrl?.enable();
             descCtrl?.enable();
           } else {
-            titleCtrl?.setValue(template.title);
-            descCtrl?.setValue(template.description);
+            if (!this.isFormInitializing) {
+              titleCtrl?.setValue(template.title);
+              descCtrl?.setValue(template.description);
+            }
             titleCtrl?.disable();
-            descCtrl?.disable();
+            descCtrl?.enable();
           }
         }
       } else {
-        titleCtrl?.setValue('');
-        descCtrl?.setValue('');
+        if (!this.isFormInitializing) {
+          titleCtrl?.setValue('');
+          descCtrl?.setValue('');
+        }
         titleCtrl?.enable();
         descCtrl?.enable();
       }
@@ -374,6 +379,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   /* ---------- LOAD USER + TASK ---------- */
   private loadCurrentUserAndTask(): void {
     this.isLoadingTask = true;
+    this.isFormInitializing = true;
     this.cdr.markForCheck();
 
     const token = this.jwtService.getAccessToken();
@@ -496,7 +502,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     const descCtrl = this.taskForm.get('description');
     if (isTemplate && this.selectedTemplate && this.selectedTemplate.title !== 'Others') {
       titleCtrl?.disable();
-      descCtrl?.disable();
+      descCtrl?.enable();
     } else {
       titleCtrl?.enable();
       descCtrl?.enable();
@@ -504,6 +510,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
 
     this.dateErrorMessage = null;
     this.filterSubDepartments();
+    this.isFormInitializing = false;
     this.cdr.markForCheck();
   }
 

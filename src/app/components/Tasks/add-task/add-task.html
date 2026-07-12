@@ -1,11 +1,13 @@
 <div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
-  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" [class.task-form-card]="!isModal" [class.modal-form-card]="isModal" novalidate>
-    
+  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" [class.task-form-card]="!isModal"
+    [class.modal-form-card]="isModal" novalidate>
+
     <!-- Form Header -->
     <div [class.task-form-header]="!isModal" [class.modal-form-header]="isModal">
       <div>
         <h3 class="mb-1 fw-bold">Create New Task</h3>
-        <p class="mb-0 text-muted small">Define task targets, assign responsible members/departments, and configure completion criteria.</p>
+        <p class="mb-0 text-muted small">Define task targets, assign responsible members/departments, and configure
+          completion criteria.</p>
       </div>
       <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
         <i class="bi bi-x-lg fs-5"></i>
@@ -14,14 +16,16 @@
 
     <!-- Form Body -->
     <div [class.task-form-body]="!isModal" [class.modal-form-body]="isModal">
-      
+
       <!-- Success/Error Feedback Alerts -->
-      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+      <div *ngIf="successMessage"
+        class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
         <span><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}</span>
         <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
       </div>
-      
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+
+      <div *ngIf="errorMessage"
+        class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
         <span><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}</span>
         <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
@@ -44,10 +48,10 @@
 
       <!-- 2-Column Grid Layout -->
       <div class="row g-4">
-        
+
         <!-- Left Column -->
         <div class="col-md-6 d-flex flex-column gap-4">
-          
+
           <!-- Template Category (only if template task) -->
           <div *ngIf="taskForm.value.isTemplateTask" class="animate__animated animate__fadeIn">
             <label class="form-label">Template Category <span class="text-danger">*</span></label>
@@ -60,7 +64,8 @@
                 </option>
               </select>
             </div>
-            <div *ngIf="taskForm.get('templateCategoryId')?.touched && taskForm.get('templateCategoryId')?.invalid" class="text-danger small mt-1">
+            <div *ngIf="taskForm.get('templateCategoryId')?.touched && taskForm.get('templateCategoryId')?.invalid"
+              class="text-danger small mt-1">
               <small>Template category is required.</small>
             </div>
           </div>
@@ -152,7 +157,7 @@
           <!-- Assign Users -->
           <div *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
             <label class="form-label">Assign Users</label>
-            
+
             <!-- Self-Assign Banner -->
             <div *ngIf="taskForm.value.assignToSelf && currentUser"
               class="alert alert-success d-flex align-items-center gap-2 mb-3 py-2.5 animate__animated animate__fadeIn">
@@ -168,8 +173,8 @@
               <div *ngFor="let deptId of taskForm.value.departmentIds; let i = index"
                 class="accordion-item rounded-3 mb-2 overflow-hidden border">
                 <h2 class="accordion-header">
-                  <button class="accordion-button collapsed" type="button"
-                    data-bs-toggle="collapse" [attr.data-bs-target]="'#collapse-' + deptId">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    [attr.data-bs-target]="'#collapse-' + deptId">
                     {{ getDepartmentName(deptId) }}
                     <span class="badge bg-light text-primary ms-2">
                       {{ (filteredUsersByDept.get(deptId) || []).length }} members
@@ -179,7 +184,7 @@
                 <div [id]="'collapse-' + deptId" class="accordion-collapse collapse" [class.show]="i === 0"
                   data-bs-parent="#userAccordion">
                   <div class="accordion-body p-3">
-                    
+
                     <div class="directory-search">
                       <i class="bi bi-search"></i>
                       <input type="text" class="form-control w-100" placeholder="Search members..."
@@ -266,10 +271,10 @@
           </div>
 
         </div>
-        
+
         <!-- Right Column -->
         <div class="col-md-6 d-flex flex-column gap-4">
-          
+
           <!-- Task Template (only if template task) -->
           <div *ngIf="taskForm.value.isTemplateTask" class="animate__animated animate__fadeIn">
             <label class="form-label">Task Template <span class="text-danger">*</span></label>
@@ -282,7 +287,8 @@
                 </option>
               </select>
             </div>
-            <div *ngIf="taskForm.get('templateId')?.touched && taskForm.get('templateId')?.invalid" class="text-danger small mt-1">
+            <div *ngIf="taskForm.get('templateId')?.touched && taskForm.get('templateId')?.invalid"
+              class="text-danger small mt-1">
               <small>Template is required.</small>
             </div>
           </div>
@@ -292,7 +298,7 @@
             <label class="form-label">Description <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-chat-dots"></i></span>
-              <textarea class="form-control" rows="5" formControlName="description"
+              <textarea class="form-control" rows="3" formControlName="description"
                 placeholder="Describe scope, deliverables, and instructions..."
                 [ngClass]="{ 'is-invalid': f.description.touched && f.description.errors }"></textarea>
             </div>
@@ -341,12 +347,12 @@
             <label class="form-label">Target Count <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-hash"></i></span>
-              <input type="number" class="form-control" formControlName="targetCount"
-                placeholder="e.g., 50" min="1"
+              <input type="number" class="form-control" formControlName="targetCount" placeholder="e.g., 50" min="1"
                 [ngClass]="{ 'is-invalid': taskForm.get('targetCount')?.touched && taskForm.get('targetCount')?.invalid }" />
             </div>
             <div class="field-hint">Define the required target count for this template task.</div>
-            <div *ngIf="taskForm.get('targetCount')?.touched && taskForm.get('targetCount')?.invalid" class="text-danger small mt-1">
+            <div *ngIf="taskForm.get('targetCount')?.touched && taskForm.get('targetCount')?.invalid"
+              class="text-danger small mt-1">
               <small *ngIf="taskForm.get('targetCount')?.errors?.['required']">Target count is required.</small>
               <small *ngIf="taskForm.get('targetCount')?.errors?.['min']">Target count must be at least 1.</small>
             </div>
@@ -366,7 +372,8 @@
               </select>
             </div>
             <div class="field-hint">Select the target completion percentage for this task.</div>
-            <div *ngIf="taskForm.get('targetPercentage')?.touched && taskForm.get('targetPercentage')?.invalid" class="text-danger small mt-1">
+            <div *ngIf="taskForm.get('targetPercentage')?.touched && taskForm.get('targetPercentage')?.invalid"
+              class="text-danger small mt-1">
               <small>Target progress is required.</small>
             </div>
           </div>
@@ -394,7 +401,8 @@
     </div>
 
     <!-- Sticky Form Footer -->
-    <div [class.task-form-footer]="!isModal" [class.modal-form-footer]="isModal" class="d-flex justify-content-end gap-2">
+    <div [class.task-form-footer]="!isModal" [class.modal-form-footer]="isModal"
+      class="d-flex justify-content-end gap-2">
       <button type="button" class="btn btn-secondary px-4" (click)="cancel()" [disabled]="isSubmitting">
         Cancel
       </button>

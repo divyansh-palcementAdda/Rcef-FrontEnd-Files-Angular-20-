@@ -25,5 +25,13 @@ export interface userDto {
   subjectIds?: number[];
   subjectNames?: string[];
   subjectCodes?: string[];
+  subjects?: Array<{
+    id: number;
+    name: string;
+    departmentId: number;
+    departmentName: string;
+    subDepartmentId?: string;
+    subDepartmentName?: string;
+  }>;
 }
 

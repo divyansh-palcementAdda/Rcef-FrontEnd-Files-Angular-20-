@@ -293,14 +293,47 @@
           </div>
           <div class="row g-3">
             <div class="col-12">
-              <label class="form-label">Select Subjects <span class="text-muted small">(Hold Ctrl or Cmd to select multiple)</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-journals"></i></span>
-                <select multiple class="form-select" formControlName="subjectIds" style="height: 120px;">
-                  <option *ngFor="let sub of allSubjects" [value]="sub.id">
-                    {{ sub.subjectName }} ({{ sub.subjectCode }})
-                  </option>
-                </select>
+              <label class="form-label">Select Subjects</label>
+              <div class="custom-multiselect-container position-relative" (keydown)="handleMultiselectKeydown($event)">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="focusSearchInput($event)">
+                  <!-- Chips -->
+                  <span *ngFor="let id of getSelectedSubjectIds()" class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
+                    <span>{{ getSubjectName(id) }}</span>
+                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;" (click)="removeSubject(id, $event)"></button>
+                  </span>
+                  <!-- Search input -->
+                  <input
+                    type="text"
+                    class="flex-grow-1 border-0 bg-transparent py-1 px-2"
+                    placeholder="🔍 Search Subject..."
+                    style="outline: none; min-width: 150px; height: 30px;"
+                    [(ngModel)]="subjectSearchQuery"
+                    [ngModelOptions]="{standalone: true}"
+                    (focus)="showSubjectDropdown = true"
+                    (blur)="onSearchBlur()"
+                  />
+                </div>
+                <!-- Dropdown Panel -->
+                <div *ngIf="showSubjectDropdown && filteredSubjectsList().length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+                  <div
+                    *ngFor="let sub of filteredSubjectsList(); let idx = index"
+                    class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                    [class.active-item]="idx === activeItemIndex"
+                    (mousedown)="toggleSubjectSelection(sub.id, $event)"
+                    style="cursor: pointer;"
+                  >
+                    <input
+                      type="checkbox"
+                      class="form-check-input custom-checkbox"
+                      style="pointer-events: none;"
+                      [checked]="isSubjectSelected(sub.id)"
+                    />
+                    <span>{{ sub.subjectName }} ({{ sub.subjectCode }})</span>
+                  </div>
+                </div>
+                <div *ngIf="showSubjectDropdown && filteredSubjectsList().length === 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted" style="z-index: 1050;">
+                  No matching subjects found.
+                </div>
               </div>
               <div *ngIf="allSubjects.length === 0" class="text-muted small mt-2">
                 <i class="bi bi-info-circle me-1"></i> No subjects available for the selected sub-department.

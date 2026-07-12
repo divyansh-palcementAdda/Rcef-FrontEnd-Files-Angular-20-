@@ -315,7 +315,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
             titleCtrl?.setValue(template.title);
             descCtrl?.setValue(template.description);
             titleCtrl?.disable();
-            descCtrl?.disable();
+            descCtrl?.enable();
           }
         }
       } else {

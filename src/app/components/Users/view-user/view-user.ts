@@ -574,4 +574,23 @@ formatTime(timestamp: string | Date): string {
       year: 'numeric'
     });
   }
+
+  getGroupedSubjects(): any[] {
+    if (!this.user || !this.user.subjects || this.user.subjects.length === 0) {
+      return [];
+    }
+    const groups: { [key: string]: { departmentName: string, subDepartmentName: string, subjects: any[] } } = {};
+    this.user.subjects.forEach(sub => {
+      const key = `${sub.departmentName || ''}_${sub.subDepartmentName || ''}`;
+      if (!groups[key]) {
+        groups[key] = {
+          departmentName: sub.departmentName || 'Other',
+          subDepartmentName: sub.subDepartmentName || '',
+          subjects: []
+        };
+      }
+      groups[key].subjects.push(sub);
+    });
+    return Object.values(groups);
+  }
 }

@@ -109,6 +109,19 @@ export class SubjectApiService {
     );
   }
 
+  getSubjects(departmentId?: number | null, subDepartmentId?: string | null): Observable<SubjectDto[]> {
+    let params: any = {};
+    if (departmentId != null) {
+      params.departmentId = departmentId.toString();
+    }
+    if (subDepartmentId != null) {
+      params.subDepartmentId = subDepartmentId;
+    }
+    return this.http.get<SubjectDto[]>(this.apiUrl, { params }).pipe(
+      catchError(err => this.handleError(err, 'fetch filtered subjects'))
+    );
+  }
+
   // ---- Shared error handler ----
 
   private handleError(error: any, context: string) {

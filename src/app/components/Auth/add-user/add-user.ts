@@ -47,6 +47,9 @@ export class AddUserComponent implements OnInit {
 
   // Subjects
   subjects: any[] = [];
+  subjectSearchQuery = '';
+  showSubjectDropdown = false;
+  activeItemIndex = -1;
 
   constructor(
     private fb: FormBuilder,
@@ -66,7 +69,7 @@ export class AddUserComponent implements OnInit {
       departmentIds: [[], Validators.required],
       parentUserId: [null],
       subDepartmentId: [null],
-      mainSubjectId: [null]
+      subjectIds: [[]]
     });
   }
 
@@ -124,6 +127,10 @@ export class AddUserComponent implements OnInit {
       }
       subDeptControl?.updateValueAndValidity();
     });
+
+    this.userForm.get('subDepartmentId')?.valueChanges.subscribe(() => {
+      this.reloadSubjects();
+    });
   }
 
   loadAllUsers(): void {
@@ -172,10 +179,8 @@ export class AddUserComponent implements OnInit {
   }
 
   loadSubjects(): void {
-    this.subjectApiService.getAllSubjects().subscribe({
-      next: (data) => (this.subjects = data),
-      error: (err) => console.error('Failed to load subjects', err)
-    });
+    // Keep for backward compatibility or initial empty load
+    this.reloadSubjects();
   }
 
   togglePasswordVisibility(): void {
@@ -218,6 +223,7 @@ export class AddUserComponent implements OnInit {
 
     this.userForm.get('departmentIds')?.setValue(this.selectedDepartments);
     this.onDepartmentChange();
+    this.reloadSubjects();
   }
 
   isDeptDisabled(dept: any): boolean {
@@ -319,6 +325,160 @@ export class AddUserComponent implements OnInit {
       this.closed.emit(false);
     } else {
       this.authApiService.goToDashboard();
+    }
+  }
+
+  // ===========================================================
+  // Searchable Multiselect Helpers
+  // ===========================================================
+  reloadSubjects(): void {
+    const selectedDeptIds = this.selectedDepartments || [];
+    const subDeptId = this.userForm.get('subDepartmentId')?.value;
+
+    if (selectedDeptIds.length === 0 && !subDeptId) {
+      this.subjects = [];
+      this.userForm.get('subjectIds')?.setValue([]);
+      return;
+    }
+
+    if (subDeptId) {
+      this.subjectApiService.getSubjects(null, subDeptId).subscribe({
+        next: (subs) => {
+          this.subjects = subs;
+          this.validateSelectedSubjects();
+        },
+        error: (err) => console.error('Failed to load subjects', err)
+      });
+    } else if (selectedDeptIds.length > 0) {
+      const requests = selectedDeptIds.map(id => this.subjectApiService.getSubjects(id, null));
+      forkJoin(requests).subscribe({
+        next: (results) => {
+          const merged = results.flat();
+          const unique = merged.filter((sub, index, self) =>
+            index === self.findIndex((t) => t.id === sub.id)
+          );
+          this.subjects = unique;
+          this.validateSelectedSubjects();
+        },
+        error: (err) => console.error('Failed to load subjects for departments', err)
+      });
+    }
+  }
+
+  validateSelectedSubjects(): void {
+    const currentSelected: number[] = this.userForm.get('subjectIds')?.value || [];
+    const validSelected = currentSelected.filter(id =>
+      this.subjects.some(sub => sub.id === id)
+    );
+    this.userForm.get('subjectIds')?.setValue(validSelected);
+  }
+
+  isSubjectSelected(id: number): boolean {
+    const selected = this.userForm.get('subjectIds')?.value || [];
+    return selected.includes(id);
+  }
+
+  getSelectedSubjectIds(): number[] {
+    return this.userForm.get('subjectIds')?.value || [];
+  }
+
+  getSubjectName(id: number): string {
+    const sub = this.subjects.find(s => s.id === id);
+    return sub ? sub.subjectName : `Subject #${id}`;
+  }
+
+  filteredSubjectsList(): any[] {
+    const q = this.subjectSearchQuery.toLowerCase().trim();
+    if (!q) return this.subjects;
+    return this.subjects.filter(sub =>
+      sub.subjectName.toLowerCase().includes(q) ||
+      (sub.subjectCode && sub.subjectCode.toLowerCase().includes(q))
+    );
+  }
+
+  toggleSubjectSelection(id: number, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const control = this.userForm.get('subjectIds');
+    const current: number[] = control?.value || [];
+    let updated: number[];
+
+    if (current.includes(id)) {
+      updated = current.filter(x => x !== id);
+    } else {
+      updated = [...current, id];
+      // Auto Assignment Logic:
+      const subjectObj = this.subjects.find(s => s.id === id);
+      if (subjectObj) {
+        if (!this.selectedDepartments.includes(subjectObj.departmentId)) {
+          this.selectedDepartments = [...this.selectedDepartments, subjectObj.departmentId];
+          this.userForm.get('departmentIds')?.setValue(this.selectedDepartments);
+          this.onDepartmentChange();
+        }
+        if (subjectObj.subDepartmentId && !this.userForm.get('subDepartmentId')?.value) {
+          this.userForm.get('subDepartmentId')?.setValue(subjectObj.subDepartmentId);
+        }
+      }
+    }
+    control?.setValue(updated);
+    control?.markAsTouched();
+    control?.markAsDirty();
+  }
+
+  removeSubject(id: number, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const control = this.userForm.get('subjectIds');
+    const current: number[] = control?.value || [];
+    control?.setValue(current.filter(x => x !== id));
+    control?.markAsTouched();
+    control?.markAsDirty();
+  }
+
+  focusSearchInput(event: Event): void {
+    if ((event.target as HTMLElement).tagName !== 'BUTTON') {
+      const inputEl = document.querySelector('input[placeholder="🔍 Search Subject..."]') as HTMLInputElement;
+      if (inputEl) {
+        inputEl.focus();
+      }
+    }
+  }
+
+  onSearchBlur(): void {
+    setTimeout(() => {
+      this.showSubjectDropdown = false;
+      this.activeItemIndex = -1;
+    }, 250);
+  }
+
+  handleMultiselectKeydown(event: KeyboardEvent): void {
+    const list = this.filteredSubjectsList();
+    if (!this.showSubjectDropdown) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        this.showSubjectDropdown = true;
+        this.activeItemIndex = 0;
+        event.preventDefault();
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      this.activeItemIndex = (this.activeItemIndex + 1) % list.length;
+      event.preventDefault();
+    } else if (event.key === 'ArrowUp') {
+      this.activeItemIndex = (this.activeItemIndex - 1 + list.length) % list.length;
+      event.preventDefault();
+    } else if (event.key === 'Enter') {
+      if (this.activeItemIndex >= 0 && this.activeItemIndex < list.length) {
+        this.toggleSubjectSelection(list[this.activeItemIndex].id);
+        event.preventDefault();
+      }
+    } else if (event.key === 'Escape') {
+      this.showSubjectDropdown = false;
+      this.activeItemIndex = -1;
+      event.preventDefault();
     }
   }
 }
