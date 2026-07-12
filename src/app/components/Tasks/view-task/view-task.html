@@ -439,9 +439,9 @@
             <button class="tab-nav-btn" [class.active]="activeTab === 'activity'" (click)="activeTab = 'activity'">
               Activity
             </button>
-            <button class="tab-nav-btn" [class.active]="activeTab === 'comments'" (click)="activeTab = 'comments'">
+            <!-- <button class="tab-nav-btn" [class.active]="activeTab === 'comments'" (click)="activeTab = 'comments'">
               Comments <span class="tab-count-badge" *ngIf="comments.length">{{ comments.length }}</span>
-            </button>
+            </button> -->
           </div>
 
           <div class="tabs-content-pane">
@@ -759,10 +759,29 @@
                                   *ngIf="s.enrollmentId || s.course || getStudentReportCounts(s)">
                                   <span *ngIf="s.enrollmentId">Enrollment : {{ s.enrollmentId }}<br></span>
                                   <span *ngIf="s.course">Course : {{ s.course }}<br></span>
-                                  <span *ngIf="getStudentReportCounts(s)">
+                                  <!-- <span *ngIf="getStudentReportCounts(s)">
                                     Forms Reported : {{ getStudentReportCounts(s).formReportCount }}<br>
                                     Fees Reported : {{ getStudentReportCounts(s).feesReportCount }}
-                                  </span>
+                                  </span> -->
+                                  <div class="mt-2"
+                                    *ngIf="showWhoReported && getStudentReportCounts(s) && getStudentReportCounts(s).totalReports > 0">
+                                    <button type="button" class="btn btn-xs btn-link p-0 text-decoration-none"
+                                      (click)="toggleReportHistory(s, $event)" style="font-size: 0.75rem;">
+                                      {{ isReportHistoryExpanded(s) ? 'Hide' : 'Show' }} Who Reported
+                                    </button>
+                                    <div
+                                      class="mt-1.5 p-2 rounded bg-light border-start border-3 border-primary animate__animated animate__fadeIn"
+                                      *ngIf="isReportHistoryExpanded(s)">
+                                      <div style="font-size: 0.725rem; font-weight: 700; color: #475569;" class="mb-1">
+                                        Reported By:</div>
+                                      <div *ngIf="!getStudentReportHistory(s)" class="text-muted"
+                                        style="font-size: 0.725rem;">Loading...</div>
+                                      <div *ngFor="let h of getStudentReportHistory(s)"
+                                        style="font-size: 0.725rem; color: #1e293b;" class="mt-0.5 fw-medium">
+                                        {{ h.reportedBy }} - {{ h.type }}
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1136,6 +1155,25 @@
                       Forms Reported : {{ getStudentReportCounts(s).formReportCount }} | Fees Reported : {{
                       getStudentReportCounts(s).feesReportCount }}
                     </div>
+                    <div class="mt-2"
+                      *ngIf="showWhoReported && getStudentReportCounts(s) && getStudentReportCounts(s).totalReports > 0">
+                      <button type="button" class="btn btn-xs btn-link p-0 text-decoration-none"
+                        (click)="toggleReportHistory(s, $event)" style="font-size: 0.75rem;">
+                        {{ isReportHistoryExpanded(s) ? 'Hide' : 'Show' }} Who Reported
+                      </button>
+                      <div
+                        class="mt-1.5 p-2 rounded bg-light border-start border-3 border-primary animate__animated animate__fadeIn"
+                        *ngIf="isReportHistoryExpanded(s)">
+                        <div style="font-size: 0.725rem; font-weight: 700; color: #475569;" class="mb-1">Reported By:
+                        </div>
+                        <div *ngIf="!getStudentReportHistory(s)" class="text-muted" style="font-size: 0.725rem;">
+                          Loading...</div>
+                        <div *ngFor="let h of getStudentReportHistory(s)" style="font-size: 0.725rem; color: #1e293b;"
+                          class="mt-0.5 fw-medium">
+                          {{ h.reportedBy }} - {{ h.type }}
+                        </div>
+                      </div>
+                    </div>
                   </td>
                   <td class="py-2 text-muted">Enrollment : {{ s.enrollmentId }}</td>
                 </tr>
@@ -1359,6 +1397,25 @@
                               Forms Reported : {{ getStudentReportCounts(s).formReportCount }} | Fees Reported : {{
                               getStudentReportCounts(s).feesReportCount }}
                             </div>
+                            <div class="mt-2"
+                              *ngIf="showWhoReported && getStudentReportCounts(s) && getStudentReportCounts(s).totalReports > 0">
+                              <button type="button" class="btn btn-xs btn-link p-0 text-decoration-none"
+                                (click)="toggleReportHistory(s, $event)" style="font-size: 0.75rem;">
+                                {{ isReportHistoryExpanded(s) ? 'Hide' : 'Show' }} Who Reported
+                              </button>
+                              <div
+                                class="mt-1.5 p-2 rounded bg-light border-start border-3 border-primary animate__animated animate__fadeIn"
+                                *ngIf="isReportHistoryExpanded(s)">
+                                <div style="font-size: 0.725rem; font-weight: 700; color: #475569;" class="mb-1">
+                                  Reported By:</div>
+                                <div *ngIf="!getStudentReportHistory(s)" class="text-muted"
+                                  style="font-size: 0.725rem;">Loading...</div>
+                                <div *ngFor="let h of getStudentReportHistory(s)"
+                                  style="font-size: 0.725rem; color: #1e293b;" class="mt-0.5 fw-medium">
+                                  {{ h.reportedBy }} - {{ h.type }}
+                                </div>
+                              </div>
+                            </div>
                           </td>
                           <td class="py-2 text-muted" style="font-size: 0.8rem;">Enrollment : {{ s.enrollmentId || '—'
                             }}</td>
@@ -1430,6 +1487,25 @@
                         style="font-size: 0.75rem;">
                         Forms Reported : {{ getStudentReportCounts(s).formReportCount }} | Fees Reported : {{
                         getStudentReportCounts(s).feesReportCount }}
+                      </div>
+                      <div class="mt-2"
+                        *ngIf="showWhoReported && getStudentReportCounts(s) && getStudentReportCounts(s).totalReports > 0">
+                        <button type="button" class="btn btn-xs btn-link p-0 text-decoration-none"
+                          (click)="toggleReportHistory(s, $event)" style="font-size: 0.75rem;">
+                          {{ isReportHistoryExpanded(s) ? 'Hide' : 'Show' }} Who Reported
+                        </button>
+                        <div
+                          class="mt-1.5 p-2 rounded bg-light border-start border-3 border-primary animate__animated animate__fadeIn"
+                          *ngIf="isReportHistoryExpanded(s)">
+                          <div style="font-size: 0.725rem; font-weight: 700; color: #475569;" class="mb-1">Reported By:
+                          </div>
+                          <div *ngIf="!getStudentReportHistory(s)" class="text-muted" style="font-size: 0.725rem;">
+                            Loading...</div>
+                          <div *ngFor="let h of getStudentReportHistory(s)" style="font-size: 0.725rem; color: #1e293b;"
+                            class="mt-0.5 fw-medium">
+                            {{ h.reportedBy }} - {{ h.type }}
+                          </div>
+                        </div>
                       </div>
                     </td>
                     <td class="py-2 text-muted" style="font-size: 0.8rem;">Enrollment : {{ s.enrollmentId }}</td>
@@ -1803,27 +1879,7 @@
                           Total Reports : {{ getStudentReportCounts(s).totalReports }}
                         </div>
 
-                        <!-- Expandable reported by list -->
-                        <div class="mt-2"
-                          *ngIf="getStudentReportCounts(s) && getStudentReportCounts(s).totalReports > 0">
-                          <button type="button" class="btn btn-xs btn-link p-0 text-decoration-none"
-                            (click)="toggleReportHistory(s, $event)" style="font-size: 0.75rem;">
-                            {{ isReportHistoryExpanded(s) ? 'Hide' : 'Show' }} Who Reported
-                          </button>
 
-                          <div
-                            class="mt-1.5 p-2 rounded bg-light border-start border-3 border-primary animate__animated animate__fadeIn"
-                            *ngIf="isReportHistoryExpanded(s)">
-                            <div style="font-size: 0.725rem; font-weight: 700; color: #475569;" class="mb-1">Reported
-                              By:</div>
-                            <div *ngIf="!getStudentReportHistory(s)" class="text-muted" style="font-size: 0.725rem;">
-                              Loading...</div>
-                            <div *ngFor="let h of getStudentReportHistory(s)"
-                              style="font-size: 0.725rem; color: #1e293b;" class="mt-0.5 fw-medium">
-                              {{ h.reportedBy }} - {{ h.type }}
-                            </div>
-                          </div>
-                        </div>
                       </div>
                       <i *ngIf="isStudentSelected(s)" class="bi bi-check-circle-fill student-check-icon"></i>
                     </label>

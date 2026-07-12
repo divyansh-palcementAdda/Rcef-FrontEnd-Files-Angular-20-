@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { TaskRequestDto, StructuredProofValueDto } from '../../../Model/TaskRequestDto';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
+import { AuthApiService } from '../../../Services/auth-api-service';
 
 interface EnrichedDepartment {
   id: number;
@@ -258,8 +259,13 @@ export class ViewTask implements OnInit, OnDestroy {
     private jwtService: JwtService,
     private requestService: RequestApiService,
     private studentApiService: StudentApiService,
-    private confirmDialog: ConfirmDialogService
+    private confirmDialog: ConfirmDialogService,
+    private authService: AuthApiService
   ) { }
+
+  get showWhoReported(): boolean {
+    return this.authService.hasPermission('TASK_APPROVE') && !this.isAssigned;
+  }
 
   ngOnInit(): void {
     const taskId = Number(this.route.snapshot.paramMap.get('id'));
