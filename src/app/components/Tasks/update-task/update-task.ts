@@ -246,6 +246,8 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
         catCtrl?.setValidators([Validators.required]);
         tempCtrl?.setValidators([Validators.required]);
         titleCtrl?.clearValidators();
+        // Keep existing title/description when switching to template mode
+        // They will be updated when a template is selected
       } else {
         catCtrl?.clearValidators();
         tempCtrl?.clearValidators();
@@ -256,8 +258,10 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
         titleCtrl?.setValidators([Validators.required, Validators.maxLength(255)]);
         titleCtrl?.enable();
         descCtrl?.enable();
-        titleCtrl?.setValue('');
-        descCtrl?.setValue('');
+        if (!this.isFormInitializing) {
+          titleCtrl?.setValue('');
+          descCtrl?.setValue('');
+        }
       }
       catCtrl?.updateValueAndValidity();
       tempCtrl?.updateValueAndValidity();
@@ -299,7 +303,8 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
           }
         }
       } else {
-        if (!this.isFormInitializing) {
+        // Only clear title/description if not during initialization and not switching modes
+        if (!this.isFormInitializing && this.taskForm.value.isTemplateTask === false) {
           titleCtrl?.setValue('');
           descCtrl?.setValue('');
         }
@@ -443,13 +448,15 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     const templateId = task.template?.id ?? null;
     const templateCategoryId = task.template?.category?.id ?? null;
 
+    // Always populate form first with basic values
+    this.setFormValuesAndChecks(task, start, due, isTemplate, templateCategoryId, templateId);
+
     if (templateId) {
       const t = this.templates.find(temp => temp.id === templateId);
       if (t) {
         this.selectedTemplate = t;
         this.filteredTemplates = this.templates.filter(temp => temp.category.id === templateCategoryId);
         this.updateTemplateValidation();
-        this.setFormValuesAndChecks(task, start, due, isTemplate, templateCategoryId, templateId);
       } else {
         this.templateApiService.getAllTemplates().subscribe({
           next: (res) => {
@@ -461,13 +468,10 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
                 this.filteredTemplates = this.templates.filter(temp => temp.category.id === templateCategoryId);
                 this.updateTemplateValidation();
               }
-              this.setFormValuesAndChecks(task, start, due, isTemplate, templateCategoryId, templateId);
             }
           }
         });
       }
-    } else {
-      this.setFormValuesAndChecks(task, start, due, isTemplate, templateCategoryId, templateId);
     }
   }
 

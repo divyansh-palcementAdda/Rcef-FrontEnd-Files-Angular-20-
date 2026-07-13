@@ -72,6 +72,26 @@ export class TopbarComponent implements OnInit {
     return 'Good Evening';
   }
 
+  getShortGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'GM';
+    if (hour < 17) return 'GA';
+    return 'GE';
+  }
+
+  getShortName(): string {
+    if (!this.fullName) return 'U';
+    const parts = this.fullName.split(' ');
+    if (parts.length >= 2) {
+      return parts.map(p => p.charAt(0).toUpperCase()).join(' ');
+    }
+    return this.fullName.substring(0, 2).toUpperCase();
+  }
+
+  isSmallScreen(): boolean {
+    return window.innerWidth <= 320;
+  }
+
   toggleSidebar(): void {
     if (window.innerWidth < 768) {
       this.sidebarService.toggleMobileSidebar();

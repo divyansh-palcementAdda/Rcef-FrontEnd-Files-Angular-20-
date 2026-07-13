@@ -12,7 +12,7 @@
   width: 100%;
   position: sticky;
   top: 0;
-  z-index: 900;
+  z-index: 1000;
   transition: background-color 0.2s ease, border-color 0.2s ease;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
   display: grid;
@@ -20,6 +20,7 @@
   align-items: center;
   column-gap: 0.75rem;
   padding: 0 1rem;
+  overflow: visible;
 }
 
 .topbar-left,
@@ -46,6 +47,8 @@
   gap: 0.35rem;
   width: auto;
   white-space: nowrap;
+  position: relative;
+  overflow: visible;
 }
 
 .greeting-text {
@@ -159,6 +162,7 @@
     justify-content: center;
     flex-shrink: 0;
     margin-left: 0.25rem;
+    position: relative;
   }
 
   .vertical-divider {
@@ -232,5 +236,38 @@
     width: 28px;
     height: 28px;
     font-size: 0.7rem;
+  }
+
+  .greeting-text {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+}
+
+@media (max-width: 320px) {
+  .topbar-wrapper {
+    padding: 0 0.25rem;
+  }
+
+  .greeting-text {
+    font-size: 0.7rem;
+    max-width: 100px;
+  }
+
+  .topbar-right {
+    gap: 0.1rem;
+  }
+
+  .user-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.65rem;
+  }
+
+  .topbar-profile {
+    padding: 3px 6px;
   }
 }

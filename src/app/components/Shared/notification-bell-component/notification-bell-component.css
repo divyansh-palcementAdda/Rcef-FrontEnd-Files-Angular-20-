@@ -12,6 +12,7 @@
   align-items: center;
   justify-content: center;
   line-height: 0;
+  z-index: 10000;
 }
 
 /* ---------- Bell button ---------- */
@@ -76,17 +77,18 @@
 
 /* ---------- Dropdown ---------- */
 .notif-dropdown {
-  position: absolute;
-  top: 100%; right: 0;
-  width: min(22rem, calc(100vw - 1rem));
+  position: fixed;
+  top: 74px;
+  right: 1rem;
+  width: min(22rem, calc(100vw - 2rem));
   max-height: 0;
   overflow: hidden;
   background: rgba(255,255,255,.95);
   backdrop-filter: blur(12px);
-  border-radius: 0 0 12px 12px;
+  border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,.15);
   transition: max-height .25s ease, padding .25s ease;
-  z-index: 1070;
+  z-index: 10000;
 }
 .notif-dropdown.open {
   max-height: min(420px, calc(100vh - 120px)); /* enough for header + list */
@@ -147,6 +149,9 @@
   display: flex;
   align-items: center;
   gap: .5rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .notif-title::before {
   content: '';
@@ -168,6 +173,9 @@
   color: #555;
   margin-top: .3rem;
   padding-left: 1.05rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 
@@ -177,11 +185,12 @@
   .notif-bell:hover { color: #1A1A1A !important; }
 
   .notif-dropdown {
-    position: static;
-    width: 100%;
-    border-radius: 8px;
-    margin-top: .5rem;
-    box-shadow: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: min(22rem, calc(100vw - 1rem));
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.15);
     background: rgba(255,255,255,.95);
   }
 }
@@ -212,4 +221,11 @@
     transform: translate(50%, -50%);
     font-size: 0.6rem;
   }
+}
+
+/* Allow dropdown to escape parent overflow when open */
+body.notif-dropdown-open .app-main,
+body.notif-dropdown-open .app-content,
+body.notif-dropdown-open .app-layout {
+  overflow: visible !important;
 }
