@@ -80,17 +80,17 @@
               </td>
               <td class="text-end" (click)="$event.stopPropagation()">
                 <div class="d-inline-flex gap-1">
-                  <button class="btn btn-sm btn-outline-primary py-1 px-2.5"
+                  <button class="btn btn-sm btn-outline-primary py-0.5 px-1.5"
                     (click)="viewDepartmentDetails(dept.departmentId)" title="View Details">
-                    <i class="bi bi-eye"></i>
+                    <i class="bi bi-eye" style="font-size: 0.6rem;"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-warning py-1 px-2.5"
+                  <button class="btn btn-sm btn-outline-warning py-0.5 px-1.5"
                     (click)="editDepartment($event, dept.departmentId)" title="Edit Department">
-                    <i class="bi bi-pencil"></i>
+                    <i class="bi bi-pencil" style="font-size: 0.6rem;"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger py-1 px-2.5"
+                  <button class="btn btn-sm btn-outline-danger py-0.5 px-1.5"
                     (click)="deleteDepartment($event, dept.departmentId)" title="Delete Department">
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-trash" style="font-size: 0.6rem;"></i>
                   </button>
                 </div>
               </td>
@@ -117,17 +117,17 @@
           </div>
 
           <div class="d-flex justify-content-end gap-1 mt-3 pt-2 border-top" (click)="$event.stopPropagation()">
-            <button class="btn btn-sm btn-outline-primary py-1 px-2.5"
+            <button class="btn btn-sm btn-outline-primary py-0.5 px-1.5"
               (click)="viewDepartmentDetails(dept.departmentId)">
-              <i class="bi bi-eye"></i>
+              <i class="bi bi-eye" style="font-size: 0.6rem;"></i>
             </button>
-            <button class="btn btn-sm btn-outline-warning py-1 px-2.5"
+            <button class="btn btn-sm btn-outline-warning py-0.5 px-1.5"
               (click)="editDepartment($event, dept.departmentId)">
-              <i class="bi bi-pencil"></i>
+              <i class="bi bi-pencil" style="font-size: 0.6rem;"></i>
             </button>
-            <button class="btn btn-sm btn-outline-danger py-1 px-2.5"
+            <button class="btn btn-sm btn-outline-danger py-0.5 px-1.5"
               (click)="deleteDepartment($event, dept.departmentId)">
-              <i class="bi bi-trash"></i>
+              <i class="bi bi-trash" style="font-size: 0.6rem;"></i>
             </button>
           </div>
         </div>

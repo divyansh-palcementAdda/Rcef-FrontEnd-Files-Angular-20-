@@ -188,9 +188,31 @@ export class ViewAllUserss implements OnInit {
     if (page >= 1 && page <= this.totalPages) this.currentPage = page;
   }
 
-  /** Generate array of page numbers for pagination */
-  getPageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  /** Handle page click with type safety */
+  onPageClick(page: number | string): void {
+    if (typeof page === 'number') {
+      this.changePage(page);
+    }
+  }
+
+  /** Generate array of page numbers for pagination with ellipsis */
+  getPageNumbers(): (number | string)[] {
+    const pages: (number | string)[] = [];
+    const maxVisible = 3;
+    
+    if (this.totalPages <= maxVisible) {
+      return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    }
+    
+    if (this.currentPage <= 2) {
+      pages.push(1, 2, 3, '...', this.totalPages);
+    } else if (this.currentPage >= this.totalPages - 1) {
+      pages.push(1, '...', this.totalPages - 2, this.totalPages - 1, this.totalPages);
+    } else {
+      pages.push(1, '...', this.currentPage, '...', this.totalPages);
+    }
+    
+    return pages;
   }
 
   get paginatedUsers(): userDto[] {
