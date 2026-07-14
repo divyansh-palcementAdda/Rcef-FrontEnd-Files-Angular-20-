@@ -168,6 +168,30 @@
               </div>
             </div>
 
+            <!-- Auto-Assign Banner -->
+            <div *ngIf="isAutoAssigned && autoAssignedUser"
+              class="alert alert-info d-flex align-items-center justify-content-between mb-3 py-2.5 animate__animated animate__fadeIn">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-robot fs-5 text-primary"></i>
+                <div>
+                  <strong>Automatically Assigned:</strong> {{ autoAssignedUser.fullName }}
+                  <span class="badge bg-light text-primary ms-1">{{ autoAssignedUser.role }}</span>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearAutoAssignmentManual()">
+                Change
+              </button>
+            </div>
+
+            <!-- Auto-Assign Warning Banner (Multiple Admins/HODs) -->
+            <div *ngIf="autoAssignWarning"
+              class="alert alert-warning d-flex align-items-center gap-2 mb-3 py-2.5 animate__animated animate__fadeIn">
+              <i class="bi bi-exclamation-triangle-fill fs-5 text-warning"></i>
+              <div>
+                {{ autoAssignWarning }}
+              </div>
+            </div>
+
             <!-- Accordion users list directory styled -->
             <div class="accordion mb-2" id="userAccordion">
               <div *ngFor="let deptId of taskForm.value.departmentIds; let i = index"

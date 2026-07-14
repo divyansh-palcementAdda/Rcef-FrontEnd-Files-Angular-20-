@@ -74,6 +74,10 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   dueDateErrorMessage: string | null = null;
   startDateErrorMessage: string | null = null;
   
+  isAutoAssigned = false;
+  autoAssignedUser: userDto | null = null;
+  autoAssignWarning = '';
+  
   // Dropdown UI States
   isOpenDepts = false;
   isOpenUsers = false;
@@ -86,6 +90,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   // Select All
   selectAllDepts = false;
   selectAllUsersByDept: Record<number, boolean> = {};
+  expandedDepts: Record<number, boolean> = {};
 
   token = '';
   userId: number | null = null;
@@ -244,9 +249,12 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     });
 
     this.taskForm.get('departmentIds')?.valueChanges.subscribe(() => {
-      this.updateFilteredUsers();
-      this.expandFirstAccordion();
       this.filterSubDepartments();
+      this.onDepartmentOrSubDepartmentChange();
+    });
+
+    this.taskForm.get('subDepartmentId')?.valueChanges.subscribe(() => {
+      this.onDepartmentOrSubDepartmentChange();
     });
 
     this.taskForm.get('status')?.valueChanges.subscribe(() => {
@@ -416,46 +424,21 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   loadUsers(): void {
+    if (this.currentUser?.role !== 'SUPER_ADMIN') {
+      return;
+    }
     this.isLoadingUsers = true;
     this.userService.getAllUsers().subscribe({
       next: (res) => {
         const activeUsers = res.filter((u) => u.status === 'ACTIVE');
         this.allUsers = activeUsers;
         this.filteredAllUsers = activeUsers.filter(u => u.userId !== this.currentUser?.userId);
-
-        this.usersByDepartment.clear();
-        this.filteredUsersByDept.clear();
-
-        for (const dept of this.departments) {
-          const usersInDept = activeUsers
-            .filter((u) => u.departmentIds?.includes(dept.departmentId))
-            .filter((u) => {
-              if (!this.currentUser) return false;
-              const currentRole = this.currentUser.role;
-              if (currentRole === 'SUPER_ADMIN') {
-                return true; // SUPER_ADMIN can see everyone
-              }
-              if (currentRole === 'HOD') {
-                return this.canHodAssignToUser(u);
-              }
-              // Allow seeing self (so they can assign to self if they want) or users below them
-              return u.userId === this.currentUser.userId || this.isUserBelow(u, this.currentUser);
-            })
-            .sort((a, b) => {
-              if (a.role === 'HOD' && b.role !== 'HOD') return -1;
-              if (b.role === 'HOD' && a.role !== 'HOD') return 1;
-              return a.fullName.localeCompare(b.fullName);
-            });
-          this.usersByDepartment.set(dept.departmentId, usersInDept);
-          this.filteredUsersByDept.set(dept.departmentId, [...usersInDept]);
-        }
         this.isLoadingUsers = false;
-        this.updateFilteredUsers();
       },
       error: () => {
-        this.errorMessage = 'Failed to load users.';
+        this.errorMessage = 'Failed to load user directory.';
         this.isLoadingUsers = false;
-      },
+      }
     });
   }
 
@@ -540,6 +523,9 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   updateUserSelection(deptId: number, userId: number, checked: boolean): void {
+    this.isAutoAssigned = false;
+    this.autoAssignedUser = null;
+
     const assignToSelf = this.taskForm.value.assignToSelf;
 
     if (assignToSelf) {
@@ -670,46 +656,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   isUserSelectionDisabled(user: userDto): boolean {
-    if (!this.currentUser) return true;
-
-    // Allow self assignment
-    if (user.userId === this.currentUser.userId) {
-      return false;
-    }
-
-    // Block parent assignment
-    if (this.isUserBelow(this.currentUser, user)) {
-      return true;
-    }
-
-    const currentRole = this.currentUser.role;
-    const targetRole = user.role;
-
-    if (currentRole === 'SUPER_ADMIN') {
-      return false; // Can assign to anyone
-    }
-
-    if (currentRole === 'ADMIN') {
-      // Admin should only see/assign users below him
-      if (targetRole === 'SUPER_ADMIN' || targetRole === 'ADMIN') {
-        return true;
-      }
-      return !this.isUserBelow(user, this.currentUser);
-    }
-
-    if (currentRole === 'SUB_ADMIN') {
-      // SubAdmin can assign tasks to HODs and Teachers under his hierarchy
-      if (targetRole !== 'HOD' && targetRole !== 'TEACHER') {
-        return true;
-      }
-      return !this.isUserBelow(user, this.currentUser);
-    }
-
-    if (currentRole === 'HOD') {
-      return !this.canHodAssignToUser(user);
-    }
-
-    return true;
+    return false;
   }
 
   validateDates(start: string, due: string): { valid: boolean; msg?: string } {
@@ -822,6 +769,16 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     const finalAssigned = [...assignedToIds];
     if (assignToSelf && this.currentUser && !finalAssigned.includes(this.currentUser.userId)) {
       finalAssigned.push(this.currentUser.userId);
+    }
+
+    const selectedUsers = this.getSelectedUsersList();
+    if (selectedUsers.length > 1) {
+      const firstRole = selectedUsers[0].role;
+      const inconsistent = selectedUsers.some(u => u.role !== firstRole);
+      if (inconsistent) {
+        this.errorMessage = 'All selected users must belong to the same role.';
+        return;
+      }
     }
 
     let targetPercentageVal = null;
@@ -978,6 +935,130 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     if (!target.closest('.user-select-container')) {
       this.isOpenUsers = false;
     }
+  }
+
+  onDepartmentOrSubDepartmentChange(): void {
+    const deptIds = this.taskForm.value.departmentIds || [];
+    const subDeptId = this.taskForm.value.subDepartmentId;
+
+    // Reset auto-assign state
+    this.isAutoAssigned = false;
+    this.autoAssignedUser = null;
+    this.autoAssignWarning = '';
+
+    if (!deptIds.length) {
+      this.filteredUsersByDept.clear();
+      this.usersByDepartment.clear();
+      this.selectedUsersByDeptObj = {};
+      this.updateAssignedToIds();
+      return;
+    }
+
+    const deptId = deptIds[0]; // Primary department
+
+    if (!subDeptId) {
+      // Case 1: Department selected, Sub Department = None
+      this.isLoadingUsers = true;
+      this.userService.getDepartmentAdmins(deptId).subscribe({
+        next: (admins) => {
+          this.isLoadingUsers = false;
+          const activeAdmins = admins.filter(u => u.status === 'ACTIVE');
+          this.usersByDepartment.set(deptId, activeAdmins);
+          this.filteredUsersByDept.set(deptId, [...activeAdmins]);
+          this.updateSelectAllUsersForDept(deptId);
+
+          if (activeAdmins.length === 1) {
+            const admin = activeAdmins[0];
+            this.selectedUsersByDeptObj = { [deptId]: [admin.userId] };
+            this.updateAssignedToIds();
+            this.isAutoAssigned = true;
+            this.autoAssignedUser = admin;
+          } else if (activeAdmins.length > 1) {
+            this.autoAssignWarning = 'Multiple Department Admins found. Please select one or more users.';
+            this.expandedDepts[deptId] = true;
+            this.selectedUsersByDeptObj[deptId] = [];
+            this.updateAssignedToIds();
+          } else {
+            this.autoAssignWarning = 'No Admin found for this department.';
+            this.selectedUsersByDeptObj[deptId] = [];
+            this.updateAssignedToIds();
+          }
+        },
+        error: (err) => {
+          this.isLoadingUsers = false;
+          console.error('Failed to load department admins', err);
+        }
+      });
+    } else {
+      // Case 2/3: Department + Sub Department selected
+      this.isLoadingUsers = true;
+      this.userService.getEligibleUsers(deptId, subDeptId).subscribe({
+        next: (eligibleUsers) => {
+          const activeEligible = eligibleUsers.filter(u => u.status === 'ACTIVE');
+          this.usersByDepartment.set(deptId, activeEligible);
+          this.filteredUsersByDept.set(deptId, [...activeEligible]);
+          this.updateSelectAllUsersForDept(deptId);
+
+          // Get Sub Department HODs for Auto Assignment check
+          this.userService.getSubDepartmentHods(subDeptId).subscribe({
+            next: (hods) => {
+              this.isLoadingUsers = false;
+              const activeHods = hods.filter(u => u.status === 'ACTIVE');
+              if (activeHods.length === 1) {
+                const hod = activeHods[0];
+                this.selectedUsersByDeptObj = { [deptId]: [hod.userId] };
+                this.updateAssignedToIds();
+                this.isAutoAssigned = true;
+                this.autoAssignedUser = hod;
+              } else if (activeHods.length > 1) {
+                this.autoAssignWarning = 'Multiple HODs found for sub-department. Please select one or more users.';
+                this.expandedDepts[deptId] = true;
+                this.selectedUsersByDeptObj[deptId] = [];
+                this.updateAssignedToIds();
+              } else {
+                this.autoAssignWarning = 'No HOD found for this sub-department.';
+                this.selectedUsersByDeptObj[deptId] = [];
+                this.updateAssignedToIds();
+              }
+            },
+            error: (err) => {
+              this.isLoadingUsers = false;
+              console.error('Failed to load sub-department HODs', err);
+            }
+          });
+        },
+        error: (err) => {
+          this.isLoadingUsers = false;
+          console.error('Failed to load eligible users', err);
+        }
+      });
+    }
+  }
+
+  clearAutoAssignmentManual(): void {
+    this.isAutoAssigned = false;
+    this.autoAssignedUser = null;
+    const deptIds = this.taskForm.value.departmentIds || [];
+    if (deptIds.length > 0) {
+      const deptId = deptIds[0];
+      this.selectedUsersByDeptObj[deptId] = [];
+      this.updateAssignedToIds();
+      this.expandedDepts[deptId] = true;
+    }
+  }
+
+  getSelectedUsersList(): userDto[] {
+    const list: userDto[] = [];
+    const deptIds = this.taskForm.value.departmentIds || [];
+    for (const deptId of deptIds) {
+      const userIds = this.selectedUsersByDeptObj[deptId] || [];
+      const users = this.usersByDepartment.get(deptId) || [];
+      for (const uid of userIds) {
+        const found = users.find(u => u.userId === uid);
+        if (found) list.push(found);
+      }
+    }
+    return list;
   }
 
   cancel(): void {

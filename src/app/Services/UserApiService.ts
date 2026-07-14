@@ -246,6 +246,29 @@ export class UserApiService {
     );
   }
 
+  getDepartmentAdmins(departmentId: number): Observable<userDto[]> {
+    return this.http.get<userDto[]>(`${this.apiUrl}/department/${departmentId}/admins`).pipe(
+      catchError(err => this.handleError(err, 'fetch department admins'))
+    );
+  }
+
+  getSubDepartmentHods(subDepartmentId: string): Observable<userDto[]> {
+    return this.http.get<userDto[]>(`${this.apiUrl}/sub-department/${subDepartmentId}/hods`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department HODs'))
+    );
+  }
+
+  getEligibleUsers(departmentId?: number, subDepartmentId?: string, subjectId?: number): Observable<userDto[]> {
+    let params: any = {};
+    if (departmentId) params.departmentId = departmentId.toString();
+    if (subDepartmentId) params.subDepartmentId = subDepartmentId;
+    if (subjectId) params.subjectId = subjectId.toString();
+
+    return this.http.get<userDto[]>(`${this.apiUrl}/eligible`, { params }).pipe(
+      catchError(err => this.handleError(err, 'fetch eligible users'))
+    );
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);
