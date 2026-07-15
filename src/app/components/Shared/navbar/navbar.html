@@ -33,7 +33,7 @@
       </li>
 
       <!-- ***** NOTIFICATION BELL ***** -->
-      <li *ngIf="isLoggedIn$ | async" class="d-flex align-items-center">
+      <li *ngIf="(isLoggedIn$ | async) && !(isLoginPage$ | async)" class="d-flex align-items-center">
         <app-notification-bell></app-notification-bell>
       </li>
     </ul>

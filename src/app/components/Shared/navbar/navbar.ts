@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { Observable } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { NotificationBellComponent } from '../notification-bell-component/notification-bell-component';
 import { ToastContainerComponent } from '../toast-container-component/toast-container-component';
@@ -28,6 +29,7 @@ export class Navbar {
   isMenuOpen = false;
   isLoggedIn = false;
   isLoggedIn$: Observable<boolean>;
+  isLoginPage$: Observable<boolean>;
 
   constructor(
     private authService: AuthApiService,
@@ -35,6 +37,11 @@ export class Navbar {
   ) {
     this.isLoggedIn$ = this.authService.isLoggedIn$;
     this.authService.isLoggedIn$.subscribe(val => this.isLoggedIn = val);
+    
+    this.isLoginPage$ = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      map((event: NavigationEnd) => event.url === '/login' || event.urlAfterRedirects === '/login')
+    );
   }
 
   onHomeClick() {
