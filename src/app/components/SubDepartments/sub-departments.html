@@ -168,6 +168,16 @@
         <small>Define reporting rules: <strong>Teachers</strong> report to HODs. <strong>HODs</strong> report to SubAdmins. <strong>SubAdmins</strong> report to Admins. <strong>Admins</strong> report to Super Admins.</small>
       </div>
 
+      <!-- Search Input -->
+      <div class="mb-4">
+        <div class="input-group">
+          <span class="input-group-text bg-light">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text" class="form-control" [(ngModel)]="userSearchTerm" placeholder="Search by name, username, email, or role..." (input)="onUserSearch()">
+        </div>
+      </div>
+
       <div *ngIf="loadingUsers" class="text-center py-4">
         <div class="spinner-border text-primary spinner mb-2"></div>
         <p class="text-muted small">Loading directories…</p>
@@ -198,10 +208,12 @@
                 <td><span class="text-secondary small">{{ getDepartmentNames(u) }}</span></td>
                 <td><span class="text-secondary small">{{ u.subDepartmentName || 'None' }}</span></td>
                 <td>
-                  <span *ngIf="u.parentFullName" class="fw-semibold text-secondary">
-                    <i class="bi bi-person me-1"></i>{{ u.parentFullName }}
-                  </span>
-                  <span *ngIf="!u.parentFullName" class="text-muted small">Unassigned</span>
+                  <div *ngIf="u.reportingManagerNames && u.reportingManagerNames.length > 0">
+                    <span *ngFor="let parentName of u.reportingManagerNames" class="badge bg-light text-secondary me-1 mb-1">
+                      <i class="bi bi-person me-1"></i>{{ parentName }}
+                    </span>
+                  </div>
+                  <span *ngIf="!u.reportingManagerNames || u.reportingManagerNames.length === 0" class="text-muted small">Unassigned</span>
                 </td>
                 <td class="text-end">
                   <button class="btn btn-sm btn-outline-primary" (click)="startEditMapping(u)">
@@ -230,12 +242,29 @@
                   </select>
                 </td>
                 <td>
-                  <select class="form-select form-select-sm" [(ngModel)]="editPayload.parentUserId">
-                    <option [ngValue]="null">Unassigned</option>
-                    <option *ngFor="let potentialParent of getPotentialParents(u)" [value]="potentialParent.userId">
-                      {{ potentialParent.fullName }} ({{ potentialParent.role }})
-                    </option>
-                  </select>
+                  <div class="position-relative">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button" (click)="toggleParentDropdown()">
+                      Select Reports To ({{ editPayload.reportingManagerIds   
+.length }})
+                    </button>
+                    <ul *ngIf="isParentDropdownOpen" class="dropdown-menu show p-2 position-absolute" style="max-height: 200px; overflow-y: auto; z-index: 1000; min-width: 280px;">
+                      <li *ngFor="let potentialParent of getPotentialParents(u)">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox"
+                                 [id]="'parent-' + potentialParent.userId"
+                                 [checked]="editPayload.reportingManagerIds   
+.includes(potentialParent.userId)"
+                                 (change)="toggleParentSelection(potentialParent.userId)">
+                          <label class="form-check-label small" [for]="'parent-' + potentialParent.userId">
+                            {{ potentialParent.fullName }} ({{ potentialParent.role }})
+                          </label>
+                        </div>
+                      </li>
+                      <li *ngIf="getPotentialParents(u).length === 0" class="text-muted small text-center py-2">
+                        No available parents
+                      </li>
+                    </ul>
+                  </div>
                 </td>
                 <td class="text-end">
                   <div class="d-inline-flex gap-1">

@@ -30,6 +30,7 @@ export class SubDepartmentManagementComponent implements OnInit {
   departments: Department[] = [];
   subDepartments: SubDepartment[] = [];
   users: userDto[] = [];
+  filteredUsers: userDto[] = [];
   readonly Math = Math;
 
   selectedDepartment: Department | null = null;
@@ -46,6 +47,7 @@ export class SubDepartmentManagementComponent implements OnInit {
   currentPageUsers = 1;
   pageSizeUsers = 10;
   totalPagesUsers = 1;
+  userSearchTerm = '';
 
   successMessage: string | null = null;
   errorMessage: string | null = null;
@@ -62,9 +64,11 @@ export class SubDepartmentManagementComponent implements OnInit {
   editPayload = {
     departmentId: null as number | null,
     subDepartmentId: null as string | null,
-    parentUserId: null as number | null
+    parentUserIds: [] as number[],
+    reportingManagerIds: [] as number[]
   };
   availableSubDeptsForEdit: SubDepartment[] = [];
+  isParentDropdownOpen = false;
 
   constructor(
     private deptApiService: DepartmentApiService,
@@ -119,6 +123,7 @@ export class SubDepartmentManagementComponent implements OnInit {
     this.userApiService.getAllUsers().subscribe({
       next: (users) => {
         this.users = users;
+        this.filteredUsers = users;
         this.totalPagesUsers = Math.ceil(users.length / this.pageSizeUsers);
         this.currentPageUsers = 1;
         this.loadingUsers = false;
@@ -175,7 +180,8 @@ export class SubDepartmentManagementComponent implements OnInit {
     this.editPayload = {
       departmentId: u.departmentIds && u.departmentIds.length > 0 ? u.departmentIds[0] : null,
       subDepartmentId: u.subDepartmentId || null,
-      parentUserId: u.parentUserId || null
+      parentUserIds: u.reportingManagerIds || [],
+      reportingManagerIds: u.reportingManagerIds || []
     };
 
     if (this.editPayload.departmentId) {
@@ -219,13 +225,31 @@ export class SubDepartmentManagementComponent implements OnInit {
     }
   }
 
+  toggleParentSelection(parentId: number): void {
+    const index = this.editPayload.reportingManagerIds   
+.indexOf(parentId);
+    if (index > -1) {
+      this.editPayload.reportingManagerIds   
+.splice(index, 1);
+    } else {
+      this.editPayload.reportingManagerIds   
+.push(parentId);
+    }
+  }
+
+  toggleParentDropdown(): void {
+    this.isParentDropdownOpen = !this.isParentDropdownOpen;
+  }
+
   saveEditMapping(userId: number): void {
     const payload: any = {};
     if (this.editPayload.departmentId) {
       payload.departmentIds = [this.editPayload.departmentId];
     }
     payload.subDepartmentId = this.editPayload.subDepartmentId;
-    payload.parentUserId = this.editPayload.parentUserId;
+    payload.reportingManagerIds   
+ = this.editPayload.reportingManagerIds   
+;
 
     this.userApiService.updateUser(userId, payload).subscribe({
       next: () => {
@@ -253,7 +277,7 @@ export class SubDepartmentManagementComponent implements OnInit {
   get paginatedUsers(): userDto[] {
     const startIndex = (this.currentPageUsers - 1) * this.pageSizeUsers;
     const endIndex = startIndex + this.pageSizeUsers;
-    return this.users.slice(startIndex, endIndex);
+    return this.filteredUsers.slice(startIndex, endIndex);
   }
 
   changePageSubDepts(page: number): void {
@@ -264,6 +288,26 @@ export class SubDepartmentManagementComponent implements OnInit {
   changePageUsers(page: number): void {
     if (page < 1 || page > this.totalPagesUsers) return;
     this.currentPageUsers = page;
+  }
+
+  onUserSearch(): void {
+    const searchTerm = this.userSearchTerm.toLowerCase().trim();
+    
+    if (!searchTerm) {
+      this.filteredUsers = [...this.users];
+    } else {
+      this.filteredUsers = this.users.filter(user => 
+        user.fullName?.toLowerCase().includes(searchTerm) ||
+        user.username?.toLowerCase().includes(searchTerm) ||
+        user.email?.toLowerCase().includes(searchTerm) ||
+        user.role?.toLowerCase().includes(searchTerm) ||
+        user.parentFullName?.toLowerCase().includes(searchTerm) ||
+        user.subDepartmentName?.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    this.totalPagesUsers = Math.ceil(this.filteredUsers.length / this.pageSizeUsers);
+    this.currentPageUsers = 1;
   }
 
   getPageNumbersSubDepts(): (number | string)[] {
