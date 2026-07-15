@@ -355,7 +355,7 @@
           <div *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
             <label class="form-label">Sub-Departments (Optional)</label>
             <div class="custom-multiselect-container position-relative mb-2">
-              <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="showSubDeptDropdown = !showSubDeptDropdown">
+              <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="toggleSubDeptDropdown()">
                 <!-- Chips -->
                 <span *ngFor="let id of getSelectedSubDeptIds()" class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
                   <span>{{ getSubDeptName(id) }}</span>
