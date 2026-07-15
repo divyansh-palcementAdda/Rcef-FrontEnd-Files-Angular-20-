@@ -303,16 +303,14 @@
                     <i class="bi bi-building me-2"></i>
                     <span>{{ dept.name }}</span>
                     <span *ngIf="isDeptDisabled(dept)" class="badge bg-secondary ms-2">Restricted</span>
-                    <span *ngIf="dept.name.toLowerCase() === 'administration'" class="badge bg-info ms-2">Admin Only</span>
                   </label>
                 </div>
               </div>
 
               <div class="field-hint mt-2">
                 <i class="bi bi-info-circle me-1"></i>
-                <span *ngIf="editForm.get('role')?.value === 'ADMIN'">Admins must belong exclusively to Administration department.</span>
                 <span *ngIf="editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'SUB_ADMIN'">HODs/SubAdmins can only be assigned to a single department.</span>
-                <span *ngIf="editForm.get('role')?.value === 'TEACHER'">Teachers can have multiple department access privileges.</span>
+                <span *ngIf="editForm.get('role')?.value === 'TEACHER' || editForm.get('role')?.value === 'ADMIN'">Users in this role can have multiple department access privileges.</span>
               </div>
 
               <div *ngIf="f['departmentIds'].touched && f['departmentIds'].invalid" class="text-danger small mt-1">
