@@ -11,6 +11,8 @@ export  interface User {
 
     parentUserId?: number;
     parentFullName?: string;
+    reportingManagerIds?: number[];
+    reportingManagerNames?: string[];
     subDepartmentId?: string;
     subDepartmentName?: string;
     permissions?: string[];

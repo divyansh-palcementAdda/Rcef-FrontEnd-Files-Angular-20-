@@ -47,6 +47,10 @@ export interface TaskDto {
   templateId?: number;
   targetCount?: number;
   targetPercentage?: number;
-  subDepartmentId?: number;
+  subDepartmentId?: string;
+  subDepartmentIds?: string[];
+  subDepartmentNames?: string[];
+  subjectId?: number;
+  subjectName?: string;
   taskType?: string;
 }

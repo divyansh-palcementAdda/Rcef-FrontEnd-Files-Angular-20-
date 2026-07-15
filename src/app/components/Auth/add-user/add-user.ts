@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
@@ -68,7 +68,9 @@ export class AddUserComponent implements OnInit {
       role: ['', Validators.required],
       departmentIds: [[], Validators.required],
       parentUserId: [null],
+      reportingManagerIds: [[]],
       subDepartmentId: [null],
+      subDepartmentIds: [[]],
       subjectIds: [[]]
     });
   }
@@ -101,9 +103,9 @@ export class AddUserComponent implements OnInit {
 
     this.userForm.get('role')?.valueChanges.subscribe(role => {
       this.onRoleChange(role);
-      const parentControl = this.userForm.get('parentUserId');
+      const parentControl = this.userForm.get('reportingManagerIds');
       if (role && role !== 'SUPER_ADMIN') {
-        parentControl?.setValidators([Validators.required]);
+        parentControl?.setValidators([Validators.required, Validators.minLength(1)]);
       } else {
         parentControl?.clearValidators();
       }
@@ -119,16 +121,24 @@ export class AddUserComponent implements OnInit {
       deptControl?.updateValueAndValidity();
 
       const subDeptControl = this.userForm.get('subDepartmentId');
+      const subDeptsControl = this.userForm.get('subDepartmentIds');
       if (role === 'HOD' || role === 'TEACHER') {
         subDeptControl?.setValidators([Validators.required]);
+        subDeptsControl?.setValidators([Validators.required]);
       } else {
         subDeptControl?.clearValidators();
         subDeptControl?.setValue(null);
+        subDeptsControl?.clearValidators();
+        subDeptsControl?.setValue([]);
       }
       subDeptControl?.updateValueAndValidity();
+      subDeptsControl?.updateValueAndValidity();
     });
 
     this.userForm.get('subDepartmentId')?.valueChanges.subscribe(() => {
+      this.reloadSubjects();
+    });
+    this.userForm.get('subDepartmentIds')?.valueChanges.subscribe(() => {
       this.reloadSubjects();
     });
   }
@@ -144,16 +154,16 @@ export class AddUserComponent implements OnInit {
 
   onRoleChange(selectedRole: string): void {
     this.filteredParentUsers = [];
+    this.userForm.get('reportingManagerIds')?.setValue([]);
     this.userForm.get('parentUserId')?.setValue(null);
 
-    if (selectedRole === 'TEACHER') {
-      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'HOD');
-    } else if (selectedRole === 'HOD') {
-      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'SUB_ADMIN');
-    } else if (selectedRole === 'SUB_ADMIN') {
-      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'ADMIN');
-    } else if (selectedRole === 'ADMIN') {
-      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'SUPER_ADMIN');
+    if (selectedRole && selectedRole !== 'SUPER_ADMIN') {
+      this.userApiService.getEligibleManagers(selectedRole).subscribe({
+        next: (managers) => {
+          this.filteredParentUsers = managers;
+        },
+        error: (err) => console.error('Failed to load eligible managers for role ' + selectedRole, err)
+      });
     }
   }
 
@@ -479,6 +489,119 @@ export class AddUserComponent implements OnInit {
       this.showSubjectDropdown = false;
       this.activeItemIndex = -1;
       event.preventDefault();
+    }
+  }
+
+  showSubDeptDropdown = false;
+
+  getSelectedSubDeptIds(): string[] {
+    return this.userForm.get('subDepartmentIds')?.value || [];
+  }
+
+  getSubDeptName(id: string): string {
+    const sub = this.subDepartments.find(s => s.id === id);
+    return sub ? sub.name : 'Sub-Dept';
+  }
+
+  isSubDeptSelected(id: string): boolean {
+    return this.getSelectedSubDeptIds().includes(id);
+  }
+
+  toggleSubDeptSelection(id: string, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const control = this.userForm.get('subDepartmentIds');
+    const current: string[] = control?.value || [];
+    let updated: string[];
+    if (current.includes(id)) {
+      updated = current.filter(x => x !== id);
+    } else {
+      updated = [...current, id];
+    }
+    control?.setValue(updated);
+    this.userForm.get('subDepartmentId')?.setValue(updated.length > 0 ? updated[0] : null);
+    control?.markAsTouched();
+    this.reloadSubjects();
+  }
+
+  removeSubDept(id: string, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const control = this.userForm.get('subDepartmentIds');
+    const current: string[] = control?.value || [];
+    const updated = current.filter(x => x !== id);
+    control?.setValue(updated);
+    this.userForm.get('subDepartmentId')?.setValue(updated.length > 0 ? updated[0] : null);
+    control?.markAsTouched();
+    this.reloadSubjects();
+  }
+
+  showManagerDropdown = false;
+  managerSearchQuery = '';
+
+  getSelectedManagerIds(): number[] {
+    return this.userForm.get('reportingManagerIds')?.value || [];
+  }
+
+  getManagerName(id: number): string {
+    const mgr = this.filteredParentUsers.find(u => u.userId === id);
+    return mgr ? mgr.fullName : `User #${id}`;
+  }
+
+  isManagerSelected(id: number): boolean {
+    return this.getSelectedManagerIds().includes(id);
+  }
+
+  toggleManagerSelection(id: number, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const control = this.userForm.get('reportingManagerIds');
+    const current: number[] = control?.value || [];
+    let updated: number[];
+    if (current.includes(id)) {
+      updated = current.filter(x => x !== id);
+    } else {
+      updated = [...current, id];
+    }
+    control?.setValue(updated);
+    control?.markAsTouched();
+    control?.markAsDirty();
+
+    // Set first manager as parentUserId for backward compatibility
+    this.userForm.get('parentUserId')?.setValue(updated.length > 0 ? updated[0] : null);
+  }
+
+  removeManager(id: number, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const control = this.userForm.get('reportingManagerIds');
+    const current: number[] = control?.value || [];
+    const updated = current.filter(x => x !== id);
+    control?.setValue(updated);
+    control?.markAsTouched();
+    control?.markAsDirty();
+
+    this.userForm.get('parentUserId')?.setValue(updated.length > 0 ? updated[0] : null);
+  }
+
+  filteredManagersList(): any[] {
+    const q = this.managerSearchQuery.toLowerCase().trim();
+    if (!q) return this.filteredParentUsers;
+    return this.filteredParentUsers.filter(u =>
+      u.fullName.toLowerCase().includes(q) ||
+      u.username.toLowerCase().includes(q)
+    );
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-multiselect-container')) {
+      this.showSubDeptDropdown = false;
+      this.showSubjectDropdown = false;
+      this.showManagerDropdown = false;
     }
   }
 }

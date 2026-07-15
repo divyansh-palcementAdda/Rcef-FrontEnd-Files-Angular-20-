@@ -28,6 +28,8 @@ import { DepartmentApiService } from '../../../Services/department-api-service';
 import { JwtService } from '../../../Services/jwt-service';
 import { TaskDto } from '../../../Model/TaskDto';
 import { TaskTemplateApiService, TaskTemplateDto, TaskTemplateCategoryDto } from '../../../Services/task-template-api.service';
+import { SubjectApiService } from '../../../Services/subject-api.service';
+import { forkJoin } from 'rxjs';
 
 interface TaskFormControls {
   title: any;
@@ -39,6 +41,8 @@ interface TaskFormControls {
   assignedToIds: any;
   assignToSelf: any;
   subDepartmentId: any;
+  subDepartmentIds: any;
+  subjectId: any;
   isTemplateTask: any;
   templateCategoryId: any;
   templateId: any;
@@ -126,7 +130,8 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     private userService: UserApiService,
     private jwtService: JwtService,
     private templateApiService: TaskTemplateApiService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private subjectApiService: SubjectApiService
   ) {
     this.initForm();
   }
@@ -215,6 +220,8 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       assignedToIds: [[]],
       assignToSelf: [false],
       subDepartmentId: [null],
+      subDepartmentIds: [[]],
+      subjectId: [null],
       isTemplateTask: [false],
       templateCategoryId: [null],
       templateId: [null],
@@ -226,6 +233,11 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       this.updateFilteredUsers();
       this.expandFirstAccordion();
       this.filterSubDepartments();
+      this.cdr.markForCheck();
+    });
+
+    this.taskForm.get('subDepartmentIds')?.valueChanges.subscribe(() => {
+      this.loadSubjectsForSubDepartments();
       this.cdr.markForCheck();
     });
 
@@ -484,6 +496,8 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       dueDate: due,
       departmentIds: task.departmentIds ?? [],
       subDepartmentId: task.subDepartmentId ?? null,
+      subDepartmentIds: task.subDepartmentIds ?? [],
+      subjectId: task.subjectId ?? null,
       isTemplateTask: isTemplate,
       templateCategoryId: templateCategoryId,
       templateId: templateId,
@@ -751,16 +765,31 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
 
   isUserBelow(child: userDto, parent: userDto): boolean {
     if (!child || !parent) return false;
-    let currentParentId = child.parentUserId;
+    const queue: number[] = [];
     const visited = new Set<number>();
-    while (currentParentId) {
-      if (currentParentId === parent.userId) {
+
+    const startManagers = child.reportingManagerIds || (child.parentUserId ? [child.parentUserId] : []);
+    startManagers.forEach(id => {
+      if (id) queue.push(id);
+    });
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+      if (currentId === parent.userId) {
         return true;
       }
-      if (visited.has(currentParentId)) break;
-      visited.add(currentParentId);
-      const parentUser = this.allUsers.find(u => u.userId === currentParentId);
-      currentParentId = parentUser?.parentUserId;
+      if (!visited.has(currentId)) {
+        visited.add(currentId);
+        const parentUser = this.allUsers.find(u => u.userId === currentId);
+        if (parentUser) {
+          const nextManagers = parentUser.reportingManagerIds || (parentUser.parentUserId ? [parentUser.parentUserId] : []);
+          nextManagers.forEach(id => {
+            if (id && !visited.has(id)) {
+              queue.push(id);
+            }
+          });
+        }
+      }
     }
     return false;
   }
@@ -906,7 +935,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     }
 
     const rawForm = this.taskForm.getRawValue();
-    const { startDate, dueDate, departmentIds, assignedToIds, assignToSelf, status, subDepartmentId, isTemplateTask, templateId, targetCount, targetPercentage } = rawForm;
+    const { startDate, dueDate, departmentIds, assignedToIds, assignToSelf, status, subDepartmentId, subDepartmentIds, subjectId, isTemplateTask, templateId, targetCount, targetPercentage } = rawForm;
 
     const v = this.validateDates(startDate, dueDate);
     if (!v.valid) {
@@ -935,6 +964,8 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       departmentIds: departmentIds || [],
       assignedToIds: finalAssigned,
       subDepartmentId: subDepartmentId || null,
+      subDepartmentIds: subDepartmentIds || [],
+      subjectId: subjectId || null,
       templateId: isTemplateTask ? +templateId : null,
       targetCount: (isTemplateTask && targetCount) ? +targetCount : null,
       targetPercentage: (isTemplateTask && targetPercentageVal) ? targetPercentageVal : null,
@@ -998,6 +1029,9 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     if (!target.closest('.user-select-container')) {
       this.isOpenUsers = false;
     }
+    if (!target.closest('.custom-multiselect-container')) {
+      this.showSubDeptDropdown = false;
+    }
   }
 
   cancel(): void {
@@ -1006,5 +1040,72 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     } else {
       this.router.navigate(['/task', this.taskId]);
     }
+  }
+
+  subjects: any[] = [];
+  showSubDeptDropdown = false;
+
+  loadSubjectsForSubDepartments(): void {
+    const subDeptIds = this.taskForm.value.subDepartmentIds || [];
+    if (!subDeptIds.length) {
+      this.subjects = [];
+      this.taskForm.get('subjectId')?.setValue(null);
+      return;
+    }
+    const requests = subDeptIds.map((id: any) => this.subjectApiService.getSubjects(null, id));
+    forkJoin(requests).subscribe({
+      next: (results: any) => {
+        const merged = (results as any[]).flat();
+        const unique = merged.filter((sub: any, index: number, self: any[]) =>
+          index === self.findIndex((t: any) => t.id === sub.id)
+        );
+        this.subjects = unique;
+        const currentSubjectId = this.taskForm.value.subjectId;
+        if (currentSubjectId && !this.subjects.some(sub => sub.id === currentSubjectId)) {
+          this.taskForm.get('subjectId')?.setValue(null);
+        }
+      },
+      error: (err) => console.error('Failed to load subjects', err)
+    });
+  }
+
+  getSelectedSubDeptIds(): string[] {
+    return this.taskForm.get('subDepartmentIds')?.value || [];
+  }
+
+  getSubDeptName(id: string): string {
+    const sub = this.subDepartments.find(s => s.id === id);
+    return sub ? sub.name : 'Sub-Dept';
+  }
+
+  isSubDeptSelected(id: string): boolean {
+    return this.getSelectedSubDeptIds().includes(id);
+  }
+
+  toggleSubDeptSelection(id: string, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const control = this.taskForm.get('subDepartmentIds');
+    const current: string[] = control?.value || [];
+    let updated: string[];
+    if (current.includes(id)) {
+      updated = current.filter(x => x !== id);
+    } else {
+      updated = [...current, id];
+    }
+    control?.setValue(updated);
+    this.taskForm.get('subDepartmentId')?.setValue(updated.length > 0 ? updated[0] : null);
+    control?.markAsTouched();
+  }
+
+  removeSubDept(id: string, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const control = this.taskForm.get('subDepartmentIds');
+    const current: string[] = control?.value || [];
+    const updated = current.filter(x => x !== id);
+    control?.setValue(updated);
+    this.taskForm.get('subDepartmentId')?.setValue(updated.length > 0 ? updated[0] : null);
+    control?.markAsTouched();
   }
 }

@@ -59,10 +59,20 @@ export class HierarchyViewerComponent implements OnInit {
     // Link parents and children
     users.forEach(u => {
       const node = nodeMap.get(u.userId)!;
-      if (u.parentUserId && nodeMap.has(u.parentUserId)) {
-        const parentNode = nodeMap.get(u.parentUserId)!;
-        parentNode.children.push(node);
-      } else {
+      const managerIds = u.reportingManagerIds || (u.parentUserId ? [u.parentUserId] : []);
+
+      let hasActiveParentInSystem = false;
+      managerIds.forEach(managerId => {
+        if (managerId && nodeMap.has(managerId)) {
+          const parentNode = nodeMap.get(managerId)!;
+          if (!parentNode.children.includes(node)) {
+            parentNode.children.push(node);
+          }
+          hasActiveParentInSystem = true;
+        }
+      });
+
+      if (!hasActiveParentInSystem) {
         // Roots are users with no parent, or parent not in the system
         roots.push(node);
       }
