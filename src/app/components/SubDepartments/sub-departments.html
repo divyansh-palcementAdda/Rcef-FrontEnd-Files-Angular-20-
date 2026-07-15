@@ -82,7 +82,7 @@
             </div>
 
             <div class="list-group">
-              <div *ngFor="let sub of subDepartments" class="list-group-item-premium border rounded-3 p-3 mb-2 shadow-sm d-flex justify-content-between align-items-center">
+              <div *ngFor="let sub of paginatedSubDepartments" class="list-group-item-premium border rounded-3 p-3 mb-2 shadow-sm d-flex justify-content-between align-items-center">
                 <div>
                   <h6 class="fw-bold mb-1" style="color: var(--text-main);">{{ sub.name }}</h6>
                   <span class="badge bg-light text-secondary border mb-1" style="font-size:0.7rem;">Code: {{ sub.code }}</span>
@@ -92,6 +92,26 @@
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
+            </div>
+
+            <!-- Pagination for Sub-Departments -->
+            <div *ngIf="subDepartments.length > pageSizeSubDepts" class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+              <small class="text-muted">
+                {{ (currentPageSubDepts - 1) * pageSizeSubDepts + 1 }}-{{ Math.min(currentPageSubDepts * pageSizeSubDepts, subDepartments.length) }} of {{ subDepartments.length }} sub-departments
+              </small>
+              <nav aria-label="Sub-departments pagination">
+                <ul class="pagination mb-0 pagination-sm">
+                  <li class="page-item" [class.disabled]="currentPageSubDepts === 1">
+                    <a class="page-link" (click)="changePageSubDepts(currentPageSubDepts - 1)"><i class="bi bi-chevron-left"></i></a>
+                  </li>
+                  <li class="page-item" *ngFor="let page of getPageNumbersSubDepts()" [class.active]="currentPageSubDepts === page" [class.disabled]="page === '...'">
+                    <a class="page-link" (click)="onPageClickSubDepts(page)">{{ page }}</a>
+                  </li>
+                  <li class="page-item" [class.disabled]="currentPageSubDepts === totalPagesSubDepts">
+                    <a class="page-link" (click)="changePageSubDepts(currentPageSubDepts + 1)"><i class="bi bi-chevron-right"></i></a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
@@ -166,7 +186,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let u of users">
+            <tr *ngFor="let u of paginatedUsers">
               
               <!-- Non-Edit standard row -->
               <ng-container *ngIf="editingUserId !== u.userId">
@@ -232,6 +252,26 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination for Users -->
+      <div *ngIf="users.length > pageSizeUsers" class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+        <small class="text-muted">
+          {{ (currentPageUsers - 1) * pageSizeUsers + 1 }}-{{ Math.min(currentPageUsers * pageSizeUsers, users.length) }} of {{ users.length }} users
+        </small>
+        <nav aria-label="Users pagination">
+          <ul class="pagination mb-0 pagination-sm">
+            <li class="page-item" [class.disabled]="currentPageUsers === 1">
+              <a class="page-link" (click)="changePageUsers(currentPageUsers - 1)"><i class="bi bi-chevron-left"></i></a>
+            </li>
+            <li class="page-item" *ngFor="let page of getPageNumbersUsers()" [class.active]="currentPageUsers === page" [class.disabled]="page === '...'">
+              <a class="page-link" (click)="onPageClickUsers(page)">{{ page }}</a>
+            </li>
+            <li class="page-item" [class.disabled]="currentPageUsers === totalPagesUsers">
+              <a class="page-link" (click)="changePageUsers(currentPageUsers + 1)"><i class="bi bi-chevron-right"></i></a>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
   </div>

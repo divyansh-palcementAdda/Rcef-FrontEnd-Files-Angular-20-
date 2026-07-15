@@ -30,11 +30,22 @@ export class SubDepartmentManagementComponent implements OnInit {
   departments: Department[] = [];
   subDepartments: SubDepartment[] = [];
   users: userDto[] = [];
+  readonly Math = Math;
 
   selectedDepartment: Department | null = null;
   loadingDepartments = false;
   loadingSubDepts = false;
   loadingUsers = false;
+
+  // Pagination for Sub-Departments
+  currentPageSubDepts = 1;
+  pageSizeSubDepts = 5;
+  totalPagesSubDepts = 1;
+
+  // Pagination for Users
+  currentPageUsers = 1;
+  pageSizeUsers = 10;
+  totalPagesUsers = 1;
 
   successMessage: string | null = null;
   errorMessage: string | null = null;
@@ -92,6 +103,8 @@ export class SubDepartmentManagementComponent implements OnInit {
     this.deptApiService.getSubDepartmentsByDepartment(dept.departmentId).subscribe({
       next: (subs) => {
         this.subDepartments = subs;
+        this.totalPagesSubDepts = Math.ceil(subs.length / this.pageSizeSubDepts);
+        this.currentPageSubDepts = 1;
         this.loadingSubDepts = false;
       },
       error: (err) => {
@@ -106,6 +119,8 @@ export class SubDepartmentManagementComponent implements OnInit {
     this.userApiService.getAllUsers().subscribe({
       next: (users) => {
         this.users = users;
+        this.totalPagesUsers = Math.ceil(users.length / this.pageSizeUsers);
+        this.currentPageUsers = 1;
         this.loadingUsers = false;
       },
       error: (err) => {
@@ -224,6 +239,103 @@ export class SubDepartmentManagementComponent implements OnInit {
 
   getDepartmentNames(u: userDto): string {
     return u.departmentNames && u.departmentNames.length > 0 ? u.departmentNames.join(', ') : 'None';
+  }
+
+  // -------------------------------------------------------------
+  // Pagination Methods
+  // -------------------------------------------------------------
+  get paginatedSubDepartments(): SubDepartment[] {
+    const startIndex = (this.currentPageSubDepts - 1) * this.pageSizeSubDepts;
+    const endIndex = startIndex + this.pageSizeSubDepts;
+    return this.subDepartments.slice(startIndex, endIndex);
+  }
+
+  get paginatedUsers(): userDto[] {
+    const startIndex = (this.currentPageUsers - 1) * this.pageSizeUsers;
+    const endIndex = startIndex + this.pageSizeUsers;
+    return this.users.slice(startIndex, endIndex);
+  }
+
+  changePageSubDepts(page: number): void {
+    if (page < 1 || page > this.totalPagesSubDepts) return;
+    this.currentPageSubDepts = page;
+  }
+
+  changePageUsers(page: number): void {
+    if (page < 1 || page > this.totalPagesUsers) return;
+    this.currentPageUsers = page;
+  }
+
+  getPageNumbersSubDepts(): (number | string)[] {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (this.totalPagesSubDepts <= maxVisiblePages) {
+      for (let i = 1; i <= this.totalPagesSubDepts; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (this.currentPageSubDepts <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(this.totalPagesSubDepts);
+      } else if (this.currentPageSubDepts >= this.totalPagesSubDepts - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = this.totalPagesSubDepts - 3; i <= this.totalPagesSubDepts; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(this.currentPageSubDepts - 1);
+        pages.push(this.currentPageSubDepts);
+        pages.push(this.currentPageSubDepts + 1);
+        pages.push('...');
+        pages.push(this.totalPagesSubDepts);
+      }
+    }
+    return pages;
+  }
+
+  getPageNumbersUsers(): (number | string)[] {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (this.totalPagesUsers <= maxVisiblePages) {
+      for (let i = 1; i <= this.totalPagesUsers; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (this.currentPageUsers <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(this.totalPagesUsers);
+      } else if (this.currentPageUsers >= this.totalPagesUsers - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = this.totalPagesUsers - 3; i <= this.totalPagesUsers; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(this.currentPageUsers - 1);
+        pages.push(this.currentPageUsers);
+        pages.push(this.currentPageUsers + 1);
+        pages.push('...');
+        pages.push(this.totalPagesUsers);
+      }
+    }
+    return pages;
+  }
+
+  onPageClickSubDepts(page: number | string): void {
+    if (typeof page === 'number') {
+      this.changePageSubDepts(page);
+    }
+  }
+
+  onPageClickUsers(page: number | string): void {
+    if (typeof page === 'number') {
+      this.changePageUsers(page);
+    }
   }
 
   // -------------------------------------------------------------
