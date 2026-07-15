@@ -357,9 +357,7 @@ export class CreateRecurringTaskComponent implements OnInit, AfterViewInit, OnDe
         // Filter for HOD users
         if (this.currentUser?.role === 'HOD') {
           filtered = departments.filter(
-            (dept) =>
-              this.currentUser?.departmentIds?.includes(dept.departmentId) &&
-              dept.name.toLowerCase() !== 'administration'
+            (dept) => this.currentUser?.departmentIds?.includes(dept.departmentId)
           );
         }
         

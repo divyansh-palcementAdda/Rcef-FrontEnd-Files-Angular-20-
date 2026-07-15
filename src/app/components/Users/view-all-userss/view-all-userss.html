@@ -86,7 +86,7 @@
               </td>
               <td>
                 <span class="text-secondary small">
-                  {{ user.role === 'ADMIN' ? 'Administration' : (user.departmentNames || user.role) }}
+                  {{ (user.departmentNames && user.departmentNames.length > 0) ? user.departmentNames.join(', ') : 'None' }}
                 </span>
               </td>
               <td class="text-end" (click)="$event.stopPropagation()">

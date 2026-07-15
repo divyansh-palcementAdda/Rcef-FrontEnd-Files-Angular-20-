@@ -307,12 +307,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
   }
 
   updateDepartmentSelectionBasedOnRole(role: string): void {
-    if (role === 'ADMIN') {
-      const adminDept = this.departments.find(
-        d => d.name.toLowerCase() === 'administration'
-      );
-      this.selectedDepartments = adminDept ? [adminDept.departmentId] : [];
-    } else if (role === 'HOD' || role === 'SUB_ADMIN') {
+    if (role === 'HOD' || role === 'SUB_ADMIN') {
       if (this.selectedDepartments.length > 1) {
         this.selectedDepartments = [this.selectedDepartments[0]];
       }
@@ -326,12 +321,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     const checked = (event.target as HTMLInputElement).checked;
     const role = this.editForm.get('role')?.value || this.originalRole;
 
-    if (role === 'ADMIN') {
-      const adminDept = this.departments.find(
-        d => d.name.toLowerCase() === 'administration'
-      );
-      this.selectedDepartments = adminDept ? [adminDept.departmentId] : [];
-    } else if (role === 'HOD' || role === 'SUB_ADMIN') {
+    if (role === 'HOD' || role === 'SUB_ADMIN') {
       if (checked) {
         this.selectedDepartments = [deptId];
       } else {
@@ -355,11 +345,6 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
 
   isDeptDisabled(dept: Department): boolean {
     const role = this.editForm.get('role')?.value || this.originalRole;
-    
-    if (role === 'ADMIN') {
-      // Admin can only be in Administration department
-      return dept.name.toLowerCase() !== 'administration';
-    }
     
     if (role === 'HOD' || role === 'SUB_ADMIN') {
       // HOD and SUB_ADMIN can only select one department

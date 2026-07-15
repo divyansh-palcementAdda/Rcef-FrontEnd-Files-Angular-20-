@@ -415,9 +415,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
         let filtered = res;
         if (this.currentUser?.role === 'HOD') {
           filtered = res.filter(
-            (d) =>
-              this.currentUser?.departmentIds?.includes(d.departmentId) &&
-              d.name.toLowerCase() !== 'administration'
+            (d) => this.currentUser?.departmentIds?.includes(d.departmentId)
           );
         }
         this.departments = filtered;
