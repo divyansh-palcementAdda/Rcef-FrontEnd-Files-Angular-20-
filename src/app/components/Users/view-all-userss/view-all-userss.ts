@@ -38,7 +38,7 @@ export class ViewAllUserss implements OnInit {
   // Role-based data
   private currentUserId!: number;
   currentRole!: string;          // ADMIN | HOD
-  private hodDepartmentId?: number;      // only for HOD
+  private hodSubDepartmentId?: string;   // only for HOD (UUID)
 
   private modalService = inject(ModalService);
 
@@ -90,10 +90,10 @@ export class ViewAllUserss implements OnInit {
     this.currentRole = (this.authApiService.getCurrentRole() ?? '').toUpperCase();
 
     if (this.currentRole === 'HOD') {
-      // HOD needs department → fetch full user DTO
+      // HOD needs sub-department → fetch full user DTO
       return this.apiService.getUserById(this.currentUserId).pipe(
         switchMap((user: userDto) => {
-          this.hodDepartmentId = user.departmentIds[0];   // <-- adjust property name if different
+          this.hodSubDepartmentId = user.subDepartmentId;   // UUID string
           return of(void 0);
         })
       );
@@ -116,19 +116,19 @@ export class ViewAllUserss implements OnInit {
         ? this.apiService.getAllUsersByStatus(this.statusFilter)
         : this.apiService.getAllUsers();
     } else if (this.currentRole === 'HOD') {
-      if (this.hodDepartmentId !== undefined) {
-        obs$ = this.apiService.getAllUsersByDepartment(this.hodDepartmentId).pipe(
-          switchMap(deptUsers =>
+      if (this.hodSubDepartmentId) {
+        obs$ = this.apiService.getAllUsersBySubDepartment(this.hodSubDepartmentId).pipe(
+          switchMap(subDeptUsers =>
             this.apiService.getAllUsersByStatus('ACTIVE').pipe(
               map(activeUsers => {
                 const activeUserIds = new Set(activeUsers.map(u => u.userId));
-                return deptUsers.filter(user => activeUserIds.has(user.userId));
+                return subDeptUsers.filter(user => activeUserIds.has(user.userId));
               })
             )
           )
         );
       } else {
-        this.errorMessage = 'Missing department assignment for HOD.';
+        this.errorMessage = 'Missing sub-department assignment for HOD.';
         this.loading = false;
         return;
       }

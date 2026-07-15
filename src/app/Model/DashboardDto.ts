@@ -1,4 +1,5 @@
 export interface DashboardDto {
+  activeSubDepartments: any;
   recurringParentTask: any;
   recurredInstanceTask: any;
   zeroDueDepartments: any;
@@ -21,7 +22,7 @@ export interface DashboardDto {
   departmentName?: string;
   userName?: string;
   selfTask?: number;           // User only
-  activeTask?:number;
+  activeTask?: number;
   extendedTask?: number;           // Admin/HOD only
   tasksRequireApproval?: number;           // Admin/HOD only
   email?: string;

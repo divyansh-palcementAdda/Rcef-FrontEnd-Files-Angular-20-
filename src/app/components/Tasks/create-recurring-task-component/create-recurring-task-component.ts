@@ -300,9 +300,12 @@ export class CreateRecurringTaskComponent implements OnInit, AfterViewInit, OnDe
     // Department changes
     this.taskForm.get('departmentIds')?.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe((deptIds: number[]) => {
+      .subscribe((_deptIds: number[]) => {
         this.updateSelectAllDepts();
-        this.loadUsersForSelectedDepartments(deptIds);
+        const subDeptId = this.currentUser?.subDepartmentId;
+        if (subDeptId) {
+          this.loadUsersForSubDepartment(subDeptId);
+        }
         this.cdr.markForCheck();
       });
   }
@@ -377,27 +380,23 @@ export class CreateRecurringTaskComponent implements OnInit, AfterViewInit, OnDe
   }
 
 
-private async loadUsersForSelectedDepartments(deptIds: number[]): Promise<void> {
-  if (!deptIds?.length) return;
+private async loadUsersForSubDepartment(subDeptId: string): Promise<void> {
+  if (!subDeptId) return;
 
   this.isLoadingUsers = true;
 
   try {
-    const loadPromises = deptIds.map(deptId =>
-      firstValueFrom(this.userService.getAllUsersByDepartment(deptId))
-    );
-    const results = await Promise.all(loadPromises);
-    results.forEach((users, index) => {
-      const deptId = deptIds[index];
+    const users = await firstValueFrom(this.userService.getAllUsersBySubDepartment(subDeptId));
+    // Use a stable numeric key derived from the dept form value for map compatibility
+    const deptId = this.taskForm.value.departmentIds?.[0] ?? 0;
 
-      if (users?.length) {
-        const activeUsers = users.filter(u => u.status === 'ACTIVE');
+    if (users?.length) {
+      const activeUsers = users.filter((u: any) => u.status === 'ACTIVE');
 
-        this.usersByDepartment.set(deptId, activeUsers);
-        this.filteredUsersByDept.set(deptId, [...activeUsers]);
-        this.userSearchByDept[deptId] = '';
-      }
-    });
+      this.usersByDepartment.set(deptId, activeUsers);
+      this.filteredUsersByDept.set(deptId, [...activeUsers]);
+      this.userSearchByDept[deptId] = '';
+    }
 
   } catch (err) {
     console.error('Failed to load users:', err);

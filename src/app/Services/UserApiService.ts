@@ -78,10 +78,10 @@ export class UserApiService {
     );
   }
 
-  getAllUsersByDepartment(departmentId: number): Observable<userDto[]> {
-    console.log('Fetching users for department ID:', departmentId);
-    return this.http.get<userDto[]>(`${this.apiUrl}/department/${departmentId}`).pipe(
-      catchError(err => this.handleError(err, 'fetch users by department'))
+  getAllUsersBySubDepartment(subDeptId: string): Observable<userDto[]> {
+    console.log('Fetching users for sub-department ID:', subDeptId);
+    return this.http.get<userDto[]>(`${this.apiUrl}/sub-department/${subDeptId}`).pipe(
+      catchError(err => this.handleError(err, 'fetch users by sub-department'))
     );
   }
 
@@ -153,18 +153,18 @@ export class UserApiService {
   }
 
   /**
-   * Fetch users for multiple departments
+   * Fetch users for multiple sub-departments
    * Returns deduplicated array
    */
-  getUsersByDepartments(deptIds: number[]): Observable<userDto[]> {
-    if (!deptIds || deptIds.length === 0) {
+  getUsersBySubDepartments(subDeptIds: string[]): Observable<userDto[]> {
+    if (!subDeptIds || subDeptIds.length === 0) {
       return of([]);
     }
 
-    const requests = deptIds.map(id =>
-      this.getAllUsersByDepartment(id).pipe(
+    const requests = subDeptIds.map(id =>
+      this.getAllUsersBySubDepartment(id).pipe(
         catchError(err => {
-          console.error(`Failed to load users for department ${id}`, err);
+          console.error(`Failed to load users for sub-department ${id}`, err);
           return of([]);
         })
       )
