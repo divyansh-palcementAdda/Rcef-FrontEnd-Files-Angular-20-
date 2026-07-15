@@ -11,7 +11,7 @@
 /* ---- Page ---- */
 .subject-page {
   padding: 24px;
-  max-width: 1300px;
+  /* max-width: 1300px; */
   margin: 0 auto;
   min-height: 100vh;
 }

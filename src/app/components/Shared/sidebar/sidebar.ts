@@ -213,7 +213,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle-fill' },
         { label: 'Add User', route: '/add-user', icon: 'bi-person-plus-fill' },
         { label: 'Add Department', route: '/add-department', icon: 'bi-building-fill' },
-        { label: 'Departments', route: '/departments', icon: 'bi-layers-fill' },
+        // { label: 'Departments', route: '/departments', icon: 'bi-layers-fill' },
         { label: 'Sub-Departments', route: '/sub-departments', icon: 'bi-diagram-2-fill' },
         { label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' },
         { label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' },
