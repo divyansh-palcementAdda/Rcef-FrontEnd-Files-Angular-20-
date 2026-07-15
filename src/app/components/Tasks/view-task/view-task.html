@@ -206,6 +206,24 @@
               </strong>
             </div>
 
+            <!-- Sub-Departments -->
+            <div class="col-md-6" *ngIf="task.subDepartmentNames?.length">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">SUB-DEPARTMENTS</span>
+              <strong class="text-dark" style="font-size: 0.875rem; font-weight: 600;">
+                {{ task.subDepartmentNames?.join(', ') }}
+              </strong>
+            </div>
+
+            <!-- Subject -->
+            <div class="col-md-6" *ngIf="task.subjectName">
+              <span class="meta-label-top d-block"
+                style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">SUBJECT</span>
+              <strong class="text-dark" style="font-size: 0.875rem; font-weight: 600;">
+                {{ task.subjectName }}
+              </strong>
+            </div>
+
             <!-- Category & Subcategory -->
             <div class="col-md-6" *ngIf="task.template">
               <span class="meta-label-top d-block"

@@ -11,9 +11,14 @@ export interface userDto {
 
   parentUserId?: number;
   parentFullName?: string;
+  reportingManagerIds?: number[];
+  reportingManagerNames?: string[];
   subDepartmentId?: string;
   subDepartmentName?: string;
+  subDepartmentIds?: string[];
+  subDepartmentNames?: string[];
   permissions?: string[];
+
 
   // Task counters
   pendingTasks: number;    // count of pending tasks

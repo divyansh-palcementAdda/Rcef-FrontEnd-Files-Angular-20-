@@ -353,17 +353,50 @@
 
           <!-- Sub-Department Selection -->
           <div *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
-            <label class="form-label">Sub-Department (Optional)</label>
+            <label class="form-label">Sub-Departments (Optional)</label>
+            <div class="custom-multiselect-container position-relative mb-2">
+              <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="showSubDeptDropdown = !showSubDeptDropdown">
+                <!-- Chips -->
+                <span *ngFor="let id of getSelectedSubDeptIds()" class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
+                  <span>{{ getSubDeptName(id) }}</span>
+                  <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;" (click)="removeSubDept(id, $event)"></button>
+                </span>
+                <span *ngIf="getSelectedSubDeptIds().length === 0" class="text-muted small px-2">Select Sub-Departments...</span>
+              </div>
+              <!-- Dropdown Panel -->
+              <div *ngIf="showSubDeptDropdown && filteredSubDepartments.length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+                <div
+                  *ngFor="let sub of filteredSubDepartments"
+                  class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                  (mousedown)="toggleSubDeptSelection(sub.id, $event)"
+                  style="cursor: pointer;"
+                >
+                  <input
+                    type="checkbox"
+                    class="form-check-input custom-checkbox"
+                    style="pointer-events: none;"
+                    [checked]="isSubDeptSelected(sub.id)"
+                  />
+                  <span>{{ sub.name }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="field-hint">Specify sub-departments inside the selected parent departments.</div>
+          </div>
+
+          <!-- Subject Selection -->
+          <div *ngIf="getSelectedSubDeptIds().length > 0 && subjects.length > 0">
+            <label class="form-label">Subject (Optional)</label>
             <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
-              <select class="form-select" formControlName="subDepartmentId">
-                <option [ngValue]="null">Select Sub-Department</option>
-                <option *ngFor="let sub of filteredSubDepartments" [ngValue]="sub.id">
-                  {{ sub.name }}
+              <span class="input-group-text"><i class="bi bi-book"></i></span>
+              <select class="form-select" formControlName="subjectId">
+                <option [ngValue]="null">Select Subject</option>
+                <option *ngFor="let sub of subjects" [ngValue]="sub.id">
+                  {{ sub.subjectName }} ({{ sub.subjectCode }})
                 </option>
               </select>
             </div>
-            <div class="field-hint">Specify sub-department inside the selected parent departments.</div>
+            <div class="field-hint">Specify subject inside the selected sub-departments.</div>
           </div>
 
           <!-- Dynamic Field: Target Count -->

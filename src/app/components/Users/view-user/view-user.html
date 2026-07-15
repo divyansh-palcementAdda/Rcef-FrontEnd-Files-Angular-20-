@@ -463,6 +463,18 @@
               <span class="meta-label">Departments Linked</span>
               <span class="meta-value">{{ enrichedDepartments.length }}</span>
             </li>
+            <li class="meta-item flex-column align-items-start gap-1" *ngIf="user.reportingManagerNames && user.reportingManagerNames.length > 0">
+              <span class="meta-label">Reporting Managers</span>
+              <div class="d-flex flex-wrap gap-1 mt-1">
+                <span *ngFor="let name of user.reportingManagerNames" class="badge bg-light text-dark border px-2 py-1 rounded shadow-sm small">
+                  <i class="bi bi-person text-primary"></i> {{ name }}
+                </span>
+              </div>
+            </li>
+            <li class="meta-item" *ngIf="(!user.reportingManagerNames || user.reportingManagerNames.length === 0) && user.parentFullName">
+              <span class="meta-label">Reports To</span>
+              <span class="meta-value text-primary"><i class="bi bi-person me-1"></i>{{ user.parentFullName }}</span>
+            </li>
           </ul>
         </div>
 

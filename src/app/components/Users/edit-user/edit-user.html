@@ -171,27 +171,54 @@
               </div>
             </div>
 
-            <!-- Parent User (Reports To) -->
-            <div class="col-md-6" *ngIf="editForm.get('role')?.value">
+            <!-- Reporting Managers Searchable Multiselect -->
+            <div class="col-md-6" *ngIf="editForm.get('role')?.value && editForm.get('role')?.value !== 'SUPER_ADMIN'">
               <label class="form-label">
-                Reports To (Supervisor)
-                <span class="text-danger" *ngIf="editForm.get('role')?.value !== 'SUPER_ADMIN'">*</span>
+                Reporting Managers
+                <span class="text-danger">*</span>
               </label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
-                <select class="form-select" formControlName="parentUserId"
-                  [ngClass]="{
-                    'is-invalid': f['parentUserId']?.touched && f['parentUserId']?.invalid,
-                    'is-valid':   f['parentUserId']?.touched && f['parentUserId']?.valid
-                  }">
-                  <option [ngValue]="null" disabled>Select Supervisor</option>
-                  <option *ngFor="let parent of filteredParentUsers" [value]="parent.userId">
-                    {{ parent.fullName }} ({{ parent.role }})
-                  </option>
-                </select>
+              <div class="custom-multiselect-container position-relative">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="showManagerDropdown = !showManagerDropdown">
+                  <!-- Chips -->
+                  <span *ngFor="let id of getSelectedManagerIds()" class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
+                    <span>{{ getManagerName(id) }}</span>
+                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;" (click)="removeManager(id, $event)"></button>
+                  </span>
+                  <!-- Search input -->
+                  <input
+                    type="text"
+                    class="flex-grow-1 border-0 bg-transparent py-1 px-2"
+                    placeholder="🔍 Search Manager..."
+                    style="outline: none; min-width: 150px; height: 30px;"
+                    [(ngModel)]="managerSearchQuery"
+                    [ngModelOptions]="{standalone: true}"
+                    (focus)="showManagerDropdown = true"
+                    (click)="$event.stopPropagation()"
+                  />
+                </div>
+                <!-- Dropdown Panel -->
+                <div *ngIf="showManagerDropdown && filteredManagersList().length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+                  <div
+                    *ngFor="let mgr of filteredManagersList()"
+                    class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                    (mousedown)="toggleManagerSelection(mgr.userId, $event)"
+                    style="cursor: pointer;"
+                  >
+                    <input
+                      type="checkbox"
+                      class="form-check-input custom-checkbox"
+                      style="pointer-events: none;"
+                      [checked]="isManagerSelected(mgr.userId)"
+                    />
+                    <span>{{ mgr.fullName }} ({{ mgr.role }})</span>
+                  </div>
+                </div>
+                <div *ngIf="showManagerDropdown && filteredManagersList().length === 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted" style="z-index: 1050;">
+                  No matching managers found.
+                </div>
               </div>
-              <div *ngIf="f['parentUserId']?.touched && f['parentUserId']?.invalid" class="text-danger small mt-1">
-                <small>Supervisor reporting line assignment is required.</small>
+              <div *ngIf="editForm.get('reportingManagerIds')?.touched && editForm.get('reportingManagerIds')?.invalid" class="text-danger small mt-1">
+                <small>At least one reporting manager is required.</small>
               </div>
               <div class="field-hint">Teacher → HOD → SubAdmin → Admin → SuperAdmin.</div>
             </div>
@@ -212,21 +239,35 @@
 
             <!-- Sub-Department -->
             <div class="col-md-6 mb-2" *ngIf="(editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER') && subDepartments.length > 0">
-              <label class="form-label">Sub-Department <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
-                <select class="form-select" formControlName="subDepartmentId"
-                  [ngClass]="{
-                    'is-invalid': f['subDepartmentId']?.touched && f['subDepartmentId']?.invalid,
-                    'is-valid':   f['subDepartmentId']?.touched && f['subDepartmentId']?.valid
-                  }">
-                  <option [ngValue]="null" disabled selected>Select Sub-Department</option>
-                  <option *ngFor="let sub of subDepartments" [value]="sub.id">
-                    {{ sub.name }} ({{ sub.code }})
-                  </option>
-                </select>
+              <label class="form-label">Sub-Departments <span class="text-danger">*</span></label>
+              <div class="custom-multiselect-container position-relative">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="showSubDeptDropdown = !showSubDeptDropdown">
+                  <!-- Chips -->
+                  <span *ngFor="let id of getSelectedSubDeptIds()" class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
+                    <span>{{ getSubDeptName(id) }}</span>
+                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;" (click)="removeSubDept(id, $event)"></button>
+                  </span>
+                  <span *ngIf="getSelectedSubDeptIds().length === 0" class="text-muted small px-2">Select Sub-Departments...</span>
+                </div>
+                <!-- Dropdown Panel -->
+                <div *ngIf="showSubDeptDropdown" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+                  <div
+                    *ngFor="let sub of subDepartments"
+                    class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                    (mousedown)="toggleSubDeptSelection(sub.id, $event)"
+                    style="cursor: pointer;"
+                  >
+                    <input
+                      type="checkbox"
+                      class="form-check-input custom-checkbox"
+                      style="pointer-events: none;"
+                      [checked]="isSubDeptSelected(sub.id)"
+                    />
+                    <span>{{ sub.name }} ({{ sub.code }})</span>
+                  </div>
+                </div>
               </div>
-              <div *ngIf="f['subDepartmentId']?.touched && f['subDepartmentId']?.invalid" class="text-danger small mt-1">
+              <div *ngIf="f['subDepartmentIds']?.touched && f['subDepartmentIds']?.invalid" class="text-danger small mt-1">
                 <small>Sub-department assignment is required.</small>
               </div>
             </div>
@@ -283,7 +324,7 @@
         </div>
 
         <!-- Subject Access Mapping (Only for HOD / Teacher and if sub-department selected) -->
-        <div class="form-section-card animate__animated animate__fadeIn" *ngIf="(editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER') && editForm.get('subDepartmentId')?.value">
+        <div class="form-section-card animate__animated animate__fadeIn" *ngIf="(editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER') && getSelectedSubDeptIds().length > 0">
           <div class="form-section-header">
             <div class="form-section-icon"><i class="bi bi-book"></i></div>
             <div class="form-section-title-wrapper">

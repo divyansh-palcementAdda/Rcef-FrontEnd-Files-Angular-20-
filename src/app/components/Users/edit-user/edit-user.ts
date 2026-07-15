@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, SimpleChanges, HostListener } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -128,7 +128,9 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       role: [{ value: '', disabled: !this.isCurrentUserAdmin }, Validators.required],
       departmentIds: [[], Validators.required],
       parentUserId: [null],
+      reportingManagerIds: [[]],
       subDepartmentId: [null],
+      subDepartmentIds: [[]],
       subjectIds: [[]]
     });
 
@@ -145,9 +147,9 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       this.updateDepartmentSelectionBasedOnRole(role);
       this.onRoleChange(role);
 
-      const parentControl = this.editForm.get('parentUserId');
+      const parentControl = this.editForm.get('reportingManagerIds');
       if (role && role !== 'SUPER_ADMIN') {
-        parentControl?.setValidators([Validators.required]);
+        parentControl?.setValidators([Validators.required, Validators.minLength(1)]);
       } else {
         parentControl?.clearValidators();
       }
@@ -163,13 +165,18 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       deptControl?.updateValueAndValidity();
 
       const subDeptControl = this.editForm.get('subDepartmentId');
+      const subDeptsControl = this.editForm.get('subDepartmentIds');
       if (role === 'HOD' || role === 'TEACHER') {
         subDeptControl?.setValidators([Validators.required]);
+        subDeptsControl?.setValidators([Validators.required]);
       } else {
         subDeptControl?.clearValidators();
         subDeptControl?.setValue(null);
+        subDeptsControl?.clearValidators();
+        subDeptsControl?.setValue([]);
       }
       subDeptControl?.updateValueAndValidity();
+      subDeptsControl?.updateValueAndValidity();
     });
     if (roleSub) this.subscriptions.push(roleSub);
 
@@ -178,6 +185,11 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       this.onSubDepartmentChange(subDeptId);
     });
     if (subDeptSub) this.subscriptions.push(subDeptSub);
+
+    const subDeptsSub = this.editForm.get('subDepartmentIds')?.valueChanges.subscribe(() => {
+      this.reloadSubjects();
+    });
+    if (subDeptsSub) this.subscriptions.push(subDeptsSub);
   }
 
   private loadAllUsers(): void {
@@ -194,14 +206,13 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
 
   onRoleChange(selectedRole: string): void {
     this.filteredParentUsers = [];
-    if (selectedRole === 'TEACHER') {
-      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'HOD' && u.userId !== this.userId);
-    } else if (selectedRole === 'HOD') {
-      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'SUB_ADMIN' && u.userId !== this.userId);
-    } else if (selectedRole === 'SUB_ADMIN') {
-      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'ADMIN' && u.userId !== this.userId);
-    } else if (selectedRole === 'ADMIN') {
-      this.filteredParentUsers = this.allUsers.filter(u => (u.role || '').toUpperCase() === 'SUPER_ADMIN' && u.userId !== this.userId);
+    if (selectedRole && selectedRole !== 'SUPER_ADMIN') {
+      this.userApi.getEligibleManagers(selectedRole).subscribe({
+        next: (managers) => {
+          this.filteredParentUsers = managers.filter(u => u.userId !== this.userId);
+        },
+        error: (err) => console.error('Failed to load eligible managers for role ' + selectedRole, err)
+      });
     }
   }
 
@@ -251,6 +262,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
           this.editForm.get('role')?.enable();
         }
 
+        const managerIds = user.reportingManagerIds || (user.parentUserId ? [user.parentUserId] : []);
         this.editForm.patchValue({
           fullName: user.fullName,
           username: user.username,
@@ -258,7 +270,9 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
           role: user.role,
           departmentIds: deptIds,
           parentUserId: user.parentUserId || null,
+          reportingManagerIds: managerIds,
           subDepartmentId: user.subDepartmentId || null,
+          subDepartmentIds: user.subDepartmentIds || [],
           subjectIds: user.subjectIds || []
         });
 
@@ -400,7 +414,9 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       role: formValue.role,
       departmentIds: this.selectedDepartments,
       parentUserId: formValue.parentUserId,
+      reportingManagerIds: formValue.reportingManagerIds || [],
       subDepartmentId: formValue.subDepartmentId,
+      subDepartmentIds: formValue.subDepartmentIds || [],
       subjectIds: formValue.subjectIds || []
     };
 
@@ -602,6 +618,119 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       this.showSubjectDropdown = false;
       this.activeItemIndex = -1;
       event.preventDefault();
+    }
+  }
+
+  showSubDeptDropdown = false;
+
+  getSelectedSubDeptIds(): string[] {
+    return this.editForm.get('subDepartmentIds')?.value || [];
+  }
+
+  getSubDeptName(id: string): string {
+    const sub = this.subDepartments.find(s => s.id === id);
+    return sub ? sub.name : 'Sub-Dept';
+  }
+
+  isSubDeptSelected(id: string): boolean {
+    return this.getSelectedSubDeptIds().includes(id);
+  }
+
+  toggleSubDeptSelection(id: string, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const control = this.editForm.get('subDepartmentIds');
+    const current: string[] = control?.value || [];
+    let updated: string[];
+    if (current.includes(id)) {
+      updated = current.filter(x => x !== id);
+    } else {
+      updated = [...current, id];
+    }
+    control?.setValue(updated);
+    this.editForm.get('subDepartmentId')?.setValue(updated.length > 0 ? updated[0] : null);
+    control?.markAsTouched();
+    this.reloadSubjects();
+  }
+
+  removeSubDept(id: string, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const control = this.editForm.get('subDepartmentIds');
+    const current: string[] = control?.value || [];
+    const updated = current.filter(x => x !== id);
+    control?.setValue(updated);
+    this.editForm.get('subDepartmentId')?.setValue(updated.length > 0 ? updated[0] : null);
+    control?.markAsTouched();
+    this.reloadSubjects();
+  }
+
+  showManagerDropdown = false;
+  managerSearchQuery = '';
+
+  getSelectedManagerIds(): number[] {
+    return this.editForm.get('reportingManagerIds')?.value || [];
+  }
+
+  getManagerName(id: number): string {
+    const mgr = this.filteredParentUsers.find(u => u.userId === id);
+    return mgr ? mgr.fullName : `User #${id}`;
+  }
+
+  isManagerSelected(id: number): boolean {
+    return this.getSelectedManagerIds().includes(id);
+  }
+
+  toggleManagerSelection(id: number, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const control = this.editForm.get('reportingManagerIds');
+    const current: number[] = control?.value || [];
+    let updated: number[];
+    if (current.includes(id)) {
+      updated = current.filter(x => x !== id);
+    } else {
+      updated = [...current, id];
+    }
+    control?.setValue(updated);
+    control?.markAsTouched();
+    control?.markAsDirty();
+
+    // Set first manager as parentUserId for backward compatibility
+    this.editForm.get('parentUserId')?.setValue(updated.length > 0 ? updated[0] : null);
+  }
+
+  removeManager(id: number, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const control = this.editForm.get('reportingManagerIds');
+    const current: number[] = control?.value || [];
+    const updated = current.filter(x => x !== id);
+    control?.setValue(updated);
+    control?.markAsTouched();
+    control?.markAsDirty();
+
+    this.editForm.get('parentUserId')?.setValue(updated.length > 0 ? updated[0] : null);
+  }
+
+  filteredManagersList(): any[] {
+    const q = this.managerSearchQuery.toLowerCase().trim();
+    if (!q) return this.filteredParentUsers;
+    return this.filteredParentUsers.filter(u =>
+      u.fullName.toLowerCase().includes(q) ||
+      u.username.toLowerCase().includes(q)
+    );
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-multiselect-container')) {
+      this.showSubDeptDropdown = false;
+      this.showSubjectDropdown = false;
+      this.showManagerDropdown = false;
     }
   }
 }

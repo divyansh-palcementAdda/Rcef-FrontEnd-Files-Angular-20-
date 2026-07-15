@@ -269,6 +269,30 @@ export class UserApiService {
     );
   }
 
+  getReportingManagers(userId: number): Observable<userDto[]> {
+    return this.http.get<userDto[]>(`${this.apiUrl}/${userId}/reporting-managers`).pipe(
+      catchError(err => this.handleError(err, 'fetch reporting managers'))
+    );
+  }
+
+  getReportees(userId: number): Observable<userDto[]> {
+    return this.http.get<userDto[]>(`${this.apiUrl}/${userId}/reportees`).pipe(
+      catchError(err => this.handleError(err, 'fetch reportees'))
+    );
+  }
+
+  updateReportingManagers(userId: number, managerIds: number[]): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${userId}/reporting-managers`, managerIds).pipe(
+      catchError(err => this.handleError(err, 'update reporting managers'))
+    );
+  }
+
+  getEligibleManagers(role: string): Observable<userDto[]> {
+    return this.http.get<userDto[]>(`${this.apiUrl}/eligible-managers`, { params: { role } }).pipe(
+      catchError(err => this.handleError(err, 'fetch eligible managers'))
+    );
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);
