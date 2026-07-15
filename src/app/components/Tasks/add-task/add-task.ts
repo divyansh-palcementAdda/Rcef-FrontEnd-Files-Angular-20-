@@ -1107,6 +1107,13 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   subjects: any[] = [];
   showSubDeptDropdown = false;
 
+  toggleSubDeptDropdown(): void {
+    this.showSubDeptDropdown = !this.showSubDeptDropdown;
+    if (this.showSubDeptDropdown) {
+      this.filterSubDepartments();
+    }
+  }
+
   loadSubjectsForSubDepartments(): void {
     const subDeptIds = this.taskForm.value.subDepartmentIds || [];
     if (!subDeptIds.length) {
