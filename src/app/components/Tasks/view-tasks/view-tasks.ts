@@ -12,6 +12,8 @@ import { userDto } from '../../../Model/userDto';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { ModalService } from '../../../Services/modal-service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
+import { AuthorizationService } from '../../../Services/authorization.service';
+
 
 interface ApiResponse<T> {
   success: boolean;
@@ -29,6 +31,8 @@ interface ApiResponse<T> {
 export class ViewTasksComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private confirmDialog = inject(ConfirmDialogService);
+  private authorizationService = inject(AuthorizationService);
+
 
   // Task Data
   tasks: TaskDto[] = [];
@@ -547,12 +551,13 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   canDeleteTask(task: TaskDto): boolean {
-    if (this.currentUserRole === "TEACHER") return false;
-    if (this.currentUserRole === "HOD") {
-      return task?.createdById === this.currentUserId;
-    }
-    return true;
+    return this.authorizationService.canDeleteTask(task);
   }
+
+  canEditTask(task: TaskDto): boolean {
+    return this.authorizationService.canEditTask(task);
+  }
+
 
   getInitials(name?: string): string {
     if (!name) return '?';

@@ -10,8 +10,8 @@
          style="background: linear-gradient(135deg, #2b7818 0%, #34D399 50%, #1e3a8a 100%);">
       <h3 class="mb-1 fw-bold">Task Requests Management</h3>
       <small class="opacity-90">
-        {{ currentRole === 'ADMIN' ? 'All Requests in System' :
-           currentRole === 'HOD' ? 'Requests from Your Department(s)' :
+        {{ hasPermission('AUDIT_LOG_VIEW') ? 'All Requests in System' :
+           hasPermission('TASK_APPROVE') ? 'Requests from Your Department(s)' :
            'Your Submitted Requests' }}
       </small>
     </div>

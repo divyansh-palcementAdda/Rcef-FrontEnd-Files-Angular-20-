@@ -36,6 +36,8 @@ import { SubjectDetailComponent } from './components/Subjects/subject-detail/sub
 import { UsersImportComponent } from './components/Users/users-import/users-import';
 import { TasksImportComponent } from './components/Tasks/tasks-import/tasks-import';
 import { ModalRedirectGuard } from './Guards/modal-redirect.guard';
+import { AccessDeniedComponent } from './components/Shared/access-denied/access-denied';
+
 
 export const routes: Routes = [
 
@@ -59,19 +61,19 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminDashboardComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUB_ADMIN', 'SUPER_ADMIN'] } // ✅ Admin-level dashboard
+    data: { permissions: ['AUDIT_LOG_VIEW'] } // ✅ Admin/Sub-Admin/Super-Admin dashboard
   },
   {
     path: 'hod',
     component: HodsDashboard,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['HOD'] }
+    data: { permissions: ['SUB_DEPARTMENT_REPORT_VIEW'] } // ✅ HOD-level dashboard
   },
   {
     path: 'teacher',
     component: FacultysDashboard,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['TEACHER'] }
+    data: { permissions: ['REPORT_VIEW'] } // ✅ Teacher-level dashboard
   },
   {
     path: 'viewAllUsers',
@@ -107,9 +109,9 @@ export const routes: Routes = [
     path: 'user/:id', component: ViewUserComponent, canActivate: [AuthGuard]
   },
   {
-    path: 'departments', component: ViewDepartmentsComponent, canActivate: [AuthGuard], data: { permissions: ['DEPARTMENT_CREATE'] }
+    path: 'departments', component: ViewDepartmentsComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['DEPARTMENT_VIEW'] }
   }, {
-    path: 'department/:id', component: GetDepartment, canActivate: [AuthGuard], data: { permissions: ['DEPARTMENT_CREATE'] }
+    path: 'department/:id', component: GetDepartment, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['DEPARTMENT_VIEW'] }
   },
 
   { path: 'task/:id', component: ViewTask, canActivate: [AuthGuard] },
@@ -130,6 +132,9 @@ export const routes: Routes = [
   { path: 'users/import', component: UsersImportComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['USER_CREATE'] } },
   { path: 'tasks/import', component: TasksImportComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['TASK_CREATE'] } },
 
+  { path: 'access-denied', component: AccessDeniedComponent },
+
   // Wildcard route for a 404 page
   { path: '**', redirectTo: '' },
 ];
+

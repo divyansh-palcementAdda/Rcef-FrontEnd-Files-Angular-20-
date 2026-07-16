@@ -562,7 +562,7 @@
                     title="View Details">
                     <i class="bi bi-eye-fill"></i>
                   </button>
-                  <button class="stitch-action-btn btn-act-edit" (click)="editTask(task.taskId)" title="Edit Task">
+                  <button *ngIf="canEditTask(task)" class="stitch-action-btn btn-act-edit" (click)="editTask(task.taskId)" title="Edit Task">
                     <i class="bi bi-pencil-fill"></i>
                   </button>
                   <button
