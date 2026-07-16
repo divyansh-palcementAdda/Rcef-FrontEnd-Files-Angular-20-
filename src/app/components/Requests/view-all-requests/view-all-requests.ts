@@ -98,28 +98,26 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     this.loadRequests();
   }
 
+  hasPermission(permission: string): boolean {
+    return this.authApiService.hasPermission(permission);
+  }
+
   private loadRequests(): void {
     this.loading = true;
     this.errorMessage = null;
 
     let request$: any;
 
-    switch (this.currentRole) {
-      case 'SUPER_ADMIN':
-      case 'ADMIN':
-      case 'SUB_ADMIN':
-        request$ = this.requestService.getAllRequests();
-        break;
-      case 'HOD':
-        request$ = this.requestService.getRequestsByHodDepartments();
-        break;
-      case 'TEACHER':
-        request$ = this.requestService.getMyRequests();
-        break;
-      default:
-        this.errorMessage = 'Access denied';
-        this.loading = false;
-        return;
+    if (this.hasPermission('AUDIT_LOG_VIEW')) {
+      request$ = this.requestService.getAllRequests();
+    } else if (this.hasPermission('TASK_APPROVE')) {
+      request$ = this.requestService.getRequestsByHodDepartments();
+    } else if (this.hasPermission('REPORT_VIEW')) {
+      request$ = this.requestService.getMyRequests();
+    } else {
+      this.errorMessage = 'Access denied';
+      this.loading = false;
+      return;
     }
 
     request$.subscribe({

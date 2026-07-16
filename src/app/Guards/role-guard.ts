@@ -1,4 +1,3 @@
-// src/app/guards/role.guard.ts
 import { inject } from '@angular/core';
 import {
   ActivatedRouteSnapshot,
@@ -9,6 +8,14 @@ import {
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthApiService } from '../Services/auth-api-service';
 
+/**
+ * Dynamic Permission and RBAC Route Guard.
+ *
+ * <p>Secures Angular routes based on dynamic backend permissions. It extracts
+ * required permission codes from the route data and verifies them against the
+ * current user's permission cache. Access is denied if the user is missing
+ * any required permission, redirecting them to a friendly 403 Access Denied page.</p>
+ */
 export const RoleGuard: CanActivateFn = (
   route: ActivatedRouteSnapshot
 ): boolean | UrlTree => {
@@ -19,58 +26,15 @@ export const RoleGuard: CanActivateFn = (
 
   const token = authSrv.getAccessToken();
 
-  // -------------------------------------------
-  // Case 1: No access token → user not logged in
-  // (AuthGuard should catch this first, but be safe)
-  // -------------------------------------------
   if (!token) {
-    snack.open('Please log in first.', 'Close', { duration: 3000 });
+    snack.open('Session required. Please log in first.', 'Close', { duration: 3000 });
     return router.createUrlTree(['/login']);
   }
 
-  // -------------------------------------------
-  // Decode token to read the role
-  // NOTE: Token may be expired but still readable 
-  // -------------------------------------------
-  let role: string | undefined;
-  let payload: any;
-
-  try {
-    payload = JSON.parse(atob(token.split('.')[1]));
-    role = payload.roleName || payload.role || payload.roles || payload.authorities || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-    
-    // Handle array of roles
-    if (Array.isArray(role)) {
-      role = role[0];
-    }
-    
-    // Handle Spring Security format
-    if (typeof role === 'object' && role !== null && (role as any).authority) {
-      role = (role as any).authority;
-    }
-    
-    // Remove ROLE_ prefix if present
-    if (role && typeof role === 'string' && role.startsWith('ROLE_')) {
-      role = role.substring(5);
-    }
-  } catch (err) {
-    console.error('[RoleGuard] Invalid JWT payload', err);
-    snack.open('Invalid session. Please log in again.', 'Close', { duration: 3000 });
-    // authSrv.logout();
-    return router.createUrlTree(['/login']);
-  }
-
-  if (!role) {
-    snack.open('No role found. Access denied.', 'Close', { duration: 3000 });
-    return router.createUrlTree(['/login']);
-  }
-
-  // -------------------------------------------
-  // Check allowed permissions or roles defined on the route
-  // -------------------------------------------
   const requiredPermissions = (route.data['permissions'] as string[]) ?? [];
 
-  if (role === 'SUPER_ADMIN') {
+  // SUPER_ADMIN gets a master bypass
+  if (authSrv.getCurrentRole() === 'SUPER_ADMIN') {
     return true;
   }
 
@@ -81,18 +45,22 @@ export const RoleGuard: CanActivateFn = (
     }
   }
 
+  // Fallback to allowedRoles for backward compatibility if defined on route,
+  // but log a warning encouraging permission-based guards.
   const allowedRoles = (route.data['roles'] as string[]) ?? [];
-  if (allowedRoles.includes(role)) {
-    return true;
+  if (allowedRoles.length > 0) {
+    const userRole = authSrv.getCurrentRole();
+    if (userRole && allowedRoles.includes(userRole)) {
+      console.warn(`[SECURITY] Route ${route.routeConfig?.path} accessed via deprecated role guard. Migrate to permissions.`);
+      return true;
+    }
   }
 
-  // -------------------------------------------
-  // Unauthorized role – redirect & notify
-  // -------------------------------------------
-  snack.open('Access denied. You do not have permission.', 'Close', {
+  // Deny access: redirect to /access-denied
+  snack.open('Access denied. Insufficient permissions.', 'Close', {
     duration: 4000,
     panelClass: ['snackbar-warn'],
   });
 
-  return router.createUrlTree(['/home']);
+  return router.createUrlTree(['/access-denied']);
 };

@@ -212,73 +212,90 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   private buildLinks(): void {
-    const r = this.role ? this.role.toUpperCase() : '';
+    const localLinks: SidebarLink[] = [];
 
-    if (r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'SUB_ADMIN') {
-      this.links = [
-        { label: 'Dashboard', route: '/admin', icon: 'bi-grid-fill' },
-        { label: ' All Tasks', route: '/view-tasks', icon: 'bi-list-check' },
-        { label: ' All Users', route: '/viewAllUsers', icon: 'bi-people' },
-        { label: 'All Departments/Sub-Department', route: '/departments', icon: 'bi-building' },
-        { label: 'All Self Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-list-check' },
-        // { label: 'Pending Approvals', route: '/view-tasks', queryParams: { status: 'Approval' }, icon: 'bi-check2-circle' },
-        // { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle-fill' },
-        // { label: 'Add User', route: '/add-user', icon: 'bi-person-plus-fill' },
-        // { label: 'Add Department', route: '/add-department', icon: 'bi-building-fill' },
-        // { label: 'Departments', route: '/departments', icon: 'bi-layers-fill' },
-        // { label: 'Sub-Departments', route: '/sub-departments', icon: 'bi-diagram-2-fill' },
-        // { label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' },
-        { label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' },
-        { label: 'Recurring Tasks', route: '/createRecurring', icon: 'bi-arrow-repeat' },
-        {
-          label: 'Settings',
-          route: '',
-          icon: 'bi-gear-fill',
-          isGroup: true,
-          children: [
-            { label: 'Task Templates', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' },
-            { label: 'Roles & Permissions', route: '/roles-permissions', icon: 'bi-shield-lock-fill' }
-          ]
-        }
-      ];
-    } else if (r === 'HOD') {
-      this.links = [
-        { label: 'Dashboard', route: '/hod', icon: 'bi-grid-fill' },
-        { label: 'Tasks', route: '/view-tasks', icon: 'bi-list-check' },
-        { label: 'Users', route: '/viewAllUsers', icon: 'bi-people' }
-      ];
-      if (this.hasPermission('DEPARTMENT_CREATE')) {
-        this.links.push({ label: 'Departments', route: '/departments', icon: 'bi-building' });
-      }
-      if (this.hasPermission('SUBJECT_VIEW')) {
-        this.links.push({ label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' });
-      }
-      this.links.push(
-        { label: 'My Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-list-check' },
-        { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle-fill' },
-        { label: 'Self-Assigned Tasks', route: '/view-tasks', queryParams: { status: 'selfAssigned' }, icon: 'bi-person-check-fill' },
-        { label: 'Task Requests', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'bi-clock-history' },
-        { label: 'Team Members', route: '/viewAllUsers', icon: 'bi-people-fill' },
-        { label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' }
-      );
-    } else if (r === 'TEACHER') {
-      this.links = [
-        { label: 'Dashboard', route: '/teacher', icon: 'bi-grid-fill' },
-        { label: 'Tasks', route: '/view-tasks', icon: 'bi-list-check' }
-      ];
-      if (this.hasPermission('USER_VIEW')) {
-        this.links.push({ label: 'Users', route: '/viewAllUsers', icon: 'bi-people' });
-      }
-      if (this.hasPermission('DEPARTMENT_CREATE')) {
-        this.links.push({ label: 'Departments', route: '/departments', icon: 'bi-building' });
-      }
-      if (this.hasPermission('SUBJECT_VIEW')) {
-        this.links.push({ label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' });
-      }
-      this.links.push(
-        { label: 'My Tasks', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'bi-list-check' },
-        { label: 'Task Requests', route: '/task-requests', icon: 'bi-clock-history' }
-      );
+    // 1. Dashboard (dynamic route based on permissions)
+    let dashboardRoute = '/teacher';
+    if (this.hasPermission('AUDIT_LOG_VIEW')) {
+      dashboardRoute = '/admin';
+    } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
+      dashboardRoute = '/hod';
     }
+    localLinks.push({ label: 'Dashboard', route: dashboardRoute, icon: 'bi-grid-fill' });
+
+    // 2. Tasks
+    if (this.hasPermission('TASK_VIEW')) {
+      localLinks.push({ label: 'Tasks', route: '/view-tasks', icon: 'bi-list-check' });
+
+      // Scoped Task Views
+      if (this.hasPermission('AUDIT_LOG_VIEW')) {
+        localLinks.push({ label: 'Self Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
+        localLinks.push({ label: 'Pending Approvals', route: '/view-tasks', queryParams: { status: 'Approval' }, icon: 'bi-check2-circle' });
+      } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
+        localLinks.push({ label: 'My Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
+        localLinks.push({ label: 'Self-Assigned Tasks', route: '/view-tasks', queryParams: { status: 'selfAssigned' }, icon: 'bi-person-check-fill' });
+      } else {
+        localLinks.push({ label: 'My Tasks', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'bi-person-badge' });
+      }
+    }
+
+    // 3. User lists
+    if (this.hasPermission('USER_VIEW')) {
+      if (this.hasPermission('AUDIT_LOG_VIEW')) {
+        localLinks.push({ label: 'Users', route: '/viewAllUsers', icon: 'bi-people' });
+      } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
+        localLinks.push({ label: 'Team Members', route: '/viewAllUsers', icon: 'bi-people-fill' });
+      } else {
+        localLinks.push({ label: 'Users', route: '/viewAllUsers', icon: 'bi-people' });
+      }
+    }
+
+    // 4. Departments
+    if (this.hasPermission('DEPARTMENT_VIEW')) {
+      localLinks.push({ label: 'Departments', route: '/departments', icon: 'bi-building' });
+    }
+
+    // 5. Sub-Departments
+    if (this.hasPermission('SUB_DEPARTMENT_VIEW')) {
+      localLinks.push({ label: 'Sub-Departments', route: '/sub-departments', icon: 'bi-diagram-2-fill' });
+    }
+
+    // 6. Subjects
+    if (this.hasPermission('SUBJECT_VIEW')) {
+      localLinks.push({ label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' });
+    }
+
+    // 7. User Hierarchy
+    if (this.hasPermission('USER_VIEW') && (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW') || this.hasPermission('AUDIT_LOG_VIEW'))) {
+      localLinks.push({ label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' });
+    }
+
+    // 8. Recurring Tasks & Templates
+    if (this.hasPermission('TASK_CREATE') && this.hasPermission('AUDIT_LOG_VIEW')) {
+      localLinks.push({ label: 'Recurring Tasks', route: '/createRecurring', icon: 'bi-arrow-repeat' });
+      localLinks.push({ label: 'Task Templates', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' });
+    }
+
+    // 9. Task Requests
+    if (this.hasPermission('TASK_APPROVE')) {
+      localLinks.push({ label: 'Task Requests', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'bi-clock-history' });
+    } else if (this.hasPermission('REPORT_VIEW')) {
+      localLinks.push({ label: 'Task Requests', route: '/task-requests', icon: 'bi-clock-history' });
+    }
+
+    // 10. Bulk Import
+    if (this.hasPermission('USER_CREATE')) {
+      localLinks.push({ label: 'Import Users', route: '/users/import', icon: 'bi-file-earmark-excel-fill' });
+    }
+    if (this.hasPermission('TASK_CREATE')) {
+      localLinks.push({ label: 'Import Tasks', route: '/tasks/import', icon: 'bi-file-earmark-arrow-up-fill' });
+    }
+
+    // 11. Roles & Permissions Management
+    if (this.hasPermission('USER_EDIT') && this.hasPermission('AUDIT_LOG_VIEW')) {
+      localLinks.push({ label: 'Roles & Permissions', route: '/roles-permissions', icon: 'bi-shield-lock-fill' });
+    }
+
+    this.links = localLinks;
   }
 }

@@ -234,7 +234,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   ) { }
 
   isSuperAdmin(): boolean {
-    return this.authService.getCurrentRole() === 'SUPER_ADMIN';
+    return this.authService.hasPermission('ROLE_MANAGE');
   }
 
   ngOnInit(): void {

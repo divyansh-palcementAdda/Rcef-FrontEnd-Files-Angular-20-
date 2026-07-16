@@ -17,6 +17,8 @@ import { finalize } from 'rxjs/operators';
 import { TaskRequestDto, StructuredProofValueDto } from '../../../Model/TaskRequestDto';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { AuthApiService } from '../../../Services/auth-api-service';
+import { AuthorizationService } from '../../../Services/authorization.service';
+
 
 interface EnrichedDepartment {
   id: number;
@@ -260,8 +262,10 @@ export class ViewTask implements OnInit, OnDestroy {
     private requestService: RequestApiService,
     private studentApiService: StudentApiService,
     private confirmDialog: ConfirmDialogService,
-    private authService: AuthApiService
+    private authService: AuthApiService,
+    private authorizationService: AuthorizationService
   ) { }
+
 
   get showWhoReported(): boolean {
     return this.authService.hasPermission('TASK_APPROVE') && !this.isAssigned;
@@ -281,12 +285,10 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   canEditDelete(): boolean {
-    if (this.currentUserRole === "TEACHER") return false;
-    if (this.currentUserRole === "HOD") {
-      return this.task?.createdById === this.currentUserId;
-    }
-    return true;
+    if (!this.task) return false;
+    return this.authorizationService.canEditTask(this.task) || this.authorizationService.canDeleteTask(this.task);
   }
+
 
   editTask(): void {
     if (this.canEditDelete()) {
@@ -333,16 +335,10 @@ export class ViewTask implements OnInit, OnDestroy {
         next: (user) => {
           this.currentUserRole = user.role;
           this.currentUserFullName = user.fullName;
-          this.isHOD = user.role === 'HOD';
+          this.isHOD = this.authorizationService.hasPermission('TASK_APPROVE') && !this.authorizationService.hasPermission('AUDIT_LOG_VIEW');
           this.currentUserDepartments = user.departmentIds || [];
 
-          if (this.currentUserRole === 'TEACHER') {
-            this.verifyTeacherAccess(taskId);
-          } else if (this.isHOD) {
-            this.verifyHODAccess(taskId);
-          } else {
-            this.loadTask(taskId);
-          }
+          this.loadTask(taskId);
         },
         error: (error) => {
           console.error('Failed to verify user:', error);
@@ -412,78 +408,19 @@ export class ViewTask implements OnInit, OnDestroy {
     return true;
   }
 
-  private verifyTeacherAccess(taskId: number): void {
 
-    this.taskService.getTaskById(taskId).subscribe({
-      next: res => {
-        if (!res.success || !res.data) {
-          this.errorMessage = 'Task not found';
-          this.isLoading = false;
-          return;
-        }
-
-        if (!res.data.assignedToIds?.includes(this.currentUserId)) {
-          this.isForbidden = true;
-          this.isLoading = false;
-          return;
-        }
-
-        this.task = res.data;
-        this.isAssigned = true;
-        this.applyRequestFilters();
-        this.aggregateProofs();
-        this.loadComments();
-        this.computeStats();
-        this.fetchRelatedEntities();
-        this.fetchCountsForProofStudents();
-      },
-      error: () => {
-        this.isForbidden = true;
-        this.isLoading = false;
-      }
-    });
-  }
-  private verifyHODAccess(taskId: number): void {
-
-    this.taskService.getTaskById(taskId).subscribe({
-      next: res => {
-
-        if (!res.success || !res.data) {
-          this.errorMessage = 'Task not found';
-          this.isLoading = false;
-          return;
-        }
-
-        const hasDeptAccess = res.data.departmentIds?.some(d =>
-          this.currentUserDepartments.includes(d)
-        );
-
-        if (!hasDeptAccess) {
-          this.isForbidden = true;
-          this.isLoading = false;
-          return;
-        }
-
-        this.task = res.data;
-        this.isAssigned = res.data.assignedToIds?.includes(this.currentUserId) || false;
-        this.applyRequestFilters();
-        this.aggregateProofs();
-        this.loadComments();
-        this.computeStats();
-        this.fetchRelatedEntities();
-        this.fetchCountsForProofStudents();
-      },
-      error: () => {
-        this.isForbidden = true;
-        this.isLoading = false;
-      }
-    });
-  }
 
   private loadTask(taskId: number): void {
     this.taskService.getTaskById(taskId).subscribe({
       next: (res) => {
         if (res.success && res.data) {
+          // Centralized Visibility Validation
+          if (!this.authorizationService.canAccessTask(res.data)) {
+            this.isForbidden = true;
+            this.isLoading = false;
+            return;
+          }
+
           this.task = res.data;
           console.log('Task loaded successfully:', this.task);
 

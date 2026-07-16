@@ -16,6 +16,8 @@ import { environment } from '../environment/environment';
 import { JWTResponseDTO } from '../Model/jwtresponse-dto';
 import { LoginRequestDTO } from '../Model/login-request-dto';
 import { UserApiService } from './UserApiService';
+import { JwtService } from './jwt-service';
+
 
 
 /* --------------------------------------------------------------------- */
@@ -27,7 +29,7 @@ interface ApiResult<T> {
   data: T | null;
   timestamp: string;
 }
-  interface LogoutRequest {
+interface LogoutRequest {
   refreshToken: string;
 }
 
@@ -36,10 +38,11 @@ interface ApiResult<T> {
 /* --------------------------------------------------------------------- */
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
-  
+
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly userApiService = inject(UserApiService);
+  private readonly jwtService = inject(JwtService);
 
   private readonly apiUrl = `${environment.apiUrl}/auth`;
 
@@ -60,13 +63,10 @@ export class AuthApiService {
     this.loggedIn$.next(!!token);
     if (token) {
       this.updateUserFromToken(token);
-      // Restore permissions from localStorage immediately (sync) so guards work on page refresh
-      const storedPerms = this.getStoredPermissions();
-      if (storedPerms.length > 0) {
-        this.permissions$.next(storedPerms);
-      } else {
-        // Fallback: load from API if nothing in storage
-        this.loadUserPermissions().subscribe();
+      this.loadUserPermissions().subscribe();
+      const userId = this.jwtService.getUserIdFromToken(token);
+      if (userId) {
+        this.userApiService.getCurrentUserProfile(userId).subscribe();
       }
     }
   }
@@ -190,6 +190,9 @@ export class AuthApiService {
     } else {
       this.loadUserPermissions().subscribe();
     }
+    if (dto.id) {
+      this.userApiService.getCurrentUserProfile(dto.id).subscribe();
+    }
     this.loggedIn$.next(true);
   }
 
@@ -260,7 +263,7 @@ export class AuthApiService {
   hasPermission(permission: string): boolean {
     const token = this.getAccessToken();
     if (!token) return false;
-    
+
     const role = this.getCurrentRole();
     if (role === 'SUPER_ADMIN') return true;
 
@@ -279,32 +282,12 @@ export class AuthApiService {
     }
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      let role = payload.roleName || payload.role || payload.roles || payload.authorities || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-      if (Array.isArray(role)) {
-        role = role[0];
-      }
-      if (typeof role === 'object' && role !== null && role.authority) {
-        role = role.authority; // Spring Security format
-      }
-      if (role && typeof role === 'string' && role.startsWith('ROLE_')) {
-        role = role.substring(5); // Remove ROLE_ prefix if present
-      }
-
-      switch (role) {
-        case 'SUPER_ADMIN':
-        case 'ADMIN':
-        case 'SUB_ADMIN':
-          this.router.navigate(['/admin']);
-          break;
-        case 'HOD':
-          this.router.navigate(['/hod']);
-          break;
-        case 'TEACHER':
-          this.router.navigate(['/teacher']);
-          break;
-        default:
-          this.clearAuthAndRedirect();
+      if (this.hasPermission('AUDIT_LOG_VIEW')) {
+        this.router.navigate(['/admin']);
+      } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
+        this.router.navigate(['/hod']);
+      } else {
+        this.router.navigate(['/teacher']);
       }
     } catch (e) {
       this.clearAuthAndRedirect();
@@ -317,22 +300,22 @@ export class AuthApiService {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       let role = payload.roleName || payload.role || payload.roles || payload.authorities || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-      
+
       // Handle array of roles
       if (Array.isArray(role)) {
         role = role[0];
       }
-      
+
       // Handle Spring Security format
       if (typeof role === 'object' && role !== null && (role as any).authority) {
         role = (role as any).authority;
       }
-      
+
       // Remove ROLE_ prefix if present
       if (role && typeof role === 'string' && role.startsWith('ROLE_')) {
         role = role.substring(5);
       }
-      
+
       return role ?? null;
     } catch {
       return null;
