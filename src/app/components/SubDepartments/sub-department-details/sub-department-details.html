@@ -8,9 +8,7 @@
       <div>
         <div class="title-row">
           <h1 class="subdept-title">{{ subDeptDetail.name }}</h1>
-          <span class="status-badge active">
-            Active
-          </span>
+          <span class="status-badge active">Active</span>
         </div>
         <p class="subdept-sub">{{ subDeptDetail.department?.name }} &rarr; {{ subDeptDetail.code }}</p>
       </div>
@@ -20,187 +18,454 @@
     </div>
   </div>
 
+  <!-- Loading State -->
   <div *ngIf="loading" class="loading-state">
     <div class="spinner"></div>
     <span>Loading sub-department details...</span>
   </div>
 
-  <div *ngIf="!loading && subDeptDetail" class="detail-content">
+  <!-- Main Content Dashboard -->
+  <div *ngIf="!loading && subDeptDetail" class="detail-content animate__animated animate__fadeIn">
     
-    <!-- Grid Layout: Sidebar Stats & Main Content -->
-    <div class="content-grid">
+    <!-- Tab Controls -->
+    <div class="tab-navigation">
+      <button [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">Overview</button>
+      <button [class.active]="activeTab === 'tasks'" (click)="activeTab = 'tasks'">Tasks ({{ filteredTasks.length }})</button>
+      <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Users ({{ subDeptDetail.assignedUsers?.length || 0 }})</button>
+      <button [class.active]="activeTab === 'subjects'" (click)="activeTab = 'subjects'">Subjects ({{ subDeptDetail.subjectBreakdowns?.length || 0 }})</button>
+      <button [class.active]="activeTab === 'analytics'" (click)="activeTab = 'analytics'">Analytics Charts</button>
+      <button [class.active]="activeTab === 'activity'" (click)="activeTab = 'activity'">Activity Logs</button>
+    </div>
+
+    <!-- ====================================================
+         1. OVERVIEW TAB
+         ==================================================== -->
+    <div *ngIf="activeTab === 'overview'" class="tab-pane-content">
       
-      <!-- Main Content (Assigned Users, Audit Activity) -->
-      <div class="main-column">
-        <!-- Description -->
-        <div class="card desc-card" *ngIf="subDeptDetail.description">
-          <h3 class="card-title"><i class="bi bi-info-circle-fill text-indigo"></i> Description</h3>
-          <p class="description-text">{{ subDeptDetail.description }}</p>
+      <!-- Counters Grid -->
+      <div class="counters-grid" *ngIf="subDeptDetail.analytics">
+        <div class="counter-card" (click)="filterByCard('status', '')">
+          <div class="card-icon"><i class="bi bi-list-task text-primary"></i></div>
+          <div class="card-value">{{ subDeptDetail.analytics.totalTasks }}</div>
+          <div class="card-label">Total Tasks</div>
         </div>
-
-        <!-- Assigned Users List -->
-        <div class="card users-card">
-          <h3 class="card-title"><i class="bi bi-people-fill text-blue"></i> Assigned Users</h3>
-          
-          <div class="table-responsive" *ngIf="subDeptDetail.assignedUsers && subDeptDetail.assignedUsers.length > 0">
-            <table class="users-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let user of subDeptDetail.assignedUsers">
-                  <td>
-                    <div class="user-cell">
-                      <div class="avatar">{{ user.fullName.charAt(0) }}</div>
-                      <span class="name">{{ user.fullName }}</span>
-                    </div>
-                  </td>
-                  <td>{{ user.email }}</td>
-                  <td>
-                    <span class="role-badge" [ngClass]="getRoleBadgeClass(user.role)">
-                      {{ user.role }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="empty-list" *ngIf="!subDeptDetail.assignedUsers || subDeptDetail.assignedUsers.length === 0">
-            <i class="bi bi-person-x"></i>
-            <p>No users assigned to this sub-department yet.</p>
-          </div>
+        <div class="counter-card" (click)="filterByCard('status', 'PENDING')">
+          <div class="card-icon"><i class="bi bi-clock text-warning"></i></div>
+          <div class="card-value text-warning">{{ subDeptDetail.analytics.pendingTasks }}</div>
+          <div class="card-label">Pending Tasks</div>
         </div>
+        <div class="counter-card" (click)="filterByCard('status', 'IN_PROGRESS')">
+          <div class="card-icon"><i class="bi bi-activity text-info"></i></div>
+          <div class="card-value text-info">{{ subDeptDetail.analytics.inProgressTasks }}</div>
+          <div class="card-label">In Progress</div>
+        </div>
+        <div class="counter-card" (click)="filterByCard('status', 'CLOSED')">
+          <div class="card-icon"><i class="bi bi-check-circle text-success"></i></div>
+          <div class="card-value text-success">{{ subDeptDetail.analytics.closedTasks }}</div>
+          <div class="card-label">Closed Tasks</div>
+        </div>
+        <div class="counter-card" (click)="filterByCard('status', 'DELAYED')">
+          <div class="card-icon"><i class="bi bi-exclamation-triangle text-danger"></i></div>
+          <div class="card-value text-danger">{{ subDeptDetail.analytics.delayedTasks }}</div>
+          <div class="card-label">Delayed Tasks</div>
+        </div>
+        <div class="counter-card" (click)="filterByCard('status', 'EXTENDED')">
+          <div class="card-icon"><i class="bi bi-arrow-right-circle text-secondary"></i></div>
+          <div class="card-value">{{ subDeptDetail.analytics.extendedTasks }}</div>
+          <div class="card-label">Extended Tasks</div>
+        </div>
+        <div class="counter-card" (click)="filterByCard('status', 'REQUEST_FOR_CLOSURE')">
+          <div class="card-icon"><i class="bi bi-lock-fill text-success"></i></div>
+          <div class="card-value">{{ subDeptDetail.analytics.requestForClosure }}</div>
+          <div class="card-label">Closure Requests</div>
+        </div>
+        <div class="counter-card" (click)="filterByCard('status', 'REQUEST_FOR_EXTENSION')">
+          <div class="card-icon"><i class="bi bi-calendar-range text-warning"></i></div>
+          <div class="card-value">{{ subDeptDetail.analytics.requestForExtension }}</div>
+          <div class="card-label">Extension Requests</div>
+        </div>
+        <div class="counter-card">
+          <div class="card-icon"><i class="bi bi-people text-info"></i></div>
+          <div class="card-value">{{ subDeptDetail.analytics.totalUsers }}</div>
+          <div class="card-label">Assigned Users</div>
+        </div>
+        <div class="counter-card">
+          <div class="card-icon"><i class="bi bi-book text-success"></i></div>
+          <div class="card-value">{{ subDeptDetail.subjectBreakdowns?.length || 0 }}</div>
+          <div class="card-label">Total Subjects</div>
+        </div>
+      </div>
 
-        <!-- Recent Audit Logs -->
-        <div class="card logs-card">
-          <h3 class="card-title"><i class="bi bi-clock-history text-purple"></i> Recent Activity Logs</h3>
-          
-          <div class="activity-timeline" *ngIf="subDeptDetail.recentActivity && subDeptDetail.recentActivity.length > 0">
-            <div class="timeline-item" *ngFor="let log of subDeptDetail.recentActivity">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content">
-                <div class="timeline-header">
-                  <span class="timeline-action">{{ log.action }}</span>
-                  <span class="timeline-time">{{ formatDate(log.timestamp) }}</span>
+      <!-- Overview Lower Section (Perf Metrics + Recent Audit) -->
+      <div class="overview-lower-grid">
+        <!-- Performance Metrics -->
+        <div class="card perf-card">
+          <h3 class="card-title"><i class="bi bi-speedometer2 text-info"></i> Performance Metrics</h3>
+          <div class="perf-metrics-list" *ngIf="subDeptDetail.analytics">
+            <div class="metric-row">
+              <span class="label">Completion Rate</span>
+              <div class="metric-progress-wrapper">
+                <div class="metric-progress-bar bg-success" 
+                     [style.width.%]="subDeptDetail.analytics.totalTasks > 0 ? (subDeptDetail.analytics.closedTasks / subDeptDetail.analytics.totalTasks * 100) : 0">
                 </div>
-                <p class="timeline-details">{{ log.details }}</p>
-                <span class="timeline-user">By: {{ log.performedBy }}</span>
+              </div>
+              <strong class="val">{{ subDeptDetail.analytics.totalTasks > 0 ? Math.round(subDeptDetail.analytics.closedTasks / subDeptDetail.analytics.totalTasks * 100) : 0 }}%</strong>
+            </div>
+
+            <div class="metric-row">
+              <span class="label">Delay Rate</span>
+              <div class="metric-progress-wrapper">
+                <div class="metric-progress-bar bg-danger" 
+                     [style.width.%]="subDeptDetail.analytics.totalTasks > 0 ? (subDeptDetail.analytics.delayedTasks / subDeptDetail.analytics.totalTasks * 100) : 0">
+                </div>
+              </div>
+              <strong class="val">{{ subDeptDetail.analytics.totalTasks > 0 ? Math.round(subDeptDetail.analytics.delayedTasks / subDeptDetail.analytics.totalTasks * 100) : 0 }}%</strong>
+            </div>
+
+            <div class="metric-row">
+              <span class="label">Pending Review Rate</span>
+              <div class="metric-progress-wrapper">
+                <div class="metric-progress-bar bg-warning" 
+                     [style.width.%]="subDeptDetail.analytics.totalTasks > 0 ? (subDeptDetail.analytics.approvalPending / subDeptDetail.analytics.totalTasks * 100) : 0">
+                </div>
+              </div>
+              <strong class="val">{{ subDeptDetail.analytics.totalTasks > 0 ? Math.round(subDeptDetail.analytics.approvalPending / subDeptDetail.analytics.totalTasks * 100) : 0 }}%</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="card recent-activity-card">
+          <h3 class="card-title"><i class="bi bi-lightning-charge text-purple"></i> Recent Activities</h3>
+          <div class="timeline" *ngIf="subDeptDetail.recentActivity && subDeptDetail.recentActivity.length > 0">
+            <div class="timeline-item" *ngFor="let item of subDeptDetail.recentActivity | slice:0:6">
+              <div class="timeline-dot"></div>
+              <div class="timeline-info">
+                <div class="timeline-meta">
+                  <span class="action-label">{{ item.action }}</span>
+                  <span class="time-label">{{ formatDate(item.timestamp) }}</span>
+                </div>
+                <p class="timeline-details">{{ item.details }}</p>
+                <span class="timeline-by">By: {{ item.performedBy }}</span>
               </div>
             </div>
           </div>
-
-          <div class="empty-list" *ngIf="!subDeptDetail.recentActivity || subDeptDetail.recentActivity.length === 0">
-            <i class="bi bi-journal-x"></i>
-            <p>No recent activity logged for this sub-department.</p>
+          <div class="empty-state" *ngIf="!subDeptDetail.recentActivity || subDeptDetail.recentActivity.length === 0">
+            <i class="bi bi-card-text"></i>
+            <p>No activity logs found</p>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Right Sidebar (Task Analytics Breakdown) -->
-      <div class="sidebar-column" *ngIf="subDeptDetail.analytics">
-        
-        <!-- User Counts -->
-        <div class="card sidebar-card user-breakdown">
-          <h3 class="card-title"><i class="bi bi-person-badge"></i> User Breakdown</h3>
-          <div class="breakdown-list">
-            <div class="breakdown-item">
-              <span>Total Users</span>
-              <strong>{{ subDeptDetail.analytics.totalUsers }}</strong>
-            </div>
-            <div class="breakdown-item">
-              <span>Teachers</span>
-              <strong>{{ subDeptDetail.analytics.totalTeachers }}</strong>
-            </div>
-            <div class="breakdown-item">
-              <span>HODs</span>
-              <strong>{{ subDeptDetail.analytics.totalHods }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- Task Statistics -->
-        <div class="card sidebar-card task-analytics">
-          <h3 class="card-title"><i class="bi bi-pie-chart-fill"></i> Task Statistics</h3>
-          
-          <div class="total-tasks-badge">
-            <span class="num">{{ subDeptDetail.analytics.totalTasks }}</span>
-            <span class="lbl">Total Tasks</span>
-          </div>
-
-          <div class="stat-list">
-            <div class="stat-row">
-              <span class="dot pending"></span>
-              <span class="label">Pending</span>
-              <span class="val">{{ subDeptDetail.analytics.pendingTasks }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="dot upcoming"></span>
-              <span class="label">Upcoming</span>
-              <span class="val">{{ subDeptDetail.analytics.upcomingTasks }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="dot in-progress"></span>
-              <span class="label">In Progress</span>
-              <span class="val">{{ subDeptDetail.analytics.inProgressTasks }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="dot closed"></span>
-              <span class="label">Closed</span>
-              <span class="val">{{ subDeptDetail.analytics.closedTasks }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="dot delayed"></span>
-              <span class="label">Delayed</span>
-              <span class="val">{{ subDeptDetail.analytics.delayedTasks }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="dot extended"></span>
-              <span class="label">Extended</span>
-              <span class="val">{{ subDeptDetail.analytics.extendedTasks }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="dot rfc"></span>
-              <span class="label">RFC (Closure Requests)</span>
-              <span class="val">{{ subDeptDetail.analytics.requestForClosure }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="dot rfe"></span>
-              <span class="label">RFE (Extension Requests)</span>
-              <span class="val">{{ subDeptDetail.analytics.requestForExtension }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Creation & Update Metadata -->
-        <div class="card sidebar-card meta-card">
-          <h3 class="card-title"><i class="bi bi-info-circle"></i> Info</h3>
-          <div class="meta-list">
-            <div class="meta-row">
-              <span>Created By</span>
-              <strong>{{ subDeptDetail.createdByName || 'System' }}</strong>
-            </div>
-            <div class="meta-row">
-              <span>Created At</span>
-              <strong>{{ formatDate(subDeptDetail.createdAt) }}</strong>
-            </div>
-            <div class="meta-row" *ngIf="subDeptDetail.updatedByName">
-              <span>Updated By</span>
-              <strong>{{ subDeptDetail.updatedByName }}</strong>
-            </div>
-            <div class="meta-row" *ngIf="subDeptDetail.updatedByName">
-              <span>Updated At</span>
-              <strong>{{ formatDate(subDeptDetail.updatedAt) }}</strong>
-            </div>
-          </div>
-        </div>
-        
-      </div>
+    <!-- ====================================================
+         2. TASKS TAB (Full Paginated Tasks List)
+         ==================================================== -->
+    <div *ngIf="activeTab === 'tasks'" class="tab-pane-content">
       
+      <!-- Filters Toolbar -->
+      <div class="filters-toolbar">
+        <div class="search-input-group">
+          <i class="bi bi-search"></i>
+          <input type="text" [(ngModel)]="searchTerm" (input)="applyTaskFilters()" placeholder="Search task ID or title...">
+        </div>
+        
+        <div class="dropdowns-group">
+          <select [(ngModel)]="statusFilter" (change)="applyTaskFilters()">
+            <option value="">Status: All</option>
+            <option value="PENDING">Pending</option>
+            <option value="UPCOMING">Upcoming</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="CLOSED">Closed / Completed</option>
+            <option value="DELAYED">Delayed</option>
+            <option value="EXTENDED">Extended</option>
+            <option value="REQUEST_FOR_CLOSURE">Closure Requested</option>
+            <option value="REQUEST_FOR_EXTENSION">Extension Requested</option>
+          </select>
+
+          <select [(ngModel)]="priorityFilter" (change)="applyTaskFilters()">
+            <option value="">Priority: All</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+
+          <select [(ngModel)]="typeFilter" (change)="applyTaskFilters()">
+            <option value="">Type: All</option>
+            <option value="TEMPLATE">Template Task</option>
+            <option value="GENERAL">General Task</option>
+          </select>
+
+          <select [(ngModel)]="userFilter" (change)="applyTaskFilters()">
+            <option value="">User: All</option>
+            <option *ngFor="let name of filterUsers" [value]="name">{{ name }}</option>
+          </select>
+
+          <select [(ngModel)]="subjectFilter" (change)="applyTaskFilters()">
+            <option value="">Subject: All</option>
+            <option *ngFor="let name of filterSubjects" [value]="name">{{ name }}</option>
+          </select>
+
+          <button class="btn-reset-filters" (click)="resetAllFilters()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Tasks Table -->
+      <div class="card table-card">
+        <div class="table-responsive" *ngIf="paginatedTasks.length > 0">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th (click)="toggleSort('taskId')">Task ID <i class="bi bi-arrow-down-up"></i></th>
+                <th (click)="toggleSort('title')">Title <i class="bi bi-arrow-down-up"></i></th>
+                <th>Template</th>
+                <th>Type</th>
+                <th>Assigned To</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Targets</th>
+                <th (click)="toggleSort('dueDate')">Due Date <i class="bi bi-arrow-down-up"></i></th>
+                <th (click)="toggleSort('createdAt')">Created <i class="bi bi-arrow-down-up"></i></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let task of paginatedTasks">
+                <td><span class="task-id-badge">#{{ task.taskId }}</span></td>
+                <td>
+                  <a class="task-title-link" (click)="viewTaskDetails(task.taskId)">{{ task.title }}</a>
+                </td>
+                <td>{{ task.templateTitle || 'N/A' }}</td>
+                <td>
+                  <span class="type-badge" [class.template]="task.taskType === 'TEMPLATE'">
+                    {{ task.taskType }}
+                  </span>
+                </td>
+                <td>
+                  <span *ngFor="let name of task.assignedToNames" class="user-pill">{{ name }}</span>
+                  <span *ngIf="!task.assignedToNames || task.assignedToNames.length === 0" class="user-pill">{{ task.assignedToName || 'Unassigned' }}</span>
+                </td>
+                <td><span class="subject-pill">{{ task.subjectName || 'N/A' }}</span></td>
+                <td>
+                  <span class="status-pill" [ngClass]="task.status.toLowerCase()">
+                    {{ task.status }}
+                  </span>
+                </td>
+                <td>
+                  <span class="priority-pill" [ngClass]="task.priority.toLowerCase()">
+                    {{ task.priority }}
+                  </span>
+                </td>
+                <td>
+                  <span class="target-val">
+                    {{ task.completedCount || 0 }} / {{ task.targetCount || 1 }}
+                  </span>
+                </td>
+                <td>{{ formatDate(task.dueDate) }}</td>
+                <td>{{ formatDate(task.createdAt) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" *ngIf="paginatedTasks.length === 0">
+          <i class="bi bi-search-x"></i>
+          <p>No tasks match the active filter criteria.</p>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div class="pagination-footer" *ngIf="totalPages > 1">
+          <button [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)">Previous</button>
+          <span>Page {{ currentPage }} of {{ totalPages }}</span>
+          <button [disabled]="currentPage === totalPages" (click)="setPage(currentPage + 1)">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         3. USERS TAB
+         ==================================================== -->
+    <div *ngIf="activeTab === 'users'" class="tab-pane-content">
+      <div class="cards-grid">
+        <div class="user-profile-card" *ngFor="let u of subDeptDetail.userBreakdowns" (click)="filterByCard('user', u.fullName)">
+          <div class="profile-header">
+            <div class="avatar">{{ u.fullName.charAt(0) }}</div>
+            <div>
+              <h4>{{ u.fullName }}</h4>
+              <span class="role-badge" [ngClass]="getRoleBadgeClass(u.role)">{{ u.role }}</span>
+            </div>
+          </div>
+          
+          <div class="profile-details">
+            <div class="stat-line">
+              <span>Username:</span>
+              <strong>{{ u.username }}</strong>
+            </div>
+            <div class="stat-line">
+              <span>Total Tasks:</span>
+              <strong>{{ u.totalTasks }}</strong>
+            </div>
+            <div class="stat-line">
+              <span>Target Weight:</span>
+              <strong>{{ u.target }}</strong>
+            </div>
+            <div class="stat-line">
+              <span>Completed Target:</span>
+              <strong class="text-success">{{ u.achievement }}</strong>
+            </div>
+          </div>
+
+          <!-- Tasks ratios progress bar -->
+          <div class="ratio-progress">
+            <div class="bar bg-success" [style.width.%]="u.totalTasks > 0 ? (u.completed / u.totalTasks * 100) : 0" title="Completed"></div>
+            <div class="bar bg-warning" [style.width.%]="u.totalTasks > 0 ? (u.pending / u.totalTasks * 100) : 0" title="Pending"></div>
+            <div class="bar bg-danger" [style.width.%]="u.totalTasks > 0 ? (u.delayed / u.totalTasks * 100) : 0" title="Delayed"></div>
+          </div>
+          <div class="ratio-labels">
+            <span class="text-success">{{ u.completed }} Closed</span>
+            <span class="text-warning">{{ u.pending }} Pending</span>
+            <span class="text-danger">{{ u.delayed }} Overdue</span>
+          </div>
+          
+          <button class="btn-card-action" (click)="viewUserDetails(u.userId); $event.stopPropagation()">View User Profile</button>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="!subDeptDetail.userBreakdowns || subDeptDetail.userBreakdowns.length === 0">
+        <i class="bi bi-people"></i>
+        <p>No assigned users in this sub-department.</p>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         4. SUBJECTS TAB
+         ==================================================== -->
+    <div *ngIf="activeTab === 'subjects'" class="tab-pane-content">
+      <div class="cards-grid">
+        <div class="subject-card" *ngFor="let s of subDeptDetail.subjectBreakdowns" (click)="filterByCard('subject', s.name)">
+          <div class="subject-header">
+            <div>
+              <h4>{{ s.name }}</h4>
+              <span class="subject-code">{{ s.code }}</span>
+            </div>
+            <div class="icon-circle"><i class="bi bi-book-half"></i></div>
+          </div>
+
+          <div class="subject-body">
+            <div class="body-row">
+              <span>Assigned Teachers:</span>
+              <strong>{{ s.userCount }}</strong>
+            </div>
+            <div class="body-row">
+              <span>Total Tasks:</span>
+              <strong>{{ s.totalTasks }}</strong>
+            </div>
+            <div class="body-row">
+              <span>Template-wise Tasks:</span>
+              <strong>{{ s.templateTasks }}</strong>
+            </div>
+            <div class="body-row">
+              <span>General Tasks:</span>
+              <strong>{{ s.generalTasks }}</strong>
+            </div>
+          </div>
+
+          <div class="ratio-progress">
+            <div class="bar bg-success" [style.width.%]="s.totalTasks > 0 ? (s.completed / s.totalTasks * 100) : 0" title="Completed"></div>
+            <div class="bar bg-warning" [style.width.%]="s.totalTasks > 0 ? (s.pending / s.totalTasks * 100) : 0" title="Pending"></div>
+            <div class="bar bg-danger" [style.width.%]="s.totalTasks > 0 ? (s.delayed / s.totalTasks * 100) : 0" title="Delayed"></div>
+          </div>
+          <div class="ratio-labels">
+            <span class="text-success">{{ s.completed }} Completed</span>
+            <span class="text-warning">{{ s.pending }} Pending</span>
+            <span class="text-danger">{{ s.delayed }} Delayed</span>
+          </div>
+
+          <button class="btn-card-action" (click)="viewSubjectDetails(s.id); $event.stopPropagation()">View Subject Details</button>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="!subDeptDetail.subjectBreakdowns || subDeptDetail.subjectBreakdowns.length === 0">
+        <i class="bi bi-book"></i>
+        <p>No active subjects mapped to this sub-department.</p>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         5. ANALYTICS CHARTS TAB
+         ==================================================== -->
+    <div *ngIf="activeTab === 'analytics'" class="tab-pane-content">
+      <div class="charts-dashboard-grid">
+        
+        <!-- Status Distribution -->
+        <div class="card chart-card" *ngIf="statusChartData">
+          <h3 class="chart-title">Task Status Distribution</h3>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="statusChartData" [options]="pieChartOptions" type="pie"></canvas>
+          </div>
+        </div>
+
+        <!-- Priority Distribution -->
+        <div class="card chart-card" *ngIf="priorityChartData">
+          <h3 class="chart-title">Task Priority Distribution</h3>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="priorityChartData" [options]="pieChartOptions" type="doughnut"></canvas>
+          </div>
+        </div>
+
+        <!-- Template Distribution -->
+        <div class="card chart-card full-width" *ngIf="templateChartData">
+          <h3 class="chart-title">Template Distribution</h3>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="templateChartData" [options]="barChartOptions" type="bar"></canvas>
+          </div>
+        </div>
+
+        <!-- Subject Distribution -->
+        <div class="card chart-card" *ngIf="subjectChartData">
+          <h3 class="chart-title">Subject Distribution</h3>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="subjectChartData" [options]="pieChartOptions" type="doughnut"></canvas>
+          </div>
+        </div>
+
+        <!-- User Distribution -->
+        <div class="card chart-card" *ngIf="userChartData">
+          <h3 class="chart-title">User Distribution</h3>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="userChartData" [options]="barChartOptions" type="bar"></canvas>
+          </div>
+        </div>
+
+        <!-- Creation & Completion trends -->
+        <div class="card chart-card full-width" *ngIf="completionTrendChartData">
+          <h3 class="chart-title">Monthly Task Completion & Creation Trends</h3>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="completionTrendChartData" [options]="lineChartOptions" type="line"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         6. ACTIVITY LOGS TAB
+         ==================================================== -->
+    <div *ngIf="activeTab === 'activity'" class="tab-pane-content">
+      <div class="card logs-card-full">
+        <h3 class="card-title"><i class="bi bi-clock-history"></i> Audit Trails & Change Logs</h3>
+        <div class="timeline-full" *ngIf="subDeptDetail.recentActivity && subDeptDetail.recentActivity.length > 0">
+          <div class="timeline-row-full" *ngFor="let item of subDeptDetail.recentActivity">
+            <div class="time-column">{{ formatDate(item.timestamp) }}</div>
+            <div class="action-column">
+              <span class="action-badge">{{ item.action }}</span>
+            </div>
+            <div class="detail-column">{{ item.details }}</div>
+            <div class="user-column">by: <strong>{{ item.performedBy }}</strong></div>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="!subDeptDetail.recentActivity || subDeptDetail.recentActivity.length === 0">
+          <i class="bi bi-journal-text"></i>
+          <p>No activity logs found for this sub-department.</p>
+        </div>
+      </div>
     </div>
 
   </div>
