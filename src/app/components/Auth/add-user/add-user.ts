@@ -7,6 +7,7 @@ import { UserApiService } from '../../../Services/UserApiService';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { SubjectApiService } from '../../../Services/subject-api.service';
+import { ToastService } from '../../../Services/ToastData';
 import { forkJoin, of } from 'rxjs';
 
 @Component({
@@ -24,6 +25,12 @@ export class AddUserComponent implements OnInit {
   isSubmitting = false;
   successMessage: string | null = null;
   errorMessage: string | null = null;
+
+  // Bulk Import
+  isImportMode = false;
+  selectedFile: File | null = null;
+  isUploading = false;
+  importSummary: { totalRecords: number; successCount: number; failedCount: number; jobId: string } | null = null;
 
   roles: string[] = [];
   departments: any[] = [];
@@ -58,7 +65,8 @@ export class AddUserComponent implements OnInit {
     private userApiService: UserApiService,
     private authApiService: AuthApiService,
     private subjectApiService: SubjectApiService,
-    private route : ActivatedRoute
+    private route : ActivatedRoute,
+    private toastService: ToastService
   ) {
     this.userForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(80), Validators.pattern(/^[a-zA-Z0-9._-]+$/)]],
@@ -603,5 +611,130 @@ export class AddUserComponent implements OnInit {
       this.showSubjectDropdown = false;
       this.showManagerDropdown = false;
     }
+  }
+
+  // ===========================================================
+  // Bulk Import Methods
+  // ===========================================================
+  toggleImportMode(): void {
+    this.isImportMode = !this.isImportMode;
+    this.selectedFile = null;
+    this.importSummary = null;
+    this.errorMessage = null;
+    this.successMessage = null;
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.name.endsWith('.xlsx')) {
+        this.selectedFile = file;
+        this.importSummary = null;
+        this.errorMessage = null;
+      } else {
+        this.errorMessage = 'Only .xlsx files are accepted';
+        this.selectedFile = null;
+      }
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0];
+      if (file.name.endsWith('.xlsx')) {
+        this.selectedFile = file;
+        this.importSummary = null;
+        this.errorMessage = null;
+      } else {
+        this.errorMessage = 'Only .xlsx files are accepted';
+        this.selectedFile = null;
+      }
+    }
+  }
+
+  removeFile(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.selectedFile = null;
+    this.importSummary = null;
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  uploadImportFile(): void {
+    if (!this.selectedFile) {
+      this.errorMessage = 'Please select a file to upload';
+      return;
+    }
+
+    this.isUploading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    this.userApiService.importUsers(this.selectedFile).subscribe({
+      next: (response) => {
+        this.isUploading = false;
+        this.importSummary = {
+          totalRecords: response.totalRecords || 0,
+          successCount: response.successCount || 0,
+          failedCount: response.failedCount || 0,
+          jobId: response.jobId || 'N/A'
+        };
+        this.successMessage = 'File uploaded successfully!';
+        this.selectedFile = null;
+      },
+      error: (err) => {
+        this.isUploading = false;
+        this.errorMessage = err.error?.message || 'Failed to upload file. Please try again.';
+      }
+    });
+  }
+
+  downloadErrorReport(): void {
+    if (!this.importSummary || !this.importSummary.jobId || this.importSummary.jobId === 'N/A') {
+      this.errorMessage = 'No valid job ID available for error report download.';
+      return;
+    }
+
+    this.userApiService.downloadImportErrorReport(this.importSummary.jobId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `user_import_errors_${this.importSummary?.jobId}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        this.toastService.show({
+          title: 'Success',
+          message: 'Error report downloaded successfully'
+        });
+      },
+      error: (err: any) => {
+        this.errorMessage = err?.error?.message || 'Failed to download error report.';
+      }
+    });
   }
 }

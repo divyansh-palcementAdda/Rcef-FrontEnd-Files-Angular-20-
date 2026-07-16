@@ -293,6 +293,30 @@ export class UserApiService {
     );
   }
 
+  downloadImportTemplate(): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/users/import/template`, {
+      responseType: 'blob'
+    }).pipe(
+      catchError(err => this.handleError(err, 'download import template'))
+    );
+  }
+
+  importUsers(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${environment.apiUrl}/users/import`, formData).pipe(
+      catchError(err => this.handleError(err, 'import users'))
+    );
+  }
+
+  downloadImportErrorReport(jobId: string): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/users/import/errors/${jobId}`, {
+      responseType: 'blob'
+    }).pipe(
+      catchError(err => this.handleError(err, 'download import error report'))
+    );
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);

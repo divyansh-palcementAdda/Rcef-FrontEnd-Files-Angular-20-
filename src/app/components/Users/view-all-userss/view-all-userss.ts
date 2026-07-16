@@ -11,6 +11,7 @@ import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../Services/modal-service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
+import { ToastService } from '../../../Services/ToastData';
 
 @Component({
   selector: 'app-view-all-users',
@@ -48,7 +49,8 @@ export class ViewAllUserss implements OnInit {
     private route: ActivatedRoute,
     private authApiService: AuthApiService,
     private jwtService: JwtService,
-    private confirmDialog: ConfirmDialogService
+    private confirmDialog: ConfirmDialogService,
+    private toastService: ToastService
   ) {
     this.modalService.modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.success) {
@@ -310,6 +312,29 @@ export class ViewAllUserss implements OnInit {
     } else {
       this.router.navigate(['/login']);
     }
+  }
+
+  downloadTemplate(): void {
+    this.apiService.downloadImportTemplate().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'user_import_template.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        this.toastService.show({
+          title: 'Success',
+          message: 'Template downloaded successfully'
+        });
+      },
+      error: (err: any) => {
+        this.errorMessage = err?.error?.message || 'Failed to download template.';
+      }
+    });
   }
 }
 

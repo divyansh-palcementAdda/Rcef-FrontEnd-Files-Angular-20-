@@ -7,14 +7,19 @@
       [class.p-4]="!isModal" [class.table_head]="!isModal" [class.modal-form-header]="isModal" [class.d-flex]="isModal"
       [class.align-items-center]="isModal" [class.justify-content-between]="isModal">
       <div>
-        <h3 class="mb-0 fw-bold" [style.color]="isModal ? 'var(--text-main)' : '#ffffff'">Add User</h3>
-        <p class="mb-0 text-muted small" [style.color]="isModal ? 'var(--text-muted)' : 'rgba(255,255,255,0.75)'">Create
-          and configure a new user account</p>
+        <h3 class="mb-0 fw-bold" [style.color]="isModal ? 'var(--text-main)' : '#ffffff'">{{ isImportMode ? 'Import Users' : 'Add User' }}</h3>
+        <p class="mb-0 text-muted small" [style.color]="isModal ? 'var(--text-muted)' : 'rgba(255,255,255,0.75)'">{{ isImportMode ? 'Bulk import users from Excel file' : 'Create and configure a new user account' }}</p>
       </div>
-      <button *ngIf="isModal" type="button" class="modal-close-btn-inline ms-auto" (click)="cancel()"
-        aria-label="Close">
-        <i class="bi bi-x-lg fs-5"></i>
-      </button>
+      <div class="d-flex align-items-center gap-2">
+        <button *ngIf="isModal" type="button" class="btn btn-outline-primary btn-sm" (click)="toggleImportMode()">
+          <i class="bi" [ngClass]="isImportMode ? 'bi-person-plus' : 'bi-upload'"></i>
+          {{ isImportMode ? 'Add Single User' : 'Import Users' }}
+        </button>
+        <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()"
+          aria-label="Close">
+          <i class="bi bi-x-lg fs-5"></i>
+        </button>
+      </div>
     </div>
 
     <!-- Form Body -->
@@ -31,7 +36,89 @@
         <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
 
+      <!-- Bulk Import Section -->
+      <div *ngIf="isImportMode" class="form-section-card animate__animated animate__fadeIn">
+        <div class="form-section-header">
+          <div class="form-section-icon"><i class="bi bi-file-earmark-excel"></i></div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Upload Excel File</h4>
+            <p class="form-section-subtitle">Select .xlsx file containing user data</p>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="upload-zone p-4 border-2 border-dashed rounded-3 text-center bg-light"
+              [class.border-primary]="selectedFile"
+              [class.border-secondary]="!selectedFile"
+              (click)="fileInput.click()"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)">
+              <input type="file" #fileInput class="d-none" accept=".xlsx" (change)="onFileSelected($event)">
+              <div *ngIf="!selectedFile">
+                <i class="bi bi-cloud-upload fs-1 text-muted mb-2"></i>
+                <p class="mb-1 text-muted">Click to browse or drag and drop</p>
+                <p class="mb-0 text-muted small">Only .xlsx files are accepted</p>
+              </div>
+              <div *ngIf="selectedFile">
+                <i class="bi bi-file-earmark-excel fs-1 text-success mb-2"></i>
+                <p class="mb-1 fw-semibold">{{ selectedFile.name }}</p>
+                <p class="mb-0 text-muted small">{{ formatFileSize(selectedFile.size) }}</p>
+                <button type="button" class="btn btn-sm btn-outline-danger mt-2" (click)="removeFile($event)">
+                  <i class="bi bi-trash me-1"></i>Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Import Summary Section -->
+      <div *ngIf="isImportMode && importSummary" class="form-section-card animate__animated animate__fadeIn">
+        <div class="form-section-header">
+          <div class="form-section-icon"><i class="bi bi-clipboard-data"></i></div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Import Summary</h4>
+            <p class="form-section-subtitle">Bulk import results</p>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="stat-card p-3 bg-light rounded-3 text-center">
+              <p class="mb-1 text-muted small">Total Records</p>
+              <h4 class="mb-0 fw-bold">{{ importSummary.totalRecords }}</h4>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card p-3 bg-success bg-opacity-10 rounded-3 text-center">
+              <p class="mb-1 text-success small">Success Count</p>
+              <h4 class="mb-0 fw-bold text-success">{{ importSummary.successCount }}</h4>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card p-3 bg-danger bg-opacity-10 rounded-3 text-center">
+              <p class="mb-1 text-danger small">Failed Count</p>
+              <h4 class="mb-0 fw-bold text-danger">{{ importSummary.failedCount }}</h4>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card p-3 bg-info bg-opacity-10 rounded-3 text-center">
+              <p class="mb-1 text-info small">Job ID</p>
+              <h4 class="mb-0 fw-bold text-info">{{ importSummary.jobId }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="row g-3 mt-2" *ngIf="importSummary.failedCount > 0">
+          <div class="col-12">
+            <button type="button" class="btn btn-warning w-100" (click)="downloadErrorReport()">
+              <i class="bi bi-download me-1"></i>Download Error Report
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Personal Information Card -->
+      <div *ngIf="!isImportMode">
       <div class="form-section-card">
         <div class="form-section-header">
           <div class="form-section-icon"><i class="bi bi-person"></i></div>
@@ -329,15 +416,20 @@
           </span>
         </div>
       </div>
+      </div>
 
     </div>
 
     <!-- Footer -->
     <div [class.card-footer]="!isModal" [class.modal-form-footer]="isModal" class="d-flex justify-content-end gap-2">
       <button type="button" class="btn btn-secondary px-4" (click)="cancel()">Cancel</button>
-      <button type="submit" class="btn btn-primary px-5" [disabled]="isSubmitting || !otpValidated || userForm.invalid">
+      <button *ngIf="!isImportMode" type="submit" class="btn btn-primary px-5" [disabled]="isSubmitting || !otpValidated || userForm.invalid">
         <span *ngIf="!isSubmitting">Add User</span>
         <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
+      </button>
+      <button *ngIf="isImportMode" type="button" class="btn btn-primary px-5" [disabled]="isUploading || !selectedFile" (click)="uploadImportFile()">
+        <span *ngIf="!isUploading">Import Users</span>
+        <span *ngIf="isUploading" class="spinner-border spinner-border-sm"></span>
       </button>
     </div>
 
