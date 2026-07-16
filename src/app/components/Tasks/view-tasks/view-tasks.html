@@ -327,6 +327,48 @@
     </div>
 
     <!-- ==========================================
+       2a. BREAKDOWN FILTER PANELS
+       ========================================== -->
+    <div class="stitch-breakdown-row">
+      <div class="stitch-breakdown-card">
+        <div class="stitch-breakdown-header">
+          <span class="stitch-breakdown-title">Task Templates</span>
+          <span class="stitch-breakdown-subtitle">Top templates by task volume</span>
+        </div>
+        <div class="stitch-breakdown-items">
+          <button *ngFor="let item of taskTemplateBreakdown" class="stitch-breakdown-item"
+            type="button"
+            [class.active]="templateFilter === item.label"
+            (click)="selectTemplateBreakdown(item)">
+            <span>{{ item.label || 'Unspecified' }}</span>
+            <span>{{ item.count }}</span>
+          </button>
+          <div *ngIf="taskTemplateBreakdown.length === 0" class="stitch-breakdown-empty">
+            No template analytics available.
+          </div>
+        </div>
+      </div>
+      <div class="stitch-breakdown-card">
+        <div class="stitch-breakdown-header">
+          <span class="stitch-breakdown-title">Task Categories</span>
+          <span class="stitch-breakdown-subtitle">Category-level task distribution</span>
+        </div>
+        <div class="stitch-breakdown-items">
+          <button *ngFor="let item of taskCategoryBreakdown" class="stitch-breakdown-item"
+            type="button"
+            [class.active]="categoryFilter === item.label"
+            (click)="selectCategoryBreakdown(item)">
+            <span>{{ item.label || 'Unspecified' }}</span>
+            <span>{{ item.count }}</span>
+          </button>
+          <div *ngIf="taskCategoryBreakdown.length === 0" class="stitch-breakdown-empty">
+            No category analytics available.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
        3. FLOATING TOOLBAR
        ========================================== -->
     <div class="stitch-toolbar">

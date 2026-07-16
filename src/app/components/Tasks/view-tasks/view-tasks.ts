@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { TaskDto } from '../../../Model/TaskDto';
+import { TaskAnalyticsItemDto } from '../../../Model/TaskAnalyticsItemDto';
 import { JwtService } from '../../../Services/jwt-service';
 import { Subscription, of, Subject } from 'rxjs';
 import { finalize, catchError, debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -72,7 +73,20 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   currentUserDeptIds: number[] = [];
 
   // Stats
-  taskStats = {
+  taskStats: {
+    total: number;
+    active: number;
+    pending: number;
+    completed: number;
+    overdue: number;
+    extensionRequests: number;
+    closureRequests: number;
+    upcoming: number;
+    templateBreakdown?: TaskAnalyticsItemDto[];
+    categoryBreakdown?: TaskAnalyticsItemDto[];
+    delayed?: number;
+    In_PROGRESS?: number;
+  } = {
     total: 0,
     active: 0,
     pending: 0,
@@ -85,6 +99,9 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     delayed: 0,
     In_PROGRESS: 0
   };
+
+  taskTemplateBreakdown: TaskAnalyticsItemDto[] = [];
+  taskCategoryBreakdown: TaskAnalyticsItemDto[] = [];
 
   private subscriptions = new Subscription();
   private searchSubject = new Subject<string>();
@@ -236,7 +253,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Map selected KPI card filter (which overrides the status filter)
+    // Map selected KPI card filter (which overrides or strengthens the status filter)
     if (this.selectedCard === 'active') {
       params.status = 'IN_PROGRESS';
     } else if (this.selectedCard === 'pending') {
@@ -244,12 +261,16 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     } else if (this.selectedCard === 'completed') {
       params.status = 'CLOSED';
     } else if (this.selectedCard === 'overdue') {
+      delete params.status;
       params.overdue = true;
     } else if (this.selectedCard === 'extensionRequests') {
+      delete params.status;
       params.hasExtensionRequest = true;
     } else if (this.selectedCard === 'closureRequests') {
+      delete params.status;
       params.hasClosureRequest = true;
     } else if (this.selectedCard === 'upcoming') {
+      delete params.status;
       params.upcoming = true;
     }
 
@@ -272,6 +293,11 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
             if (data.stats) {
               this.taskStats = data.stats;
+              this.taskTemplateBreakdown = data.stats.templateBreakdown || [];
+              this.taskCategoryBreakdown = data.stats.categoryBreakdown || [];
+            } else {
+              this.taskTemplateBreakdown = [];
+              this.taskCategoryBreakdown = [];
             }
             this.isEmpty = this.tasks.length === 0;
             this.errorMessage = null;
@@ -285,16 +311,33 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   selectCard(cardName: string): void {
+    this.selectedCard = cardName;
+
     if (cardName === 'total') {
-      this.selectedCard = 'total';
-      this.searchTerm = '';
       this.statusFilter = '';
-      this.departmentFilter = '';
-    } else {
-      this.selectedCard = cardName;
+    } else if (this.isSimpleStatusFilter(this.statusFilter)) {
+      this.statusFilter = '';
     }
+
     this.currentPage = 1;
     this.loadTasksFromServer();
+  }
+
+  private isSimpleStatusFilter(filter: string): boolean {
+    if (!filter) {
+      return false;
+    }
+    const normalized = filter.toUpperCase();
+    return [
+      'PENDING',
+      'IN_PROGRESS',
+      'CLOSED',
+      'UPCOMING',
+      'DELAYED',
+      'REQUEST_FOR_CLOSURE',
+      'REQUEST_FOR_EXTENSION',
+      'EXTENDED'
+    ].includes(normalized);
   }
 
   setSort(column: string): void {
@@ -322,6 +365,18 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       delayed: tasks.filter(t => t.status === 'DELAYED').length,
       In_PROGRESS: tasks.filter(t => t.status === 'IN_PROGRESS').length
     };
+  }
+
+  selectTemplateBreakdown(item: TaskAnalyticsItemDto): void {
+    this.templateFilter = item.label;
+    this.currentPage = 1;
+    this.loadTasksFromServer();
+  }
+
+  selectCategoryBreakdown(item: TaskAnalyticsItemDto): void {
+    this.categoryFilter = item.label;
+    this.currentPage = 1;
+    this.loadTasksFromServer();
   }
 
   applyFilters(): void {
@@ -437,9 +492,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
           )
           .subscribe(res => {
             if (res?.success) {
-              this.tasks = this.tasks.filter(t => t.taskId !== taskId);
               this.applyFilters();
-              this.calculateStats(this.tasks);
             } else {
               this.handleError(res, res?.message || 'Delete failed');
             }

@@ -15,6 +15,8 @@ export interface ApiResponse<T> {
   status?: number;
 }
 
+import { TaskAnalyticsItemDto } from '../Model/TaskAnalyticsItemDto';
+
 export interface TaskStatsDto {
   total: number;
   active: number;
@@ -24,6 +26,8 @@ export interface TaskStatsDto {
   extensionRequests: number;
   closureRequests: number;
   upcoming: number;
+  templateBreakdown?: TaskAnalyticsItemDto[];
+  categoryBreakdown?: TaskAnalyticsItemDto[];
 }
 
 export interface TaskSearchResponse {
