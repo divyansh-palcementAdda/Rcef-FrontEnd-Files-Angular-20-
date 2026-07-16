@@ -172,6 +172,10 @@ export class SubDepartmentManagementComponent implements OnInit {
     });
   }
 
+  viewSubDept(id: string): void {
+    this.router.navigate(['/sub-department-details', id]);
+  }
+
   // -------------------------------------------------------------
   // Inline Mapping Actions
   // -------------------------------------------------------------

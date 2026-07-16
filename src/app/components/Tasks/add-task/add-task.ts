@@ -991,83 +991,39 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
     const deptId = deptIds[0]; // Primary department
 
-    if (!subDeptId) {
-      // Case 1: Department selected, Sub Department = None
-      this.isLoadingUsers = true;
-      this.userService.getDepartmentAdmins(deptId).subscribe({
-        next: (admins) => {
-          this.isLoadingUsers = false;
-          const activeAdmins = admins.filter(u => u.status === 'ACTIVE');
-          this.usersByDepartment.set(deptId, activeAdmins);
-          this.filteredUsersByDept.set(deptId, [...activeAdmins]);
-          this.updateSelectAllUsersForDept(deptId);
+    // Always load all department admins regardless of sub-department selection
+    // Sub-departments are for subject filtering, not user assignment filtering
+    this.isLoadingUsers = true;
+    this.userService.getDepartmentAdmins(deptId).subscribe({
+      next: (admins) => {
+        this.isLoadingUsers = false;
+        const activeAdmins = admins.filter(u => u.status === 'ACTIVE');
+        this.usersByDepartment.set(deptId, activeAdmins);
+        this.filteredUsersByDept.set(deptId, [...activeAdmins]);
+        this.updateSelectAllUsersForDept(deptId);
 
-          if (activeAdmins.length === 1) {
-            const admin = activeAdmins[0];
-            this.selectedUsersByDeptObj = { [deptId]: [admin.userId] };
-            this.updateAssignedToIds();
-            this.isAutoAssigned = true;
-            this.autoAssignedUser = admin;
-          } else if (activeAdmins.length > 1) {
-            this.autoAssignWarning = 'Multiple Department Admins found. Please select one or more users.';
-            this.expandedDepts[deptId] = true;
-            this.selectedUsersByDeptObj[deptId] = [];
-            this.updateAssignedToIds();
-          } else {
-            this.autoAssignWarning = 'No Admin found for this department.';
-            this.selectedUsersByDeptObj[deptId] = [];
-            this.updateAssignedToIds();
-          }
-        },
-        error: (err) => {
-          this.isLoadingUsers = false;
-          console.error('Failed to load department admins', err);
+        if (activeAdmins.length === 1) {
+          const admin = activeAdmins[0];
+          this.selectedUsersByDeptObj = { [deptId]: [admin.userId] };
+          this.updateAssignedToIds();
+          this.isAutoAssigned = true;
+          this.autoAssignedUser = admin;
+        } else if (activeAdmins.length > 1) {
+          this.autoAssignWarning = 'Multiple Department Admins found. Please select one or more users.';
+          this.expandedDepts[deptId] = true;
+          this.selectedUsersByDeptObj[deptId] = [];
+          this.updateAssignedToIds();
+        } else {
+          this.autoAssignWarning = 'No Admin found for this department.';
+          this.selectedUsersByDeptObj[deptId] = [];
+          this.updateAssignedToIds();
         }
-      });
-    } else {
-      // Case 2/3: Department + Sub Department selected
-      this.isLoadingUsers = true;
-      this.userService.getEligibleUsers(deptId, subDeptId).subscribe({
-        next: (eligibleUsers) => {
-          const activeEligible = eligibleUsers.filter(u => u.status === 'ACTIVE');
-          this.usersByDepartment.set(deptId, activeEligible);
-          this.filteredUsersByDept.set(deptId, [...activeEligible]);
-          this.updateSelectAllUsersForDept(deptId);
-
-          // Get Sub Department HODs for Auto Assignment check
-          this.userService.getSubDepartmentHods(subDeptId).subscribe({
-            next: (hods) => {
-              this.isLoadingUsers = false;
-              const activeHods = hods.filter(u => u.status === 'ACTIVE');
-              if (activeHods.length === 1) {
-                const hod = activeHods[0];
-                this.selectedUsersByDeptObj = { [deptId]: [hod.userId] };
-                this.updateAssignedToIds();
-                this.isAutoAssigned = true;
-                this.autoAssignedUser = hod;
-              } else if (activeHods.length > 1) {
-                this.autoAssignWarning = 'Multiple HODs found for sub-department. Please select one or more users.';
-                this.expandedDepts[deptId] = true;
-                this.selectedUsersByDeptObj[deptId] = [];
-                this.updateAssignedToIds();
-              } else {
-                this.autoAssignWarning = 'No HOD found for this sub-department.';
-                this.selectedUsersByDeptObj[deptId] = [];
-                this.updateAssignedToIds();
-              }
-            },
-            error: (err) => {
-              this.isLoadingUsers = false;
-              console.error('Failed to load sub-department HODs', err);
-            }
-          });
-        },
-        error: (err) => {
-          this.isLoadingUsers = false;
-          console.error('Failed to load eligible users', err);
-        }
-      });
-    }
+      },
+      error: (err) => {
+        this.isLoadingUsers = false;
+        console.error('Failed to load department admins', err);
+      }
+    });
   }
 
   clearAutoAssignmentManual(): void {

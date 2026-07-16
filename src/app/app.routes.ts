@@ -26,6 +26,8 @@ import { Test4 } from './components/Test/test4/test4';
 import { Test5 } from './components/Test/test5/test5';
 import { RolePermissionManagementComponent } from './components/RolesPermissions/roles-permissions';
 import { SubDepartmentManagementComponent } from './components/SubDepartments/sub-departments';
+import { SubDepartmentDetailsComponent } from './components/SubDepartments/sub-department-details/sub-department-details';
+import { ViewAllSubDepartmentsComponent } from './components/SubDepartments/view-all-sub-departments/view-all-sub-departments';
 import { HierarchyViewerComponent } from './components/HierarchyTree/hierarchy-tree';
 import { TaskTemplateManagementComponent } from './components/Tasks/task-template-management/task-template-management';
 import {ViewTemplateTaskComponent} from './components/Tasks/view-task-template/view-template-task.component'
@@ -113,6 +115,8 @@ export const routes: Routes = [
   { path: 'task-requests', component: ViewAllRequests, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['TASK_APPROVE'] } },
   { path: 'roles-permissions', component: RolePermissionManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['USER_EDIT'] } },
   { path: 'sub-departments', component: SubDepartmentManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'] } },
+  { path: 'view-all-sub-departments', component: ViewAllSubDepartmentsComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'] } },
+  { path: 'sub-department-details/:id', component: SubDepartmentDetailsComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'] } },
   { path: 'hierarchy-tree', component: HierarchyViewerComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['USER_VIEW'] } },
   { path: 'task-templates', component: TaskTemplateManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['TASK_CREATE'] } },
   {

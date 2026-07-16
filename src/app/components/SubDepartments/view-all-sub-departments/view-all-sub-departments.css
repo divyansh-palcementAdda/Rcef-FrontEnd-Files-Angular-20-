@@ -1,0 +1,166 @@
+/* Modern Sub-Departments View Styles */
+
+/* ── Search input with icon inside ── */
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.search-input {
+  padding-left: 2.75rem !important;
+  border-radius: 10px;
+  border: 1px solid #ECEEF2;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  min-height: 46px;
+  font-size: 0.875rem;
+  color: #334155;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  outline: none;
+}
+
+.sub-departments-container {
+  margin: 0 auto;
+}
+
+/* Row Hover Action Highlights */
+.table tbody tr {
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+/* Mobile Cards */
+.mobile-subdept-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.mobile-subdept-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Pagination Overrides */
+.pagination {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.pagination .page-item .page-link {
+  color: var(--text-main);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pagination .page-item .page-link:hover {
+  background-color: var(--bg-color);
+  border-color: var(--text-muted);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--bg-color);
+}
+
+/* Active Status */
+.status-active {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border: 1px solid #10b981;
+  font-weight: 600;
+}
+
+/* Inactive Status */
+.status-inactive {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #ef4444;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .sub-departments-container {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .search-input {
+    min-height: 42px;
+    padding-left: 2.5rem !important;
+    font-size: 0.85rem;
+  }
+
+  .search-icon {
+    left: 16px;
+    font-size: 0.85rem;
+  }
+
+  .mobile-subdept-card {
+    padding: 1rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+  }
+
+  .pagination .page-item .page-link {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.825rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input {
+    min-height: 40px;
+    padding-left: 2.25rem !important;
+  }
+
+  .mobile-subdept-card {
+    padding: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .pagination {
+    gap: 0.15rem;
+  }
+
+  .pagination .page-item .page-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+}

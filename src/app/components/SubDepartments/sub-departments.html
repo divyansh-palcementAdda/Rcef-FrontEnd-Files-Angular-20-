@@ -88,9 +88,14 @@
                   <span class="badge bg-light text-secondary border mb-1" style="font-size:0.7rem;">Code: {{ sub.code }}</span>
                   <small class="text-muted d-block">{{ sub.description || 'No description provided.' }}</small>
                 </div>
-                <button class="btn btn-sm btn-outline-danger py-1 px-2.5" (click)="deleteSubDept(sub.id)" title="Delete Sub-Department">
-                  <i class="bi bi-trash"></i>
-                </button>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-sm btn-outline-primary py-1 px-2.5" (click)="viewSubDept(sub.id)" title="View Sub-Department">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger py-1 px-2.5" (click)="deleteSubDept(sub.id)" title="Delete Sub-Department">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
               </div>
             </div>
 

@@ -110,6 +110,12 @@ export class DepartmentApiService {
     );
   }
 
+  getSubDepartmentById(id: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/${id}`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department by ID'))
+    );
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);

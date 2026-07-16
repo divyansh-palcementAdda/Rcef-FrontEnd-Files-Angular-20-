@@ -1,0 +1,167 @@
+<div class="sub-departments-container py-4">
+
+  <!-- Breadcrumbs Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb" class="mb-1">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a (click)="goBackToDashboard()" style="cursor: pointer;"
+              class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Sub-Departments</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Sub-Departments Directory
+      </h1>
+    </div>
+    <button class="btn btn-primary px-4" (click)="editSubDepartment($event, '')">
+      <i class="bi bi-plus-lg me-1"></i>Add Sub-Department
+    </button>
+  </div>
+
+  <div class="card border-0">
+    <div class="card-body p-4">
+
+      <!-- Alerts -->
+      <div *ngIf="errorMessage"
+        class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span>{{ errorMessage }}</span>
+        <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="text-center my-5 py-4">
+        <div class="spinner-border text-primary spinner mb-2" role="status"></div>
+        <p class="text-muted small">Loading sub-departments list…</p>
+      </div>
+
+      <!-- Filters Toolbar -->
+      <div class="row g-4 mb-4 ml-2" *ngIf="!loading">
+        <div class="col-md-9">
+          <div class="search-input-wrapper">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" class="form-control search-input" placeholder="Search sub-departments by name, code, or department..."
+              [(ngModel)]="searchTerm" (input)="applyFilters()">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-secondary w-100" (click)="resetFilters()">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- Desktop Table view -->
+      <div class="table-responsive d-none d-md-block" *ngIf="!loading && paginatedSubDepartments.length">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>S.NO</th>
+              <th>Sub-Department Name</th>
+              <th>Code</th>
+              <th>Department</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let sub of paginatedSubDepartments; let i = index" (click)="viewSubDepartmentDetails(sub.id)">
+              <td class="fw-semibold">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+              <td>
+                <div class="fw-bold" style="color: var(--text-main);">{{ sub.name }}</div>
+              </td>
+              <td class="text-muted"><small>{{ sub.code || 'N/A' }}</small></td>
+              <td class="text-muted"><small>{{ sub.department?.name || 'N/A' }}</small></td>
+              <td>
+                <span class="badge rounded-pill px-2.5 py-1" [ngClass]="{
+                   'status-active': sub.status === 'ACTIVE' || !sub.status,
+                   'status-inactive': sub.status === 'INACTIVE'
+                   }">
+                  {{ sub.status || 'ACTIVE' }}
+                </span>
+              </td>
+              <td class="text-end" (click)="$event.stopPropagation()">
+                <div class="d-inline-flex gap-1">
+                  <button class="btn btn-sm btn-outline-primary py-0.5 px-1.5"
+                    (click)="viewSubDepartmentDetails(sub.id)" title="View Details">
+                    <i class="bi bi-eye" style="font-size: 0.6rem;"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-warning py-0.5 px-1.5"
+                    (click)="editSubDepartment($event, sub.id)" title="Edit Sub-Department">
+                    <i class="bi bi-pencil" style="font-size: 0.6rem;"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger py-0.5 px-1.5"
+                    (click)="deleteSubDepartment($event, sub.id)" title="Delete Sub-Department">
+                    <i class="bi bi-trash" style="font-size: 0.6rem;"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile List Cards view -->
+      <div class="d-md-none" *ngIf="!loading && paginatedSubDepartments.length">
+        <div class="mobile-subdept-card" *ngFor="let sub of paginatedSubDepartments"
+          (click)="viewSubDepartmentDetails(sub.id)">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h6 class="fw-bold mb-1" style="color: var(--text-main);">{{ sub.name }}</h6>
+              <span class="text-muted small">Code: {{ sub.code || 'N/A' }}</span>
+            </div>
+            <span class="badge rounded-pill px-2.5 py-1" [ngClass]="{
+             'status-active': sub.status === 'ACTIVE' || !sub.status,
+             'status-inactive': sub.status === 'INACTIVE'
+             }">
+              {{ sub.status || 'ACTIVE' }}
+            </span>
+          </div>
+          <div class="text-muted small mb-2">
+            <i class="bi bi-building me-1"></i>{{ sub.department?.name || 'N/A' }}
+          </div>
+
+          <div class="d-flex justify-content-end gap-1 mt-3 pt-2 border-top" (click)="$event.stopPropagation()">
+            <button class="btn btn-sm btn-outline-primary py-0.5 px-1.5"
+              (click)="viewSubDepartmentDetails(sub.id)">
+              <i class="bi bi-eye" style="font-size: 0.6rem;"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-warning py-0.5 px-1.5"
+              (click)="editSubDepartment($event, sub.id)">
+              <i class="bi bi-pencil" style="font-size: 0.6rem;"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger py-0.5 px-1.5"
+              (click)="deleteSubDepartment($event, sub.id)">
+              <i class="bi bi-trash" style="font-size: 0.6rem;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Fallback state -->
+      <div *ngIf="!loading && !paginatedSubDepartments.length" class="text-center text-muted py-5">
+        <i class="bi bi-diagram-2 fs-2 mb-2 d-block"></i>
+        <span>No sub-departments found matching search query.</span>
+      </div>
+
+      <!-- Pagination and Controls Footer -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top"
+        *ngIf="!loading">
+        <nav *ngIf="filteredSubDepartments.length" aria-label="Page navigation" class="mb-0">
+          <ul class="pagination mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" (click)="changePage(currentPage - 1)"><i class="bi bi-chevron-left"></i></a>
+            </li>
+            <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="currentPage === page">
+              <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <a class="page-link" (click)="changePage(currentPage + 1)"><i class="bi bi-chevron-right"></i></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+</div>
