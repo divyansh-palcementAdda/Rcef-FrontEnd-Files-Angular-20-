@@ -1,5 +1,7 @@
 export enum RoleDTO {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
+  SUB_ADMIN = 'SUB_ADMIN',
   HOD = 'HOD',
-  TEACHER = 'TEACHER',
-  ADMIN = 'ADMIN'
+  TEACHER = 'TEACHER'
 }

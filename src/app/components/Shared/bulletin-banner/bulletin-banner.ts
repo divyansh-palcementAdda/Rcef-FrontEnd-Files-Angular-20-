@@ -8,8 +8,8 @@ import { TaskApiService } from '../../../Services/task-api-Service';
 import { TaskDto } from '../../../Model/TaskDto';
 import { tap, catchError, of } from 'rxjs';
 
-export interface DelayedDeptInfo {
-  departmentName: string;
+export interface DelayedSubDeptInfo {
+  subDepartmentName: string;
   delayedCount: number;
 }
 
@@ -21,7 +21,7 @@ export interface DelayedDeptInfo {
   styleUrls: ['./bulletin-banner.css']
 })
 export class BulletinBannerComponent implements OnInit {
-  delayedDepartments: DelayedDeptInfo[] = [];
+  delayedSubDepartments: DelayedSubDeptInfo[] = [];
   totalDelayed: number = 0;
   headlineText = '';
   isLoading = true;
@@ -72,17 +72,17 @@ export class BulletinBannerComponent implements OnInit {
 
           this.totalDelayed = tasks.length;
 
-          // Group by department (rest unchanged)
-          const deptMap = new Map<string, number>();
+          // Group by sub department
+          const subDeptMap = new Map<string, number>();
           tasks.forEach(task => {
-            const depts = task.departmentNames || [];
-            depts.forEach(name => {
-              deptMap.set(name, (deptMap.get(name) || 0) + 1);
+            const subDepts = task.subDepartmentNames || [];
+            subDepts.forEach(name => {
+              subDeptMap.set(name, (subDeptMap.get(name) || 0) + 1);
             });
           });
 
-          this.delayedDepartments = Array.from(deptMap.entries())
-            .map(([departmentName, delayedCount]) => ({ departmentName, delayedCount }))
+          this.delayedSubDepartments = Array.from(subDeptMap.entries())
+            .map(([subDepartmentName, delayedCount]) => ({ subDepartmentName, delayedCount }))
             .sort((a, b) => b.delayedCount - a.delayedCount);
 
           this.generateBulletinMessage();
@@ -101,20 +101,20 @@ export class BulletinBannerComponent implements OnInit {
   }
   private generateBulletinMessage(): void {
     if (this.totalDelayed === 0) {
-      this.headlineText = 'All tasks are on schedule across departments.';
+      this.headlineText = 'All tasks are on schedule across sub departments.';
       return;
     }
 
-    this.headlineText = this.getDelayedHeadline(this.delayedDepartments, this.totalDelayed);
+    this.headlineText = this.getDelayedHeadline(this.delayedSubDepartments, this.totalDelayed);
   }
 
 
-  private getDelayedHeadline(deptInfo: { departmentName: string, delayedCount: number }[], taskCount: number): string {
-    const deptNamesWithCount = deptInfo.map(d => `${d.departmentName} (${d.delayedCount})`);
+  private getDelayedHeadline(subDeptInfo: { subDepartmentName: string, delayedCount: number }[], taskCount: number): string {
+    const subDeptNamesWithCount = subDeptInfo.map(d => `${d.subDepartmentName} (${d.delayedCount})`);
 
-    const deptLabel = deptInfo.length > 1 ? 'departments' : 'department';
+    const subDeptLabel = subDeptInfo.length > 1 ? 'sub departments' : 'sub department';
     const taskLabel = taskCount > 1 ? 'tasks' : 'task';
 
-    return `⚠️ ${taskCount} delayed ${taskLabel} detected in ${deptInfo.length} ${deptLabel}: ${deptNamesWithCount.join(', ')}. Please review and take necessary action.`;
+    return `⚠️ ${taskCount} delayed ${taskLabel} detected in ${subDeptInfo.length} ${subDeptLabel}: ${subDeptNamesWithCount.join(', ')}. Please review and take necessary action.`;
   }
 }

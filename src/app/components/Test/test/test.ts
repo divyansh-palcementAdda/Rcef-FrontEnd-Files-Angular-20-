@@ -185,7 +185,7 @@ export class Test implements OnInit, OnDestroy {
 
   /** Role-based task loading */
   private loadTasksByRole(): void {
-    if (this.currentUserRole === 'ADMIN') {
+    if (this.currentUserRole === 'SUPER_ADMIN' || this.currentUserRole === 'ADMIN' || this.currentUserRole === 'SUB_ADMIN') {
       this.loadAllTasks();
     } else if (this.currentUserRole === 'HOD') {
       this.loadTasksByHODDepartments();
@@ -282,7 +282,7 @@ export class Test implements OnInit, OnDestroy {
 
   /** Filter tasks client-side by role (used after status fetch) */
   private filterTasksByRole(tasks: TaskDto[]): TaskDto[] {
-    if (this.currentUserRole === 'ADMIN') return tasks;
+    if (this.currentUserRole === 'SUPER_ADMIN' || this.currentUserRole === 'ADMIN' || this.currentUserRole === 'SUB_ADMIN') return tasks;
     if (this.currentUserRole === 'HOD') {
       return tasks.filter(t =>
         t.departmentIds?.some(id => this.currentUserDeptIds.includes(id))
@@ -569,7 +569,7 @@ getPriorityClass(priority?: string): string {
   }
 
   canDeleteTask(): boolean {
-    return this.currentUserRole === 'ADMIN';
+    return this.currentUserRole === 'SUPER_ADMIN' || this.currentUserRole === 'ADMIN' || this.currentUserRole === 'SUB_ADMIN';
   }
 
   ngOnDestroy(): void {

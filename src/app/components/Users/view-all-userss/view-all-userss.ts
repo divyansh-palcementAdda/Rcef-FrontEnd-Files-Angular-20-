@@ -87,7 +87,7 @@ export class ViewAllUserss implements OnInit {
     }
 
     this.currentUserId = decoded['userId'];
-    this.currentRole = (this.authApiService.getCurrentRole() ?? '').toUpperCase();
+    this.currentRole = this.authApiService.getCurrentRole() ?? '';
 
     if (this.currentRole === 'HOD') {
       // HOD needs sub-department → fetch full user DTO

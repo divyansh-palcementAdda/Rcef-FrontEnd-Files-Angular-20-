@@ -96,7 +96,7 @@
               </button>
   
               <!-- Approve Task Button -->
-              <button *ngIf="task.requiresApproval && currentUserRole === 'ADMIN' && !task.approved"
+              <button *ngIf="task.requiresApproval && (currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'ADMIN' || currentUserRole === 'SUB_ADMIN') && !task.approved"
                       class="btn-action btn-approve" 
                       (click)="approveTask()" 
                       [disabled]="isApproving">
@@ -320,7 +320,7 @@
                         </span>
                       </div>
                     </div>
-                    <div *ngIf="currentUserRole === 'ADMIN' && r.status === 'PENDING'" class="request-actions">
+                    <div *ngIf="(currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'ADMIN' || currentUserRole === 'SUB_ADMIN') && r.status === 'PENDING'" class="request-actions">
                       <button *ngIf="r.requestType === 'CLOSURE'" class="btn-approve" (click)="approveClosureRequest(r.requestId)">
                         Approve
                       </button>
@@ -339,7 +339,7 @@
             </div>
   
             <!-- Recurred Instances Section -->
-            <div class="collapsible-section" *ngIf="task.isRecurring && currentUserRole === 'ADMIN'">
+            <div class="collapsible-section" *ngIf="task.isRecurring && (currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'ADMIN' || currentUserRole === 'SUB_ADMIN')">
               <div class="section-header" (click)="toggleCollapse('instances')" [class.disabled]="isLoadingInstances">
                 <div class="header-left">
                   <i class="bi bi-copy"></i>
@@ -419,7 +419,7 @@
                   {{ collapsed.requests ? 'Show' : 'Hide' }} Requests
                 </button>
                 
-                <button *ngIf="task.isRecurring && currentUserRole === 'ADMIN'" 
+                <button *ngIf="task.isRecurring && (currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'ADMIN' || currentUserRole === 'SUB_ADMIN')" 
                         class="btn-action-collapse" 
                         (click)="toggleCollapse('instances')"
                         [disabled]="isLoadingInstances">

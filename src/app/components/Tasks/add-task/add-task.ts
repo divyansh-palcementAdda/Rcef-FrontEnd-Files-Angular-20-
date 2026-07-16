@@ -1165,6 +1165,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     control?.setValue(updated);
     this.taskForm.get('subDepartmentId')?.setValue(updated.length > 0 ? updated[0] : null);
     control?.markAsTouched();
+    // Manually trigger user loading after both values are set
+    this.onDepartmentOrSubDepartmentChange();
   }
 
   removeSubDept(id: string, event: Event): void {
@@ -1176,6 +1178,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     control?.setValue(updated);
     this.taskForm.get('subDepartmentId')?.setValue(updated.length > 0 ? updated[0] : null);
     control?.markAsTouched();
+    // Manually trigger user loading after both values are set
+    this.onDepartmentOrSubDepartmentChange();
   }
 
 

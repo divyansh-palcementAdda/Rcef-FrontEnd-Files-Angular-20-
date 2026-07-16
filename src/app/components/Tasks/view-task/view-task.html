@@ -495,7 +495,7 @@
                       </td>
                       <td>
                         <span class="role-badge" [ngClass]="{
-                          'badge-super': u.role === 'SUPER_ADMIN' || u.role === 'ADMIN',
+                          'badge-super': u.role === 'SUPER_ADMIN' || u.role === 'ADMIN' || u.role === 'SUB_ADMIN',
                           'bg-warning text-dark': u.role === 'HOD',
                           'bg-light text-dark border': u.role === 'TEACHER'
                         }">{{ u.role }}</span>

@@ -37,7 +37,22 @@ export const RoleGuard: CanActivateFn = (
 
   try {
     payload = JSON.parse(atob(token.split('.')[1]));
-    role = payload.roleName ?? payload.role;
+    role = payload.roleName || payload.role || payload.roles || payload.authorities || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    
+    // Handle array of roles
+    if (Array.isArray(role)) {
+      role = role[0];
+    }
+    
+    // Handle Spring Security format
+    if (typeof role === 'object' && role !== null && (role as any).authority) {
+      role = (role as any).authority;
+    }
+    
+    // Remove ROLE_ prefix if present
+    if (role && typeof role === 'string' && role.startsWith('ROLE_')) {
+      role = role.substring(5);
+    }
   } catch (err) {
     console.error('[RoleGuard] Invalid JWT payload', err);
     snack.open('Invalid session. Please log in again.', 'Close', { duration: 3000 });

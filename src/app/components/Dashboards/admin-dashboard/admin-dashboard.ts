@@ -233,6 +233,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private jwtService: JwtService
   ) { }
 
+  isSuperAdmin(): boolean {
+    return this.authService.getCurrentRole() === 'SUPER_ADMIN';
+  }
+
   ngOnInit(): void {
     this.dataSub = this.apiService.getDashboardData().subscribe({
       next: (data) => {
@@ -278,7 +282,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   statCards(d: DashboardDto) {
     const c = (color: string) => color;
 
-    return [
+    const cards = [
 
       /* =======================
          CORE SUMMARY
@@ -301,14 +305,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         delta: d.totalUsers ?? 0
       },
 
-      {
+      // Only show Total Departments for super admin
+      ...(this.isSuperAdmin() ? [{
         title: 'Total Departments',
         value: d.totalDepartments,
         color: c('dark'),
         icon: 'bi-building',
         route: '/departments',
         delta: d.totalDepartments ?? 0
-      },
+      }] : []),
       {
         title: 'Total Sub-Departments',
         value: d.activeSubDepartments,
@@ -457,7 +462,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         delta: d.zeroDueDepartments ?? 0
       },
 
-      {
+      // Only show My Department Tasks for non-super admin users
+      ...(!this.isSuperAdmin() ? [{
         title: 'My Department Tasks',
         value: d.myDepartmentTasks,
         color: c('primary'),
@@ -465,9 +471,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         route: '/view-tasks',
         queryParams: { status: 'MY_DEPARTMENT' },
         delta: d.myDepartmentTasks ?? 0
-      }
+      }] : [])
 
     ];
+
+    return cards;
   }
 
 

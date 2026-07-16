@@ -416,7 +416,7 @@ export class Test3 implements OnInit, AfterViewInit {
 
   isUserSelectionDisabled(user: userDto): boolean {
     if (!this.currentUser) return true;
-    if (this.currentUser.role === 'ADMIN') return false;
+    if (this.currentUser.role === 'SUPER_ADMIN' || this.currentUser.role === 'ADMIN' || this.currentUser.role === 'SUB_ADMIN') return false;
     if (this.currentUser.role === 'HOD') {
       const isSelf = user.userId === this.currentUser.userId;
       const sameDept = user.departmentIds?.some((id) =>

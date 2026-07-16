@@ -95,5 +95,13 @@ export class NotificationBellComponent implements OnInit, OnDestroy, AfterViewIn
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
     this.clickListener();
+    
+    // Remove dropdown from body when component is destroyed
+    if (this.dropdownElement && this.dropdownElement.parentNode === document.body) {
+      document.body.removeChild(this.dropdownElement);
+    }
+    
+    // Remove window resize listener
+    window.removeEventListener('resize', () => this.updateDropdownPosition());
   }
 }

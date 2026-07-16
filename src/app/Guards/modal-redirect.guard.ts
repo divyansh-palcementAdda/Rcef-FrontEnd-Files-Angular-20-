@@ -46,7 +46,7 @@ export const ModalRedirectGuard: CanActivateFn = (route: ActivatedRouteSnapshot,
     targetUrl.includes('add-') ||
     targetUrl.includes('edit-')
   ) {
-    const role = authSrv.getCurrentRole()?.toUpperCase() || '';
+    const role = authSrv.getCurrentRole() || '';
     if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'SUB_ADMIN') {
       targetUrl = '/admin';
     } else if (role === 'HOD') {

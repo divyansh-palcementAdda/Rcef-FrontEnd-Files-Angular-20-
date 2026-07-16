@@ -288,10 +288,23 @@ export class AuthApiService {
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      let role = payload.roleName ?? payload.role ?? null;
-      if (role && typeof role === 'string' && role.startsWith('ROLE_')) {
-        role = role.substring(5); // Remove ROLE_ prefix if present
+      let role = payload.roleName || payload.role || payload.roles || payload.authorities || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+      
+      // Handle array of roles
+      if (Array.isArray(role)) {
+        role = role[0];
       }
+      
+      // Handle Spring Security format
+      if (typeof role === 'object' && role !== null && (role as any).authority) {
+        role = (role as any).authority;
+      }
+      
+      // Remove ROLE_ prefix if present
+      if (role && typeof role === 'string' && role.startsWith('ROLE_')) {
+        role = role.substring(5);
+      }
+      
       return role ?? null;
     } catch {
       return null;

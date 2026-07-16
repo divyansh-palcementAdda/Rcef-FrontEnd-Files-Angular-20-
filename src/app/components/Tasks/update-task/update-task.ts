@@ -578,8 +578,8 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
             .filter((u) => u.departmentIds?.includes(dept.departmentId))
             .filter((u) => {
               if (!this.currentUser) return false;
-              const currentRole = (this.currentUser.role ?? '').toString().toUpperCase();
-              if (currentRole.includes('ADMIN')) {
+              const currentRole = this.currentUser.role ?? '';
+              if (currentRole === 'SUPER_ADMIN' || currentRole === 'ADMIN' || currentRole === 'SUB_ADMIN') {
                 return true; // admins can see all active users in department
               }
               if (currentRole.includes('HOD')) {

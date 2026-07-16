@@ -252,7 +252,7 @@ export class Test2 implements OnInit, OnDestroy {
           this.fetchRelatedEntities();
 
           // Load recurred instances if task is recurring and user is admin
-          if (this.task.isRecurring && this.currentUserRole === 'ADMIN') {
+          if (this.task.isRecurring && (this.currentUserRole === 'SUPER_ADMIN' || this.currentUserRole === 'ADMIN' || this.currentUserRole === 'SUB_ADMIN')) {
             this.loadRecurredInstances();
           }
         } else {
@@ -526,7 +526,7 @@ export class Test2 implements OnInit, OnDestroy {
 
     // Auto-load instances when section is opened
     if (section === 'instances' && !this.collapsed.instances &&
-      this.task?.isRecurring && this.currentUserRole === 'ADMIN' &&
+      this.task?.isRecurring && (this.currentUserRole === 'SUPER_ADMIN' || this.currentUserRole === 'ADMIN' || this.currentUserRole === 'SUB_ADMIN') &&
       this.recurredInstances.length === 0) {
       this.loadRecurredInstances();
     }

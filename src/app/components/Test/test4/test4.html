@@ -111,7 +111,7 @@
                 </button>
 
                 <!-- Approve Task Button -->
-                <button *ngIf="task.requiresApproval && currentUserRole === 'ADMIN' && !task.approved"
+                <button *ngIf="task.requiresApproval && (currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'ADMIN' || currentUserRole === 'SUB_ADMIN') && !task.approved"
                         class="btn btn-warning btn-lg px-4"
                         (click)="approveTask()" 
                         [disabled]="isApproving">
@@ -399,7 +399,7 @@
                         </button>
                       </div>
                       
-                      <div *ngIf="currentUserRole === 'ADMIN' && request.status === 'PENDING'" 
+                      <div *ngIf="(currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'ADMIN' || currentUserRole === 'SUB_ADMIN') && request.status === 'PENDING'" 
                            class="d-flex gap-2 mt-2 mt-md-0">
                         <button *ngIf="request.requestType === 'CLOSURE'" 
                                 class="btn btn-sm btn-success"
@@ -424,7 +424,7 @@
           </div>
 
           <!-- Recurred Instances Section -->
-          <div class="accordion-item border-0 shadow-sm rounded-4 mb-3" *ngIf="task.isRecurring && currentUserRole === 'ADMIN'">
+          <div class="accordion-item border-0 shadow-sm rounded-4 mb-3" *ngIf="task.isRecurring && (currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'ADMIN' || currentUserRole === 'SUB_ADMIN')">
             <h2 class="accordion-header">
               <button class="accordion-button rounded-4" type="button" [class.collapsed]="collapsed.instances"
                       (click)="toggleCollapse('instances')" [disabled]="isLoadingInstances">
@@ -535,7 +535,7 @@
                 <span class="badge bg-primary">{{ task.requests?.length || 0 }}</span>
               </button>
               
-              <button *ngIf="task.isRecurring && currentUserRole === 'ADMIN'" 
+              <button *ngIf="task.isRecurring && (currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'ADMIN' || currentUserRole === 'SUB_ADMIN')" 
                       class="btn btn-outline-primary d-flex justify-content-between align-items-center"
                       (click)="toggleCollapse('instances')"
                       [disabled]="isLoadingInstances">
