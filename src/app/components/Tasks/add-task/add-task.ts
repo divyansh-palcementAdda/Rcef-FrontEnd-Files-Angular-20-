@@ -974,7 +974,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
   onDepartmentOrSubDepartmentChange(): void {
     const deptIds = this.taskForm.value.departmentIds || [];
-    const subDeptId = this.taskForm.value.subDepartmentId;
+    const subDeptIds = this.taskForm.value.subDepartmentIds || [];
 
     // Reset auto-assign state
     this.isAutoAssigned = false;
@@ -991,39 +991,73 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
     const deptId = deptIds[0]; // Primary department
 
-    // Always load all department admins regardless of sub-department selection
-    // Sub-departments are for subject filtering, not user assignment filtering
-    this.isLoadingUsers = true;
-    this.userService.getDepartmentAdmins(deptId).subscribe({
-      next: (admins) => {
-        this.isLoadingUsers = false;
-        const activeAdmins = admins.filter(u => u.status === 'ACTIVE');
-        this.usersByDepartment.set(deptId, activeAdmins);
-        this.filteredUsersByDept.set(deptId, [...activeAdmins]);
-        this.updateSelectAllUsersForDept(deptId);
+    // If sub-departments are selected, load users from those sub-departments
+    if (subDeptIds.length > 0) {
+      this.isLoadingUsers = true;
+      this.userService.getUsersBySubDepartments(subDeptIds).subscribe({
+        next: (users) => {
+          this.isLoadingUsers = false;
+          const activeUsers = users.filter(u => u.status === 'ACTIVE');
+          this.usersByDepartment.set(deptId, activeUsers);
+          this.filteredUsersByDept.set(deptId, [...activeUsers]);
+          this.updateSelectAllUsersForDept(deptId);
 
-        if (activeAdmins.length === 1) {
-          const admin = activeAdmins[0];
-          this.selectedUsersByDeptObj = { [deptId]: [admin.userId] };
-          this.updateAssignedToIds();
-          this.isAutoAssigned = true;
-          this.autoAssignedUser = admin;
-        } else if (activeAdmins.length > 1) {
-          this.autoAssignWarning = 'Multiple Department Admins found. Please select one or more users.';
-          this.expandedDepts[deptId] = true;
-          this.selectedUsersByDeptObj[deptId] = [];
-          this.updateAssignedToIds();
-        } else {
-          this.autoAssignWarning = 'No Admin found for this department.';
-          this.selectedUsersByDeptObj[deptId] = [];
-          this.updateAssignedToIds();
+          if (activeUsers.length === 1) {
+            const user = activeUsers[0];
+            this.selectedUsersByDeptObj = { [deptId]: [user.userId] };
+            this.updateAssignedToIds();
+            this.isAutoAssigned = true;
+            this.autoAssignedUser = user;
+          } else if (activeUsers.length > 1) {
+            this.autoAssignWarning = 'Multiple users found in selected sub-departments. Please select one or more users.';
+            this.expandedDepts[deptId] = true;
+            this.selectedUsersByDeptObj[deptId] = [];
+            this.updateAssignedToIds();
+          } else {
+            this.autoAssignWarning = 'No users found in selected sub-departments.';
+            this.selectedUsersByDeptObj[deptId] = [];
+            this.updateAssignedToIds();
+          }
+        },
+        error: (err) => {
+          this.isLoadingUsers = false;
+          console.error('Failed to load users for sub-departments', err);
         }
-      },
-      error: (err) => {
-        this.isLoadingUsers = false;
-        console.error('Failed to load department admins', err);
-      }
-    });
+      });
+    } else {
+      // If no sub-departments selected, load department admins
+      this.isLoadingUsers = true;
+      this.userService.getDepartmentAdmins(deptId).subscribe({
+        next: (admins) => {
+          this.isLoadingUsers = false;
+          const activeAdmins = admins.filter(u => u.status === 'ACTIVE');
+          this.usersByDepartment.set(deptId, activeAdmins);
+          this.filteredUsersByDept.set(deptId, [...activeAdmins]);
+          this.updateSelectAllUsersForDept(deptId);
+
+          if (activeAdmins.length === 1) {
+            const admin = activeAdmins[0];
+            this.selectedUsersByDeptObj = { [deptId]: [admin.userId] };
+            this.updateAssignedToIds();
+            this.isAutoAssigned = true;
+            this.autoAssignedUser = admin;
+          } else if (activeAdmins.length > 1) {
+            this.autoAssignWarning = 'Multiple Department Admins found. Please select one or more users.';
+            this.expandedDepts[deptId] = true;
+            this.selectedUsersByDeptObj[deptId] = [];
+            this.updateAssignedToIds();
+          } else {
+            this.autoAssignWarning = 'No Admin found for this department.';
+            this.selectedUsersByDeptObj[deptId] = [];
+            this.updateAssignedToIds();
+          }
+        },
+        error: (err) => {
+          this.isLoadingUsers = false;
+          console.error('Failed to load department admins', err);
+        }
+      });
+    }
   }
 
   clearAutoAssignmentManual(): void {
