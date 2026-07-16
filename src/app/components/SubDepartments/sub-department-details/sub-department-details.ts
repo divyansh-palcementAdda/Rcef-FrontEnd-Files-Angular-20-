@@ -152,15 +152,15 @@ export class SubDepartmentDetailsComponent implements OnInit {
   pieChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     plugins: {
-      legend: { display: true, position: 'bottom', labels: { color: '#f3f4f6' } }
+      legend: { display: true, position: 'bottom', labels: { color: '#0f172a', font: { size: 12 } } }
     }
   };
 
   barChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#f3f4f6' } },
-      y: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#f3f4f6' } }
+      x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+      y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } }
     },
     plugins: {
       legend: { display: false }
@@ -170,11 +170,11 @@ export class SubDepartmentDetailsComponent implements OnInit {
   lineChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#f3f4f6' } },
-      y: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#f3f4f6' } }
+      x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+      y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } }
     },
     plugins: {
-      legend: { display: true, labels: { color: '#f3f4f6' } }
+      legend: { display: true, labels: { color: '#0f172a', font: { size: 12 } } }
     }
   };
 
@@ -344,7 +344,9 @@ export class SubDepartmentDetailsComponent implements OnInit {
       labels: Object.keys(charts.statusDistribution || {}),
       datasets: [{
         data: Object.values(charts.statusDistribution || {}),
-        backgroundColor: ['#fbbf24', '#60a5fa', '#34d399', '#f87171', '#a78bfa', '#ec4899', '#3b82f6', '#10b981']
+        backgroundColor: ['#f59e0b', '#06b6d4', '#10b981', '#f43f5e', '#8b5cf6', '#ec4899', '#3b82f6', '#059669'],
+        borderWidth: 2,
+        borderColor: '#ffffff'
       }]
     };
 
@@ -354,7 +356,8 @@ export class SubDepartmentDetailsComponent implements OnInit {
       datasets: [{
         label: 'Tasks Count',
         data: Object.values(charts.templateDistribution || {}),
-        backgroundColor: '#6366f1'
+        backgroundColor: '#4f46e5',
+        borderRadius: 6
       }]
     };
 
@@ -363,7 +366,9 @@ export class SubDepartmentDetailsComponent implements OnInit {
       labels: Object.keys(charts.subjectDistribution || {}),
       datasets: [{
         data: Object.values(charts.subjectDistribution || {}),
-        backgroundColor: ['#a78bfa', '#10b981', '#3b82f6', '#fbbf24', '#f87171']
+        backgroundColor: ['#8b5cf6', '#10b981', '#3b82f6', '#f59e0b', '#f43f5e'],
+        borderWidth: 2,
+        borderColor: '#ffffff'
       }]
     };
 
@@ -373,7 +378,8 @@ export class SubDepartmentDetailsComponent implements OnInit {
       datasets: [{
         label: 'Tasks Assigned',
         data: Object.values(charts.userDistribution || {}),
-        backgroundColor: '#0ea5e9'
+        backgroundColor: '#06b6d4',
+        borderRadius: 6
       }]
     };
 
@@ -382,33 +388,48 @@ export class SubDepartmentDetailsComponent implements OnInit {
       labels: Object.keys(charts.priorityDistribution || {}),
       datasets: [{
         data: Object.values(charts.priorityDistribution || {}),
-        backgroundColor: ['#ef4444', '#f59e0b', '#10b981']
+        backgroundColor: ['#f43f5e', '#f59e0b', '#10b981'],
+        borderWidth: 2,
+        borderColor: '#ffffff'
       }]
     };
 
     // Completion Trend
     this.completionTrendChartData = {
       labels: Object.keys(charts.monthlyCompletionTrend || {}),
-      datasets: [{
-        label: 'Monthly Completed Tasks',
-        data: Object.values(charts.monthlyCompletionTrend || {}),
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        fill: true,
-        tension: 0.3
-      }]
+      datasets: [
+        {
+          label: 'Completed Tasks',
+          data: Object.values(charts.monthlyCompletionTrend || {}),
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#10b981'
+        },
+        {
+          label: 'Created Tasks',
+          data: Object.values(charts.taskCreationTrend || {}),
+          borderColor: '#4f46e5',
+          backgroundColor: 'rgba(79, 70, 229, 0.08)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#4f46e5'
+        }
+      ]
     };
 
-    // Creation Trend
+    // Creation Trend (kept for backward compat)
     this.creationTrendChartData = {
       labels: Object.keys(charts.taskCreationTrend || {}),
       datasets: [{
         label: 'Monthly Created Tasks',
         data: Object.values(charts.taskCreationTrend || {}),
-        borderColor: '#6366f1',
-        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        borderColor: '#4f46e5',
+        backgroundColor: 'rgba(79, 70, 229, 0.1)',
         fill: true,
-        tension: 0.3
+        tension: 0.4,
+        pointBackgroundColor: '#4f46e5'
       }]
     };
   }
