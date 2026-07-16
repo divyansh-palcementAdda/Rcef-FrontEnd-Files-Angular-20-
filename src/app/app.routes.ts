@@ -30,10 +30,11 @@ import { SubDepartmentDetailsComponent } from './components/SubDepartments/sub-d
 import { ViewAllSubDepartmentsComponent } from './components/SubDepartments/view-all-sub-departments/view-all-sub-departments';
 import { HierarchyViewerComponent } from './components/HierarchyTree/hierarchy-tree';
 import { TaskTemplateManagementComponent } from './components/Tasks/task-template-management/task-template-management';
-import {ViewTemplateTaskComponent} from './components/Tasks/view-task-template/view-template-task.component'
+import { ViewTemplateTaskComponent } from './components/Tasks/view-task-template/view-template-task.component';
 import { SubjectManagementComponent } from './components/Subjects/subject-management/subject-management';
 import { SubjectDetailComponent } from './components/Subjects/subject-detail/subject-detail';
-
+import { UsersImportComponent } from './components/Users/users-import/users-import';
+import { TasksImportComponent } from './components/Tasks/tasks-import/tasks-import';
 import { ModalRedirectGuard } from './Guards/modal-redirect.guard';
 
 export const routes: Routes = [
@@ -126,6 +127,8 @@ export const routes: Routes = [
 },
   { path: 'subjects', component: SubjectManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUBJECT_VIEW'] } },
   { path: 'subject/:id', component: SubjectDetailComponent, canActivate: [AuthGuard] },
+  { path: 'users/import', component: UsersImportComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['USER_CREATE'] } },
+  { path: 'tasks/import', component: TasksImportComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['TASK_CREATE'] } },
 
   // Wildcard route for a 404 page
   { path: '**', redirectTo: '' },

@@ -314,6 +314,14 @@ export class ViewAllUserss implements OnInit {
     }
   }
 
+  goToBulkImport(): void {
+    this.router.navigate(['/users/import']);
+  }
+
+  hasPermission(permission: string): boolean {
+    return this.authApiService.hasPermission(permission);
+  }
+
   downloadTemplate(): void {
     this.apiService.downloadImportTemplate().subscribe({
       next: (blob: Blob) => {
