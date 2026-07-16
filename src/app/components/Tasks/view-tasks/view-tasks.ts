@@ -623,6 +623,10 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.router.navigate(['/tasks/import']);
   }
 
+  openAddTaskModal(): void {
+    this.router.navigate(['/add-task']);
+  }
+
   hasPermission(permission: string): boolean {
     return this.authApiService.hasPermission(permission);
   }

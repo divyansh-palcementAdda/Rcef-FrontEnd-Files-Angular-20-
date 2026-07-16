@@ -386,6 +386,10 @@
           title="Bulk Upload Tasks">
           <i class="bi bi-file-earmark-excel-fill"></i> Upload Tasks
         </button>
+        <button class="stitch-toolbar-btn stitch-toolbar-btn--primary" (click)="openAddTaskModal()" *ngIf="hasPermission('TASK_CREATE')"
+          title="Add New Task">
+          <i class="bi bi-plus-lg"></i> Add Task
+        </button>
         <button class="stitch-toolbar-btn" (click)="loadCurrentUserAndTasks()" title="Refresh list">
           <i class="bi bi-arrow-clockwise"></i>
         </button>

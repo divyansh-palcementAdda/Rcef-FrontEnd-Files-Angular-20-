@@ -13,6 +13,8 @@ interface SidebarLink {
   route: string;
   queryParams?: Record<string, string>;
   icon: string;
+  isGroup?: boolean;
+  children?: SidebarLink[];
 }
 
 @Component({
@@ -28,6 +30,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   fullName: string = 'User';
   isCollapsed = false;
   links: SidebarLink[] = [];
+  settingsOpen = false;
 
   // Tracks which sidebar link was last explicitly clicked by the user
   private lastClickedRoute: string | null = null;
@@ -132,6 +135,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.sidebarService.toggleCollapsed();
   }
 
+  toggleSettings(): void {
+    this.settingsOpen = !this.settingsOpen;
+  }
+
+  isSettingsActive(): boolean {
+    const settingsRoutes = ['/task-templates', '/roles-permissions'];
+    return settingsRoutes.some(r => this.router.url.startsWith(r));
+  }
+
   onLinkClick(link: SidebarLink): void {
     // Remember which sidebar link was clicked
     this.lastClickedRoute = link.route;
@@ -205,21 +217,29 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'SUB_ADMIN') {
       this.links = [
         { label: 'Dashboard', route: '/admin', icon: 'bi-grid-fill' },
-        { label: 'Tasks', route: '/view-tasks', icon: 'bi-list-check' },
-        { label: 'Users', route: '/viewAllUsers', icon: 'bi-people' },
-        { label: 'Departments', route: '/departments', icon: 'bi-building' },
-        { label: 'Self Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-list-check' },
-        { label: 'Pending Approvals', route: '/view-tasks', queryParams: { status: 'Approval' }, icon: 'bi-check2-circle' },
-        { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle-fill' },
-        { label: 'Add User', route: '/add-user', icon: 'bi-person-plus-fill' },
-        { label: 'Add Department', route: '/add-department', icon: 'bi-building-fill' },
+        { label: ' All Tasks', route: '/view-tasks', icon: 'bi-list-check' },
+        { label: ' All Users', route: '/viewAllUsers', icon: 'bi-people' },
+        { label: 'All Departments/Sub-Department', route: '/departments', icon: 'bi-building' },
+        { label: 'All Self Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-list-check' },
+        // { label: 'Pending Approvals', route: '/view-tasks', queryParams: { status: 'Approval' }, icon: 'bi-check2-circle' },
+        // { label: 'Add Task', route: '/add-task', icon: 'bi-plus-circle-fill' },
+        // { label: 'Add User', route: '/add-user', icon: 'bi-person-plus-fill' },
+        // { label: 'Add Department', route: '/add-department', icon: 'bi-building-fill' },
         // { label: 'Departments', route: '/departments', icon: 'bi-layers-fill' },
-        { label: 'Sub-Departments', route: '/sub-departments', icon: 'bi-diagram-2-fill' },
-        { label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' },
+        // { label: 'Sub-Departments', route: '/sub-departments', icon: 'bi-diagram-2-fill' },
+        // { label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' },
         { label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' },
         { label: 'Recurring Tasks', route: '/createRecurring', icon: 'bi-arrow-repeat' },
-        { label: 'Task Templates', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' },
-        { label: 'Roles & Permissions', route: '/roles-permissions', icon: 'bi-shield-lock-fill' }
+        {
+          label: 'Settings',
+          route: '',
+          icon: 'bi-gear-fill',
+          isGroup: true,
+          children: [
+            { label: 'Task Templates', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' },
+            { label: 'Roles & Permissions', route: '/roles-permissions', icon: 'bi-shield-lock-fill' }
+          ]
+        }
       ];
     } else if (r === 'HOD') {
       this.links = [
