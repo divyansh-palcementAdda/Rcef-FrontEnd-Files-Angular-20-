@@ -15,7 +15,7 @@ interface SubDepartment {
   name: string;
   code: string;
   description: string;
-  department: {
+  department?: {
     departmentId: number;
     name: string;
   };
