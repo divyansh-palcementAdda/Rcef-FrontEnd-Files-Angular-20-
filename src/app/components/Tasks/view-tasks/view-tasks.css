@@ -549,6 +549,16 @@
   color: #1f2937 !important;
 }
 
+/* Upload / text-bearing toolbar button */
+.stitch-toolbar-btn--text {
+  width: auto !important;
+  padding: 0 14px !important;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 /* ==========================================
    4. DATA GRID TABLE SECTION
    ========================================== */

@@ -60,16 +60,36 @@ export class AuthApiService {
     this.loggedIn$.next(!!token);
     if (token) {
       this.updateUserFromToken(token);
-      this.loadUserPermissions().subscribe();
+      // Restore permissions from localStorage immediately (sync) so guards work on page refresh
+      const storedPerms = this.getStoredPermissions();
+      if (storedPerms.length > 0) {
+        this.permissions$.next(storedPerms);
+      } else {
+        // Fallback: load from API if nothing in storage
+        this.loadUserPermissions().subscribe();
+      }
     }
   }
 
   /* ----------------------------------------------------------------- */
   /* TOKEN STORAGE                                                     */
   /* ----------------------------------------------------------------- */
-   setAccessToken(token: string): void {
+  setAccessToken(token: string): void {
     localStorage.setItem('accessToken', token);
     this.updateUserFromToken(token);
+  }
+
+  private getStoredPermissions(): string[] {
+    try {
+      const raw = localStorage.getItem('userPermissions');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private storePermissions(perms: string[]): void {
+    localStorage.setItem('userPermissions', JSON.stringify(perms));
   }
 
   private setRefreshToken(token: string): void {
@@ -164,8 +184,9 @@ export class AuthApiService {
   private handleAuthSuccess(dto: JWTResponseDTO): void {
     this.setAccessToken(dto.accessToken);
     if (dto.refreshToken) this.setRefreshToken(dto.refreshToken);
-    if (dto.permissions) {
+    if (dto.permissions && dto.permissions.length > 0) {
       this.permissions$.next(dto.permissions);
+      this.storePermissions(dto.permissions); // persist for page refresh
     } else {
       this.loadUserPermissions().subscribe();
     }
@@ -175,6 +196,7 @@ export class AuthApiService {
   private clearAuth(): void {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userPermissions'); // clear stored permissions on logout
     this.permissions$.next([]);
     this.userApiService.clearCurrentUserProfile();
     this.loggedIn$.next(false);
@@ -221,10 +243,16 @@ export class AuthApiService {
     }
     return this.http.get<ApiResult<string[]>>(`${this.apiUrl}/permissions`).pipe(
       map(res => this.unwrapResult(res, 'Load permissions failed')),
-      tap(perms => this.permissions$.next(perms || [])),
+      tap(perms => {
+        const list = perms || [];
+        this.permissions$.next(list);
+        this.storePermissions(list); // persist so guard works on next page refresh
+      }),
       catchError(() => {
-        this.permissions$.next([]);
-        return of([]);
+        // On error, keep whatever is already in permissions$ (don't wipe it)
+        const stored = this.getStoredPermissions();
+        if (stored.length > 0) this.permissions$.next(stored);
+        return of(stored);
       })
     );
   }

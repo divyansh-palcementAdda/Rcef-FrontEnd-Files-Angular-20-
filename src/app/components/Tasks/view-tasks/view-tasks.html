@@ -382,7 +382,8 @@
         <span *ngIf="loading && !isInitialLoad" class="stitch-toolbar-spinner" title="Loading...">
           <i class="bi bi-arrow-repeat spin-icon"></i>
         </span>
-        <button class="stitch-toolbar-btn" (click)="goToBulkImport()" *ngIf="hasPermission('TASK_CREATE')" title="Bulk Upload Tasks">
+        <button class="stitch-toolbar-btn stitch-toolbar-btn--text" (click)="goToBulkImport()" *ngIf="hasPermission('TASK_CREATE')"
+          title="Bulk Upload Tasks">
           <i class="bi bi-file-earmark-excel-fill"></i> Upload Tasks
         </button>
         <button class="stitch-toolbar-btn" (click)="loadCurrentUserAndTasks()" title="Refresh list">

@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { UserApiService } from '../../../Services/UserApiService';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
-import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../Services/modal-service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
@@ -95,7 +95,13 @@ export class ViewAllUserss implements OnInit {
       // HOD needs sub-department → fetch full user DTO
       return this.apiService.getUserById(this.currentUserId).pipe(
         switchMap((user: userDto) => {
-          this.hodSubDepartmentId = user.subDepartmentId;   // UUID string
+          // API returns subDepartmentIds as an ARRAY — pick the first one
+          if (user.subDepartmentIds && user.subDepartmentIds.length > 0) {
+            this.hodSubDepartmentId = user.subDepartmentIds[0];
+          } else if (user.subDepartmentId) {
+            // fallback to legacy single-string field if present
+            this.hodSubDepartmentId = user.subDepartmentId;
+          }
           return of(void 0);
         })
       );
@@ -119,16 +125,8 @@ export class ViewAllUserss implements OnInit {
         : this.apiService.getAllUsers();
     } else if (this.currentRole === 'HOD') {
       if (this.hodSubDepartmentId) {
-        obs$ = this.apiService.getAllUsersBySubDepartment(this.hodSubDepartmentId).pipe(
-          switchMap(subDeptUsers =>
-            this.apiService.getAllUsersByStatus('ACTIVE').pipe(
-              map(activeUsers => {
-                const activeUserIds = new Set(activeUsers.map(u => u.userId));
-                return subDeptUsers.filter(user => activeUserIds.has(user.userId));
-              })
-            )
-          )
-        );
+        // Simply fetch all users in the HOD's sub-department
+        obs$ = this.apiService.getAllUsersBySubDepartment(this.hodSubDepartmentId);
       } else {
         this.errorMessage = 'Missing sub-department assignment for HOD.';
         this.loading = false;

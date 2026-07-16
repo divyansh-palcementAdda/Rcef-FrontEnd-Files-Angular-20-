@@ -6,6 +6,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SubjectApiService } from '../../../Services/subject-api.service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { UserApiService } from '../../../Services/UserApiService';
+import { AuthApiService } from '../../../Services/auth-api-service';
 import { Department } from '../../../Model/department';
 import { SubjectDto, SubjectRequest, SubjectAnalytics } from '../../../Model/subject';
 import { userDto } from '../../../Model/userDto';
@@ -76,13 +77,18 @@ export class SubjectManagementComponent implements OnInit {
     private subjectApi: SubjectApiService,
     private deptApi: DepartmentApiService,
     private userApi: UserApiService,
+    private authSrv: AuthApiService,
     private snackBar: MatSnackBar,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadDepartments();
-    this.loadUsers();
+    // Only pre-load all users for admin roles; HOD users are loaded per sub-department when needed
+    const role = this.authSrv.getCurrentRole();
+    if (role !== 'HOD') {
+      this.loadUsers();
+    }
   }
 
   // ===================================================
@@ -145,7 +151,8 @@ export class SubjectManagementComponent implements OnInit {
         this.loadingUsers = false;
       },
       error: (err: any) => {
-        this.showError('Failed to load users: ' + err.message);
+        // For HOD, getAllUsers may return 403 — silently ignore, users loaded per sub-dept on assign
+        console.warn('getAllUsers failed (expected for HOD role):', err.message);
         this.loadingUsers = false;
       }
     });
@@ -280,7 +287,28 @@ export class SubjectManagementComponent implements OnInit {
     this.assignSubjectName = subject.subjectName;
     this.assignSubDeptId = subject.subDepartmentId;
     this.selectedUserIdsToAdd = [];
+    // Load users for this subject's sub-department if not already loaded
+    if (this.assignSubDeptId) {
+      this.loadUsersForSubDept(this.assignSubDeptId);
+    }
     this.loadAssignedUsers(subject.id);
+  }
+
+  loadUsersForSubDept(subDeptId: string): void {
+    this.loadingUsers = true;
+    this.userApi.getAllUsersBySubDepartment(subDeptId).subscribe({
+      next: (users: userDto[]) => {
+        // Merge with existing users (avoid duplicates)
+        const existingIds = new Set(this.users.map(u => u.userId));
+        const newUsers = users.filter(u => !existingIds.has(u.userId));
+        this.users = [...this.users, ...newUsers];
+        this.loadingUsers = false;
+      },
+      error: (err: any) => {
+        this.showError('Failed to load users for sub-department: ' + err.message);
+        this.loadingUsers = false;
+      }
+    });
   }
 
   loadAssignedUsers(subjectId: number): void {
@@ -300,7 +328,12 @@ export class SubjectManagementComponent implements OnInit {
   get unassignedUsers(): userDto[] {
     return this.users.filter(u =>
       !this.assignedUserIds.includes(u.userId) &&
-      (this.assignSubDeptId ? u.subDepartmentId === this.assignSubDeptId : true)
+      (
+        this.assignSubDeptId
+          // Check both the array field (subDepartmentIds) and the legacy single field (subDepartmentId)
+          ? (u.subDepartmentIds?.includes(this.assignSubDeptId) || u.subDepartmentId === this.assignSubDeptId)
+          : true
+      )
     );
   }
 
