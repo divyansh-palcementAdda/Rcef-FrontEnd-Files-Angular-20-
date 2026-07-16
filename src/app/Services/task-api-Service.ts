@@ -162,6 +162,35 @@ getRecurredInstancesByParent(parentTaskId: number): Observable<ApiResponse<TaskD
     );
   }
 
+  downloadImportTemplate(templateId?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (templateId) {
+      params = params.set('templateId', templateId.toString());
+    }
+    return this.http.get(`${environment.apiUrl}/tasks/import/template`, {
+      params,
+      responseType: 'blob'
+    }).pipe(
+      catchError(err => this.handleError(err, 'download task import template'))
+    );
+  }
+
+  importTasks(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${environment.apiUrl}/tasks/import`, formData).pipe(
+      catchError(err => this.handleError(err, 'import tasks'))
+    );
+  }
+
+  downloadImportErrorReport(jobId: string): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/tasks/import/errors/${jobId}`, {
+      responseType: 'blob'
+    }).pipe(
+      catchError(err => this.handleError(err, 'download task import error report'))
+    );
+  }
+
   // ──────────────────────────────────────────────────────────────
   //          Error Handling (improved version)
   // ──────────────────────────────────────────────────────────────

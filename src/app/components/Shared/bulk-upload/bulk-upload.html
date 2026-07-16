@@ -1,0 +1,126 @@
+<div class="bulk-container">
+  <!-- Header -->
+  <div class="bulk-header">
+    <h2>{{ title }}</h2>
+    <button class="btn-template" (click)="downloadTemplate()" [disabled]="uploading">
+      <i class="bi bi-download me-1"></i> Download Template
+    </button>
+  </div>
+
+  <!-- Drag and Drop Box -->
+  <div 
+    class="upload-box" 
+    [class.drag-over]="dragOver" 
+    *ngIf="!selectedFile && !uploading"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <i class="bi bi-file-earmark-excel-fill text-success upload-icon"></i>
+    <p class="upload-text">Drag & drop your Excel file here, or <label class="browse-link">browse <input type="file" (change)="onFileSelected($event)" accept=".xlsx, .xls" hidden></label></p>
+    <span class="upload-sub">Only .xlsx and .xls files under 10MB are supported</span>
+  </div>
+
+  <!-- File Preview & Upload Trigger -->
+  <div class="file-preview-card" *ngIf="selectedFile && !uploading">
+    <div class="file-info">
+      <i class="bi bi-file-earmark-excel text-success fs-3 me-3"></i>
+      <div>
+        <div class="file-name">{{ selectedFile.name }}</div>
+        <div class="file-size text-muted">{{ (selectedFile.size / 1024).toFixed(1) }} KB</div>
+      </div>
+    </div>
+    <div class="action-buttons">
+      <button class="btn-cancel" (click)="removeFile()">Remove</button>
+      <button class="btn-upload" (click)="uploadFile()">Upload File</button>
+    </div>
+  </div>
+
+  <!-- Progress Loader -->
+  <div class="progress-state" *ngIf="uploading">
+    <div class="spinner"></div>
+    <span class="status-text">{{ uploadProgress }}</span>
+  </div>
+
+  <!-- Summary Card -->
+  <div class="summary-card" *ngIf="resultSummary">
+    <h3><i class="bi bi-check-circle-fill text-success me-2"></i> Import Completed</h3>
+    <div class="summary-stats">
+      <div class="stat-box">
+        <span class="label">Total Rows</span>
+        <strong class="val">{{ resultSummary.totalRows }}</strong>
+      </div>
+      <div class="stat-box">
+        <span class="label">Successfully Imported</span>
+        <strong class="val text-success">{{ resultSummary.imported }}</strong>
+      </div>
+      <div class="stat-box">
+        <span class="label">Failed Rows</span>
+        <strong class="val text-danger">{{ resultSummary.failed }}</strong>
+      </div>
+    </div>
+    
+    <div class="error-report-section" *ngIf="errorReportAvailable">
+      <button class="btn-error-report" (click)="downloadErrorReport()">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> Download Error Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Import History Logs -->
+  <div class="history-section">
+    <h3>Import History Logs</h3>
+    
+    <div *ngIf="loadingHistory" class="history-loading">
+      <div class="small-spinner"></div> Loading history...
+    </div>
+
+    <div class="table-responsive" *ngIf="!loadingHistory && historyList.length > 0">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Uploaded By</th>
+            <th>Uploaded On</th>
+            <th>Total Rows</th>
+            <th>Imported</th>
+            <th>Failed</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let job of historyList">
+            <td class="name-cell">{{ job.fileName }}</td>
+            <td>{{ job.uploadedByUsername }}</td>
+            <td>{{ formatDate(job.startedAt) }}</td>
+            <td>{{ job.totalRows }}</td>
+            <td class="text-success font-weight-bold">{{ job.importedCount }}</td>
+            <td class="text-danger font-weight-bold">{{ job.failedCount }}</td>
+            <td>
+              <span class="status-badge" [class.success]="job.status === 'COMPLETED'" [class.started]="job.status === 'STARTED'">
+                {{ job.status }}
+              </span>
+            </td>
+            <td>
+              <button 
+                class="btn-table-action" 
+                *ngIf="job.failedCount > 0" 
+                (click)="downloadErrorReport(job.importId)"
+                title="Download Error Workbook"
+              >
+                <i class="bi bi-download"></i> Error Report
+              </button>
+              <span *ngIf="job.failedCount === 0" class="text-muted small">No errors</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-history" *ngIf="!loadingHistory && historyList.length === 0">
+      <i class="bi bi-archive-fill text-muted"></i>
+      <p>No import logs found for this module.</p>
+    </div>
+  </div>
+</div>

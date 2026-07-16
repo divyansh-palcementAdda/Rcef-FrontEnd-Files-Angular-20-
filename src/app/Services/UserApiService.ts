@@ -317,6 +317,12 @@ export class UserApiService {
     );
   }
 
+  getImportHistory(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/import/history`).pipe(
+      catchError(err => this.handleError(err, 'fetch import history'))
+    );
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);

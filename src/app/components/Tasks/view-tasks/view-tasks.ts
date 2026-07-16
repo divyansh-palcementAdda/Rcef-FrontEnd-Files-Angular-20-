@@ -311,7 +311,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       active: tasks.filter(t => t.status === 'IN_PROGRESS').length,
       pending: tasks.filter(t => t.status === 'PENDING' || t.status === 'UPCOMING').length,
       completed: tasks.filter(t => t.status === 'CLOSED').length,
-      overdue: tasks.filter(t => this.isOverdue(t)).length,
+      overdue: tasks.filter(t => t.status === 'DELAYED').length,
       extensionRequests: tasks.filter(t => t.status === 'REQUEST_FOR_EXTENSION' || t.status === 'EXTENDED').length,
       closureRequests: tasks.filter(t => t.status === 'REQUEST_FOR_CLOSURE').length,
       upcoming: tasks.filter(t => t.status === 'UPCOMING').length,
@@ -584,7 +584,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   get overdueCount(): number {
-    return this.tasks.filter(t => this.isOverdue(t)).length;
+    return this.tasks.filter(t => t.status === 'DELAYED').length;
   }
 
   get extensionsCount(): number {
@@ -599,14 +599,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     return this.tasks.filter(t => t.status === 'UPCOMING').length;
   }
 
-  isOverdue(task: TaskDto): boolean {
-    if (!task.dueDate || task.status?.toUpperCase() === 'CLOSED') return false;
-    const d = new Date(task.dueDate);
-    const now = new Date();
-    d.setHours(0, 0, 0, 0);
-    now.setHours(0, 0, 0, 0);
-    return d.getTime() < now.getTime();
-  }
+
 
   private handleError(err: any, fallbackMessage: string): void {
     console.error(fallbackMessage, err);
@@ -617,6 +610,21 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       this.errorMessage = err?.error?.message || err?.message || fallbackMessage;
       this.isForbidden = false;
     }
+  }
+
+  isOverdue(task: TaskDto): boolean {
+    if (!task || !task.dueDate) return false;
+    const due = new Date(task.dueDate);
+    const now = new Date();
+    return due < now && task.status !== 'CLOSED';
+  }
+
+  goToBulkImport(): void {
+    this.router.navigate(['/tasks/import']);
+  }
+
+  hasPermission(permission: string): boolean {
+    return this.authApiService.hasPermission(permission);
   }
 
   ngOnDestroy(): void {

@@ -12,7 +12,10 @@
       </nav>
       <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Users Directory</h1>
     </div>
-    <div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-primary" (click)="goToBulkImport()" *ngIf="hasPermission('USER_CREATE')">
+        <i class="bi bi-file-earmark-excel-fill me-1"></i>Bulk Upload
+      </button>
       <button class="btn btn-primary" (click)="downloadTemplate()">
         <i class="bi bi-download me-1"></i>Download Template
       </button>

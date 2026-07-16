@@ -382,6 +382,9 @@
         <span *ngIf="loading && !isInitialLoad" class="stitch-toolbar-spinner" title="Loading...">
           <i class="bi bi-arrow-repeat spin-icon"></i>
         </span>
+        <button class="stitch-toolbar-btn" (click)="goToBulkImport()" *ngIf="hasPermission('TASK_CREATE')" title="Bulk Upload Tasks">
+          <i class="bi bi-file-earmark-excel-fill"></i> Upload Tasks
+        </button>
         <button class="stitch-toolbar-btn" (click)="loadCurrentUserAndTasks()" title="Refresh list">
           <i class="bi bi-arrow-clockwise"></i>
         </button>
@@ -516,7 +519,7 @@
                   </div> -->
                   <div class="stitch-assignee-info">
                     <span class="stitch-assignee-name">{{ task.assignedToNames[0] }}</span>
-                    <span class="stitch-assignee-role">{{ task.assignedUsers?.[0]?.role || 'Super Admin' }}</span>
+                    <!-- <span class="stitch-assignee-role">{{ task.assignedUsers?.[0]?.role || 'Super Admin' }}</span> -->
                   </div>
                 </div>
                 <span class="text-muted small"
@@ -546,9 +549,9 @@
                         'pill-pending': task.status === 'PENDING' || task.status === 'UPCOMING',
                         'pill-approval': task.status === 'REQUEST_FOR_CLOSURE' || task.status === 'REQUEST_FOR_EXTENSION',
                         'pill-completed': task.status === 'CLOSED',
-                        'pill-overdue': isOverdue(task)
+
                       }">
-                  {{ isOverdue(task) ? 'Overdue' : getStatusDisplayName(task.status) }}
+                  {{task.status}}
                 </span>
               </td>
 
