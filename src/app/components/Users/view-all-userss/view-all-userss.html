@@ -28,26 +28,56 @@
   <!-- Stats Cards -->
   <div class="d-flex gap-3 mb-4 flex-wrap">
     <!-- Total Users -->
-    <div class="stats-card flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm">
+    <div class="stats-card flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm clickable"
+      [class.active]="selectedCard === 'total'"
+      (click)="selectCard('total')">
       <div class="stats-card-icon d-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10"
         style="width:52px;height:52px;min-width:52px;">
         <i class="bi bi-people-fill text-primary fs-4"></i>
       </div>
       <div>
         <p class="text-muted small mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Total Users</p>
-        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ users.length }}</h4>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.totalUsers }}</h4>
+      </div>
+    </div>
+
+    <!-- Active Users -->
+    <div class="stats-card flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm clickable"
+      [class.active]="selectedCard === 'active'"
+      (click)="selectCard('active')">
+      <div class="stats-card-icon d-flex align-items-center justify-content-center rounded-3 bg-success bg-opacity-10"
+        style="width:52px;height:52px;min-width:52px;">
+        <i class="bi bi-person-check-fill text-success fs-4"></i>
+      </div>
+      <div>
+        <p class="text-muted small mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Active Users</p>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.activeUsers }}</h4>
+      </div>
+    </div>
+
+    <!-- Inactive Users -->
+    <div class="stats-card flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm clickable"
+      [class.active]="selectedCard === 'inactive'"
+      (click)="selectCard('inactive')">
+      <div class="stats-card-icon d-flex align-items-center justify-content-center rounded-3 bg-secondary bg-opacity-10"
+        style="width:52px;height:52px;min-width:52px;">
+        <i class="bi bi-person-x-fill text-secondary fs-4"></i>
+      </div>
+      <div>
+        <p class="text-muted small mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Inactive Users</p>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.inactiveUsers }}</h4>
       </div>
     </div>
 
     <!-- Total Departments -->
     <div class="stats-card flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm">
-      <div class="stats-card-icon d-flex align-items-center justify-content-center rounded-3 bg-success bg-opacity-10"
+      <div class="stats-card-icon d-flex align-items-center justify-content-center rounded-3 bg-info bg-opacity-10"
         style="width:52px;height:52px;min-width:52px;">
-        <i class="bi bi-building-fill text-success fs-4"></i>
+        <i class="bi bi-building-fill text-info fs-4"></i>
       </div>
       <div>
         <p class="text-muted small mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Total Departments</p>
-        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ availableDepartments.length }}</h4>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.departments }}</h4>
       </div>
     </div>
 
@@ -59,7 +89,19 @@
       </div>
       <div>
         <p class="text-muted small mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Total Sub-Departments</p>
-        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ totalSubDepartments }}</h4>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.subDepartments }}</h4>
+      </div>
+    </div>
+
+    <!-- Total Subjects -->
+    <div class="stats-card flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm">
+      <div class="stats-card-icon d-flex align-items-center justify-content-center rounded-3 bg-danger bg-opacity-10"
+        style="width:52px;height:52px;min-width:52px;">
+        <i class="bi bi-book-fill text-danger fs-4"></i>
+      </div>
+      <div>
+        <p class="text-muted small mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Total Subjects</p>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.subjects }}</h4>
       </div>
     </div>
   </div>
@@ -71,7 +113,9 @@
     </h6>
     <div class="d-flex flex-wrap gap-3">
       <div *ngFor="let dept of deptUserBreakdown"
-        class="dept-breakdown-card flex-fill d-flex flex-column justify-content-between p-3 rounded-3 border bg-white shadow-sm"
+        class="dept-breakdown-card flex-fill d-flex flex-column justify-content-between p-3 rounded-3 border bg-white shadow-sm clickable"
+        [class.active]="departmentIdFilter === dept.departmentId"
+        (click)="selectDepartment(dept.departmentId)"
         style="min-width:180px;">
         <div class="d-flex align-items-center gap-2 mb-2">
           <div class="d-flex align-items-center justify-content-center rounded-2 bg-primary bg-opacity-10"
@@ -114,50 +158,62 @@
     <div class="d-flex gap-3 flex-wrap">
 
       <!-- Admin -->
-      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm" style="min-width:180px;">
+      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm clickable" 
+        [class.active]="selectedCard === 'admins'"
+        (click)="selectCard('admins')"
+        style="min-width:180px;">
         <div class="d-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10"
           style="width:52px;height:52px;min-width:52px;">
           <i class="bi bi-shield-fill-check text-primary fs-4"></i>
         </div>
         <div>
           <p class="text-muted mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Admin</p>
-          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ adminCount }}</h4>
+          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.admins }}</h4>
         </div>
       </div>
 
       <!-- Sub Admin -->
-      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm" style="min-width:180px;">
+      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm clickable" 
+        [class.active]="selectedCard === 'subadmins'"
+        (click)="selectCard('subadmins')"
+        style="min-width:180px;">
         <div class="d-flex align-items-center justify-content-center rounded-3 bg-info bg-opacity-10"
           style="width:52px;height:52px;min-width:52px;">
           <i class="bi bi-person-fill-gear text-info fs-4"></i>
         </div>
         <div>
           <p class="text-muted mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Sub Admin</p>
-          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ subAdminCount }}</h4>
+          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.subAdmins }}</h4>
         </div>
       </div>
 
       <!-- HODs -->
-      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm" style="min-width:180px;">
+      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm clickable" 
+        [class.active]="selectedCard === 'hods'"
+        (click)="selectCard('hods')"
+        style="min-width:180px;">
         <div class="d-flex align-items-center justify-content-center rounded-3 bg-warning bg-opacity-10"
           style="width:52px;height:52px;min-width:52px;">
           <i class="bi bi-person-workspace text-warning fs-4"></i>
         </div>
         <div>
           <p class="text-muted mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">HODs</p>
-          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ hodCount }}</h4>
+          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.hods }}</h4>
         </div>
       </div>
 
       <!-- Teachers -->
-      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm" style="min-width:180px;">
+      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm clickable" 
+        [class.active]="selectedCard === 'teachers'"
+        (click)="selectCard('teachers')"
+        style="min-width:180px;">
         <div class="d-flex align-items-center justify-content-center rounded-3 bg-success bg-opacity-10"
           style="width:52px;height:52px;min-width:52px;">
           <i class="bi bi-mortarboard-fill text-success fs-4"></i>
         </div>
         <div>
           <p class="text-muted mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Teachers</p>
-          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ teacherCount }}</h4>
+          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ stats.teachers }}</h4>
         </div>
       </div>
 

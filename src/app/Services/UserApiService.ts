@@ -60,6 +60,13 @@ export class UserApiService {
       catchError(err => this.handleError(err, 'fetch all users'))
     );
   }
+
+  searchUsers(params: any): Observable<any> {
+    console.log('Searching users with params:', params);
+    return this.http.get<any>(`${this.apiUrl}/search`, { params }).pipe(
+      catchError(err => this.handleError(err, 'search users'))
+    );
+  }
   updateUser(userId: number, payload: any) {
     return this.http.put(`${this.apiUrl}/${userId}`, payload);
   }

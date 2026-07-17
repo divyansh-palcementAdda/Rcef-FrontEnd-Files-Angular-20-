@@ -17,12 +17,15 @@ import { ModalService } from '../../../Services/modal-service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { ToastService } from '../../../Services/ToastData';
 import { EditUser } from '../edit-user/edit-user';
+import { FilterDrawerComponent, FilterFieldConfig } from '../../Shared/filter-drawer/filter-drawer.component';
+import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
+import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.component';
 
 @Component({
   selector: 'app-view-all-users',
   templateUrl: './view-all-userss.html',
   styleUrls: ['./view-all-userss.css'],
-  imports: [CommonModule, FormsModule, EditUser]
+  imports: [CommonModule, FormsModule, EditUser, FilterDrawerComponent, AnalyticsStatCardComponent, PageToolbarComponent]
 })
 export class ViewAllUserss implements OnInit {
 
@@ -31,6 +34,51 @@ export class ViewAllUserss implements OnInit {
 
   errorMessage: string | null = null;
   loading = true;
+
+  // Sorting
+  sortBy = 'fullName';
+  sortDirection = 'asc';
+
+  // Filter values
+  searchTerm = '';
+  roleFilter = '';
+  departmentIdFilter: number | '' = '';
+  subDepartmentIdFilter = '';
+  subjectIdFilter: number | '' = '';
+  statusFilter = '';
+
+  // Dropdown options
+  departmentsList: Department[] = [];
+  subDepartmentsList: any[] = [];
+  subjectsList: any[] = [];
+  rolesList: any[] = [];
+
+  // Filter drawer config
+  filterFields: FilterFieldConfig[] = [];
+  isDrawerOpen = false;
+
+  // Stats & breakdown responses
+  stats = {
+    totalUsers: 0,
+    admins: 0,
+    subAdmins: 0,
+    hods: 0,
+    teachers: 0,
+    departments: 0,
+    subDepartments: 0,
+    subjects: 0,
+    activeUsers: 0,
+    inactiveUsers: 0,
+    recentlyAdded: 0,
+    emailVerified: 0,
+    pendingVerification: 0
+  };
+
+  departmentBreakdown: any[] = [];
+  roleBreakdown: { [key: string]: number } = {};
+  subjectBreakdown: any[] = [];
+
+  selectedCard = 'total';
 
   // ── Edit User Modal ─────────────────────────────────────────
   showEditUserModal = false;
@@ -109,10 +157,7 @@ export class ViewAllUserss implements OnInit {
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
-
-  // Filters
-  searchTerm = '';
-  statusFilter = '';
+  totalElements = 0;
 
   // Role-based data
   private currentUserId!: number;
@@ -148,18 +193,9 @@ export class ViewAllUserss implements OnInit {
       .subscribe(params => {
         const status = params['status'];
         this.statusFilter = status ? status.toUpperCase() : '';
+        this.loadDropdownOptions();
         this.loadUsersForRole();
       });
-
-    // Load departments & sub-departments for stats cards
-    this.departmentApiService.getAllDepartments().subscribe({
-      next: (depts) => { this.availableDepartments = depts; },
-      error: () => {}
-    });
-    this.departmentApiService.getAllSubDepartments().subscribe({
-      next: (subs) => { this.totalSubDepartments = subs?.length ?? 0; },
-      error: () => {}
-    });
   }
 
   /** --------------------------------------------------------------
@@ -201,107 +237,244 @@ export class ViewAllUserss implements OnInit {
     return of(void 0);
   }
 
+  loadDropdownOptions(): void {
+    this.departmentApiService.getAllDepartments().subscribe({
+      next: (depts) => {
+        this.departmentsList = depts || [];
+        this.availableDepartments = depts || [];
+        this.initializeFilterFields();
+      },
+      error: (err) => console.error('Failed to load departments', err)
+    });
+
+    this.departmentApiService.getAllSubDepartments().subscribe({
+      next: (subs) => {
+        this.subDepartmentsList = subs || [];
+        this.totalSubDepartments = subs?.length ?? 0;
+        this.initializeFilterFields();
+      },
+      error: (err) => console.error('Failed to load sub-departments', err)
+    });
+
+    this.subjectApiService.getAllSubjects().subscribe({
+      next: (subs) => {
+        this.subjectsList = subs || [];
+        this.initializeFilterFields();
+      },
+      error: (err) => console.error('Failed to load subjects', err)
+    });
+
+    this.apiService.getAllRoles().subscribe({
+      next: (roles) => {
+        this.rolesList = roles || [];
+        this.initializeFilterFields();
+      },
+      error: (err) => console.error('Failed to load roles', err)
+    });
+  }
+
+  initializeFilterFields(): void {
+    this.filterFields = [
+      { key: 'searchTerm', label: 'Search Keyword', type: 'text', section: 'general', placeholder: 'Enter username, email...' },
+      {
+        key: 'statusFilter',
+        label: 'Status',
+        type: 'select',
+        section: 'general',
+        options: [
+          { value: 'ACTIVE', label: 'Active' },
+          { value: 'INACTIVE', label: 'Inactive' }
+        ]
+      },
+      {
+        key: 'roleFilter',
+        label: 'User Role',
+        type: 'select',
+        section: 'general',
+        options: this.rolesList.map(r => ({ value: r.name, label: r.displayName || r.name }))
+      },
+      {
+        key: 'departmentIdFilter',
+        label: 'Department',
+        type: 'select',
+        section: 'organization',
+        options: this.departmentsList.map(d => ({ value: d.departmentId, label: d.name }))
+      },
+      {
+        key: 'subDepartmentIdFilter',
+        label: 'Sub Department',
+        type: 'select',
+        section: 'organization',
+        options: this.subDepartmentsList.map(s => ({ value: s.id, label: s.name }))
+      },
+      {
+        key: 'subjectIdFilter',
+        label: 'Subject',
+        type: 'select',
+        section: 'organization',
+        options: this.subjectsList.map(s => ({ value: s.id, label: s.subjectName }))
+      }
+    ];
+  }
+
   /** --------------------------------------------------------------
-   *  Load the correct list depending on role
+   *  Load the correct list depending on role with dynamic filters
    *  ------------------------------------------------------------ */
-  private loadUsersForRole(): void {
+  loadUsersForRole(): void {
     this.loading = true;
     this.errorMessage = null;
 
-    let obs$: Observable<userDto[]>;
+    const params: any = {
+      page: this.currentPage - 1,
+      size: this.pageSize,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection
+    };
 
-    if (this.currentRole === 'SUPER_ADMIN' || this.currentRole === 'ADMIN' || this.currentRole === 'SUB_ADMIN' || this.currentRole === 'TEACHER') {
-      obs$ = this.statusFilter
-        ? this.apiService.getAllUsersByStatus(this.statusFilter)
-        : this.apiService.getAllUsers();
-    } else if (this.currentRole === 'HOD') {
-      if (this.hodSubDepartmentId) {
-        // Simply fetch all users in the HOD's sub-department
-        obs$ = this.apiService.getAllUsersBySubDepartment(this.hodSubDepartmentId);
-      } else {
-        this.errorMessage = 'Missing sub-department assignment for HOD.';
-        this.loading = false;
-        return;
-      }
-    } else {
-      this.errorMessage = 'Invalid role or access denied.';
-      this.loading = false;
-      return;
+    if (this.searchTerm) params.search = this.searchTerm;
+    if (this.roleFilter) params.role = this.roleFilter;
+    if (this.departmentIdFilter) params.departmentId = this.departmentIdFilter.toString();
+    if (this.subDepartmentIdFilter) params.subDepartmentId = this.subDepartmentIdFilter;
+    if (this.subjectIdFilter) params.subjectId = this.subjectIdFilter.toString();
+    if (this.statusFilter) params.status = this.statusFilter;
+
+    // Enforcement of HOD dynamic RBAC filtering
+    if (this.currentRole === 'HOD' && this.hodSubDepartmentId) {
+      params.subDepartmentId = this.hodSubDepartmentId;
+      this.subDepartmentIdFilter = this.hodSubDepartmentId;
     }
 
-    obs$.subscribe({
-      next: (users) => {
-        this.users = users ?? [];
-        this.applyFilters();
+    this.apiService.searchUsers(params).subscribe({
+      next: (res) => {
+        if (res && res.success && res.data) {
+          const data = res.data;
+          this.users = data.content || [];
+          this.filteredUsers = this.users;
+          this.totalElements = data.pagination?.totalElements ?? 0;
+          this.totalPages = data.pagination?.totalPages ?? 1;
+          this.currentPage = (data.pagination?.currentPage ?? 0) + 1;
+
+          this.stats = data.stats || this.stats;
+          this.departmentBreakdown = data.departmentBreakdown || [];
+          this.roleBreakdown = data.roleBreakdown || {};
+          this.subjectBreakdown = data.subjectBreakdown || [];
+        }
         this.loading = false;
       },
       error: (err: any) => {
-        this.errorMessage = err?.error?.message || 'Failed to load users.';
+        this.errorMessage = err?.message || 'Failed to search users.';
         this.loading = false;
       }
     });
   }
 
-  /* ----------------------------------------------------------------
-   *  The rest of the component stays **exactly the same** (filters,
-   *  pagination, delete, edit, view …)
-   * ---------------------------------------------------------------- */
   /** Apply search and status filters */
   applyFilters(): void {
-    this.filteredUsers = this.users.filter(user => {
-      const matchesSearch = !this.searchTerm ||
-        user.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        user.departmentNames.some(name =>
-          name.toLowerCase().includes(this.searchTerm.toLowerCase())
-        )
-        ||
-        user.role.toLowerCase().includes(this.searchTerm.toLowerCase());
-
-      const matchesStatus = !this.statusFilter || user.status === this.statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-
-    this.totalPages = Math.ceil(this.filteredUsers.length / this.pageSize) || 1;
     this.currentPage = 1;
+    this.loadUsersForRole();
   }
 
   /** Reset filters */
   resetFilters(): void {
     this.searchTerm = '';
+    this.roleFilter = '';
+    this.departmentIdFilter = '';
+    this.subDepartmentIdFilter = '';
+    this.subjectIdFilter = '';
     this.statusFilter = '';
-    this.applyFilters();
+    this.selectedCard = 'total';
+    this.currentPage = 1;
+    this.loadUsersForRole();
+  }
+
+  // Handle click on stats card to filter the list
+  selectCard(cardType: string): void {
+    this.selectedCard = cardType;
+    this.currentPage = 1;
+    
+    // Reset temporary filters
+    this.roleFilter = '';
+    this.statusFilter = '';
+    
+    if (cardType === 'admins') {
+      this.roleFilter = 'ADMIN';
+    } else if (cardType === 'subadmins') {
+      this.roleFilter = 'SUB_ADMIN';
+    } else if (cardType === 'hods') {
+      this.roleFilter = 'HOD';
+    } else if (cardType === 'teachers') {
+      this.roleFilter = 'TEACHER';
+    } else if (cardType === 'active') {
+      this.statusFilter = 'ACTIVE';
+    } else if (cardType === 'inactive') {
+      this.statusFilter = 'INACTIVE';
+    }
+    
+    this.loadUsersForRole();
+  }
+
+  // Handle click on department breakdown card to filter
+  selectDepartment(deptId: number): void {
+    this.departmentIdFilter = deptId;
+    this.currentPage = 1;
+    this.loadUsersForRole();
+  }
+
+  // Handle sort direction and column
+  onSort(column: string): void {
+    if (this.sortBy === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = column;
+      this.sortDirection = 'asc';
+    }
+    this.currentPage = 1;
+    this.loadUsersForRole();
+  }
+
+  // Drawer events
+  toggleDrawer(): void {
+    this.isDrawerOpen = !this.isDrawerOpen;
+  }
+
+  onDrawerApply(values: any): void {
+    this.searchTerm = values.searchTerm || '';
+    this.statusFilter = values.statusFilter || '';
+    this.roleFilter = values.roleFilter || '';
+    this.departmentIdFilter = values.departmentIdFilter || '';
+    this.subDepartmentIdFilter = values.subDepartmentIdFilter || '';
+    this.subjectIdFilter = values.subjectIdFilter || '';
+    this.currentPage = 1;
+    this.loadUsersForRole();
+  }
+
+  onDrawerReset(): void {
+    this.resetFilters();
   }
 
   /** Role-wise user count helpers */
-  get adminCount(): number { return this.users.filter(u => u.role === 'ADMIN').length; }
-  get subAdminCount(): number { return this.users.filter(u => u.role === 'SUB_ADMIN').length; }
-  get hodCount(): number { return this.users.filter(u => u.role === 'HOD').length; }
+  get adminCount(): number { return this.stats.admins; }
+  get subAdminCount(): number { return this.stats.subAdmins; }
+  get hodCount(): number { return this.stats.hods; }
+  get teacherCount(): number { return this.stats.teachers; }
 
   /** Department-wise user breakdown */
-  get teacherCount(): number { return this.users.filter(u => u.role === 'TEACHER').length; }
-
-  get deptUserBreakdown(): { name: string; count: number; active: number; inactive: number }[] {
-    const map = new Map<string, { count: number; active: number; inactive: number }>();
-    for (const user of this.users) {
-      if (!user.departmentNames?.length) continue; // skip users with no department (no Unassigned card)
-      const depts = user.departmentNames;
-      for (const dept of depts) {
-        const entry = map.get(dept) ?? { count: 0, active: 0, inactive: 0 };
-        entry.count++;
-        if (user.status === 'ACTIVE') entry.active++; else entry.inactive++;
-        map.set(dept, entry);
-      }
-    }
-    return Array.from(map.entries())
-      .map(([name, val]) => ({ name, ...val }))
-      .sort((a, b) => b.count - a.count);
+  get deptUserBreakdown(): any[] {
+    return this.departmentBreakdown.map(d => ({
+      name: d.departmentName,
+      count: d.totalUsers,
+      active: d.active,
+      inactive: d.inactive,
+      departmentId: d.departmentId
+    }));
   }
 
   /** Change pagination page */
   changePage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) this.currentPage = page;
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.loadUsersForRole();
+    }
   }
 
   /** Handle page click with type safety */
@@ -332,8 +505,7 @@ export class ViewAllUserss implements OnInit {
   }
 
   get paginatedUsers(): userDto[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredUsers.slice(start, start + this.pageSize);
+    return this.users;
   }
 
   goToUser(userId: number): void {
