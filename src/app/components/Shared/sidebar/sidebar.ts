@@ -290,14 +290,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     // }
 
     // 9. Setting (group) — Task Template & Roles & Permissions inside it
-    if (this.hasPermission('TASK_CREATE') && this.hasPermission('AUDIT_LOG_VIEW')) {
+    if (this.role === 'SUPER_ADMIN') {
       const settingsChildren: SidebarLink[] = [];
 
       settingsChildren.push({ label: 'Task Template', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' });
 
-      if (this.hasPermission('USER_EDIT')) {
-        settingsChildren.push({ label: 'Role and Permission', route: '/roles-permissions', icon: 'bi-shield-lock-fill' });
-      }
+      settingsChildren.push({ label: 'Role and Permission', route: '/roles-permissions', icon: 'bi-shield-lock-fill' });
 
       localLinks.push({
         label: 'Setting',
