@@ -280,10 +280,13 @@ export class ViewAllUserss implements OnInit {
   get hodCount(): number { return this.users.filter(u => u.role === 'HOD').length; }
 
   /** Department-wise user breakdown */
+  get teacherCount(): number { return this.users.filter(u => u.role === 'TEACHER').length; }
+
   get deptUserBreakdown(): { name: string; count: number; active: number; inactive: number }[] {
     const map = new Map<string, { count: number; active: number; inactive: number }>();
     for (const user of this.users) {
-      const depts = user.departmentNames?.length ? user.departmentNames : ['Unassigned'];
+      if (!user.departmentNames?.length) continue; // skip users with no department (no Unassigned card)
+      const depts = user.departmentNames;
       for (const dept of depts) {
         const entry = map.get(dept) ?? { count: 0, active: 0, inactive: 0 };
         entry.count++;
