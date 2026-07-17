@@ -3,14 +3,25 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Department } from '../../../Model/department';
+import { SubDepartmentResponse } from '../../../Model/sub-department';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
-import { Subscription } from 'rxjs';
+import { of, Subscription } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../Services/modal-service';
 
+// Card colours cycling for dynamic department cards
+const CARD_COLORS = [
+  { bg: '#e8f0fe', icon: '#3d6fd4', iconClass: 'bi-building'        },
+  { bg: '#e6f9f0', icon: '#1db06a', iconClass: 'bi-person-plus-fill' },
+  { bg: '#fff4e5', icon: '#e08c00', iconClass: 'bi-mortarboard-fill' },
+  { bg: '#f3eeff', icon: '#7c4dff', iconClass: 'bi-headset'          },
+  { bg: '#fde8e8', icon: '#d43d3d', iconClass: 'bi-people-fill'      },
+  { bg: '#e8f9fd', icon: '#0d9aaf', iconClass: 'bi-diagram-2-fill'   },
+];
 
 @Component({
   selector: 'app-view-departments',
@@ -24,6 +35,23 @@ export class ViewDepartmentsComponent implements OnInit {
   departments: Department[] = [];
   filteredDepartments: Department[] = [];
 
+  // ── Card / sub-dept state ─────────────────────────────────────────────────
+  selectedDept: Department | null = null;   // null = "All Departments" view
+  subDepts: SubDepartmentResponse[] = [];
+  filteredSubDepts: SubDepartmentResponse[] = [];
+  subDeptLoading = false;
+  subDeptError: string | null = null;
+  subDeptSearchTerm = '';
+
+  // sub-dept pagination
+  subDeptCurrentPage = 1;
+  subDeptPageSize    = 8;
+  subDeptTotalPages  = 1;
+
+  // card colour helper
+  cardColor(index: number) { return CARD_COLORS[index % CARD_COLORS.length]; }
+
+  // ── Dept-table state ──────────────────────────────────────────────────────
   loading = false;
   errorMessage: string | null = null;
   isZeroDueView = false;
@@ -31,9 +59,9 @@ export class ViewDepartmentsComponent implements OnInit {
   currentPage = 1;
   pageSize = 8;
   totalPages = 1;
+
   private subscriptions = new Subscription();
   private confirmDialogService = inject(ConfirmDialogService);
-
 
   constructor(
     private apiService: DepartmentApiService,
@@ -43,8 +71,6 @@ export class ViewDepartmentsComponent implements OnInit {
     private route: ActivatedRoute
   ) {
     inject(ModalService).modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
-
-
       if (event.success) {
         if (this.isZeroDueView) {
           this.loadZeroDueDepartments();
@@ -55,7 +81,7 @@ export class ViewDepartmentsComponent implements OnInit {
     });
   }
 
- ngOnInit(): void {
+  ngOnInit(): void {
     this.subscriptions.add(
       this.route.queryParams.subscribe(params => {
         const filter = params['filter'];
@@ -69,20 +95,80 @@ export class ViewDepartmentsComponent implements OnInit {
       })
     );
   }
+
+  // ── Card click handler ────────────────────────────────────────────────────
+  selectDepartment(dept: Department): void {
+    this.selectedDept = dept;
+    this.subDeptSearchTerm = '';
+    this.subDeptError = null;
+    this.loadSubDepts(dept.departmentId);
+  }
+
+  clearDeptSelection(): void {
+    this.selectedDept = null;
+    this.subDepts = [];
+    this.filteredSubDepts = [];
+    this.subDeptSearchTerm = '';
+  }
+
+  private loadSubDepts(deptId: number): void {
+    this.subDeptLoading = true;
+    this.subDepts = [];
+    this.filteredSubDepts = [];
+
+    this.apiService.getSubDepartmentsByDepartment(deptId).pipe(
+      catchError(err => {
+        this.subDeptError = err?.message || 'Failed to load sub-departments.';
+        return of([]);
+      })
+    ).subscribe((res: SubDepartmentResponse[]) => {
+      this.subDepts = res || [];
+      this.applySubDeptFilters();
+      this.subDeptLoading = false;
+    });
+  }
+
+  applySubDeptFilters(): void {
+    this.filteredSubDepts = this.subDepts.filter(sd =>
+      !this.subDeptSearchTerm ||
+      sd.name?.toLowerCase().includes(this.subDeptSearchTerm.toLowerCase()) ||
+      sd.code?.toLowerCase().includes(this.subDeptSearchTerm.toLowerCase())
+    );
+    this.subDeptTotalPages  = Math.ceil(this.filteredSubDepts.length / this.subDeptPageSize) || 1;
+    this.subDeptCurrentPage = 1;
+  }
+
+  resetSubDeptFilters(): void {
+    this.subDeptSearchTerm = '';
+    this.applySubDeptFilters();
+  }
+
+  changeSubDeptPage(page: number): void {
+    if (page >= 1 && page <= this.subDeptTotalPages) this.subDeptCurrentPage = page;
+  }
+
+  getSubDeptPageNumbers(): number[] {
+    return Array.from({ length: this.subDeptTotalPages }, (_, i) => i + 1);
+  }
+
+  get paginatedSubDepts(): SubDepartmentResponse[] {
+    const start = (this.subDeptCurrentPage - 1) * this.subDeptPageSize;
+    return this.filteredSubDepts.slice(start, start + this.subDeptPageSize);
+  }
+
+  // ── Dept loaders ──────────────────────────────────────────────────────────
   private loadZeroDueDepartments(): void {
     this.loading = true;
     this.errorMessage = null;
 
     this.subscriptions.add(
       this.apiService.getZeroDueDepartmentsAsObjects().subscribe({
-        next: (response: any) => {   // ← use any temporarily
-          // Extract the real array
+        next: (response: any) => {
           const departmentsArray = Array.isArray(response)
             ? response
             : Array.isArray(response?.data)
               ? response.data
               : [];
-
           this.handleDepartmentResponseforZero(departmentsArray);
           this.isZeroDueView = true;
         },
@@ -92,13 +178,11 @@ export class ViewDepartmentsComponent implements OnInit {
       })
     );
   }
+
   private handleDepartmentResponseforZero(depts: any): void {
     let safeList: Department[] = [];
-    if (Array.isArray(depts)) {
-      safeList = depts;
-    } else if (depts && Array.isArray(depts.data)) {
-      safeList = depts.data;
-    }
+    if (Array.isArray(depts))                   safeList = depts;
+    else if (depts && Array.isArray(depts.data)) safeList = depts.data;
     this.departments = safeList;
     this.applyFilters();
     this.loading = false;
@@ -111,30 +195,29 @@ export class ViewDepartmentsComponent implements OnInit {
   goBackToDashboard() {
     const token = this.jwtService.getAccessToken();
     if (token) {
-      const payload = this.jwtService.decodeToken(token)
+      this.jwtService.decodeToken(token);
       this.authApiService.goToDashboard();
     } else {
       this.router.navigate(['/login']);
     }
   }
 
- private loadAllDepartments(): void {
-  this.loading = true;
+  private loadAllDepartments(): void {
+    this.loading = true;
 
-  this.apiService.getAllDepartments().subscribe({
-    next: (res: Department[]) => {
-      const activeDepartments = (res || []).filter(
-        dept => dept.departmentStatus === 'ACTIVE'
-      );
+    this.apiService.getAllDepartments().subscribe({
+      next: (res: Department[]) => {
+        const activeDepartments = (res || []).filter(
+          dept => dept.departmentStatus === 'ACTIVE'
+        );
+        this.handleDepartmentResponse(activeDepartments);
+      },
+      error: err => this.handleError(err, 'Failed to load departments.')
+    });
+  }
 
-      this.handleDepartmentResponse(activeDepartments);
-    },
-    error: err => this.handleError(err, 'Failed to load departments.')
-  });
-}
   private handleDepartmentResponse(depts: Department[]): void {
     this.departments = depts || [];
-    console.log(depts)
     this.applyFilters();
     this.loading = false;
   }
@@ -149,8 +232,7 @@ export class ViewDepartmentsComponent implements OnInit {
     this.filteredDepartments = this.departments.filter(d =>
       !this.searchTerm || d.name?.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
-
-    this.totalPages = Math.ceil(this.filteredDepartments.length / this.pageSize) || 1;
+    this.totalPages  = Math.ceil(this.filteredDepartments.length / this.pageSize) || 1;
     this.currentPage = 1;
   }
 
@@ -185,12 +267,12 @@ export class ViewDepartmentsComponent implements OnInit {
     event.stopPropagation();
     if (!departmentId) return;
 
-    // Use ConfirmDialogService for a custom confirmation modal
     this.confirmDialogService.confirm('Are you sure you want to delete this department?').then((confirmed) => {
       if (confirmed) {
         this.apiService.deleteDepartment(departmentId).subscribe({
           next: () => {
             this.departments = this.departments.filter(d => d.departmentId !== departmentId);
+            if (this.selectedDept?.departmentId === departmentId) this.clearDeptSelection();
             this.applyFilters();
           },
           error: err => this.handleError(err, 'Failed to delete department.')

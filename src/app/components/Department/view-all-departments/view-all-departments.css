@@ -166,3 +166,20 @@
     font-size: 0.8rem;
   }
 }
+
+/* ── Department Summary Cards ── */
+.dept-summary-card {
+  border: 2px solid transparent !important;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+}
+
+.dept-summary-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+.dept-card-active {
+  border-color: var(--primary-color, #4f46e5) !important;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.18) !important;
+  transform: translateY(-2px);
+}
