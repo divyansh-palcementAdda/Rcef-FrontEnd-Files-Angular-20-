@@ -572,33 +572,61 @@
         <h3 class="card-title">
           <i class="bi bi-clock-history text-primary"></i> Audit Trails &amp; Change Logs
         </h3>
-        <div class="timeline-full"
+
+        <div class="table-responsive"
              *ngIf="subDeptDetail.recentActivity && subDeptDetail.recentActivity.length > 0">
-
-          <!-- Header Row -->
-          <div class="timeline-header-row">
-            <span><i class="bi bi-clock me-1"></i>Timestamp</span>
-            <span><i class="bi bi-tag me-1"></i>Action</span>
-            <span><i class="bi bi-file-text me-1"></i>Details</span>
-            <span><i class="bi bi-person me-1"></i>Performed By</span>
-          </div>
-
-          <!-- Data Rows -->
-          <div class="timeline-row-full"
-               *ngFor="let item of subDeptDetail.recentActivity; let odd = odd"
-               [class.row-odd]="odd">
-            <div class="time-column">{{ formatDate(item.timestamp) }}</div>
-            <div class="action-column">
-              <span class="action-badge">{{ item.action }}</span>
-            </div>
-            <div class="detail-column">{{ item.details }}</div>
-            <div class="user-column">
-              <i class="bi bi-person-circle me-1"></i>
-              <strong>{{ item.performedBy }}</strong>
-            </div>
-          </div>
-
+          <table class="table table-hover align-middle mb-0" style="min-width: 700px;">
+            <thead style="background: #f4f6fb;">
+              <tr>
+                <th style="width: 60px; color: var(--text-muted, #6c757d); font-size: 0.78rem; text-transform: uppercase; letter-spacing: .05em;">
+                  <i class="bi bi-hash me-1"></i>S.No
+                </th>
+                <th style="color: var(--text-muted, #6c757d); font-size: 0.78rem; text-transform: uppercase; letter-spacing: .05em;">
+                  <i class="bi bi-clock me-1"></i>Timestamp
+                </th>
+                <th style="color: var(--text-muted, #6c757d); font-size: 0.78rem; text-transform: uppercase; letter-spacing: .05em;">
+                  <i class="bi bi-tag me-1"></i>Action
+                </th>
+                <th style="color: var(--text-muted, #6c757d); font-size: 0.78rem; text-transform: uppercase; letter-spacing: .05em;">
+                  <i class="bi bi-file-text me-1"></i>Details
+                </th>
+                <th style="color: var(--text-muted, #6c757d); font-size: 0.78rem; text-transform: uppercase; letter-spacing: .05em;">
+                  <i class="bi bi-person me-1"></i>Performed By
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of subDeptDetail.recentActivity; let i = index">
+                <td class="fw-semibold text-muted">{{ i + 1 }}</td>
+                <td class="text-muted" style="white-space: nowrap; font-size: 0.85rem;">
+                  {{ formatDate(item.timestamp) }}
+                </td>
+                <td>
+                  <span style="
+                    background: #ede9fe;
+                    color: #5b21b6;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    padding: 3px 10px;
+                    border-radius: 999px;
+                    white-space: nowrap;
+                    display: inline-block;
+                  ">{{ item.action }}</span>
+                </td>
+                <td style="font-size: 0.85rem; color: var(--text-main);">
+                  {{ item.details }}
+                </td>
+                <td style="white-space: nowrap;">
+                  <span class="d-flex align-items-center gap-1" style="font-size: 0.85rem;">
+                    <i class="bi bi-person-circle text-muted"></i>
+                    <strong>{{ item.performedBy }}</strong>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+
         <div class="empty-state"
              *ngIf="!subDeptDetail.recentActivity || subDeptDetail.recentActivity.length === 0">
           <i class="bi bi-journal-text"></i>

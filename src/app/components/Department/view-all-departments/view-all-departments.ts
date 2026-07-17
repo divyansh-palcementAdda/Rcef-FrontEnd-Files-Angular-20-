@@ -117,6 +117,7 @@ export class ViewDepartmentsComponent implements OnInit {
 
   // ── Card click handler ────────────────────────────────────────────────────
   selectDepartment(dept: Department): void {
+    this.showAllSubDepts = false;  // close All Sub-Depts panel
     this.selectedDept = dept;
     this.subDeptSearchTerm = '';
     this.subDeptError = null;
@@ -178,6 +179,9 @@ export class ViewDepartmentsComponent implements OnInit {
   // ── All Sub-Departments handlers ──────────────────────────────────────────
   openAllSubDepts(): void {
     this.showAllSubDepts = true;
+    this.selectedDept = null;        // close per-dept panel
+    this.subDepts = [];
+    this.filteredSubDepts = [];
     this.allSubDeptsSearchTerm = '';
     this.allSubDeptsError = null;
     if (this.allSubDepts.length === 0) {

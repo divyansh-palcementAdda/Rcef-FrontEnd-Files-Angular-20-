@@ -20,8 +20,10 @@
     </button>
   </div>
 
-  <!-- Summary Stat Cards (static) -->
+  <!-- Summary Stat Cards + Department Cards (single row, responsive) -->
   <div class="row g-3 mb-4">
+
+    <!-- Total Departments stat card -->
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center gap-3 p-3">
@@ -35,6 +37,8 @@
         </div>
       </div>
     </div>
+
+    <!-- Total Sub-Departments stat card (clickable) -->
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm h-100"
            style="cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;"
@@ -51,40 +55,44 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Department Cards (dynamic from API) -->
-  <div *ngIf="loading" class="text-center my-4 py-2">
-    <div class="spinner-border text-primary spinner mb-2" role="status"></div>
-    <p class="text-muted small">Loading departments…</p>
-  </div>
-
-  <div class="row g-3 mb-4" *ngIf="!loading && departments.length">
-    <div class="col-6 col-md-3" *ngFor="let dept of departments; let i = index">
-      <div
-        class="card border-0 shadow-sm h-100 dept-summary-card"
-        [class.dept-card-active]="selectedDept?.departmentId === dept.departmentId"
-        (click)="selectDepartment(dept)"
-        style="cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;">
-        <div class="card-body d-flex align-items-center gap-3 p-3">
-          <div class="rounded-3 p-2 flex-shrink-0"
-               [style.background]="cardColor(i).bg">
-            <i class="fs-4" [class]="'bi ' + cardColor(i).iconClass"
-               [style.color]="cardColor(i).icon"></i>
-          </div>
-          <div class="overflow-hidden">
-            <div class="text-muted small text-truncate">{{ dept.name }}</div>
-            <div class="fw-bold fs-6" style="color: var(--text-main);">
-              <span class="badge rounded-pill"
-                    [style.background]="cardColor(i).bg"
-                    [style.color]="cardColor(i).icon">
-                {{ dept.departmentStatus }}
-              </span>
+    <!-- Department Cards (dynamic from API) -->
+    <ng-container *ngIf="!loading && departments.length">
+      <div class="col-6 col-md-3" *ngFor="let dept of departments; let i = index">
+        <div
+          class="card border-0 shadow-sm h-100 dept-summary-card"
+          [class.dept-card-active]="selectedDept?.departmentId === dept.departmentId"
+          (click)="selectDepartment(dept)"
+          style="cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;">
+          <div class="card-body d-flex align-items-center gap-3 p-3">
+            <div class="rounded-3 p-2 flex-shrink-0"
+                 [style.background]="cardColor(i).bg">
+              <i class="fs-4" [class]="'bi ' + cardColor(i).iconClass"
+                 [style.color]="cardColor(i).icon"></i>
+            </div>
+            <div class="overflow-hidden">
+              <div class="text-muted small text-truncate">{{ dept.name }}</div>
+              <div class="fw-bold fs-6" style="color: var(--text-main);">
+                <span class="badge rounded-pill"
+                      [style.background]="cardColor(i).bg"
+                      [style.color]="cardColor(i).icon">
+                  {{ dept.departmentStatus }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+    </ng-container>
+
+    <!-- Loading spinner inline -->
+    <div class="col-12" *ngIf="loading">
+      <div class="text-center my-2 py-2">
+        <div class="spinner-border text-primary spinner mb-2" role="status"></div>
+        <p class="text-muted small">Loading departments…</p>
+      </div>
     </div>
+
   </div>
 
   <!-- ── All Sub-Departments Panel (shown on stat card click) ──────────── -->
@@ -100,9 +108,9 @@
           </h5>
           <small class="text-muted">{{ filteredAllSubDepts.length }} sub-department(s) found</small>
         </div>
-        <button class="btn btn-sm btn-outline-secondary" (click)="closeAllSubDepts()">
+        <!-- <button class="btn btn-sm btn-outline-secondary" (click)="closeAllSubDepts()">
           <i class="bi bi-x-lg me-1"></i>Close
-        </button>
+        </button> -->
       </div>
 
       <!-- Error -->
@@ -237,7 +245,7 @@
   <div class="card border-0 mb-4" *ngIf="selectedDept">
     <div class="card-body p-4">
 
-      <!-- Section heading with back button -->
+      <!-- Section heading -->
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
           <h5 class="fw-bold mb-0" style="color: var(--text-main);">
@@ -246,17 +254,9 @@
           </h5>
           <small class="text-muted">{{ subDepts.length }} sub-department(s) found</small>
         </div>
-        <button class="btn btn-sm btn-outline-secondary" (click)="clearDeptSelection()">
-          <i class="bi bi-x-lg me-1"></i>Close
-        </button>
       </div>
 
       <!-- Sub-dept error -->
-      <div *ngIf="subDeptError"
-        class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ subDeptError }}
-        <button type="button" class="btn-close" (click)="subDeptError = null" aria-label="Close"></button>
-      </div>
 
       <!-- Sub-dept loading -->
       <div *ngIf="subDeptLoading" class="text-center my-4">
