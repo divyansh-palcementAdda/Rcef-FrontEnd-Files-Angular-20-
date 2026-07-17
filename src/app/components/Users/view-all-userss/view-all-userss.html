@@ -16,9 +16,139 @@
       <button class="btn btn-outline-primary" (click)="goToBulkImport()" *ngIf="hasPermission('USER_CREATE')">
         <i class="bi bi-file-earmark-excel-fill me-1"></i>Bulk Upload
       </button>
-      <button class="btn btn-primary" (click)="downloadTemplate()">
+      <button class="btn btn-outline-secondary" (click)="downloadTemplate()">
         <i class="bi bi-download me-1"></i>Download Template
       </button>
+      <button class="btn btn-primary" (click)="openAddUserModal()" *ngIf="hasPermission('USER_CREATE')">
+        <i class="bi bi-person-plus-fill me-1"></i>Add User
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="d-flex gap-3 mb-4 flex-wrap">
+    <!-- Total Users -->
+    <div class="stats-card flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm">
+      <div class="stats-card-icon d-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10"
+        style="width:52px;height:52px;min-width:52px;">
+        <i class="bi bi-people-fill text-primary fs-4"></i>
+      </div>
+      <div>
+        <p class="text-muted small mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Total Users</p>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ users.length }}</h4>
+      </div>
+    </div>
+
+    <!-- Total Departments -->
+    <div class="stats-card flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm">
+      <div class="stats-card-icon d-flex align-items-center justify-content-center rounded-3 bg-success bg-opacity-10"
+        style="width:52px;height:52px;min-width:52px;">
+        <i class="bi bi-building-fill text-success fs-4"></i>
+      </div>
+      <div>
+        <p class="text-muted small mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Total Departments</p>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ availableDepartments.length }}</h4>
+      </div>
+    </div>
+
+    <!-- Total Sub-Departments -->
+    <div class="stats-card flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm">
+      <div class="stats-card-icon d-flex align-items-center justify-content-center rounded-3 bg-warning bg-opacity-10"
+        style="width:52px;height:52px;min-width:52px;">
+        <i class="bi bi-diagram-3-fill text-warning fs-4"></i>
+      </div>
+      <div>
+        <p class="text-muted small mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Total Sub-Departments</p>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ totalSubDepartments }}</h4>
+      </div>
+    </div>
+  </div>
+
+  <!-- Department-wise User Breakdown -->
+  <div class="mb-4">
+    <h6 class="fw-bold mb-3" style="color:var(--text-main);font-size:1rem;">
+      <i class="bi bi-bar-chart-steps me-2 text-primary"></i>Department wise User Breakdown
+    </h6>
+    <div class="d-flex flex-wrap gap-3">
+      <div *ngFor="let dept of deptUserBreakdown"
+        class="dept-breakdown-card flex-fill d-flex flex-column justify-content-between p-3 rounded-3 border bg-white shadow-sm"
+        style="min-width:180px;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="d-flex align-items-center justify-content-center rounded-2 bg-primary bg-opacity-10"
+            style="width:36px;height:36px;min-width:36px;">
+            <i class="bi bi-building text-primary"></i>
+          </div>
+          <span class="fw-semibold text-truncate" style="color:var(--text-main);font-size:0.88rem;" [title]="dept.name">
+            {{ dept.name }}
+          </span>
+        </div>
+        <div class="d-flex align-items-end justify-content-between">
+          <div>
+            <p class="text-muted mb-0" style="font-size:0.7rem;letter-spacing:.05em;">TOTAL USERS</p>
+            <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ dept.count }}</h4>
+          </div>
+          <div class="d-flex flex-column align-items-end gap-1">
+            <span class="badge bg-success bg-opacity-75 rounded-pill" style="font-size:0.7rem;">
+              <i class="bi bi-person-check me-1"></i>{{ dept.active }} Active
+            </span>
+            <span class="badge bg-secondary bg-opacity-75 rounded-pill" style="font-size:0.7rem;">
+              <i class="bi bi-person-dash me-1"></i>{{ dept.inactive }} Inactive
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fallback if no data yet -->
+      <div *ngIf="!loading && deptUserBreakdown.length === 0"
+        class="text-muted small py-3 px-2">
+        <i class="bi bi-info-circle me-1"></i>No department data available.
+      </div>
+    </div>
+  </div>
+
+  <!-- Role-wise User Breakdown -->
+  <div class="mb-4">
+    <h6 class="fw-bold mb-3" style="color:var(--text-main);font-size:1rem;">
+      <i class="bi bi-person-badge me-2 text-primary"></i>Role wise User Breakdown
+    </h6>
+    <div class="d-flex gap-3 flex-wrap">
+
+      <!-- Admin -->
+      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm" style="min-width:180px;">
+        <div class="d-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10"
+          style="width:52px;height:52px;min-width:52px;">
+          <i class="bi bi-shield-fill-check text-primary fs-4"></i>
+        </div>
+        <div>
+          <p class="text-muted mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Admin</p>
+          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ adminCount }}</h4>
+        </div>
+      </div>
+
+      <!-- Sub Admin -->
+      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm" style="min-width:180px;">
+        <div class="d-flex align-items-center justify-content-center rounded-3 bg-info bg-opacity-10"
+          style="width:52px;height:52px;min-width:52px;">
+          <i class="bi bi-person-fill-gear text-info fs-4"></i>
+        </div>
+        <div>
+          <p class="text-muted mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">Sub Admin</p>
+          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ subAdminCount }}</h4>
+        </div>
+      </div>
+
+      <!-- HODs -->
+      <div class="flex-fill d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm" style="min-width:180px;">
+        <div class="d-flex align-items-center justify-content-center rounded-3 bg-warning bg-opacity-10"
+          style="width:52px;height:52px;min-width:52px;">
+          <i class="bi bi-person-workspace text-warning fs-4"></i>
+        </div>
+        <div>
+          <p class="text-muted mb-1 fw-semibold text-uppercase" style="font-size:0.7rem;letter-spacing:.06em;">HODs</p>
+          <h4 class="fw-bold mb-0" style="color:var(--text-main);">{{ hodCount }}</h4>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -99,22 +229,25 @@
               </td>
               <td class="text-end" (click)="$event.stopPropagation()">
                 <div class="row-actions">
-                  <button class="btn btn-sm btn-outline-primary py-1 px-2.5" (click)="viewUser($event, user.userId)"
-                    title="View profile">
+                  <button class="action-icon-btn" (click)="viewUser($event, user.userId)" title="View profile">
                     <i class="bi bi-eye"></i>
+                  </button>
+
+                  <!-- Edit Button (non-HOD only) -->
+                  <button *ngIf="currentRole !== 'HOD'"
+                    class="action-icon-btn" (click)="openEditUserModal($event, user.userId)" title="Edit User">
+                    <i class="bi bi-pencil-square"></i>
                   </button>
 
                   <!-- Activate Button (only for INACTIVE users, non-HOD) -->
                   <button *ngIf="currentRole !== 'HOD' && user?.status === 'INACTIVE'"
-                    class="btn btn-sm btn-outline-success py-1 px-2.5" (click)="activateUser($event, user.userId)"
-                    title="Activate User">
+                    class="action-icon-btn" (click)="activateUser($event, user.userId)" title="Activate User">
                     <i class="bi bi-person-check"></i>
                   </button>
 
                   <!-- Delete/Deactivate Button (only for ACTIVE users, non-HOD) -->
                   <button *ngIf="currentRole !== 'HOD' && user?.status === 'ACTIVE'"
-                    class="btn btn-sm btn-outline-danger py-1 px-2.5" (click)="deleteUser($event, user.userId)"
-                    title="Deactivate User">
+                    class="action-icon-btn" (click)="deleteUser($event, user.userId)" title="Deactivate User">
                     <i class="bi bi-person-x"></i>
                   </button>
                 </div>
@@ -141,17 +274,23 @@
           <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
             <span class="badge bg-light text-dark">{{ user.role }}</span>
             <div class="d-flex gap-1" (click)="$event.stopPropagation()">
-              <button class="btn btn-sm btn-outline-primary py-1 px-2.5" (click)="viewUser($event, user.userId)">
+              <button class="action-icon-btn" (click)="viewUser($event, user.userId)" title="View profile">
                 <i class="bi bi-eye"></i>
               </button>
 
+              <!-- Edit Button (non-HOD only) -->
+              <button *ngIf="currentRole !== 'HOD'"
+                class="action-icon-btn" (click)="openEditUserModal($event, user.userId)" title="Edit User">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+
               <button *ngIf="currentRole !== 'HOD' && user?.status === 'INACTIVE'"
-                class="btn btn-sm btn-outline-success py-1 px-2.5" (click)="activateUser($event, user.userId)">
+                class="action-icon-btn" (click)="activateUser($event, user.userId)" title="Activate User">
                 <i class="bi bi-person-check"></i>
               </button>
 
               <button *ngIf="currentRole !== 'HOD' && user?.status === 'ACTIVE'"
-                class="btn btn-sm btn-outline-danger py-1 px-2.5" (click)="deleteUser($event, user.userId)">
+                class="action-icon-btn" (click)="deleteUser($event, user.userId)" title="Deactivate User">
                 <i class="bi bi-person-x"></i>
               </button>
             </div>
@@ -187,6 +326,363 @@
             </li>
           </ul>
         </nav>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== Edit User Modal ===================== -->
+<div class="modal-backdrop-custom" *ngIf="showEditUserModal" (click)="closeEditUserModal(false)"></div>
+<div class="modal fade" [class.show]="showEditUserModal" [style.display]="showEditUserModal ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="editUserModalLabel" [attr.aria-hidden]="!showEditUserModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title fw-bold mb-0" id="editUserModalLabel">
+            <i class="bi bi-pencil-square me-2 text-warning"></i>Edit User
+          </h5>
+          <p class="text-muted small mb-0">Update user account details</p>
+        </div>
+        <button type="button" class="btn-close" (click)="closeEditUserModal(false)" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <app-edit-user
+          *ngIf="showEditUserModal && editUserId"
+          [userId]="editUserId!"
+          [isModal]="true"
+          (closed)="closeEditUserModal($event)">
+        </app-edit-user>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== Add User Modal ===================== -->
+<div class="modal-backdrop-custom" *ngIf="showAddUserModal" (click)="closeAddUserModal()"></div>
+<div class="modal fade" [class.show]="showAddUserModal" [style.display]="showAddUserModal ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="addUserModalLabel" [attr.aria-hidden]="!showAddUserModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title fw-bold mb-0" id="addUserModalLabel">
+            <i class="bi bi-person-plus-fill me-2 text-primary"></i>Add New User
+          </h5>
+          <p class="text-muted small mb-0">Create and configure a new user account</p>
+        </div>
+        <button type="button" class="btn-close" (click)="closeAddUserModal()" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-4" (click)="closeAllDropdowns($event)">
+
+        <!-- Alerts -->
+        <div *ngIf="addUserSuccess" class="alert alert-success alert-dismissible fade show mb-3">
+          <i class="bi bi-check-circle-fill me-2"></i>{{ addUserSuccess }}
+          <button type="button" class="btn-close" (click)="addUserSuccess = null"></button>
+        </div>
+        <div *ngIf="addUserError" class="alert alert-danger alert-dismissible fade show mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ addUserError }}
+          <button type="button" class="btn-close" (click)="addUserError = null"></button>
+        </div>
+
+        <!-- ── Section 1: Personal Information ── -->
+        <div class="modal-section-card mb-3">
+          <div class="modal-section-header">
+            <div class="modal-section-icon"><i class="bi bi-person"></i></div>
+            <div>
+              <h6 class="modal-section-title">Personal Information</h6>
+              <p class="modal-section-subtitle">Set real name and verify email with OTP</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <!-- Full Name -->
+            <div class="col-md-6">
+              <label class="form-label">Full Name <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" class="form-control" name="mu_fullName"
+                  [(ngModel)]="addUserPayload.fullName" placeholder="e.g. John Doe">
+              </div>
+            </div>
+            <!-- Email + OTP -->
+            <div class="col-md-6">
+              <label class="form-label">Email <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input type="email" class="form-control" name="mu_email"
+                  [(ngModel)]="addUserPayload.email" [readonly]="addUserOtpValidated"
+                  placeholder="e.g. john@example.com">
+                <button type="button" class="btn btn-outline-primary" (click)="sendAddUserOtp()"
+                  [disabled]="addUserOtpValidated || addUserOtpSending">
+                  <span *ngIf="addUserOtpSending" class="spinner-border spinner-border-sm"></span>
+                  <span *ngIf="!addUserOtpSending">{{ addUserOtpValidated ? '✓ Verified' : 'Send OTP' }}</span>
+                </button>
+              </div>
+              <small class="text-muted">Verification code will be sent to this email.</small>
+            </div>
+            <!-- OTP Input -->
+            <div class="col-md-6" *ngIf="addUserOtpSent && !addUserOtpValidated">
+              <label class="form-label">Enter OTP <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+                <input type="text" class="form-control" name="mu_otp"
+                  [(ngModel)]="addUserOtpInput" placeholder="6-digit OTP">
+                <button type="button" class="btn btn-outline-success" (click)="verifyAddUserOtp()">Verify</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 2: Account Credentials ── -->
+        <div class="modal-section-card mb-3">
+          <div class="modal-section-header">
+            <div class="modal-section-icon"><i class="bi bi-shield-lock"></i></div>
+            <div>
+              <h6 class="modal-section-title">Account Credentials</h6>
+              <p class="modal-section-subtitle">Set login username and password</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <!-- Username -->
+            <div class="col-md-6">
+              <label class="form-label">Username <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">@</span>
+                <input type="text" class="form-control" name="mu_username"
+                  [(ngModel)]="addUserPayload.username" placeholder="e.g. john_doe">
+              </div>
+              <small class="text-muted">Alphanumeric, dots, hyphens, underscores.</small>
+            </div>
+            <!-- Password -->
+            <div class="col-md-6">
+              <label class="form-label">Password <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                <input [type]="showAddUserPassword ? 'text' : 'password'" class="form-control" name="mu_password"
+                  [(ngModel)]="addUserPayload.password" (ngModelChange)="onAddUserPasswordChange($event)"
+                  placeholder="Create a strong password">
+                <button type="button" class="btn btn-outline-secondary"
+                  (click)="showAddUserPassword = !showAddUserPassword">
+                  <i class="bi" [ngClass]="showAddUserPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                </button>
+              </div>
+              <div class="progress mt-2" style="height: 6px;">
+                <div class="progress-bar" [style.width.%]="addUserPwdStrength.score"
+                  [style.background-color]="addUserPwdStrength.color"></div>
+              </div>
+              <small class="text-muted">{{ addUserPwdStrength.label }} password strength</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 3: Role & Hierarchy ── -->
+        <div class="modal-section-card mb-3">
+          <div class="modal-section-header">
+            <div class="modal-section-icon"><i class="bi bi-person-badge"></i></div>
+            <div>
+              <h6 class="modal-section-title">Role & Hierarchy</h6>
+              <p class="modal-section-subtitle">Set role and reporting line supervisor</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <!-- Role -->
+            <div class="col-md-6">
+              <label class="form-label">System Role <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                <select class="form-select" name="mu_role" [(ngModel)]="addUserPayload.roleName"
+                  (ngModelChange)="onAddUserRoleChange($event)">
+                  <option value="">Select Role</option>
+                  <option *ngFor="let r of addUserRoles" [value]="r">{{ r }}</option>
+                </select>
+              </div>
+            </div>
+            <!-- Reporting Managers -->
+            <div class="col-md-6" *ngIf="addUserPayload.roleName && addUserPayload.roleName !== 'SUPER_ADMIN'">
+              <label class="form-label">Reporting Managers <span class="text-danger">*</span></label>
+              <div class="custom-multiselect-container position-relative" (click)="$event.stopPropagation()">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-1 p-2 border rounded-3"
+                  (click)="addUserShowManagerDrop = !addUserShowManagerDrop; addUserShowSubDeptDrop = false; addUserShowSubjectDrop = false">
+                  <span *ngFor="let id of addUserPayload.reportingManagerIds"
+                    class="badge bg-primary d-flex align-items-center gap-1 py-1 px-2 rounded-pill">
+                    {{ getAddUserManagerName(id) }}
+                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size:0.6rem"
+                      (click)="removeAddUserManager(id, $event)"></button>
+                  </span>
+                  <input type="text" class="flex-grow-1 border-0 bg-transparent py-1 px-1"
+                    placeholder="🔍 Search Manager..." style="outline:none;min-width:120px;height:28px"
+                    [(ngModel)]="addUserManagerSearch" [ngModelOptions]="{standalone:true}"
+                    (focus)="addUserShowManagerDrop=true; addUserShowSubDeptDrop=false; addUserShowSubjectDrop=false" (click)="$event.stopPropagation()" name="mu_mgr_search">
+                </div>
+                <div *ngIf="addUserShowManagerDrop && filteredAddUserManagers().length > 0"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3"
+                  style="z-index:1060;max-height:200px;overflow-y:auto;background:var(--card-bg,#fff)">
+                  <div *ngFor="let mgr of filteredAddUserManagers()"
+                    class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                    (mousedown)="toggleAddUserManager(mgr.userId, $event)" style="cursor:pointer">
+                    <input type="checkbox" class="form-check-input" style="pointer-events:none"
+                      [checked]="addUserPayload.reportingManagerIds.includes(mgr.userId)">
+                    <span>{{ mgr.fullName }} ({{ mgr.role }})</span>
+                  </div>
+                </div>
+                <div *ngIf="addUserShowManagerDrop && filteredAddUserManagers().length === 0"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 p-3 text-center text-muted"
+                  style="z-index:1060;background:var(--card-bg,#fff)">No managers found.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 4: Department & Sub-Department ── -->
+        <div class="modal-section-card mb-3"
+          *ngIf="addUserPayload.roleName && addUserPayload.roleName !== 'SUPER_ADMIN'">
+          <div class="modal-section-header">
+            <div class="modal-section-icon"><i class="bi bi-diagram-3"></i></div>
+            <div>
+              <h6 class="modal-section-title">Department & Sub-Department</h6>
+              <p class="modal-section-subtitle">Select organisation units and scopes</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <!-- Sub-Departments (HOD / TEACHER only) -->
+            <div class="col-md-6"
+              *ngIf="(addUserPayload.roleName === 'HOD' || addUserPayload.roleName === 'TEACHER') && addUserSubDepts.length > 0">
+              <label class="form-label">Sub-Departments <span class="text-danger">*</span></label>
+              <div class="custom-multiselect-container position-relative" (click)="$event.stopPropagation()">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-1 p-2 border rounded-3"
+                  (click)="addUserShowSubDeptDrop = !addUserShowSubDeptDrop; addUserShowManagerDrop = false; addUserShowSubjectDrop = false">
+                  <span *ngFor="let id of addUserPayload.subDepartmentIds"
+                    class="badge bg-primary d-flex align-items-center gap-1 py-1 px-2 rounded-pill">
+                    {{ getAddUserSubDeptName(id) }}
+                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size:0.6rem"
+                      (click)="removeAddUserSubDept(id, $event)"></button>
+                  </span>
+                  <span *ngIf="addUserPayload.subDepartmentIds.length === 0" class="text-muted small px-2">
+                    Select Sub-Departments...</span>
+                </div>
+                <div *ngIf="addUserShowSubDeptDrop"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3"
+                  style="z-index:1060;max-height:200px;overflow-y:auto;background:var(--card-bg,#fff)">
+                  <div *ngFor="let sub of addUserSubDepts"
+                    class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                    (mousedown)="toggleAddUserSubDept(sub.id, $event)" style="cursor:pointer">
+                    <input type="checkbox" class="form-check-input" style="pointer-events:none"
+                      [checked]="addUserPayload.subDepartmentIds.includes(sub.id)">
+                    <span>{{ sub.name }} <span *ngIf="sub.code">({{ sub.code }})</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Subjects multiselect (loads from selected sub-departments / departments) -->
+            <div class="col-md-6">
+              <label class="form-label">Subjects</label>
+              <div class="custom-multiselect-container position-relative" (click)="$event.stopPropagation()">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-1 p-2 border rounded-3"
+                  (click)="addUserShowSubjectDrop = !addUserShowSubjectDrop; addUserShowManagerDrop = false; addUserShowSubDeptDrop = false">
+                  <span *ngFor="let id of addUserSelectedSubjectIds"
+                    class="badge bg-primary d-flex align-items-center gap-1 py-1 px-2 rounded-pill">
+                    {{ getAddUserSubjectName(id) }}
+                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size:0.6rem"
+                      (click)="removeAddUserSubject(id, $event)"></button>
+                  </span>
+                  <input type="text" class="flex-grow-1 border-0 bg-transparent py-1 px-1"
+                    placeholder="🔍 Search Subject..."
+                    style="outline:none;min-width:120px;height:28px"
+                    [(ngModel)]="addUserSubjectSearch" [ngModelOptions]="{standalone:true}"
+                    (focus)="addUserShowSubjectDrop=true; addUserShowManagerDrop=false; addUserShowSubDeptDrop=false"
+                    (click)="$event.stopPropagation()" name="mu_subj_search">
+                </div>
+                <div *ngIf="addUserShowSubjectDrop && filteredAddUserSubjects().length > 0"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3"
+                  style="z-index:1060;max-height:200px;overflow-y:auto;background:var(--card-bg,#fff)">
+                  <div *ngFor="let subj of filteredAddUserSubjects()"
+                    class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                    (mousedown)="toggleAddUserSubject(subj.id, $event)" style="cursor:pointer">
+                    <input type="checkbox" class="form-check-input" style="pointer-events:none"
+                      [checked]="addUserSelectedSubjectIds.includes(subj.id)">
+                    <span>{{ subj.subjectName }}
+                      <span *ngIf="subj.subjectCode" class="text-muted">({{ subj.subjectCode }})</span>
+                    </span>
+                  </div>
+                </div>
+                <div *ngIf="addUserShowSubjectDrop && filteredAddUserSubjects().length === 0"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 p-3 text-center text-muted"
+                  style="z-index:1060;background:var(--card-bg,#fff)">
+                  {{ addUserSubjects.length === 0 ? 'Select a sub-department or department first.' : 'No matching subjects.' }}
+                </div>
+              </div>
+              <small class="text-muted">Select one or more subjects for this user.</small>
+            </div>
+
+            <!-- Department checkboxes -->
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <label class="form-label mb-0 fw-semibold">Select Departments <span class="text-danger">*</span></label>
+                <div class="col-md-4">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-0 bg-transparent" placeholder="Search departments..."
+                      [(ngModel)]="addUserDeptSearch" [ngModelOptions]="{standalone:true}" name="mu_dept_search">
+                  </div>
+                </div>
+              </div>
+              <div class="department-list p-3 rounded border" style="max-height:180px;overflow-y:auto;background:var(--bg-color,#f8f9fa)">
+                <div *ngFor="let dept of filteredAddUserDepts()" class="form-check mb-2">
+                  <input type="checkbox" class="form-check-input" [id]="'modal-dept-' + dept.departmentId"
+                    [checked]="addUserPayload.departmentIds.includes(dept.departmentId)"
+                    (change)="toggleAddUserDept($event, dept.departmentId)"
+                    [disabled]="isAddUserDeptDisabled(dept.departmentId)">
+                  <label class="form-check-label" [for]="'modal-dept-' + dept.departmentId">
+                    {{ dept.name }}
+                    <span *ngIf="isAddUserDeptDisabled(dept.departmentId)" class="text-muted small ms-1">(Restricted)</span>
+                  </label>
+                </div>
+                <div *ngIf="filteredAddUserDepts().length === 0" class="text-muted small text-center py-2">
+                  No departments found.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 5: Permissions Info ── -->
+        <div class="modal-section-card mb-3" *ngIf="addUserPayload.roleName">
+          <div class="modal-section-header">
+            <div class="modal-section-icon"><i class="bi bi-shield-check"></i></div>
+            <div>
+              <h6 class="modal-section-title">System Permissions</h6>
+              <p class="modal-section-subtitle">Permissions governed by role</p>
+            </div>
+          </div>
+          <div class="alert alert-secondary mb-0 py-2 d-flex align-items-start gap-2 bg-light border text-muted">
+            <i class="bi bi-info-circle-fill text-primary fs-5 mt-1"></i>
+            <span style="font-size:0.85rem;line-height:1.4">
+              Permissions are automatically inherited based on the selected role
+              (<strong>{{ addUserPayload.roleName }}</strong>). Administrators can review and override specific
+              permissions inside the <strong>Roles &amp; Permissions</strong> dashboard.
+            </span>
+          </div>
+        </div>
+
+      </div><!-- /modal-body -->
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary px-4" (click)="closeAddUserModal()"
+          [disabled]="addUserLoading">Cancel</button>
+        <button type="button" class="btn btn-primary px-5" (click)="submitAddUser()"
+          [disabled]="addUserLoading || !addUserOtpValidated">
+          <span *ngIf="addUserLoading" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!addUserLoading" class="bi bi-person-check-fill me-1"></i>
+          {{ addUserLoading ? 'Creating...' : 'Add User' }}
+        </button>
       </div>
 
     </div>
