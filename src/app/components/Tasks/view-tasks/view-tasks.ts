@@ -14,6 +14,13 @@ import { AuthApiService } from '../../../Services/auth-api-service';
 import { ModalService } from '../../../Services/modal-service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { AuthorizationService } from '../../../Services/authorization.service';
+import { DepartmentApiService } from '../../../Services/department-api-service';
+import { SubjectApiService } from '../../../Services/subject-api.service';
+import { TaskTemplateApiService, TaskTemplateDto } from '../../../Services/task-template-api.service';
+import { TaskDashboardAnalyticsDto } from '../../../Services/task-api-Service';
+import { Department } from '../../../Model/department';
+import { SubjectDto } from '../../../Model/subject';
+
 
 
 interface ApiResponse<T> {
@@ -57,6 +64,19 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   categoryFilter = '';
   templateFilter = '';
 
+  // Dynamic dropdown option lists
+  departmentsList: Department[] = [];
+  templatesList: TaskTemplateDto[] = [];
+  subjectsList: SubjectDto[] = [];
+  usersList: userDto[] = [];
+
+  // Filter Bindings for dynamic synchronization
+  departmentIdFilter: number | '' = '';
+  templateIdFilter: number | '' = '';
+  subjectIdFilter: number | '' = '';
+  userIdFilter: number | '' = '';
+  priorityFilter: string = '';
+
   // Sorting
   sortBy = 'createdAt';
   sortDirection = 'desc';
@@ -72,7 +92,23 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   currentUserRole: string | null = null;
   currentUserDeptIds: number[] = [];
 
-  // Stats
+  // Analytics response DTO
+  analyticsData: TaskDashboardAnalyticsDto = {
+    overview: { totalTasks: 0, templateTasks: 0, generalTasks: 0, pending: 0, upcoming: 0, inProgress: 0, completed: 0, closed: 0, delayed: 0, extended: 0, requestForClosure: 0, requestForExtension: 0 },
+    departmentBreakdown: [],
+    templateVsGeneral: {
+      templateTasks: { total: 0, pending: 0, inProgress: 0, completed: 0, closed: 0, delayed: 0, extended: 0 },
+      generalTasks: { total: 0, pending: 0, inProgress: 0, completed: 0, closed: 0, delayed: 0, extended: 0 }
+    },
+    templateBreakdown: [],
+    statusBreakdown: [],
+    priorityBreakdown: [],
+    userBreakdown: [],
+    subjectBreakdown: [],
+    charts: []
+  };
+
+  // Stats (Backward compatibility)
   taskStats: {
     total: number;
     active: number;
@@ -95,7 +131,6 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     extensionRequests: 0,
     closureRequests: 0,
     upcoming: 0,
-    // Keep for backward compatibility
     delayed: 0,
     In_PROGRESS: 0
   };
@@ -112,10 +147,47 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private jwtService: JwtService,
-    private authApiService: AuthApiService
+    private authApiService: AuthApiService,
+    private departmentService: DepartmentApiService,
+    private subjectService: SubjectApiService,
+    private templateService: TaskTemplateApiService
   ) { }
 
+  loadDropdownOptions(): void {
+    this.departmentService.getAllDepartments().subscribe({
+      next: (depts) => {
+        this.departmentsList = depts || [];
+      },
+      error: (err) => console.error('Failed to load departments', err)
+    });
+
+    this.templateService.getAllTemplates().subscribe({
+      next: (res) => {
+        if (res && res.success && res.data) {
+          this.templatesList = res.data;
+        }
+      },
+      error: (err) => console.error('Failed to load templates', err)
+    });
+
+    this.subjectService.getAllSubjects().subscribe({
+      next: (subs) => {
+        this.subjectsList = subs || [];
+      },
+      error: (err) => console.error('Failed to load subjects', err)
+    });
+
+    this.userService.getAllUsers().subscribe({
+      next: (users) => {
+        this.usersList = users || [];
+      },
+      error: (err) => console.error('Failed to load users', err)
+    });
+  }
+
   ngOnInit(): void {
+
+    this.loadDropdownOptions();
     // Subscribe to queryParams (not snapshot) so it re-fires on every navigation
     // to this same route — this correctly resets filters when sidebar/dashboard
     // links navigate to /view-tasks with different or no query params.
@@ -123,6 +195,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       this.route.queryParams.subscribe(params => {
         const status = params['status'];
         this.statusFilter = status ? status.toUpperCase() : '';
+
 
         if (this.statusFilter === 'IN_PROGRESS') {
           this.selectedCard = 'active';
@@ -166,6 +239,8 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     );
   }
 
+  taskTypeFilter: string = '';
+
   /** Load current user → then load tasks. Safe to call for refresh button. */
   loadCurrentUserAndTasks(): void {
     const token = this.jwtService.getAccessToken();
@@ -183,6 +258,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     // If user info already loaded, skip profile fetch and go straight to tasks
     if (this.currentUserId === userId && this.currentUserRole !== null) {
       this.loadTasksFromServer();
+      this.loadAnalyticsFromServer();
       return;
     }
 
@@ -196,6 +272,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
           this.currentUserRole = user.role;
           this.currentUserDeptIds = user.departmentIds || [];
           this.loadTasksFromServer();
+          this.loadAnalyticsFromServer();
         },
         error: (err) => {
           console.error('Failed to load user profile:', err);
@@ -206,19 +283,14 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     );
   }
 
-  loadTasksFromServer(): void {
-    this.loading = true;
-    this.loadingMessage = 'Loading tasks...';
-
+  buildFilterParams(): any {
     const params: any = {
-      page: this.currentPage - 1,
-      size: this.pageSize,
-      sortBy: this.sortBy,
-      sortDirection: this.sortDirection,
       search: this.searchTerm
     };
 
-    if (this.departmentFilter) {
+    if (this.departmentIdFilter) {
+      params.departmentId = this.departmentIdFilter;
+    } else if (this.departmentFilter) {
       params.departmentName = this.departmentFilter;
     }
 
@@ -226,11 +298,31 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       params.category = this.categoryFilter;
     }
 
-    if (this.templateFilter) {
+    if (this.templateIdFilter) {
+      const tpl = this.templatesList.find(t => t.id === this.templateIdFilter);
+      if (tpl) {
+        params.templateTitle = tpl.title;
+      }
+    } else if (this.templateFilter) {
       params.templateTitle = this.templateFilter;
     }
 
-    // Map status filter from the toolbar select dropdown
+    if (this.subjectIdFilter) {
+      params.subjectId = this.subjectIdFilter;
+    }
+
+    if (this.userIdFilter) {
+      params.assignedUserId = this.userIdFilter;
+    }
+
+    if (this.priorityFilter) {
+      params.priority = this.priorityFilter;
+    }
+
+    if (this.taskTypeFilter) {
+      params.taskType = this.taskTypeFilter;
+    }
+
     if (this.statusFilter) {
       if (this.statusFilter === 'SELF') {
         params.assignedUserId = this.currentUserId;
@@ -253,7 +345,6 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Map selected KPI card filter (which overrides or strengthens the status filter)
     if (this.selectedCard === 'active') {
       params.status = 'IN_PROGRESS';
     } else if (this.selectedCard === 'pending') {
@@ -274,6 +365,22 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       params.upcoming = true;
     }
 
+    return params;
+  }
+
+  loadTasksFromServer(): void {
+    this.loading = true;
+    this.loadingMessage = 'Loading tasks...';
+
+    const filterParams = this.buildFilterParams();
+    const params: any = {
+      ...filterParams,
+      page: this.currentPage - 1,
+      size: this.pageSize,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection
+    };
+
     this.subscriptions.add(
       this.apiService.searchTasks(params)
         .pipe(
@@ -290,15 +397,6 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
             this.filteredTasks = this.tasks;
             this.totalTasks = data.totalElements || 0;
             this.totalPages = data.totalPages || 1;
-
-            if (data.stats) {
-              this.taskStats = data.stats;
-              this.taskTemplateBreakdown = data.stats.templateBreakdown || [];
-              this.taskCategoryBreakdown = data.stats.categoryBreakdown || [];
-            } else {
-              this.taskTemplateBreakdown = [];
-              this.taskCategoryBreakdown = [];
-            }
             this.isEmpty = this.tasks.length === 0;
             this.errorMessage = null;
             this.isForbidden = false;
@@ -310,17 +408,94 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     );
   }
 
+  loadAnalyticsFromServer(): void {
+    const params = this.buildFilterParams();
+    this.subscriptions.add(
+      this.apiService.getTaskDashboardAnalytics(params).subscribe({
+        next: (res) => {
+          if (res && res.success && res.data) {
+            this.analyticsData = res.data;
+            this.taskStats = {
+              total: res.data.overview.totalTasks,
+              active: res.data.overview.inProgress,
+              pending: res.data.overview.pending,
+              completed: res.data.overview.completed,
+              overdue: res.data.overview.delayed,
+              extensionRequests: res.data.overview.requestForExtension,
+              closureRequests: res.data.overview.requestForClosure,
+              upcoming: res.data.overview.upcoming,
+              delayed: res.data.overview.delayed,
+              In_PROGRESS: res.data.overview.inProgress
+            };
+          }
+        },
+        error: (err) => console.error('Failed to load task analytics', err)
+      })
+    );
+  }
+
   selectCard(cardName: string): void {
     this.selectedCard = cardName;
-
     if (cardName === 'total') {
       this.statusFilter = '';
     } else if (this.isSimpleStatusFilter(this.statusFilter)) {
       this.statusFilter = '';
     }
+    this.applyFilters();
+  }
 
-    this.currentPage = 1;
-    this.loadTasksFromServer();
+  selectStatus(status: string): void {
+    this.statusFilter = status;
+    if (status === 'IN_PROGRESS') {
+      this.selectedCard = 'active';
+    } else if (status === 'PENDING') {
+      this.selectedCard = 'pending';
+    } else if (status === 'CLOSED') {
+      this.selectedCard = 'completed';
+    } else if (status === 'DELAYED') {
+      this.selectedCard = 'overdue';
+    } else if (status === 'REQUEST_FOR_CLOSURE') {
+      this.selectedCard = 'closureRequests';
+    } else if (status === 'REQUEST_FOR_EXTENSION' || status === 'EXTENDED') {
+      this.selectedCard = 'extensionRequests';
+    } else if (status === 'UPCOMING') {
+      this.selectedCard = 'upcoming';
+    } else {
+      this.selectedCard = 'total';
+    }
+    this.applyFilters();
+  }
+
+  selectDepartment(deptId: number, deptName: string): void {
+    this.departmentIdFilter = deptId;
+    this.departmentFilter = deptName; // Sync visual text input
+    this.applyFilters();
+  }
+
+  selectTaskType(type: string): void {
+    this.taskTypeFilter = type;
+    this.applyFilters();
+  }
+
+  selectTemplate(tempId: number, title: string): void {
+    this.templateIdFilter = tempId;
+    this.templateFilter = title; // Sync visual text input
+    this.applyFilters();
+  }
+
+  selectPriority(priority: string): void {
+    this.priorityFilter = priority;
+    this.applyFilters();
+  }
+
+  selectUser(userId: number): void {
+    this.userIdFilter = userId;
+    this.applyFilters();
+  }
+
+  selectSubject(subjectId: number): void {
+    this.subjectIdFilter = subjectId;
+    this.applyFilters();
   }
 
   private isSimpleStatusFilter(filter: string): boolean {
@@ -351,38 +526,22 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.loadTasksFromServer();
   }
 
-  /** Calculate task statistics */
-  private calculateStats(tasks: TaskDto[]): void {
-    this.taskStats = {
-      total: tasks.length,
-      active: tasks.filter(t => t.status === 'IN_PROGRESS').length,
-      pending: tasks.filter(t => t.status === 'PENDING' || t.status === 'UPCOMING').length,
-      completed: tasks.filter(t => t.status === 'CLOSED').length,
-      overdue: tasks.filter(t => t.status === 'DELAYED').length,
-      extensionRequests: tasks.filter(t => t.status === 'REQUEST_FOR_EXTENSION' || t.status === 'EXTENDED').length,
-      closureRequests: tasks.filter(t => t.status === 'REQUEST_FOR_CLOSURE').length,
-      upcoming: tasks.filter(t => t.status === 'UPCOMING').length,
-      delayed: tasks.filter(t => t.status === 'DELAYED').length,
-      In_PROGRESS: tasks.filter(t => t.status === 'IN_PROGRESS').length
-    };
-  }
-
   selectTemplateBreakdown(item: TaskAnalyticsItemDto): void {
     this.templateFilter = item.label;
-    this.currentPage = 1;
-    this.loadTasksFromServer();
+    this.applyFilters();
   }
 
   selectCategoryBreakdown(item: TaskAnalyticsItemDto): void {
     this.categoryFilter = item.label;
-    this.currentPage = 1;
-    this.loadTasksFromServer();
+    this.applyFilters();
   }
 
   applyFilters(): void {
     this.currentPage = 1;
     this.loadTasksFromServer();
+    this.loadAnalyticsFromServer();
   }
+
 
   /** Called on every search keystroke — debounced, won't flash the skeleton */
   onSearchInput(): void {
@@ -396,28 +555,33 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.categoryFilter = '';
     this.templateFilter = '';
     this.selectedCard = 'total';
+    this.departmentIdFilter = '';
+    this.templateIdFilter = '';
+    this.subjectIdFilter = '';
+    this.userIdFilter = '';
+    this.priorityFilter = '';
+    this.taskTypeFilter = '';
     this.currentPage = 1;
-    this.loadTasksFromServer();
+    this.applyFilters();
   }
 
   removeCategoryFilter(): void {
     this.categoryFilter = '';
-    this.currentPage = 1;
-    this.loadTasksFromServer();
+    this.applyFilters();
   }
 
   removeTemplateFilter(): void {
     this.templateFilter = '';
-    this.currentPage = 1;
-    this.loadTasksFromServer();
+    this.templateIdFilter = '';
+    this.applyFilters();
   }
 
   removeStatusFilter(): void {
     this.statusFilter = '';
     this.selectedCard = 'total';
-    this.currentPage = 1;
-    this.loadTasksFromServer();
+    this.applyFilters();
   }
+
 
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {

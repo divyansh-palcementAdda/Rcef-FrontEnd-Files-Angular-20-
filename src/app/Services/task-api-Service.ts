@@ -38,6 +38,97 @@ export interface TaskSearchResponse {
   stats: TaskStatsDto;
 }
 
+export interface TaskDashboardAnalyticsDto {
+  overview: {
+    totalTasks: number;
+    templateTasks: number;
+    generalTasks: number;
+    pending: number;
+    upcoming: number;
+    inProgress: number;
+    completed: number;
+    closed: number;
+    delayed: number;
+    extended: number;
+    requestForClosure: number;
+    requestForExtension: number;
+  };
+  departmentBreakdown: Array<{
+    departmentId: number;
+    departmentName: string;
+    totalTasks: number;
+    pending: number;
+    inProgress: number;
+    completed: number;
+    closed: number;
+    delayed: number;
+  }>;
+  templateVsGeneral: {
+    templateTasks: {
+      total: number;
+      pending: number;
+      inProgress: number;
+      completed: number;
+      closed: number;
+      delayed: number;
+      extended: number;
+    };
+    generalTasks: {
+      total: number;
+      pending: number;
+      inProgress: number;
+      completed: number;
+      closed: number;
+      delayed: number;
+      extended: number;
+    };
+  };
+  templateBreakdown: Array<{
+    templateId: number;
+    templateName: string;
+    totalTasks: number;
+    pending: number;
+    completed: number;
+    delayed: number;
+    target: number;
+    achievement: number;
+  }>;
+  statusBreakdown: Array<{
+    status: string;
+    count: number;
+    percentage: number;
+    trend: string;
+  }>;
+  priorityBreakdown: Array<{
+    priority: string;
+    count: number;
+  }>;
+  userBreakdown: Array<{
+    userId: number;
+    fullName: string;
+    assignedTasks: number;
+    pending: number;
+    completed: number;
+    delayed: number;
+    templateTasks: number;
+    generalTasks: number;
+  }>;
+  subjectBreakdown: Array<{
+    subjectId: number;
+    subjectName: string;
+    totalTasks: number;
+    pending: number;
+    completed: number;
+    delayed: number;
+  }>;
+  charts: Array<{
+    month: string;
+    completedTasks: number;
+    userActivity: number;
+  }>;
+}
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -138,6 +229,18 @@ getRecurredInstancesByParent(parentTaskId: number): Observable<ApiResponse<TaskD
     });
     return this.http.get<ApiResponse<TaskSearchResponse>>(`${this.baseUrl}/search`, { params: httpParams });
   }
+
+  getTaskDashboardAnalytics(params: any): Observable<ApiResponse<TaskDashboardAnalyticsDto>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      const val = params[key];
+      if (val !== null && val !== undefined && val !== '') {
+        httpParams = httpParams.set(key, val.toString());
+      }
+    });
+    return this.http.get<ApiResponse<TaskDashboardAnalyticsDto>>(`${this.baseUrl}/analytics`, { params: httpParams });
+  }
+
 
   // 11. Get Tasks Requiring Approval
   getAllTasksWhichRequriesApproval(): Observable<ApiResponse<TaskDto[]>> {
