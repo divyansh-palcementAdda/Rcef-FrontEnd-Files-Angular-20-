@@ -1,0 +1,153 @@
+<div class="page-toolbar-wrapper" [class.is-sticky]="true" [class.is-scrolled]="isScrolled">
+  <div class="page-toolbar-container">
+    
+    <!-- Top Row: Search + Filter Trigger + Actions Group -->
+    <div class="toolbar-main-row">
+      
+      <!-- Left side: Search & Filter Trigger -->
+      <div class="toolbar-left-group">
+        <!-- Search bar -->
+        <div *ngIf="showSearch" class="toolbar-search-wrapper">
+          <i class="bi bi-search search-icon"></i>
+          <input 
+            type="text" 
+            class="toolbar-search-input" 
+            [placeholder]="searchPlaceholder"
+            [ngModel]="searchValue"
+            (ngModelChange)="onSearchInput($event)"
+            aria-label="Search"
+          />
+          <button 
+            *ngIf="searchValue" 
+            class="search-clear-btn" 
+            type="button" 
+            (click)="clearSearch()"
+            title="Clear search"
+            aria-label="Clear search"
+          >
+            <i class="bi bi-x-circle-fill"></i>
+          </button>
+        </div>
+
+        <!-- Filter Trigger Button -->
+        <button 
+          *ngIf="showFilters"
+          class="toolbar-filter-btn" 
+          [class.has-active]="activeChips.length > 0"
+          (click)="onFilterClick()"
+          type="button"
+          aria-label="Open filter options"
+        >
+          <i class="bi bi-funnel"></i>
+          <span class="btn-text">Filters</span>
+          <span *ngIf="activeChips.length > 0" class="filter-count-badge">
+            {{ activeChips.length }}
+          </span>
+        </button>
+      </div>
+
+      <!-- Right side: Actions -->
+      <div class="toolbar-right-group">
+        
+        <!-- Clear Filters (Inline button, hidden if no filters) -->
+        <button 
+          *ngIf="activeChips.length > 0"
+          class="toolbar-clear-filters-btn"
+          (click)="onClearFilters()"
+          type="button"
+          aria-label="Clear all filters"
+        >
+          <i class="bi bi-trash"></i>
+          <span>Clear Filters</span>
+        </button>
+
+        <!-- Refresh Button -->
+        <button 
+          *ngIf="showRefresh"
+          class="toolbar-action-icon-btn"
+          [class.is-spinning]="refreshLoading"
+          (click)="onRefreshClick()"
+          type="button"
+          title="Refresh Data"
+          aria-label="Refresh Data"
+        >
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+
+        <!-- Export Action -->
+        <button 
+          *ngIf="showExport"
+          class="toolbar-btn secondary-btn"
+          (click)="onExportClick()"
+          type="button"
+          aria-label="Export data"
+        >
+          <i class="bi bi-file-earmark-arrow-down"></i>
+          <span>{{ exportLabel }}</span>
+        </button>
+
+        <!-- Upload Action -->
+        <button 
+          *ngIf="showUpload"
+          class="toolbar-btn secondary-btn"
+          (click)="onUploadClick()"
+          type="button"
+          aria-label="Upload tasks"
+        >
+          <i class="bi bi-file-earmark-excel"></i>
+          <span>{{ uploadLabel }}</span>
+        </button>
+
+        <!-- Add Action -->
+        <button 
+          *ngIf="showAdd"
+          class="toolbar-btn primary-btn"
+          (click)="onAddClick()"
+          type="button"
+          aria-label="Add task"
+        >
+          <i class="bi bi-plus-lg"></i>
+          <span>{{ addLabel }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Filter chips summary -->
+    <div *ngIf="activeChips.length > 0" class="toolbar-chips-row animate__animated animate__fadeIn">
+      <div class="chips-container">
+        <span class="chips-label">
+          <i class="bi bi-funnel-fill"></i>
+          <span>Active Filters:</span>
+        </span>
+        
+        <div class="chips-list">
+          <span 
+            *ngFor="let chip of visibleChips" 
+            class="toolbar-chip animate__animated animate__fadeIn"
+          >
+            <span class="chip-label">{{ chip.label }}</span>
+            <button 
+              class="chip-remove-btn" 
+              (click)="onRemoveChip(chip.key)"
+              aria-label="Remove filter option"
+            >
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </span>
+
+          <!-- More/Less Badge toggle -->
+          <button 
+            *ngIf="activeChips.length > 3" 
+            class="chips-more-badge" 
+            (click)="toggleChipsExpansion()"
+            type="button"
+            [title]="isChipsExpanded ? 'Show fewer filters' : 'Show remaining filters'"
+          >
+            {{ isChipsExpanded ? 'Show Less' : '+' + (activeChips.length - 3) + ' More' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

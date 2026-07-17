@@ -20,7 +20,9 @@ import { TaskTemplateApiService, TaskTemplateDto } from '../../../Services/task-
 import { TaskDashboardAnalyticsDto } from '../../../Services/task-api-Service';
 import { Department } from '../../../Model/department';
 import { SubjectDto } from '../../../Model/subject';
-
+import { FilterDrawerComponent, FilterFieldConfig } from '../../Shared/filter-drawer/filter-drawer.component';
+import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.component';
+import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
 
 
 interface ApiResponse<T> {
@@ -32,7 +34,8 @@ interface ApiResponse<T> {
 @Component({
   selector: 'app-view-tasks',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent],
+
   templateUrl: './view-tasks.html',
   styleUrls: ['./view-tasks.css']
 })
@@ -69,6 +72,11 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   templatesList: TaskTemplateDto[] = [];
   subjectsList: SubjectDto[] = [];
   usersList: userDto[] = [];
+
+  // Filter Drawer configs
+  filterFields: FilterFieldConfig[] = [];
+  isDrawerOpen = false;
+
 
   // Filter Bindings for dynamic synchronization
   departmentIdFilter: number | '' = '';
@@ -157,6 +165,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.departmentService.getAllDepartments().subscribe({
       next: (depts) => {
         this.departmentsList = depts || [];
+        this.initializeFilterFields();
       },
       error: (err) => console.error('Failed to load departments', err)
     });
@@ -165,6 +174,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       next: (res) => {
         if (res && res.success && res.data) {
           this.templatesList = res.data;
+          this.initializeFilterFields();
         }
       },
       error: (err) => console.error('Failed to load templates', err)
@@ -173,6 +183,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.subjectService.getAllSubjects().subscribe({
       next: (subs) => {
         this.subjectsList = subs || [];
+        this.initializeFilterFields();
       },
       error: (err) => console.error('Failed to load subjects', err)
     });
@@ -180,13 +191,129 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.userService.getAllUsers().subscribe({
       next: (users) => {
         this.usersList = users || [];
+        this.initializeFilterFields();
       },
       error: (err) => console.error('Failed to load users', err)
     });
   }
 
+  initializeFilterFields(): void {
+    this.filterFields = [
+      { key: 'searchTerm', label: 'Search Keyword', type: 'text', section: 'general', placeholder: 'Enter keywords...' },
+      {
+        key: 'statusFilter',
+        label: 'Task Status',
+        type: 'select',
+        section: 'general',
+        options: [
+          { value: 'PENDING', label: 'Pending' },
+          { value: 'IN_PROGRESS', label: 'In Progress' },
+          { value: 'DELAYED', label: 'Delayed' },
+          { value: 'CLOSED', label: 'Completed' },
+          { value: 'SELF', label: 'Assigned to Me' },
+          { value: 'SELFASSIGNED', label: 'Self Assigned' },
+          { value: 'APPROVAL', label: 'Awaiting Approval' },
+          { value: 'MY_DEPARTMENT', label: 'My Department' },
+          { value: 'PARENT_RECURRING', label: 'Recurring Parent' },
+          { value: 'RECURRED_INSTANCE', label: 'Recurring Instance' }
+        ]
+      },
+      {
+        key: 'taskTypeFilter',
+        label: 'Task Type',
+        type: 'select',
+        section: 'general',
+        options: [
+          { value: 'TEMPLATE', label: 'Template' },
+          { value: 'GENERAL', label: 'General' }
+        ]
+      },
+      {
+        key: 'priorityFilter',
+        label: 'Priority',
+        type: 'select',
+        section: 'general',
+        options: [
+          { value: 'HIGH', label: 'High' },
+          { value: 'MEDIUM', label: 'Medium' },
+          { value: 'LOW', label: 'Low' }
+        ]
+      },
+      {
+        key: 'departmentIdFilter',
+        label: 'Department',
+        type: 'select',
+        section: 'organization',
+        options: this.departmentsList.map(d => ({ value: d.departmentId, label: d.name }))
+      },
+      {
+        key: 'templateIdFilter',
+        label: 'Task Template',
+        type: 'select',
+        section: 'organization',
+        options: this.templatesList.map(t => ({ value: t.id, label: t.title }))
+      },
+      {
+        key: 'subjectIdFilter',
+        label: 'Subject',
+        type: 'select',
+        section: 'organization',
+        options: this.subjectsList.map(s => ({ value: s.id, label: s.subjectName }))
+      },
+      {
+        key: 'userIdFilter',
+        label: 'Assigned User',
+        type: 'select',
+        section: 'organization',
+        options: this.usersList.map(u => ({ value: u.userId, label: u.fullName }))
+      }
+    ];
+  }
+
+  get filterValues(): { [key: string]: any } {
+    return {
+      searchTerm: this.searchTerm,
+      statusFilter: this.statusFilter,
+      taskTypeFilter: this.taskTypeFilter,
+      priorityFilter: this.priorityFilter,
+      departmentIdFilter: this.departmentIdFilter,
+      templateIdFilter: this.templateIdFilter,
+      subjectIdFilter: this.subjectIdFilter,
+      userIdFilter: this.userIdFilter
+    };
+  }
+
+  onApplyDrawerFilters(newValues: { [key: string]: any }): void {
+    this.searchTerm = newValues['searchTerm'] || '';
+    this.statusFilter = newValues['statusFilter'] || '';
+    this.taskTypeFilter = newValues['taskTypeFilter'] || '';
+    this.priorityFilter = newValues['priorityFilter'] || '';
+    this.departmentIdFilter = newValues['departmentIdFilter'] || '';
+    this.templateIdFilter = newValues['templateIdFilter'] || '';
+    this.subjectIdFilter = newValues['subjectIdFilter'] || '';
+    this.userIdFilter = newValues['userIdFilter'] || '';
+
+    if (this.departmentIdFilter) {
+      const dept = this.departmentsList.find(d => d.departmentId === Number(this.departmentIdFilter));
+      this.departmentFilter = dept ? dept.name : '';
+    } else {
+      this.departmentFilter = '';
+    }
+
+    if (this.templateIdFilter) {
+      const tpl = this.templatesList.find(t => t.id === Number(this.templateIdFilter));
+      this.templateFilter = tpl ? tpl.title : '';
+    } else {
+      this.templateFilter = '';
+    }
+
+    this.onStatusDropdownChange();
+  }
+
   ngOnInit(): void {
 
+
+    this.initializeFilterFields();
     this.loadDropdownOptions();
     // Subscribe to queryParams (not snapshot) so it re-fires on every navigation
     // to this same route — this correctly resets filters when sidebar/dashboard
@@ -434,18 +561,76 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     );
   }
 
-  selectCard(cardName: string): void {
-    this.selectedCard = cardName;
-    if (cardName === 'total') {
-      this.statusFilter = '';
-    } else if (this.isSimpleStatusFilter(this.statusFilter)) {
-      this.statusFilter = '';
+  get activeChips(): Array<{ key: string, label: string }> {
+    const chips: Array<{ key: string, label: string }> = [];
+
+    if (this.searchTerm) {
+      chips.push({ key: 'search', label: `Search: "${this.searchTerm}"` });
+    }
+    if (this.statusFilter) {
+      chips.push({ key: 'status', label: `Status/Type: ${this.getFilterDisplayName(this.statusFilter)}` });
+    }
+    if (this.departmentIdFilter) {
+      const dept = this.departmentsList.find(d => d.departmentId === Number(this.departmentIdFilter));
+      chips.push({ key: 'department', label: `Dept: ${dept ? dept.name : this.departmentIdFilter}` });
+    }
+    if (this.templateIdFilter) {
+      const tpl = this.templatesList.find(t => t.id === Number(this.templateIdFilter));
+      chips.push({ key: 'template', label: `Template: ${tpl ? tpl.title : this.templateIdFilter}` });
+    }
+    if (this.subjectIdFilter) {
+      const sub = this.subjectsList.find(s => s.id === Number(this.subjectIdFilter));
+      chips.push({ key: 'subject', label: `Subject: ${sub ? sub.subjectName : this.subjectIdFilter}` });
+    }
+    if (this.userIdFilter) {
+      const u = this.usersList.find(u => u.userId === Number(this.userIdFilter));
+      chips.push({ key: 'user', label: `Assignee: ${u ? u.fullName : this.userIdFilter}` });
+    }
+    if (this.priorityFilter) {
+      chips.push({ key: 'priority', label: `Priority: ${this.priorityFilter}` });
+    }
+    if (this.taskTypeFilter) {
+      chips.push({ key: 'taskType', label: `Task Type: ${this.taskTypeFilter}` });
+    }
+
+    return chips;
+  }
+
+  removeChip(key: string): void {
+    switch (key) {
+      case 'search':
+        this.searchTerm = '';
+        break;
+      case 'status':
+        this.statusFilter = '';
+        this.selectedCard = 'total';
+        break;
+      case 'department':
+        this.departmentIdFilter = '';
+        this.departmentFilter = '';
+        break;
+      case 'template':
+        this.templateIdFilter = '';
+        this.templateFilter = '';
+        break;
+      case 'subject':
+        this.subjectIdFilter = '';
+        break;
+      case 'user':
+        this.userIdFilter = '';
+        break;
+      case 'priority':
+        this.priorityFilter = '';
+        break;
+      case 'taskType':
+        this.taskTypeFilter = '';
+        break;
     }
     this.applyFilters();
   }
 
-  selectStatus(status: string): void {
-    this.statusFilter = status;
+  onStatusDropdownChange(): void {
+    const status = this.statusFilter;
     if (status === 'IN_PROGRESS') {
       this.selectedCard = 'active';
     } else if (status === 'PENDING') {
@@ -466,37 +651,126 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
+  onDepartmentDropdownChange(): void {
+    if (this.departmentIdFilter) {
+      const dept = this.departmentsList.find(d => d.departmentId === Number(this.departmentIdFilter));
+      this.departmentFilter = dept ? dept.name : '';
+    } else {
+      this.departmentFilter = '';
+    }
+    this.applyFilters();
+  }
+
+  onTemplateDropdownChange(): void {
+    if (this.templateIdFilter) {
+      const tpl = this.templatesList.find(t => t.id === Number(this.templateIdFilter));
+      this.templateFilter = tpl ? tpl.title : '';
+    } else {
+      this.templateFilter = '';
+    }
+    this.applyFilters();
+  }
+
+  selectCard(cardName: string): void {
+    if (this.selectedCard === cardName && !this.taskTypeFilter) {
+      this.selectedCard = 'total';
+      this.statusFilter = '';
+    } else {
+      this.selectedCard = cardName;
+      if (cardName === 'total') {
+        this.statusFilter = '';
+      } else if (this.isSimpleStatusFilter(this.statusFilter)) {
+        this.statusFilter = '';
+      }
+    }
+    this.applyFilters();
+  }
+
+  selectStatus(status: string): void {
+    if (this.statusFilter === status) {
+      this.statusFilter = '';
+      this.selectedCard = 'total';
+    } else {
+      this.statusFilter = status;
+      if (status === 'IN_PROGRESS') {
+        this.selectedCard = 'active';
+      } else if (status === 'PENDING') {
+        this.selectedCard = 'pending';
+      } else if (status === 'CLOSED') {
+        this.selectedCard = 'completed';
+      } else if (status === 'DELAYED') {
+        this.selectedCard = 'overdue';
+      } else if (status === 'REQUEST_FOR_CLOSURE') {
+        this.selectedCard = 'closureRequests';
+      } else if (status === 'REQUEST_FOR_EXTENSION' || status === 'EXTENDED') {
+        this.selectedCard = 'extensionRequests';
+      } else if (status === 'UPCOMING') {
+        this.selectedCard = 'upcoming';
+      } else {
+        this.selectedCard = 'total';
+      }
+    }
+    this.applyFilters();
+  }
+
   selectDepartment(deptId: number, deptName: string): void {
-    this.departmentIdFilter = deptId;
-    this.departmentFilter = deptName; // Sync visual text input
+    if (this.departmentIdFilter === deptId) {
+      this.departmentIdFilter = '';
+      this.departmentFilter = '';
+    } else {
+      this.departmentIdFilter = deptId;
+      this.departmentFilter = deptName;
+    }
     this.applyFilters();
   }
 
   selectTaskType(type: string): void {
-    this.taskTypeFilter = type;
+    if (this.taskTypeFilter === type) {
+      this.taskTypeFilter = '';
+    } else {
+      this.taskTypeFilter = type;
+    }
     this.applyFilters();
   }
 
   selectTemplate(tempId: number, title: string): void {
-    this.templateIdFilter = tempId;
-    this.templateFilter = title; // Sync visual text input
+    if (this.templateIdFilter === tempId) {
+      this.templateIdFilter = '';
+      this.templateFilter = '';
+    } else {
+      this.templateIdFilter = tempId;
+      this.templateFilter = title;
+    }
     this.applyFilters();
   }
 
   selectPriority(priority: string): void {
-    this.priorityFilter = priority;
+    if (this.priorityFilter === priority) {
+      this.priorityFilter = '';
+    } else {
+      this.priorityFilter = priority;
+    }
     this.applyFilters();
   }
 
   selectUser(userId: number): void {
-    this.userIdFilter = userId;
+    if (this.userIdFilter === userId) {
+      this.userIdFilter = '';
+    } else {
+      this.userIdFilter = userId;
+    }
     this.applyFilters();
   }
 
   selectSubject(subjectId: number): void {
-    this.subjectIdFilter = subjectId;
+    if (this.subjectIdFilter === subjectId) {
+      this.subjectIdFilter = '';
+    } else {
+      this.subjectIdFilter = subjectId;
+    }
     this.applyFilters();
   }
+
 
   private isSimpleStatusFilter(filter: string): boolean {
     if (!filter) {
@@ -546,6 +820,20 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   /** Called on every search keystroke — debounced, won't flash the skeleton */
   onSearchInput(): void {
     this.searchSubject.next(this.searchTerm);
+  }
+
+  onToolbarSearch(term: string): void {
+    this.searchTerm = term;
+    this.onSearchInput();
+  }
+
+  onToolbarSearchClear(): void {
+    this.searchTerm = '';
+    this.onSearchInput();
+  }
+
+  exportTasks(): void {
+    console.log('Exporting tasks...');
   }
 
   resetFilters(): void {

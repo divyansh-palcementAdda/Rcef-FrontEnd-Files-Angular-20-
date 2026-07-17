@@ -1,0 +1,60 @@
+<div class="filter-drawer-overlay" *ngIf="isOpen" (click)="close()"></div>
+
+<div class="filter-drawer" [class.open]="isOpen" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+  <!-- Header -->
+  <div class="filter-drawer-header d-flex justify-content-between align-items-center p-3 border-bottom">
+    <h5 id="drawer-title" class="m-0 fw-bold d-flex align-items-center gap-2">
+      <i class="bi bi-funnel text-primary"></i> Filters
+    </h5>
+    <button class="btn-close" type="button" aria-label="Close filters" (click)="close()"></button>
+  </div>
+  
+  <!-- Body -->
+  <div class="filter-drawer-body p-3">
+    <div class="filter-section mb-4" *ngFor="let sec of sections">
+      <h6 class="filter-section-title text-uppercase fw-bold text-primary small pb-2 border-bottom mb-3">
+        {{ sec.label }}
+      </h6>
+      
+      <div class="mb-3" *ngFor="let field of getFieldsBySection(sec.key)">
+        <label class="form-label small fw-semibold text-muted mb-1">{{ field.label }}</label>
+        
+        <!-- Text Type input -->
+        <input *ngIf="field.type === 'text'" 
+               type="text" 
+               class="form-control form-control-sm rounded-2" 
+               [placeholder]="field.placeholder || ''" 
+               [(ngModel)]="tempValues[field.key]" />
+               
+        <!-- Select Type input -->
+        <select *ngIf="field.type === 'select'" 
+                class="form-select form-select-sm rounded-2" 
+                [(ngModel)]="tempValues[field.key]">
+          <option value="">All</option>
+          <option *ngFor="let opt of field.options" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+        
+        <!-- Date Type input -->
+        <input *ngIf="field.type === 'date'" 
+               type="date" 
+               class="form-control form-control-sm rounded-2" 
+               [(ngModel)]="tempValues[field.key]" />
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sticky Footer -->
+  <div class="filter-drawer-footer d-flex justify-content-between align-items-center p-3 border-top bg-light">
+    <button class="btn btn-sm btn-outline-danger px-3 rounded-2" type="button" (click)="resetFilters()">
+      Reset
+    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-secondary px-3 rounded-2" type="button" (click)="close()">
+        Cancel
+      </button>
+      <button class="btn btn-sm btn-primary px-3 rounded-2 fw-semibold" type="button" (click)="applyFilters()">
+        Apply Filters
+      </button>
+    </div>
+  </div>
+</div>
