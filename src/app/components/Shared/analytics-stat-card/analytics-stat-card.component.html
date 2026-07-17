@@ -1,0 +1,34 @@
+<div 
+  class="analytics-stat-card card-theme-{{ theme }}"
+  [class.is-selected]="selected"
+  (click)="onCardClick()"
+  (keydown.enter)="onCardClick()"
+  (keydown.space)="onCardClick(); $event.preventDefault()"
+  tabindex="0"
+  role="button"
+  [attr.aria-pressed]="selected"
+  [attr.aria-label]="title + ': ' + value"
+>
+  <!-- Selected checkmark indicator -->
+  <div *ngIf="selected" class="card-check-indicator animate__animated animate__zoomIn">
+    <i class="bi bi-check-lg"></i>
+  </div>
+
+  <div class="stat-card-content">
+    <div class="stat-card-header">
+      <!-- Icon Container -->
+      <div class="stat-card-icon-container">
+        <i [class]="iconClass"></i>
+      </div>
+      
+      <!-- Title -->
+      <span class="stat-card-title">{{ title }}</span>
+    </div>
+    
+    <!-- Value & Subtitle -->
+    <div class="stat-card-body">
+      <h2 class="stat-card-value">{{ value }}</h2>
+      <span *ngIf="subtitle" class="stat-card-subtitle">{{ subtitle }}</span>
+    </div>
+  </div>
+</div>

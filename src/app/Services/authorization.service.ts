@@ -148,31 +148,43 @@ export class AuthorizationService {
       return false;
     }
 
+    const userId = this.currentUser.userId;
+
     // 1. ADMIN & SUB_ADMIN department checks
     if (role === 'ADMIN' || role === 'SUB_ADMIN') {
       const userDepts = this.currentUser.departmentIds || [];
-      const taskDepts = task.departmentIds || (task.departments ? task.departments.map((d: any) => d.departmentId) : []);
+      const taskDepts = task.departmentIds || (task.departments ? task.departments.map((d: any) => d.departmentId) : (task.departmentId ? [task.departmentId] : []));
       if (taskDepts.length > 0) {
         return taskDepts.some((id: number) => userDepts.includes(id));
       }
-      return true; // No department constraint -> fallback open
+      return false;
     }
 
-    // 2. HOD sub-department checks
+    // 2. HOD sub-department / direct assignment checks
     if (role === 'HOD') {
       const userSubDepts = this.currentUser.subDepartmentIds || [];
-      const taskSubDepts = task.subDepartmentIds || (task.subDepartmentId ? [task.subDepartmentId] : []);
+      const assignedIds = task.assignedToIds || (task.assignedUsers ? task.assignedUsers.map((u: any) => u.userId) : (task.assignedToId ? [task.assignedToId] : []));
+      
+      // HOD direct assignment
+      if (assignedIds.includes(userId)) {
+        return true;
+      }
+
+      const taskSubDepts = task.subDepartmentIds || (task.subDepartments ? task.subDepartments.map((s: any) => s.id) : (task.subDepartmentId ? [task.subDepartmentId] : []));
       if (taskSubDepts.length > 0) {
         return taskSubDepts.some((id: string) => userSubDepts.includes(id));
       }
-      return true;
+
+      return false;
     }
 
-    // 3. TEACHER assignment and ownership check
-    const userId = this.currentUser.userId;
-    const assignedIds = task.assignedToIds || (task.assignedUsers ? task.assignedUsers.map((u: any) => u.userId) : []);
-    const createdById = task.createdById || (task.createdBy ? task.createdBy.userId : null);
-    return assignedIds.includes(userId) || createdById === userId;
+    // 3. TEACHER assignment check
+    if (role === 'TEACHER') {
+      const assignedIds = task.assignedToIds || (task.assignedUsers ? task.assignedUsers.map((u: any) => u.userId) : (task.assignedToId ? [task.assignedToId] : []));
+      return assignedIds.includes(userId);
+    }
+
+    return false;
   }
 
   /**
@@ -180,6 +192,8 @@ export class AuthorizationService {
    */
   canEditTask(task: any): boolean {
     if (!this.hasPermission('TASK_EDIT')) return false;
+    const role = this.authService.getCurrentRole();
+    if (role === 'SUB_ADMIN' || role === 'TEACHER') return false;
     return this.canAccessTask(task);
   }
 
@@ -188,6 +202,8 @@ export class AuthorizationService {
    */
   canApproveTask(task: any): boolean {
     if (!this.hasPermission('TASK_APPROVE')) return false;
+    const role = this.authService.getCurrentRole();
+    if (role === 'SUB_ADMIN' || role === 'TEACHER') return false;
     return this.canAccessTask(task);
   }
 
@@ -196,6 +212,8 @@ export class AuthorizationService {
    */
   canDeleteTask(task: any): boolean {
     if (!this.hasPermission('TASK_DELETE')) return false;
+    const role = this.authService.getCurrentRole();
+    if (role === 'SUB_ADMIN' || role === 'TEACHER') return false;
     return this.canAccessTask(task);
   }
 }

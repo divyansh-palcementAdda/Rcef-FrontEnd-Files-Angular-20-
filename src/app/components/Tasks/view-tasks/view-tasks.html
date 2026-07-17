@@ -1,56 +1,31 @@
 <div class="view-tasks-container py-4 px-3 animate__animated animate__fadeIn" [class.loading]="loading">
-  <!-- Loading state / Shimmer Skeletons — only on first load, not on search/filter -->
-  <div *ngIf="loading && isInitialLoad" class="stitch-grid-container animate__animated animate__fadeIn">
-    <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-light-subtle">
-      <div class="stitch-skeleton-cell" style="width: 180px; height: 24px;"></div>
-      <div class="d-flex gap-2">
-        <div class="stitch-skeleton-cell" style="width: 80px; height: 24px;"></div>
-        <div class="stitch-skeleton-cell" style="width: 80px; height: 24px;"></div>
+
+  <!-- ==========================================
+     0. SKELETON LOADERS (Initial Load Only)
+     ========================================== -->
+  <div *ngIf="loading && isInitialLoad" class="animate__animated animate__fadeIn px-2">
+    <!-- Hero Skeleton -->
+    <div class="skeleton-hero mb-4 rounded-4"></div>
+
+    <!-- KPI Cards Grid Skeleton -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3" *ngFor="let k of [1,2,3,4]">
+        <div class="skeleton-card rounded-3" style="height: 85px;"></div>
       </div>
     </div>
-    <div class="table-responsive">
-      <table class="stitch-table align-middle">
-        <thead>
-          <tr>
-            <th>Task Details</th>
-            <th>Department</th>
-            <th>Assignee</th>
-            <th>Timeline</th>
-            <th>Status</th>
-            <th class="text-end" style="width: 140px;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of [1, 2, 3, 4]" class="stitch-skeleton-row">
-            <td>
-              <div class="stitch-skeleton-cell" style="width: 60%; height: 16px; margin-bottom: 0.5rem;"></div>
-              <div class="stitch-skeleton-cell" style="width: 40%; height: 12px;"></div>
-            </td>
-            <td>
-              <div class="stitch-skeleton-cell" style="width: 90px; height: 22px;"></div>
-            </td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="stitch-skeleton-cell" style="width: 28px; height: 28px; border-radius: 50%;"></div>
-                <div class="stitch-skeleton-cell" style="width: 80px; height: 14px;"></div>
-              </div>
-            </td>
-            <td>
-              <div class="stitch-skeleton-cell" style="width: 100px; height: 16px;"></div>
-            </td>
-            <td>
-              <div class="stitch-skeleton-cell" style="width: 80px; height: 24px; border-radius: 6px;"></div>
-            </td>
-            <td>
-              <div class="d-flex justify-content-end gap-1">
-                <div class="stitch-skeleton-cell" style="width: 28px; height: 28px; border-radius: 6px;"></div>
-                <div class="stitch-skeleton-cell" style="width: 28px; height: 28px; border-radius: 6px;"></div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+
+    <!-- Breakdown Panels Skeletons -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="skeleton-card rounded-4" style="height: 280px;"></div>
+      </div>
+      <div class="col-lg-4">
+        <div class="skeleton-card rounded-4" style="height: 280px;"></div>
+      </div>
     </div>
+
+    <!-- Table Skeleton -->
+    <div class="skeleton-card rounded-4" style="height: 400px;"></div>
   </div>
 
   <!-- Error States -->
@@ -74,33 +49,19 @@
     </button>
   </div>
 
-  <!-- Main Workspace Content -->
+  <!-- ==========================================
+     MAIN WORKSPACE CONTENT
+     ========================================== -->
   <div *ngIf="!isInitialLoad && !errorMessage && !isForbidden"
     class="main-content-flow animate__animated animate__fadeIn">
 
-    <!-- ==========================================
-       0. TOP ACTION BAR (Above Hero)
-       ========================================== -->
-    <div class="stitch-top-action-bar">
-      <div class="stitch-top-action-bar-right">
-        <button class="stitch-top-btn stitch-top-btn--outline" (click)="goToBulkImport()"
-          *ngIf="hasPermission('TASK_CREATE')" title="Bulk Upload Tasks">
-          <i class="bi bi-file-earmark-excel-fill"></i> Upload Tasks
-        </button>
-        <button class="stitch-top-btn stitch-top-btn--primary" (click)="openAddTaskModal()"
-          *ngIf="hasPermission('TASK_CREATE')" title="Add New Task">
-          <i class="bi bi-plus-lg"></i> Add Task
-        </button>
-      </div>
-    </div>
 
-    <!-- ==========================================
-       1. HERO HEADER
-       ========================================== -->
+
+    <!-- 1. Hero Header -->
     <div class="stitch-hero">
       <div class="stitch-hero-content">
         <h1 class="stitch-hero-title">Task Management</h1>
-        <p class="stitch-hero-subtitle">Central hub for tracking projects, priorities, and deadlines.</p>
+        <p class="stitch-hero-subtitle">Central hub for tracking projects, departments, and compliance checklists.</p>
         <div class="stitch-hero-pills">
           <div class="stitch-hero-pill">
             <span class="stitch-hero-dot" style="background-color: #ffffff;"></span>
@@ -124,118 +85,157 @@
     </div>
 
     <!-- ==========================================
-       2. ANALYTICS DASHBOARD SECTION
+       2. ENTERPRISE ANALYTICS DASHBOARD
        ========================================== -->
     <div class="dashboard-analytics-container mb-4">
-      
+
       <!-- Section 1: Overall Task Statistics -->
-      <h3 class="section-title mb-3"><i class="bi bi-grid-fill me-2 text-primary"></i> Overall Task Statistics</h3>
-      <div class="analytics-grid mb-4">
-        <!-- Total Tasks -->
-        <div class="analytics-card kpi-card" [class.active]="selectedCard === 'total' && !taskTypeFilter" (click)="selectCard('total')">
-          <div class="kpi-icon bg-primary-soft"><i class="bi bi-clipboard-data text-primary"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">Total Tasks</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.totalTasks }}</h2>
-          </div>
-        </div>
-        <!-- Template Tasks -->
-        <div class="analytics-card kpi-card" [class.active]="taskTypeFilter === 'TEMPLATE'" (click)="selectTaskType('TEMPLATE')">
-          <div class="kpi-icon bg-info-soft"><i class="bi bi-layers text-info"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">Template Tasks</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.templateTasks }}</h2>
-          </div>
-        </div>
-        <!-- General Tasks -->
-        <div class="analytics-card kpi-card" [class.active]="taskTypeFilter === 'GENERAL'" (click)="selectTaskType('GENERAL')">
-          <div class="kpi-icon bg-secondary-soft"><i class="bi bi-file-earmark-text text-secondary"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">General Tasks</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.generalTasks }}</h2>
-          </div>
-        </div>
-        <!-- Pending -->
-        <div class="analytics-card kpi-card" [class.active]="statusFilter === 'PENDING'" (click)="selectStatus('PENDING')">
-          <div class="kpi-icon bg-warning-soft"><i class="bi bi-hourglass-split text-warning"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">Pending</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.pending }}</h2>
-          </div>
-        </div>
-        <!-- In Progress -->
-        <div class="analytics-card kpi-card" [class.active]="statusFilter === 'IN_PROGRESS'" (click)="selectStatus('IN_PROGRESS')">
-          <div class="kpi-icon bg-primary-soft"><i class="bi bi-play-circle text-primary"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">In Progress</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.inProgress }}</h2>
-          </div>
-        </div>
-        <!-- Completed -->
-        <div class="analytics-card kpi-card" [class.active]="statusFilter === 'CLOSED'" (click)="selectStatus('CLOSED')">
-          <div class="kpi-icon bg-success-soft"><i class="bi bi-check-circle-fill text-success"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">Completed</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.completed }}</h2>
-          </div>
-        </div>
-        <!-- Delayed / Overdue -->
-        <div class="analytics-card kpi-card" [class.active]="statusFilter === 'DELAYED'" (click)="selectStatus('DELAYED')">
-          <div class="kpi-icon bg-danger-soft"><i class="bi bi-exclamation-triangle-fill text-danger"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">Delayed</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.delayed }}</h2>
-          </div>
-        </div>
-        <!-- Extended -->
-        <div class="analytics-card kpi-card" [class.active]="statusFilter === 'EXTENDED'" (click)="selectStatus('EXTENDED')">
-          <div class="kpi-icon bg-warning-soft"><i class="bi bi-calendar-plus text-warning"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">Extended</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.extended }}</h2>
-          </div>
-        </div>
-        <!-- Request For Closure -->
-        <div class="analytics-card kpi-card" [class.active]="statusFilter === 'REQUEST_FOR_CLOSURE'" (click)="selectStatus('REQUEST_FOR_CLOSURE')">
-          <div class="kpi-icon bg-success-soft"><i class="bi bi-shield-lock-fill text-success"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">Req. Closure</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.requestForClosure }}</h2>
-          </div>
-        </div>
-        <!-- Request For Extension -->
-        <div class="analytics-card kpi-card" [class.active]="statusFilter === 'REQUEST_FOR_EXTENSION'" (click)="selectStatus('REQUEST_FOR_EXTENSION')">
-          <div class="kpi-icon bg-danger-soft"><i class="bi bi-calendar-range-fill text-danger"></i></div>
-          <div class="kpi-info">
-            <span class="kpi-label">Req. Extension</span>
-            <h2 class="kpi-val">{{ analyticsData.overview.requestForExtension }}</h2>
-          </div>
-        </div>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 class="section-title m-0"><i class="bi bi-grid-fill me-2 text-primary"></i> Overall Task Statistics</h3>
       </div>
 
+      <div class="overall-statistics-grid mb-4">
+        <!-- Total Tasks -->
+        <app-analytics-stat-card
+          [title]="'Total Tasks'"
+          [value]="analyticsData.overview.totalTasks"
+          [iconClass]="'bi bi-clipboard-data'"
+          [theme]="'blue'"
+          [selected]="selectedCard === 'total' && !taskTypeFilter"
+          [subtitle]="'System-wide Tasks'"
+          (cardClick)="selectCard('total')">
+        </app-analytics-stat-card>
+
+        <!-- Template Tasks -->
+        <app-analytics-stat-card
+          [title]="'Template Tasks'"
+          [value]="analyticsData.overview.templateTasks"
+          [iconClass]="'bi bi-layers'"
+          [theme]="'cyan'"
+          [selected]="taskTypeFilter === 'TEMPLATE'"
+          [subtitle]="'Structured templates'"
+          (cardClick)="selectTaskType('TEMPLATE')">
+        </app-analytics-stat-card>
+
+        <!-- General Tasks -->
+        <app-analytics-stat-card
+          [title]="'General Tasks'"
+          [value]="analyticsData.overview.generalTasks"
+          [iconClass]="'bi bi-file-earmark-text'"
+          [theme]="'gray'"
+          [selected]="taskTypeFilter === 'GENERAL'"
+          [subtitle]="'Ad-hoc tasks'"
+          (cardClick)="selectTaskType('GENERAL')">
+        </app-analytics-stat-card>
+
+        <!-- Pending -->
+        <app-analytics-stat-card
+          [title]="'Pending'"
+          [value]="analyticsData.overview.pending"
+          [iconClass]="'bi bi-hourglass-split'"
+          [theme]="'amber'"
+          [selected]="statusFilter === 'PENDING'"
+          [subtitle]="'Awaiting kickoff'"
+          (cardClick)="selectStatus('PENDING')">
+        </app-analytics-stat-card>
+
+        <!-- In Progress -->
+        <app-analytics-stat-card
+          [title]="'In Progress'"
+          [value]="analyticsData.overview.inProgress"
+          [iconClass]="'bi bi-play-circle'"
+          [theme]="'indigo'"
+          [selected]="statusFilter === 'IN_PROGRESS'"
+          [subtitle]="'Currently active'"
+          (cardClick)="selectStatus('IN_PROGRESS')">
+        </app-analytics-stat-card>
+
+        <!-- Completed -->
+        <app-analytics-stat-card
+          [title]="'Completed'"
+          [value]="analyticsData.overview.completed"
+          [iconClass]="'bi bi-check-circle-fill'"
+          [theme]="'green'"
+          [selected]="statusFilter === 'CLOSED'"
+          [subtitle]="'Closed & verified'"
+          (cardClick)="selectStatus('CLOSED')">
+        </app-analytics-stat-card>
+
+        <!-- Delayed -->
+        <app-analytics-stat-card
+          [title]="'Delayed'"
+          [value]="analyticsData.overview.delayed"
+          [iconClass]="'bi bi-exclamation-triangle-fill'"
+          [theme]="'red'"
+          [selected]="statusFilter === 'DELAYED'"
+          [subtitle]="'Past due date'"
+          (cardClick)="selectStatus('DELAYED')">
+        </app-analytics-stat-card>
+
+        <!-- Extended -->
+        <app-analytics-stat-card
+          [title]="'Extended'"
+          [value]="analyticsData.overview.extended"
+          [iconClass]="'bi bi-calendar-plus'"
+          [theme]="'orange'"
+          [selected]="statusFilter === 'EXTENDED'"
+          [subtitle]="'Granted extensions'"
+          (cardClick)="selectStatus('EXTENDED')">
+        </app-analytics-stat-card>
+
+        <!-- Request For Closure -->
+        <app-analytics-stat-card
+          [title]="'Req. Closure'"
+          [value]="analyticsData.overview.requestForClosure"
+          [iconClass]="'bi bi-shield-lock-fill'"
+          [theme]="'emerald'"
+          [selected]="statusFilter === 'REQUEST_FOR_CLOSURE'"
+          [subtitle]="'Awaiting closure review'"
+          (cardClick)="selectStatus('REQUEST_FOR_CLOSURE')">
+        </app-analytics-stat-card>
+
+        <!-- Request For Extension -->
+        <app-analytics-stat-card
+          [title]="'Req. Extension'"
+          [value]="analyticsData.overview.requestForExtension"
+          [iconClass]="'bi bi-calendar-range-fill'"
+          [theme]="'pink'"
+          [selected]="statusFilter === 'REQUEST_FOR_EXTENSION'"
+          [subtitle]="'Awaiting extension review'"
+          (cardClick)="selectStatus('REQUEST_FOR_EXTENSION')">
+        </app-analytics-stat-card>
+      </div>
+
+      <!-- Section 2: Department Breakdown & Section 3: Template vs General -->
       <div class="row g-4 mb-4">
         <!-- Section 2: Department Breakdown -->
         <div class="col-lg-8">
           <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
-            <h4 class="card-title mb-3"><i class="bi bi-building me-2 text-primary"></i> Department Breakdown</h4>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h4 class="card-title m-0"><i class="bi bi-building me-2 text-primary"></i> Department Breakdown</h4>
+            </div>
             <div class="department-list-container scrollable-y">
-              <div *ngFor="let d of analyticsData.departmentBreakdown" 
-                   class="department-item p-3 mb-2 rounded border"
-                   [class.active]="departmentIdFilter === d.departmentId"
-                   (click)="selectDepartment(d.departmentId, d.departmentName)">
+              <div *ngFor="let d of analyticsData.departmentBreakdown"
+                class="department-item p-3 mb-2 rounded border position-relative"
+                [class.selected]="departmentIdFilter === d.departmentId"
+                (click)="selectDepartment(d.departmentId, d.departmentName)">
+                <div *ngIf="departmentIdFilter === d.departmentId"
+                  class="card-selected-indicator card-selected-indicator--mini">
+                  <i class="bi bi-check-lg text-white"></i>
+                </div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <span class="fw-bold">{{ d.departmentName }}</span>
                   <span class="badge bg-primary rounded-pill">{{ d.totalTasks }} Tasks</span>
                 </div>
                 <div class="progress mb-2" style="height: 6px;">
-                  <div class="progress-bar bg-success" role="progressbar" 
-                       [style.width]="(d.completed / (d.totalTasks || 1) * 100) + '%'"></div>
-                  <div class="progress-bar bg-warning" role="progressbar" 
-                       [style.width]="(d.inProgress / (d.totalTasks || 1) * 100) + '%'"></div>
-                  <div class="progress-bar bg-danger" role="progressbar" 
-                       [style.width]="(d.delayed / (d.totalTasks || 1) * 100) + '%'"></div>
+                  <div class="progress-bar bg-success" role="progressbar"
+                    [style.width]="(d.completed / (d.totalTasks || 1) * 100) + '%'"></div>
+                  <div class="progress-bar bg-warning" role="progressbar"
+                    [style.width]="(d.inProgress / (d.totalTasks || 1) * 100) + '%'"></div>
+                  <div class="progress-bar bg-danger" role="progressbar"
+                    [style.width]="(d.delayed / (d.totalTasks || 1) * 100) + '%'"></div>
                 </div>
-                <div class="d-flex gap-3 text-muted small">
+                <div class="d-flex gap-3 text-muted small flex-wrap">
                   <span>Pending: {{ d.pending }}</span>
                   <span>In Progress: {{ d.inProgress }}</span>
                   <span>Completed: {{ d.completed }}</span>
@@ -243,45 +243,49 @@
                 </div>
               </div>
               <div *ngIf="analyticsData.departmentBreakdown.length === 0" class="text-center py-4 text-muted">
-                No department data.
+                <i class="bi bi-building fs-1 mb-2 d-block"></i> No department analytics available.
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Section 3: Template vs General Breakdown -->
+        <!-- Section 3: Template vs General Comparison -->
         <div class="col-lg-4">
           <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
             <h4 class="card-title mb-3"><i class="bi bi-pie-chart-fill me-2 text-primary"></i> Template vs General</h4>
             <div class="d-flex flex-column gap-3">
               <!-- Template Tasks Card -->
-              <div class="type-breakdown-box p-3 rounded border" 
-                   [class.active]="taskTypeFilter === 'TEMPLATE'"
-                   (click)="selectTaskType('TEMPLATE')">
+              <div class="type-breakdown-box p-4 rounded border position-relative"
+                [class.selected]="taskTypeFilter === 'TEMPLATE'" (click)="selectTaskType('TEMPLATE')">
+                <div *ngIf="taskTypeFilter === 'TEMPLATE'"
+                  class="card-selected-indicator card-selected-indicator--mini">
+                  <i class="bi bi-check-lg text-white"></i>
+                </div>
                 <div class="d-flex justify-content-between mb-2">
                   <span class="fw-bold text-info"><i class="bi bi-layers me-1"></i> Templates</span>
-                  <span class="badge bg-info">{{ analyticsData.templateVsGeneral.templateTasks.total }}</span>
+                  <span class="badge bg-info fs-6">{{ analyticsData.templateVsGeneral.templateTasks.total }}</span>
                 </div>
                 <div class="d-flex flex-wrap gap-2 text-muted small">
                   <span>Pending: {{ analyticsData.templateVsGeneral.templateTasks.pending }}</span>
-                  <span>Active: {{ analyticsData.templateVsGeneral.templateTasks.inProgress }}</span>
-                  <span>Done: {{ analyticsData.templateVsGeneral.templateTasks.completed }}</span>
-                  <span class="text-danger">Late: {{ analyticsData.templateVsGeneral.templateTasks.delayed }}</span>
+                  <span>Completed: {{ analyticsData.templateVsGeneral.templateTasks.completed }}</span>
+                  <span class="text-danger">Delayed: {{ analyticsData.templateVsGeneral.templateTasks.delayed }}</span>
                 </div>
               </div>
+
               <!-- General Tasks Card -->
-              <div class="type-breakdown-box p-3 rounded border" 
-                   [class.active]="taskTypeFilter === 'GENERAL'"
-                   (click)="selectTaskType('GENERAL')">
+              <div class="type-breakdown-box p-4 rounded border position-relative"
+                [class.selected]="taskTypeFilter === 'GENERAL'" (click)="selectTaskType('GENERAL')">
+                <div *ngIf="taskTypeFilter === 'GENERAL'" class="card-selected-indicator card-selected-indicator--mini">
+                  <i class="bi bi-check-lg text-white"></i>
+                </div>
                 <div class="d-flex justify-content-between mb-2">
                   <span class="fw-bold text-secondary"><i class="bi bi-file-earmark-text me-1"></i> General</span>
-                  <span class="badge bg-secondary">{{ analyticsData.templateVsGeneral.generalTasks.total }}</span>
+                  <span class="badge bg-secondary fs-6">{{ analyticsData.templateVsGeneral.generalTasks.total }}</span>
                 </div>
                 <div class="d-flex flex-wrap gap-2 text-muted small">
                   <span>Pending: {{ analyticsData.templateVsGeneral.generalTasks.pending }}</span>
-                  <span>Active: {{ analyticsData.templateVsGeneral.generalTasks.inProgress }}</span>
-                  <span>Done: {{ analyticsData.templateVsGeneral.generalTasks.completed }}</span>
-                  <span class="text-danger">Late: {{ analyticsData.templateVsGeneral.generalTasks.delayed }}</span>
+                  <span>Completed: {{ analyticsData.templateVsGeneral.generalTasks.completed }}</span>
+                  <span class="text-danger">Delayed: {{ analyticsData.templateVsGeneral.generalTasks.delayed }}</span>
                 </div>
               </div>
             </div>
@@ -289,23 +293,28 @@
         </div>
       </div>
 
+      <!-- Section 4: Template Breakdown & Section 5: Subject Breakdown -->
       <div class="row g-4 mb-4">
-        <!-- Section 4: Template-wise Breakdown -->
+        <!-- Section 4: Template-wise Performance -->
         <div class="col-lg-6">
           <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
-            <h4 class="card-title mb-3"><i class="bi bi-file-earmark-spreadsheet me-2 text-primary"></i> Template Breakdown</h4>
+            <h4 class="card-title mb-3"><i class="bi bi-file-earmark-spreadsheet me-2 text-primary"></i> Template
+              Breakdown</h4>
             <div class="template-list-container scrollable-y">
-              <div *ngFor="let t of analyticsData.templateBreakdown" 
-                   class="template-item p-3 mb-2 rounded border"
-                   [class.active]="templateIdFilter === t.templateId"
-                   (click)="selectTemplate(t.templateId, t.templateName)">
+              <div *ngFor="let t of analyticsData.templateBreakdown"
+                class="template-item p-3 mb-2 rounded border position-relative"
+                [class.selected]="templateIdFilter === t.templateId"
+                (click)="selectTemplate(t.templateId, t.templateName)">
+                <div *ngIf="templateIdFilter === t.templateId"
+                  class="card-selected-indicator card-selected-indicator--mini">
+                  <i class="bi bi-check-lg text-white"></i>
+                </div>
                 <div class="d-flex justify-content-between align-items-center mb-1">
                   <span class="fw-bold text-truncate" style="max-width: 70%;">{{ t.templateName }}</span>
                   <span class="badge bg-success small">{{ t.achievement }}% Achievement</span>
                 </div>
                 <div class="progress mb-2" style="height: 4px;">
-                  <div class="progress-bar bg-success" role="progressbar" 
-                       [style.width]="t.achievement + '%'"></div>
+                  <div class="progress-bar bg-success" role="progressbar" [style.width]="t.achievement + '%'"></div>
                 </div>
                 <div class="d-flex gap-3 text-muted small">
                   <span>Total: {{ t.totalTasks }}</span>
@@ -314,96 +323,29 @@
                   <span class="text-danger">Delayed: {{ t.delayed }}</span>
                 </div>
               </div>
-              <div *ngIf="analyticsData.templateBreakdown.length === 0" class="text-center py-4 text-muted">
-                No templates configured.
+              <div *ngIf="analyticsData.templateBreakdown.length === 0"
+                class="empty-state-illustration p-4 text-center">
+                <div class="empty-icon-circle bg-light mx-auto mb-2 d-flex align-items-center justify-content-center">
+                  <i class="bi bi-file-earmark-spreadsheet text-muted fs-3"></i>
+                </div>
+                <p class="text-muted small fw-medium mb-0">No template performance metrics available.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Section 5: Status Breakdown -->
+        <!-- Section 5: Subject Breakdown -->
         <div class="col-lg-6">
-          <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
-            <h4 class="card-title mb-3"><i class="bi bi-activity me-2 text-primary"></i> Status Breakdown</h4>
-            <div class="status-list-container scrollable-y">
-              <div *ngFor="let s of analyticsData.statusBreakdown" 
-                   class="status-item p-3 mb-2 rounded border d-flex justify-content-between align-items-center"
-                   [class.active]="statusFilter === s.status"
-                   (click)="selectStatus(s.status)">
-                <div>
-                  <span class="fw-bold">{{ s.status | titlecase }}</span>
-                  <div class="text-muted small">Percentage: {{ s.percentage }}% | {{ s.trend }}</div>
-                </div>
-                <span class="badge bg-secondary font-monospace fs-6">{{ s.count }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-4 mb-4">
-        <!-- Section 6: Priority Breakdown -->
-        <div class="col-lg-4">
-          <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
-            <h4 class="card-title mb-3"><i class="bi bi-flag-fill me-2 text-primary"></i> Priority Breakdown</h4>
-            <div class="d-flex flex-column gap-3">
-              <div *ngFor="let p of analyticsData.priorityBreakdown" 
-                   class="priority-item p-3 rounded border d-flex justify-content-between align-items-center"
-                   [class.active]="priorityFilter === p.priority"
-                   [class.border-danger]="p.priority === 'HIGH'"
-                   [class.border-warning]="p.priority === 'MEDIUM'"
-                   [class.border-success]="p.priority === 'LOW'"
-                   (click)="selectPriority(p.priority)">
-                <div>
-                  <span class="fw-bold" 
-                        [class.text-danger]="p.priority === 'HIGH'"
-                        [class.text-warning]="p.priority === 'MEDIUM'"
-                        [class.text-success]="p.priority === 'LOW'">
-                    {{ p.priority }} Priority
-                  </span>
-                  <div class="text-muted small">Derived from dates and status</div>
-                </div>
-                <span class="badge bg-dark fs-6">{{ p.count }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 7: User Breakdown (Top Assignees) -->
-        <div class="col-lg-4">
-          <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
-            <h4 class="card-title mb-3"><i class="bi bi-people-fill me-2 text-primary"></i> Top Assignees</h4>
-            <div class="user-list-container scrollable-y">
-              <div *ngFor="let u of analyticsData.userBreakdown" 
-                   class="user-item p-3 mb-2 rounded border"
-                   [class.active]="userIdFilter === u.userId"
-                   (click)="selectUser(u.userId)">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="fw-bold"><i class="bi bi-person-circle me-2 text-muted"></i>{{ u.fullName }}</span>
-                  <span class="badge bg-primary">{{ u.assignedTasks }} Tasks</span>
-                </div>
-                <div class="d-flex justify-content-between text-muted small">
-                  <span>Pending: {{ u.pending }}</span>
-                  <span>Completed: {{ u.completed }}</span>
-                  <span class="text-danger">Delayed: {{ u.delayed }}</span>
-                </div>
-              </div>
-              <div *ngIf="analyticsData.userBreakdown.length === 0" class="text-center py-4 text-muted">
-                No assignments.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 8: Subject Breakdown -->
-        <div class="col-lg-4">
           <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
             <h4 class="card-title mb-3"><i class="bi bi-book-half me-2 text-primary"></i> Subject Breakdown</h4>
             <div class="subject-list-container scrollable-y">
-              <div *ngFor="let s of analyticsData.subjectBreakdown" 
-                   class="subject-item p-3 mb-2 rounded border"
-                   [class.active]="subjectIdFilter === s.subjectId"
-                   (click)="selectSubject(s.subjectId)">
+              <div *ngFor="let s of analyticsData.subjectBreakdown"
+                class="subject-item p-3 mb-2 rounded border position-relative"
+                [class.selected]="subjectIdFilter === s.subjectId" (click)="selectSubject(s.subjectId)">
+                <div *ngIf="subjectIdFilter === s.subjectId"
+                  class="card-selected-indicator card-selected-indicator--mini">
+                  <i class="bi bi-check-lg text-white"></i>
+                </div>
                 <div class="d-flex justify-content-between align-items-center mb-1">
                   <span class="fw-bold">{{ s.subjectName }}</span>
                   <span class="badge bg-secondary">{{ s.totalTasks }} Tasks</span>
@@ -414,8 +356,11 @@
                   <span class="text-danger">Delayed: {{ s.delayed }}</span>
                 </div>
               </div>
-              <div *ngIf="analyticsData.subjectBreakdown.length === 0" class="text-center py-4 text-muted">
-                No academic subjects mapped.
+              <div *ngIf="analyticsData.subjectBreakdown.length === 0" class="empty-state-illustration p-4 text-center">
+                <div class="empty-icon-circle bg-light mx-auto mb-2 d-flex align-items-center justify-content-center">
+                  <i class="bi bi-book text-muted fs-3"></i>
+                </div>
+                <p class="text-muted small fw-medium mb-0">No academic subjects configured or mapped to tasks.</p>
               </div>
             </div>
           </div>
@@ -425,144 +370,25 @@
     </div>
 
     <!-- ==========================================
-       3. FLOATING TOOLBAR
+       3. REUSABLE MODERN ACTION TOOLBAR
        ========================================== -->
-    <div class="stitch-toolbar">
-      <div class="stitch-toolbar-left flex-wrap gap-2 py-2">
-        <!-- Search bar -->
-        <div class="stitch-search-wrapper">
-          <i class="bi bi-search stitch-search-icon"></i>
-          <input type="text" class="stitch-search-input" placeholder="Filter tasks by name, assignee, or ID..."
-            [(ngModel)]="searchTerm" (input)="onSearchInput()" />
-          <button *ngIf="searchTerm" class="stitch-clear-btn" type="button" (click)="searchTerm = ''; onSearchInput()"
-            title="Clear search">
-            <i class="bi bi-x-circle-fill"></i>
-          </button>
-        </div>
+    <app-page-toolbar [searchPlaceholder]="'Search by Task Name, ID, Assignee...'" [searchValue]="searchTerm"
+      [activeChips]="activeChips" [refreshLoading]="loading && !isInitialLoad" [showExport]="true"
+      [showUpload]="hasPermission('TASK_CREATE')" [showAdd]="hasPermission('TASK_CREATE')" [exportLabel]="'Export'"
+      [uploadLabel]="'Upload Tasks'" [addLabel]="'Add Task'" (searchChange)="onToolbarSearch($event)"
+      (searchClear)="onToolbarSearchClear()" (filterClick)="isDrawerOpen = true" (clearFilters)="resetFilters()"
+      (removeChip)="removeChip($event)" (refreshClick)="loadCurrentUserAndTasks()" (exportClick)="exportTasks()"
+      (uploadClick)="goToBulkImport()" (addClick)="openAddTaskModal()">
+    </app-page-toolbar>
 
-        <!-- Status Filter Select -->
-        <select class="stitch-select-filter" [(ngModel)]="statusFilter" (change)="applyFilters()">
-          <option value="">Status: All</option>
-          <option value="PENDING">Status: Pending</option>
-          <option value="IN_PROGRESS">Status: In Progress</option>
-          <option value="DELAYED">Status: Delayed</option>
-          <option value="CLOSED">Status: Completed</option>
-          <option value="SELF">Type: Assigned to Me</option>
-          <option value="SELFASSIGNED">Type: Self Assigned</option>
-          <option value="APPROVAL">Type: Awaiting Approval</option>
-          <option value="MY_DEPARTMENT">Type: My Department</option>
-          <option value="PARENT_RECURRING">Type: Recurring Parent</option>
-          <option value="RECURRED_INSTANCE">Type: Recurring Instance</option>
-        </select>
-
-        <!-- Department Filter (Dynamic select) -->
-        <select class="stitch-select-filter" [(ngModel)]="departmentIdFilter" (change)="applyFilters()"
-          title="Filter by Department">
-          <option value="">Department: All</option>
-          <option *ngFor="let d of departmentsList" [value]="d.departmentId">Department: {{ d.name }}</option>
-        </select>
-
-        <!-- Template Filter (Dynamic select) -->
-        <select class="stitch-select-filter" [(ngModel)]="templateIdFilter" (change)="applyFilters()"
-          title="Filter by Template">
-          <option value="">Template: All</option>
-          <option *ngFor="let t of templatesList" [value]="t.id">Template: {{ t.title }}</option>
-        </select>
-
-        <!-- Subject Filter (Dynamic select) -->
-        <select class="stitch-select-filter" [(ngModel)]="subjectIdFilter" (change)="applyFilters()"
-          title="Filter by Subject">
-          <option value="">Subject: All</option>
-          <option *ngFor="let s of subjectsList" [value]="s.id">Subject: {{ s.subjectName }}</option>
-        </select>
-
-        <!-- User Filter (Dynamic select) -->
-        <select class="stitch-select-filter" [(ngModel)]="userIdFilter" (change)="applyFilters()"
-          title="Filter by User">
-          <option value="">User: All</option>
-          <option *ngFor="let u of usersList" [value]="u.userId">User: {{ u.fullName }}</option>
-        </select>
-
-        <!-- Priority Filter (Dynamic select) -->
-        <select class="stitch-select-filter" [(ngModel)]="priorityFilter" (change)="applyFilters()"
-          title="Filter by Priority">
-          <option value="">Priority: All</option>
-          <option value="HIGH">Priority: High</option>
-          <option value="MEDIUM">Priority: Medium</option>
-          <option value="LOW">Priority: Low</option>
-        </select>
-
-        <!-- Task Type Filter (Dynamic select) -->
-        <select class="stitch-select-filter" [(ngModel)]="taskTypeFilter" (change)="applyFilters()"
-          title="Filter by Task Type">
-          <option value="">Type: All</option>
-          <option value="TEMPLATE">Type: Template</option>
-          <option value="GENERAL">Type: General</option>
-        </select>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="stitch-toolbar-right">
-        <span *ngIf="loading && !isInitialLoad" class="stitch-toolbar-spinner" title="Loading...">
-          <i class="bi bi-arrow-repeat spin-icon"></i>
-        </span>
-        <button class="stitch-toolbar-btn" (click)="loadCurrentUserAndTasks()" title="Refresh list">
-          <i class="bi bi-arrow-clockwise"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Active Filter Chips -->
-    <div *ngIf="categoryFilter || templateFilter || statusFilter || departmentIdFilter || templateIdFilter || subjectIdFilter || userIdFilter || priorityFilter || taskTypeFilter"
-      class="stitch-filter-chips animate__animated animate__fadeIn">
-      <span class="stitch-filter-chips-label">Active Filters:</span>
-
-      <span *ngIf="categoryFilter" class="stitch-chip">
-        <span>Category: {{ categoryFilter }}</span>
-        <button class="stitch-chip-close" (click)="removeCategoryFilter()"><i class="bi bi-x-circle-fill"></i></button>
-      </span>
-
-      <span *ngIf="templateFilter || templateIdFilter" class="stitch-chip">
-        <span>Template: {{ templateFilter || templateIdFilter }}</span>
-        <button class="stitch-chip-close" (click)="removeTemplateFilter()"><i class="bi bi-x-circle-fill"></i></button>
-      </span>
-
-      <span *ngIf="statusFilter" class="stitch-chip">
-        <span>Status: {{ getFilterDisplayName(statusFilter) }}</span>
-        <button class="stitch-chip-close" (click)="removeStatusFilter()"><i class="bi bi-x-circle-fill"></i></button>
-      </span>
-
-      <span *ngIf="departmentIdFilter" class="stitch-chip">
-        <span>Dept ID: {{ departmentIdFilter }}</span>
-        <button class="stitch-chip-close" (click)="departmentIdFilter = ''; applyFilters()"><i class="bi bi-x-circle-fill"></i></button>
-      </span>
-
-      <span *ngIf="subjectIdFilter" class="stitch-chip">
-        <span>Subject ID: {{ subjectIdFilter }}</span>
-        <button class="stitch-chip-close" (click)="subjectIdFilter = ''; applyFilters()"><i class="bi bi-x-circle-fill"></i></button>
-      </span>
-
-      <span *ngIf="userIdFilter" class="stitch-chip">
-        <span>User ID: {{ userIdFilter }}</span>
-        <button class="stitch-chip-close" (click)="userIdFilter = ''; applyFilters()"><i class="bi bi-x-circle-fill"></i></button>
-      </span>
-
-      <span *ngIf="priorityFilter" class="stitch-chip">
-        <span>Priority: {{ priorityFilter }}</span>
-        <button class="stitch-chip-close" (click)="priorityFilter = ''; applyFilters()"><i class="bi bi-x-circle-fill"></i></button>
-      </span>
-
-      <span *ngIf="taskTypeFilter" class="stitch-chip">
-        <span>Type: {{ taskTypeFilter }}</span>
-        <button class="stitch-chip-close" (click)="taskTypeFilter = ''; applyFilters()"><i class="bi bi-x-circle-fill"></i></button>
-      </span>
-
-      <button class="stitch-chip-clear-all" (click)="resetFilters()">Clear All</button>
-    </div>
+    <!-- Filter Drawer Component -->
+    <app-filter-drawer [(isOpen)]="isDrawerOpen" [fields]="filterFields" [values]="filterValues"
+      (apply)="onApplyDrawerFilters($event)" (reset)="resetFilters()">
+    </app-filter-drawer>
 
 
     <!-- ==========================================
-       4. DATA GRID TABLE SECTION
+       5. DATA GRID TABLE SECTION
        ========================================== -->
     <div *ngIf="!isEmpty && filteredTasks.length > 0" class="stitch-grid-container">
       <div class="table-responsive">
@@ -622,9 +448,6 @@
                 <div class="stitch-task-title-area">
                   <div class="stitch-task-title-row">
                     <span class="stitch-task-title">{{ task.title }}</span>
-                    <!-- Badges -->
-                    <!-- <span *ngIf="task.templateId" class="stitch-tag-badge tag-template">Template</span>
-                    <span *ngIf="task.isRecurring" class="stitch-tag-badge tag-recurring">Recurring</span> -->
                     <span *ngIf="isOverdue(task)" class="stitch-tag-badge tag-priority-high">High</span>
                   </div>
                   <p class="stitch-task-desc" *ngIf="task.description">{{ task.description }}</p>
@@ -648,30 +471,23 @@
               <!-- Assignee -->
               <td data-label="Assignee">
                 <div class="stitch-assignee-layout" *ngIf="task.assignedToNames && task.assignedToNames.length > 0">
-                  <!-- <div class="stitch-assignee-avatar"
-                    [style.background-color]="getAvatarColor(task.assignedToNames[0])">
-                    {{ getInitials(task.assignedToNames[0]) }}
-                  </div> -->
                   <div class="stitch-assignee-info">
                     <span class="stitch-assignee-name">{{ task.assignedToNames[0] }}</span>
-                    <!-- <span class="stitch-assignee-role">{{ task.assignedUsers?.[0]?.role || 'Super Admin' }}</span> -->
                   </div>
                 </div>
                 <span class="text-muted small"
                   *ngIf="!task.assignedToNames || task.assignedToNames.length === 0">—</span>
               </td>
+
+              <!-- Timeline -->
               <td data-label="Timeline">
                 <div class="stitch-timeline-wrapper" [class.timeline-urgent]="isOverdue(task)">
-                  <!-- <i class="bi bi-calendar-event stitch-timeline-calendar-icon"></i> -->
                   <div class="stitch-timeline-info">
-                    <!-- Date Part -->
                     <span class="stitch-timeline-date">{{ formatDate(task.dueDate).split(' (')[0] }}</span>
-                    <!-- Relative Part -->
                     <span class="stitch-timeline-relative"
                       [ngClass]="isOverdue(task) ? 'timeline-urgent' : 'timeline-normal'">
                       {{ formatDate(task.dueDate).includes(' (') ? formatDate(task.dueDate).split(' (')[1].replace(')',
                       '') : '' }}
-                      <!-- <span *ngIf="isOverdue(task)"> (Overdue)</span> -->
                     </span>
                   </div>
                 </div>
@@ -683,8 +499,7 @@
                         'pill-in-progress': task.status === 'IN_PROGRESS',
                         'pill-pending': task.status === 'PENDING' || task.status === 'UPCOMING',
                         'pill-approval': task.status === 'REQUEST_FOR_CLOSURE' || task.status === 'REQUEST_FOR_EXTENSION',
-                        'pill-completed': task.status === 'CLOSED',
-
+                        'pill-completed': task.status === 'CLOSED'
                       }">
                   {{task.status}}
                 </span>
@@ -697,7 +512,8 @@
                     title="View Details">
                     <i class="bi bi-eye-fill"></i>
                   </button>
-                  <button *ngIf="canEditTask(task)" class="stitch-action-btn btn-act-edit" (click)="editTask(task.taskId)" title="Edit Task">
+                  <button *ngIf="canEditTask(task)" class="stitch-action-btn btn-act-edit"
+                    (click)="editTask(task.taskId)" title="Edit Task">
                     <i class="bi bi-pencil-fill"></i>
                   </button>
                   <button
@@ -726,36 +542,27 @@
             <option [value]="20">20</option>
           </select>
           <span class="stitch-pag-label">
-            {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalTasks) }} of {{
-            totalTasks }} results
+            {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalTasks) }} of {{ totalTasks
+            }} results
           </span>
         </div>
 
         <div class="stitch-pag-controls">
-          <!-- First page button -->
           <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(1)" title="First Page">
             <i class="bi bi-chevron-double-left"></i>
           </button>
-
-          <!-- Prev -->
           <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)"
             title="Previous Page">
             <i class="bi bi-chevron-left"></i>
           </button>
-
-          <!-- Pages -->
           <button *ngFor="let page of getPageNumbers()" class="stitch-pag-btn" [class.active]="page === currentPage"
             (click)="changePage(page)">
             {{ page }}
           </button>
-
-          <!-- Next -->
           <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)"
             title="Next Page">
             <i class="bi bi-chevron-right"></i>
           </button>
-
-          <!-- Last page button -->
           <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)"
             title="Last Page">
             <i class="bi bi-chevron-double-right"></i>
@@ -765,16 +572,22 @@
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="isEmpty || filteredTasks.length === 0" class="empty-state-card animate__animated animate__fadeIn">
-
-      <h4 class="fw-bold text-main">No tasks found</h4>
+    <div *ngIf="isEmpty || filteredTasks.length === 0"
+      class="empty-state-illustration p-5 text-center bg-white rounded-4 border my-4">
+      <div class="empty-icon-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center"
+        style="width: 60px; height: 60px; border-radius: 50%;">
+        <i class="bi bi-clipboard text-muted fs-2"></i>
+      </div>
+      <h4 class="fw-bold text-dark mb-2">No Tasks Found</h4>
       <p class="text-muted mb-4 small">
-        {{ (searchTerm || statusFilter) ? 'We couldn\'t find any assignments matching your current search or filter
-        options.' : 'There are currently no tasks assigned.' }}
+        {{ (searchTerm || statusFilter || departmentIdFilter || templateIdFilter || subjectIdFilter || userIdFilter ||
+        priorityFilter || taskTypeFilter) ? 'We couldn\'t find any assignments matching your current search or active
+        filter options.' : 'There are currently no tasks assigned.' }}
       </p>
-      <button *ngIf="searchTerm || statusFilter" class="btn btn-secondary d-inline-flex align-items-center gap-2"
-        (click)="resetFilters()">
-        <i class="bi bi-x-circle"></i> Clear Filters
+      <button
+        *ngIf="searchTerm || statusFilter || departmentIdFilter || templateIdFilter || subjectIdFilter || userIdFilter || priorityFilter || taskTypeFilter"
+        class="btn btn-primary d-inline-flex align-items-center gap-2 mx-auto" (click)="resetFilters()">
+        <i class="bi bi-x-circle-fill"></i> Clear All Filters
       </button>
     </div>
   </div>

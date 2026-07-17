@@ -1,0 +1,200 @@
+/* Analytics Stat Card Component Styles */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* 1. Base Stat Card Design */
+.analytics-stat-card {
+  position: relative;
+  height: 100%;
+  min-height: 130px;
+  background-color: var(--card-bg, #ffffff);
+  border: 1.5px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+}
+
+/* Hover Effect */
+.analytics-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+/* Focus State for Accessibility */
+.analytics-stat-card:focus-visible {
+  outline: 2px solid var(--theme-primary, #4f46e5);
+  outline-offset: 2px;
+}
+
+/* 2. Theme Custom CSS Variables Mapping */
+.card-theme-blue {
+  --theme-primary: #3b82f6;
+  --theme-subtle: #eff6ff;
+  --theme-glow: rgba(59, 130, 246, 0.15);
+}
+
+.card-theme-cyan {
+  --theme-primary: #06b6d4;
+  --theme-subtle: #ecfeff;
+  --theme-glow: rgba(6, 182, 212, 0.15);
+}
+
+.card-theme-gray {
+  --theme-primary: #64748b;
+  --theme-subtle: #f8fafc;
+  --theme-glow: rgba(100, 116, 139, 0.12);
+}
+
+.card-theme-amber {
+  --theme-primary: #f59e0b;
+  --theme-subtle: #fffbeb;
+  --theme-glow: rgba(245, 158, 11, 0.15);
+}
+
+.card-theme-indigo {
+  --theme-primary: #4f46e5;
+  --theme-subtle: #eeebff;
+  --theme-glow: rgba(79, 70, 229, 0.15);
+}
+
+.card-theme-green {
+  --theme-primary: #10b981;
+  --theme-subtle: #ecfdf5;
+  --theme-glow: rgba(16, 185, 129, 0.15);
+}
+
+.card-theme-red {
+  --theme-primary: #f43f5e;
+  --theme-subtle: #fff1f2;
+  --theme-glow: rgba(244, 63, 94, 0.15);
+}
+
+.card-theme-orange {
+  --theme-primary: #ea580c;
+  --theme-subtle: #fff7ed;
+  --theme-glow: rgba(234, 88, 12, 0.15);
+}
+
+.card-theme-emerald {
+  --theme-primary: #059669;
+  --theme-subtle: #ecfdf5;
+  --theme-glow: rgba(5, 150, 105, 0.15);
+}
+
+.card-theme-pink {
+  --theme-primary: #ec4899;
+  --theme-subtle: #fdf2f8;
+  --theme-glow: rgba(236, 72, 153, 0.15);
+}
+
+/* 3. Selected Active State */
+.analytics-stat-card.is-selected {
+  border-color: var(--theme-primary) !important;
+  background-color: var(--theme-subtle) !important;
+  box-shadow: 0 10px 20px -5px var(--theme-glow) !important;
+}
+
+/* 4. Checkmark Indicator */
+.card-check-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--theme-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border: 1.5px solid #ffffff;
+  z-index: 2;
+}
+
+/* 5. Stat Card Layout Elements */
+.stat-card-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Icon Container */
+.stat-card-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: var(--theme-subtle);
+  color: var(--theme-primary);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.analytics-stat-card:hover .stat-card-icon-container {
+  transform: scale(1.05);
+}
+
+.analytics-stat-card.is-selected .stat-card-icon-container {
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* Title Styling */
+.stat-card-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  line-height: 1.25;
+}
+
+.analytics-stat-card.is-selected .stat-card-title {
+  color: var(--text-main, #0f172a);
+}
+
+/* 6. Body Styling */
+.stat-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+/* Large Value */
+.stat-card-value {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--text-main, #0f172a);
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Optional Subtitle */
+.stat-card-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted, #64748b);
+}
