@@ -59,6 +59,13 @@ export class ViewDepartmentsComponent implements OnInit {
   allSubDeptsPageSize    = 10;
   allSubDeptsTotalPages  = 1;
 
+  // ── Add Sub-Department Modal state ────────────────────────────────────────
+  showAddSubDeptModal = false;
+  addSubDeptSaving = false;
+  addSubDeptError: string | null = null;
+  addSubDeptSuccess: string | null = null;
+  addSubDeptForm = { name: '', code: '', description: '', departmentId: null as number | null };
+
   // ── Edit Sub-Department Modal state ───────────────────────────────────────
   showEditModal = false;
   editSubDeptId: string | null = null;
@@ -131,7 +138,7 @@ export class ViewDepartmentsComponent implements OnInit {
     this.subDeptSearchTerm = '';
   }
 
-  private loadSubDepts(deptId: number): void {
+  loadSubDepts(deptId: number): void {
     this.subDeptLoading = true;
     this.subDepts = [];
     this.filteredSubDepts = [];
@@ -195,7 +202,7 @@ export class ViewDepartmentsComponent implements OnInit {
     this.showAllSubDepts = false;
   }
 
-  private loadAllSubDepts(): void {
+  loadAllSubDepts(): void {
     this.allSubDeptsLoading = true;
     this.apiService.getAllSubDepartments().pipe(
       catchError(err => {
@@ -342,6 +349,66 @@ export class ViewDepartmentsComponent implements OnInit {
 
   openAddDepartment(): void {
     this.router.navigate(['/add-department']);
+  }
+
+  openAddSubDepartment(): void {
+    this.addSubDeptForm = { name: '', code: '', description: '', departmentId: this.selectedDept?.departmentId ?? null };
+    this.addSubDeptError = null;
+    this.addSubDeptSuccess = null;
+    this.showAddSubDeptModal = true;
+  }
+
+  closeAddSubDeptModal(): void {
+    this.showAddSubDeptModal = false;
+    this.addSubDeptError = null;
+    this.addSubDeptSuccess = null;
+  }
+
+  saveAddSubDept(): void {
+    if (!this.addSubDeptForm.name?.trim()) {
+      this.addSubDeptError = 'Name is required.';
+      return;
+    }
+    if (!this.addSubDeptForm.code?.trim()) {
+      this.addSubDeptError = 'Code is required.';
+      return;
+    }
+    if (!this.addSubDeptForm.departmentId) {
+      this.addSubDeptError = 'Please select a parent department.';
+      return;
+    }
+
+    this.addSubDeptSaving = true;
+    this.addSubDeptError = null;
+
+    const payload = {
+      name: this.addSubDeptForm.name.trim(),
+      code: this.addSubDeptForm.code.trim(),
+      description: this.addSubDeptForm.description?.trim() || '',
+      departmentId: this.addSubDeptForm.departmentId
+    };
+
+    this.apiService.createSubDepartment(payload).subscribe({
+      next: (created: any) => {
+        this.addSubDeptSaving = false;
+        this.addSubDeptSuccess = 'Sub-department created successfully!';
+
+        // Refresh lists so the new entry appears immediately
+        this.allSubDepts = [];
+        if (this.showAllSubDepts) {
+          this.loadAllSubDepts();
+        }
+        if (this.selectedDept?.departmentId === this.addSubDeptForm.departmentId) {
+          this.loadSubDepts(this.addSubDeptForm.departmentId!);
+        }
+
+        setTimeout(() => this.closeAddSubDeptModal(), 1200);
+      },
+      error: (err: any) => {
+        this.addSubDeptSaving = false;
+        this.addSubDeptError = err?.message || 'Failed to create sub-department.';
+      }
+    });
   }
 
   goBackToDashboard() {

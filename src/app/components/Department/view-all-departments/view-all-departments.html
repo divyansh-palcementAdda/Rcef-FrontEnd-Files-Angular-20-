@@ -15,16 +15,21 @@
         Departments Directory
       </h1>
     </div>
-    <button class="btn btn-primary px-4" (click)="openAddDepartment()">
-      <i class="bi bi-plus-lg me-1"></i>Add Department
-    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary px-4" (click)="openAddDepartment()">
+        <i class="bi bi-plus-lg me-1"></i>Add Department
+      </button>
+      <button class="btn btn-success px-4" (click)="openAddSubDepartment()">
+        <i class="bi bi-plus-lg me-1"></i>Add Sub Department
+      </button>
+    </div>
   </div>
 
-  <!-- Summary Stat Cards + Department Cards (single row, responsive) -->
-  <div class="row g-3 mb-4">
+  <!-- Row 1: Stat Cards (Total Departments + Total Sub-Departments) -->
+  <div class="d-flex flex-wrap gap-3 mb-0">
 
     <!-- Total Departments stat card -->
-    <div class="col-6 col-md-3">
+    <div style="flex: 1 1 0; min-width: 180px;">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center gap-3 p-3">
           <div class="rounded-3 p-2 flex-shrink-0" style="background: #e8f0fe;">
@@ -39,7 +44,7 @@
     </div>
 
     <!-- Total Sub-Departments stat card (clickable) -->
-    <div class="col-6 col-md-3">
+    <div style="flex: 1 1 0; min-width: 180px;">
       <div class="card border-0 shadow-sm h-100"
            style="cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;"
            (click)="openAllSubDepts()"
@@ -56,9 +61,24 @@
       </div>
     </div>
 
-    <!-- Department Cards (dynamic from API) -->
-    <ng-container *ngIf="!loading && departments.length">
-      <div class="col-6 col-md-3" *ngFor="let dept of departments; let i = index">
+  </div>
+
+  <!-- Row 2: Department Cards with heading -->
+  <div class="mb-4">
+    <h6 class="fw-semibold mt-4 mb-3" style="color: var(--text-main); font-size: 0.95rem; letter-spacing: 0.02em;">
+      <i class="bi bi-building me-1 text-primary"></i>Departments
+    </h6>
+
+    <!-- Loading spinner -->
+    <div *ngIf="loading" class="text-center my-2 py-2">
+      <div class="spinner-border text-primary spinner mb-2" role="status"></div>
+      <p class="text-muted small">Loading departments…</p>
+    </div>
+
+    <!-- Department Cards -->
+    <div class="d-flex flex-wrap gap-3" *ngIf="!loading && departments.length">
+      <div style="flex: 1 1 200px; min-width: 180px; max-width: 280px;"
+           *ngFor="let dept of departments; let i = index">
         <div
           class="card border-0 shadow-sm h-100 dept-summary-card"
           [class.dept-card-active]="selectedDept?.departmentId === dept.departmentId"
@@ -82,14 +102,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </ng-container>
-
-    <!-- Loading spinner inline -->
-    <div class="col-12" *ngIf="loading">
-      <div class="text-center my-2 py-2">
-        <div class="spinner-border text-primary spinner mb-2" role="status"></div>
-        <p class="text-muted small">Loading departments…</p>
       </div>
     </div>
 
@@ -377,6 +389,84 @@
     <i class="bi bi-exclamation-triangle-fill me-2"></i>
     <span>{{ errorMessage }}</span>
     <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
+  </div>
+
+  <!-- ── Add Sub-Department Modal ──────────────────────────────────────── -->
+  <div class="modal-backdrop-custom" *ngIf="showAddSubDeptModal" (click)="closeAddSubDeptModal()"></div>
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" *ngIf="showAddSubDeptModal" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow-lg">
+
+        <!-- Modal Header -->
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold" style="color: var(--text-main);">
+            <i class="bi bi-plus-circle me-2 text-success"></i>Add Sub-Department
+          </h5>
+          <button type="button" class="btn-close" (click)="closeAddSubDeptModal()"></button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body pt-3">
+
+          <!-- Success -->
+          <div *ngIf="addSubDeptSuccess"
+            class="alert alert-success d-flex align-items-center mb-3 py-2" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>{{ addSubDeptSuccess }}
+          </div>
+
+          <!-- Error -->
+          <div *ngIf="addSubDeptError"
+            class="alert alert-danger d-flex align-items-center mb-3 py-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ addSubDeptError }}
+          </div>
+
+          <!-- Form -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Parent Department <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="addSubDeptForm.departmentId">
+              <option [ngValue]="null">Select Department</option>
+              <option *ngFor="let dept of departments" [value]="dept.departmentId">{{ dept.name }}</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Sub-Department Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control"
+              [(ngModel)]="addSubDeptForm.name"
+              placeholder="e.g. Computer Graphics">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Unique Code <span class="text-danger">*</span></label>
+            <input type="text" class="form-control"
+              [(ngModel)]="addSubDeptForm.code"
+              placeholder="e.g. CSE_CG">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea class="form-control" rows="3"
+              [(ngModel)]="addSubDeptForm.description"
+              placeholder="Describe the focus/deliverables..."></textarea>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-secondary px-4" (click)="closeAddSubDeptModal()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-success px-4"
+            (click)="saveAddSubDept()"
+            [disabled]="addSubDeptSaving">
+            <span *ngIf="addSubDeptSaving" class="spinner-border spinner-border-sm me-1" role="status"></span>
+            <i *ngIf="!addSubDeptSaving" class="bi bi-plus-circle me-1"></i>
+            {{ addSubDeptSaving ? 'Creating…' : 'Create Sub-Department' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <!-- ── Edit Sub-Department Modal ─────────────────────────────────────── -->
