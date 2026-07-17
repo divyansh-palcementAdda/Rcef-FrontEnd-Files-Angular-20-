@@ -141,6 +141,10 @@ export class HierarchyViewerComponent implements OnInit {
     return u.departmentNames && u.departmentNames.length > 0 ? u.departmentNames[0] : 'None';
   }
 
+  viewUser(userId: number): void {
+    this.router.navigate(['/user', userId]);
+  }
+
   goBack(): void {
     this.router.navigate(['/admin']);
   }

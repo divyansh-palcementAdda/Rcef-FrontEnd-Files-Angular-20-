@@ -161,6 +161,32 @@
   border: 1px solid var(--border-color);
 }
 
+/* Sticky detail panel */
+.detail-panel-col {
+  position: sticky;
+  top: 80px; /* adjust to match your navbar height */
+  align-self: flex-start;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.detail-panel-col::-webkit-scrollbar {
+  width: 4px;
+}
+
+.detail-panel-col::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.detail-panel-col::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+
 @media (max-width: 768px) {
   .hierarchy-container {
     padding-left: 0.25rem;

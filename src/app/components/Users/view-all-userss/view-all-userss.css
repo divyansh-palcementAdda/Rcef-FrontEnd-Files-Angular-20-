@@ -1,255 +1,214 @@
-/* Modern Users View Styles */
+/* =============================================
+   Users Management Dashboard — Stitch UI
+   Mirrors Task Management architecture
+   ============================================= */
 
 .users-container {
-  /* max-width: 1200px; */
-  margin: 0 auto;
+  min-height: calc(100vh - var(--topbar-height, 60px) - 4rem);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1f2937;
+  background-color: #f9fafb;
 }
 
-/* Row Hover Action Highlights */
-.table tbody tr {
-  transition: all 0.15s ease;
-  cursor: pointer;
-}
-
-.row-actions {
-  display: inline-flex;
-  gap: 0.35rem;
-  justify-content: flex-end;
-}
-
-/* Mobile Cards */
-.mobile-user-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-.mobile-user-card:hover {
-  border-color: var(--primary-color);
-  box-shadow: var(--shadow-sm);
-}
-
-.mobile-user-card > .d-flex:first-child {
-  gap: 0.75rem;
-}
-
-.mobile-user-card > .d-flex:first-child > div:first-child {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.mobile-user-card > .d-flex:first-child > .badge {
-  flex: 0 0 auto;
-  white-space: nowrap;
-  margin-left: 0.5rem;
-}
-
-.mobile-user-card h6,
-.mobile-user-card .text-muted.small {
-  min-width: 0;
+/* ── 1. HERO ── */
+.users-hero {
+  background: linear-gradient(135deg, #1d4ed8 0%, #6366f1 100%);
+  border-radius: 16px;
+  padding: 1.75rem 2.25rem;
+  position: relative;
   overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-}
-
-/* Pagination Overrides */
-.pagination {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: center;
-  gap: 0.25rem;
-}
-.pagination .page-item .page-link {
-  color: var(--text-main);
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  padding: 0.5rem 0.875rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.pagination .page-item .page-link:hover {
-  background-color: var(--bg-color);
-  border-color: var(--text-muted);
-}
-.pagination .page-item.active .page-link {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: #ffffff;
-}
-.pagination .page-item.disabled .page-link {
-  color: var(--text-muted);
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: var(--bg-color);
-}
-
-@media (max-width: 768px) {
-  .users-container {
-    padding: 0 0.25rem;
-  }
-
-  .mobile-user-card {
-    padding: 1rem;
-  }
-
-  .pagination {
-    flex-wrap: wrap;
-  }
-
-  .pagination .page-item .page-link {
-    padding: 0.45rem 0.7rem;
-    font-size: 0.825rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .mobile-user-card {
-    padding: 0.9rem;
-    border-radius: 10px;
-  }
-
-  .row-actions {
-    gap: 0.25rem;
-    flex-wrap: wrap;
-  }
-
-  .pagination {
-    gap: 0.15rem;
-  }
-
-  .pagination .page-item .page-link {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.8rem;
-  }
-}
-
-/* ── Add User Modal ── */
-.modal.show {
-  display: block !important;
-}
-
-.modal-content {
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-}
-
-.modal-header {
-  border-radius: 12px 12px 0 0;
-  padding: 1.25rem 1.5rem;
-  background: var(--card-bg, #fff);
-}
-
-.modal-body {
-  background: var(--card-bg, #fff);
-}
-
-.modal-body .form-label {
-  font-size: 0.875rem;
-  color: var(--text-main, #212529);
-  margin-bottom: 0.3rem;
-}
-
-.modal-body .form-control,
-.modal-body .form-select {
-  font-size: 0.9rem;
-  border-radius: 8px;
-  border-color: var(--border-color, #dee2e6);
-  background: var(--input-bg, #fff);
-  color: var(--text-main, #212529);
-}
-
-.modal-body .form-control:focus,
-.modal-body .form-select:focus {
-  border-color: var(--primary-color, #0d6efd);
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-}
-
-.modal-body .invalid-feedback {
-  font-size: 0.8rem;
-}
-
-@media (max-width: 576px) {
-  .modal-dialog {
-    margin: 0.5rem;
-  }
-}
-
-/* ── Modal Section Cards ── */
-.modal-backdrop-custom {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1050;
-}
-
-.modal-section-card {
-  background: var(--bg-color, #f8f9fa);
-  border: 1px solid var(--border-color, #dee2e6);
-  border-radius: 10px;
-  padding: 1.25rem;
-}
-
-.modal-section-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.modal-section-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--primary-color, #0d6efd);
   color: #fff;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
+  gap: 1rem;
+  min-height: 145px;
+  box-shadow: 0 4px 20px rgba(29, 78, 216, 0.18);
+}
+.users-hero::after {
+  content: '';
+  position: absolute;
+  right: -5%; top: -20%;
+  width: 260px; height: 260px;
+  background: radial-gradient(circle, rgba(255,255,255,.15) 0%, transparent 70%);
+  z-index: 1;
+}
+.users-hero-content { position: relative; z-index: 2; flex: 1; }
+.users-hero-title { font-size: 1.9rem; font-weight: 800; margin: 0; letter-spacing: -.025em; }
+.users-hero-subtitle { font-size: .85rem; color: rgba(255,255,255,.8); margin: .25rem 0 0; }
+.users-hero-pills { display: flex; gap: .75rem; margin-top: .6rem; flex-wrap: wrap; }
+.users-hero-pill {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.12);
+  padding: .3rem .8rem; border-radius: 9999px;
+  font-size: .75rem; font-weight: 600;
+  display: flex; align-items: center; gap: .35rem;
+  backdrop-filter: blur(4px);
+}
+.users-hero-dot { width: 6px; height: 6px; border-radius: 50%; }
+.breadcrumb-hero .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,.5); }
+
+.users-hero-actions {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.users-hero-illustration { position: relative; z-index: 2; }
+.users-hero-icon-card {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 12px; width: 80px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.users-hero-icon { font-size: 1.6rem; color: #fff; }
+@media (max-width: 768px) {
+  .users-hero { flex-direction: column; align-items: flex-start; padding: 1.5rem; }
+  .users-hero-illustration { display: none; }
 }
 
-.modal-section-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-main, #212529);
-  margin: 0;
-}
+/* ── 2. SECTION TITLE ── */
+.section-title { font-size: 1.1rem; font-weight: 700; color: #1f2937; letter-spacing: -.01em; }
 
-.modal-section-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-muted, #6c757d);
-  margin: 0;
-}
+/* ── 3. OVERALL STATS GRID ── */
+.overall-statistics-grid { display: grid; gap: 1.1rem; margin-bottom: 1.5rem; }
+@media (max-width: 767.98px)                          { .overall-statistics-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 768px)  and (max-width: 991.98px)  { .overall-statistics-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 992px)  and (max-width: 1199.98px) { .overall-statistics-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1200px)                            { .overall-statistics-grid { grid-template-columns: repeat(6, 1fr); } }
 
-/* ── Icon-only action buttons (no border, no bg) ── */
-.action-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: #9ca3af;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+/* ── 4. BREAKDOWN CARDS ── */
+.breakdown-card { border: 1px solid #e5e7eb !important; border-radius: 14px !important; box-shadow: 0 1px 4px rgba(0,0,0,.03) !important; }
+.scrollable-y { max-height: 260px; overflow-y: auto; }
+.scrollable-y::-webkit-scrollbar { width: 5px; }
+.scrollable-y::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+.scrollable-y::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+
+.department-item {
+  cursor: pointer; transition: all .2s ease;
+  background: #fff; border-color: #f3f4f6 !important;
 }
-.action-icon-btn:hover {
-  color: #374151;
-  background: rgba(0, 0, 0, 0.06);
+.department-item:hover { background: #f9fafb; border-color: #e5e7eb !important; }
+.department-item.selected { background: #eff6ff !important; border-color: #3b82f6 !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,130,246,.1) !important; }
+
+.type-breakdown-box { cursor: pointer; transition: all .2s ease; background: #fff; border-color: #f3f4f6 !important; }
+.type-breakdown-box:hover { background: #f9fafb; border-color: #e5e7eb !important; }
+.type-breakdown-box.selected { background: #eff6ff !important; border-color: #3b82f6 !important; box-shadow: 0 4px 12px rgba(59,130,246,.08); }
+
+.card-selected-indicator {
+  position: absolute; top: -6px; right: -6px;
+  background: #3b82f6; width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; box-shadow: 0 2px 4px rgba(59,130,246,.4); z-index: 5;
 }
-.action-icon-btn:focus-visible {
-  outline: 2px solid var(--primary-color, #0d6efd);
-  outline-offset: 2px;
+.card-selected-indicator--mini { top: 6px; right: 6px; width: 18px; height: 18px; font-size: .65rem; }
+
+/* ── 5. DATA GRID ── */
+.stitch-grid-container {
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.02); overflow: hidden; margin-bottom: 1.5rem;
+}
+.stitch-table { width: 100%; border-collapse: collapse; }
+.stitch-table th {
+  background: #fff; color: #6b7280; font-size: .7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: .9rem 1.1rem; border-bottom: 1px solid #f3f4f6; text-align: left;
+}
+.stitch-table td { padding: .9rem 1.1rem; border-bottom: 1px solid #f3f4f6; vertical-align: middle; background: #fff; transition: background .12s ease; }
+.stitch-table tr:hover td { background: #fafafa; }
+.stitch-table tr:last-child td { border-bottom: none; }
+.stitch-table th[style*="cursor:pointer"]:hover,
+.stitch-table th[style*="cursor: pointer"]:hover { background: #f9fafb !important; color: #111827 !important; }
+
+/* ── 6. STATUS PILLS ── */
+.stitch-status-pill {
+  font-size: .7rem; font-weight: 800; padding: .3rem .65rem; border-radius: 7px;
+  display: inline-flex; align-items: center; gap: .35rem;
+  text-transform: uppercase; letter-spacing: .05em; border: 1px solid transparent;
+}
+.stitch-status-pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+.pill-in-progress  { background: #eff6ff; color: #2563eb; border-color: #dbeafe; }
+.pill-in-progress::before { background: #2563eb; }
+.pill-pending      { background: #fffbeb; color: #d97706; border-color: #fef3c7; }
+.pill-pending::before { background: #d97706; }
+.pill-completed    { background: #ecfdf5; color: #059669; border-color: #d1fae5; }
+.pill-completed::before { background: #059669; }
+.pill-overdue      { background: #fef2f2; color: #dc2626; border-color: #fee2e2; }
+.pill-overdue::before { background: #dc2626; }
+
+/* ── 7. ACTION BUTTONS ── */
+.stitch-action-group { display: flex; justify-content: flex-end; gap: .3rem; }
+.stitch-action-btn {
+  width: 28px; height: 28px; border-radius: 6px; border: 1px solid #e5e7eb;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; cursor: pointer; transition: all .15s ease;
+}
+.btn-act-view    { color: #3b82f6; } .btn-act-view:hover    { background: #eff6ff; border-color: #3b82f6; }
+.btn-act-edit    { color: #6366f1; } .btn-act-edit:hover    { background: #e0e7ff; border-color: #6366f1; }
+.btn-act-approve { color: #10b981; } .btn-act-approve:hover { background: #ecfdf5; border-color: #10b981; }
+.btn-act-delete  { color: #ef4444; } .btn-act-delete:hover  { background: #fef2f2; border-color: #ef4444; }
+
+/* ── 8. PAGINATION ── */
+.stitch-pagination {
+  background: #fff; border-top: 1px solid #e5e7eb;
+  padding: .8rem 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.stitch-pag-left { display: flex; align-items: center; gap: .65rem; font-size: .7rem; color: #4b5563; }
+.stitch-pag-size-selector {
+  height: 28px; padding: 0 1.4rem 0 .5rem !important;
+  background: #f3f4f6 !important; border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important; font-size: .73rem !important; font-weight: 600 !important; color: #4b5563 !important; cursor: pointer;
+}
+.stitch-pag-label { font-size: .7rem; color: #6b7280; font-weight: 500; }
+.stitch-pag-controls { display: flex; align-items: center; gap: .2rem; }
+.stitch-pag-btn {
+  height: 28px; width: 28px; display: flex; align-items: center; justify-content: center;
+  border-radius: 6px !important; border: 1px solid #e5e7eb !important;
+  background: #fff !important; color: #4b5563 !important; font-size: .73rem !important; cursor: pointer; transition: all .15s ease;
+}
+.stitch-pag-btn:hover:not(:disabled) { background: #f3f4f6 !important; color: #1f2937 !important; }
+.stitch-pag-btn.active { background: #4f46e5 !important; color: #fff !important; border-color: #4f46e5 !important; }
+.stitch-pag-btn:disabled { opacity: .4; cursor: not-allowed; }
+@media (max-width: 576px) { .stitch-pagination { flex-direction: column; align-items: center; } }
+
+/* ── 9. MODAL ── */
+.modal.show { display: block !important; }
+.modal-content { border: none; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+.modal-header { border-radius: 12px 12px 0 0; padding: 1.25rem 1.5rem; background: var(--card-bg,#fff); }
+.modal-body { background: var(--card-bg,#fff); }
+.modal-body .form-label { font-size: .875rem; color: var(--text-main,#212529); margin-bottom: .3rem; }
+.modal-body .form-control,
+.modal-body .form-select { font-size: .9rem; border-radius: 8px; border-color: var(--border-color,#dee2e6); background: var(--input-bg,#fff); color: var(--text-main,#212529); }
+.modal-body .form-control:focus,
+.modal-body .form-select:focus { border-color: var(--primary-color,#0d6efd); box-shadow: 0 0 0 .2rem rgba(13,110,253,.15); }
+.modal-backdrop-custom { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1050; }
+
+/* ── 10. MODAL SECTION CARDS ── */
+.modal-section-card { background: var(--bg-color,#f8f9fa); border: 1px solid var(--border-color,#dee2e6); border-radius: 10px; padding: 1.25rem; }
+.modal-section-header { display: flex; align-items: flex-start; gap: .75rem; margin-bottom: 1rem; }
+.modal-section-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--primary-color,#0d6efd); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.modal-section-title { font-size: .95rem; font-weight: 600; color: var(--text-main,#212529); margin: 0; }
+.modal-section-subtitle { font-size: .8rem; color: var(--text-muted,#6c757d); margin: 0; }
+
+/* ── 11. MULTISELECT ── */
+.multiselect-input-box { min-height: 42px; cursor: pointer; }
+.multiselect-dropdown-menu { z-index: 1060; max-height: 200px; overflow-y: auto; background: var(--card-bg,#fff); }
+
+/* ── 12. EMPTY STATE ── */
+.empty-state-illustration { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.empty-icon-circle { width: 56px; height: 56px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
+
+/* ── 13. SKELETON ── */
+.skeleton-card {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── 14. MOBILE RESPONSIVE ── */
+@media (max-width: 576px) { .modal-dialog { margin: .5rem; } }
+@media (max-width: 768px) {
+  .stitch-grid-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .stitch-table { min-width: 700px; }
 }

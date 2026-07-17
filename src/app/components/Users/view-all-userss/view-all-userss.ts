@@ -452,6 +452,103 @@ export class ViewAllUserss implements OnInit {
     this.resetFilters();
   }
 
+  /** TrackBy for table performance */
+  trackByUserId(_: number, user: userDto): number { return user.userId; }
+
+  /** Pagination: safe upper bound for display */
+  pageUpperBound(): number {
+    return Math.min(this.currentPage * this.pageSize, this.totalElements);
+  }
+
+  /** Active filter chips (mirrors Task Management pattern) */
+  get activeChips(): Array<{ key: string; label: string }> {
+    const chips: Array<{ key: string; label: string }> = [];
+    if (this.searchTerm)          chips.push({ key: 'search',        label: `Search: "${this.searchTerm}"` });
+    if (this.statusFilter)        chips.push({ key: 'status',        label: `Status: ${this.statusFilter}` });
+    if (this.roleFilter)          chips.push({ key: 'role',          label: `Role: ${this.roleFilter}` });
+    if (this.departmentIdFilter) {
+      const d = this.departmentsList.find(x => x.departmentId === Number(this.departmentIdFilter));
+      chips.push({ key: 'department', label: `Dept: ${d ? d.name : this.departmentIdFilter}` });
+    }
+    if (this.subDepartmentIdFilter) {
+      const s = this.subDepartmentsList.find(x => x.id === this.subDepartmentIdFilter);
+      chips.push({ key: 'subDepartment', label: `Sub-Dept: ${s ? s.name : this.subDepartmentIdFilter}` });
+    }
+    if (this.subjectIdFilter) {
+      const sub = this.subjectsList.find(x => x.id === Number(this.subjectIdFilter));
+      chips.push({ key: 'subject', label: `Subject: ${sub ? sub.subjectName : this.subjectIdFilter}` });
+    }
+    return chips;
+  }
+
+  /** Current filter values snapshot for the drawer */
+  get filterValues(): { [key: string]: any } {
+    return {
+      searchTerm:           this.searchTerm,
+      statusFilter:         this.statusFilter,
+      roleFilter:           this.roleFilter,
+      departmentIdFilter:   this.departmentIdFilter,
+      subDepartmentIdFilter: this.subDepartmentIdFilter,
+      subjectIdFilter:      this.subjectIdFilter
+    };
+  }
+
+  /** Remove a single chip and reload */
+  removeChip(key: string): void {
+    switch (key) {
+      case 'search':        this.searchTerm = '';            break;
+      case 'status':        this.statusFilter = '';  this.selectedCard = 'total'; break;
+      case 'role':          this.roleFilter = '';           break;
+      case 'department':    this.departmentIdFilter = '';   break;
+      case 'subDepartment': this.subDepartmentIdFilter = ''; break;
+      case 'subject':       this.subjectIdFilter = '';      break;
+    }
+    this.currentPage = 1;
+    this.loadUsersForRole();
+  }
+
+  /** Toolbar search with debounce-like direct apply */
+  onToolbarSearch(term: string): void {
+    this.searchTerm = term;
+    this.currentPage = 1;
+    this.loadUsersForRole();
+  }
+
+  onToolbarSearchClear(): void {
+    this.searchTerm = '';
+    this.currentPage = 1;
+    this.loadUsersForRole();
+  }
+
+  /** Export users with current filters */
+  exportUsers(): void {
+    const params: any = {};
+    if (this.searchTerm)           params.search = this.searchTerm;
+    if (this.roleFilter)           params.role = this.roleFilter;
+    if (this.departmentIdFilter)   params.departmentId = this.departmentIdFilter.toString();
+    if (this.subDepartmentIdFilter) params.subDepartmentId = this.subDepartmentIdFilter;
+    if (this.subjectIdFilter)      params.subjectId = this.subjectIdFilter.toString();
+    if (this.statusFilter)         params.status = this.statusFilter;
+
+    this.apiService.searchUsers({ ...params, export: 'true', size: 10000, page: 0 }).subscribe({
+      next: (res: any) => {
+        const users: userDto[] = res?.data?.content ?? [];
+        const header = 'ID,Full Name,Username,Email,Role,Status,Departments\n';
+        const rows = users.map(u =>
+          `${u.userId},"${u.fullName}","${u.username}","${u.email}","${u.role}","${u.status}","${(u.departmentNames || []).join('; ')}"`
+        ).join('\n');
+        const blob = new Blob([header + rows], { type: 'text/csv' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = 'users_export.csv';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+        this.toastService.show({ title: 'Success', message: 'Users exported successfully.' });
+      },
+      error: () => this.toastService.show({ title: 'Error', message: 'Export failed. Please try again.' })
+    });
+  }
+
   /** Role-wise user count helpers */
   get adminCount(): number { return this.stats.admins; }
   get subAdminCount(): number { return this.stats.subAdmins; }
