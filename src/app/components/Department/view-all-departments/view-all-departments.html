@@ -45,10 +45,8 @@
 
     <!-- Total Sub-Departments stat card (clickable) -->
     <div style="flex: 1 1 0; min-width: 180px;">
-      <div class="card border-0 shadow-sm h-100"
-           style="cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;"
-           (click)="openAllSubDepts()"
-           [class.dept-card-active]="showAllSubDepts">
+      <div class="card border-0 shadow-sm h-100" style="cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;"
+        (click)="openAllSubDepts()" [class.dept-card-active]="showAllSubDepts">
         <div class="card-body d-flex align-items-center gap-3 p-3">
           <div class="rounded-3 p-2 flex-shrink-0" style="background: #e6f9f0;">
             <i class="bi bi-diagram-3-fill fs-4" style="color: #1db06a;"></i>
@@ -77,25 +75,18 @@
 
     <!-- Department Cards -->
     <div class="d-flex flex-wrap gap-3" *ngIf="!loading && departments.length">
-      <div style="flex: 1 1 200px; min-width: 180px; max-width: 280px;"
-           *ngFor="let dept of departments; let i = index">
-        <div
-          class="card border-0 shadow-sm h-100 dept-summary-card"
-          [class.dept-card-active]="selectedDept?.departmentId === dept.departmentId"
-          (click)="selectDepartment(dept)"
+      <div style="flex: 1 1 200px; min-width: 180px; max-width: 280px;" *ngFor="let dept of departments; let i = index">
+        <div class="card border-0 shadow-sm h-100 dept-summary-card"
+          [class.dept-card-active]="selectedDept?.departmentId === dept.departmentId" (click)="selectDepartment(dept)"
           style="cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;">
           <div class="card-body d-flex align-items-center gap-3 p-3">
-            <div class="rounded-3 p-2 flex-shrink-0"
-                 [style.background]="cardColor(i).bg">
-              <i class="fs-4" [class]="'bi ' + cardColor(i).iconClass"
-                 [style.color]="cardColor(i).icon"></i>
+            <div class="rounded-3 p-2 flex-shrink-0" [style.background]="cardColor(i).bg">
+              <i class="fs-4" [class]="'bi ' + cardColor(i).iconClass" [style.color]="cardColor(i).icon"></i>
             </div>
             <div class="overflow-hidden">
               <div class="text-muted small text-truncate">{{ dept.name }}</div>
               <div class="fw-bold fs-6" style="color: var(--text-main);">
-                <span class="badge rounded-pill"
-                      [style.background]="cardColor(i).bg"
-                      [style.color]="cardColor(i).icon">
+                <span class="badge rounded-pill" [style.background]="cardColor(i).bg" [style.color]="cardColor(i).icon">
                   {{ dept.departmentStatus }}
                 </span>
               </div>
@@ -126,8 +117,7 @@
       </div>
 
       <!-- Error -->
-      <div *ngIf="allSubDeptsError"
-        class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+      <div *ngIf="allSubDeptsError" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ allSubDeptsError }}
         <button type="button" class="btn-close" (click)="allSubDeptsError = null" aria-label="Close"></button>
       </div>
@@ -143,10 +133,8 @@
         <div class="col-md-9">
           <div class="search-input-wrapper">
             <i class="bi bi-search search-icon"></i>
-            <input type="text" class="form-control search-input"
-              placeholder="Search by name, code or department..."
-              [(ngModel)]="allSubDeptsSearchTerm"
-              (input)="applyAllSubDeptsFilters()">
+            <input type="text" class="form-control search-input" placeholder="Search by name, code or department..."
+              [(ngModel)]="allSubDeptsSearchTerm" (input)="applyAllSubDeptsFilters()">
           </div>
         </div>
         <div class="col-md-3">
@@ -157,8 +145,7 @@
       </div>
 
       <!-- Desktop Table -->
-      <div class="table-responsive d-none d-md-block"
-        *ngIf="!allSubDeptsLoading && paginatedAllSubDepts.length">
+      <div class="table-responsive d-none d-md-block" *ngIf="!allSubDeptsLoading && paginatedAllSubDepts.length">
         <table class="table table-hover align-middle">
           <thead>
             <tr>
@@ -174,9 +161,8 @@
               <td><span class="badge bg-light text-dark border fw-semibold">{{ sd.code || '—' }}</span></td>
               <td class="fw-bold" style="color: var(--text-main);">{{ sd.name }}</td>
               <td>
-                <span class="badge rounded-pill"
-                  style="background: #e8f0fe; color: #3d6fd4;">
-                  {{ sd.department?.name || '—' }}
+                <span class="badge rounded-pill" style="background: #e8f0fe; color: #3d6fd4;">
+                  {{ sd.department.name || '—' }}
                 </span>
               </td>
               <td class="text-muted"><small>{{ sd.description || 'No description provided' }}</small></td>
@@ -186,8 +172,7 @@
                     (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
                     <i class="bi bi-eye" style="font-size: 0.75rem;"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-warning"
-                    (click)="openEditSubDeptModal(sd)" title="Edit">
+                  <button class="btn btn-sm btn-outline-warning" (click)="openEditSubDeptModal(sd)" title="Edit">
                     <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
                   </button>
                 </div>
@@ -204,15 +189,14 @@
             <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ sd.name }}</h6>
             <span class="badge bg-light text-dark border">{{ sd.code || '—' }}</span>
           </div>
-          <small class="text-muted d-block mb-1">{{ sd.department?.name || '—' }}</small>
+          <small class="text-muted d-block mb-1">{{ sd.department.name || '—' }}</small>
           <small class="text-muted">{{ sd.description || 'No description' }}</small>
           <div class="d-flex justify-content-end gap-1 mt-2 pt-2 border-top">
             <button class="btn btn-sm btn-outline-primary"
               (click)="router.navigate(['/sub-department-details', sd.id])">
               <i class="bi bi-eye" style="font-size: 0.75rem;"></i>
             </button>
-            <button class="btn btn-sm btn-outline-warning"
-              (click)="openEditSubDeptModal(sd)">
+            <button class="btn btn-sm btn-outline-warning" (click)="openEditSubDeptModal(sd)">
               <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
             </button>
           </div>
@@ -220,15 +204,13 @@
       </div>
 
       <!-- Empty state -->
-      <div *ngIf="!allSubDeptsLoading && !paginatedAllSubDepts.length"
-        class="text-center text-muted py-5">
+      <div *ngIf="!allSubDeptsLoading && !paginatedAllSubDepts.length" class="text-center text-muted py-5">
         <i class="bi bi-diagram-3 fs-2 mb-2 d-block"></i>
         <span>No sub-departments found.</span>
       </div>
 
       <!-- Pagination -->
-      <div class="mt-3 pt-2 border-top"
-        *ngIf="!allSubDeptsLoading && filteredAllSubDepts.length > allSubDeptsPageSize">
+      <div class="mt-3 pt-2 border-top" *ngIf="!allSubDeptsLoading && filteredAllSubDepts.length > allSubDeptsPageSize">
         <nav aria-label="All sub-dept pagination">
           <ul class="pagination mb-0">
             <li class="page-item" [class.disabled]="allSubDeptsCurrentPage === 1">
@@ -236,8 +218,7 @@
                 <i class="bi bi-chevron-left"></i>
               </a>
             </li>
-            <li class="page-item"
-              *ngFor="let page of getAllSubDeptsPageNumbers()"
+            <li class="page-item" *ngFor="let page of getAllSubDeptsPageNumbers()"
               [class.active]="allSubDeptsCurrentPage === page">
               <a class="page-link" (click)="changeAllSubDeptsPage(page)">{{ page }}</a>
             </li>
@@ -281,10 +262,8 @@
         <div class="col-md-9">
           <div class="search-input-wrapper">
             <i class="bi bi-search search-icon"></i>
-            <input type="text" class="form-control search-input"
-              placeholder="Search by name or code..."
-              [(ngModel)]="subDeptSearchTerm"
-              (input)="applySubDeptFilters()">
+            <input type="text" class="form-control search-input" placeholder="Search by name or code..."
+              [(ngModel)]="subDeptSearchTerm" (input)="applySubDeptFilters()">
           </div>
         </div>
         <div class="col-md-3">
@@ -295,8 +274,7 @@
       </div>
 
       <!-- Sub-dept desktop table -->
-      <div class="table-responsive d-none d-md-block"
-        *ngIf="!subDeptLoading && paginatedSubDepts.length">
+      <div class="table-responsive d-none d-md-block" *ngIf="!subDeptLoading && paginatedSubDepts.length">
         <table class="table table-hover align-middle">
           <thead>
             <tr>
@@ -317,8 +295,8 @@
                     (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
                     <i class="bi bi-eye" style="font-size: 0.75rem;"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-warning"
-                    (click)="openEditSubDeptModal(sd)" title="Edit Sub-Department">
+                  <button class="btn btn-sm btn-outline-warning" (click)="openEditSubDeptModal(sd)"
+                    title="Edit Sub-Department">
                     <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
                   </button>
                 </div>
@@ -337,12 +315,12 @@
           </div>
           <small class="text-muted">{{ sd.description || 'No description' }}</small>
           <div class="d-flex justify-content-end gap-1 mt-2 pt-2 border-top">
-            <button class="btn btn-sm btn-outline-primary"
-              (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
+            <button class="btn btn-sm btn-outline-primary" (click)="router.navigate(['/sub-department-details', sd.id])"
+              title="View Details">
               <i class="bi bi-eye" style="font-size: 0.75rem;"></i>
             </button>
-            <button class="btn btn-sm btn-outline-warning"
-              (click)="openEditSubDeptModal(sd)" title="Edit Sub-Department">
+            <button class="btn btn-sm btn-outline-warning" (click)="openEditSubDeptModal(sd)"
+              title="Edit Sub-Department">
               <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
             </button>
           </div>
@@ -350,8 +328,7 @@
       </div>
 
       <!-- Sub-dept empty state -->
-      <div *ngIf="!subDeptLoading && !paginatedSubDepts.length"
-        class="text-center text-muted py-5">
+      <div *ngIf="!subDeptLoading && !paginatedSubDepts.length" class="text-center text-muted py-5">
         <i class="bi bi-diagram-3 fs-2 mb-2 d-block"></i>
         <span>No sub-departments found for this department.</span>
       </div>
@@ -365,8 +342,7 @@
                 <i class="bi bi-chevron-left"></i>
               </a>
             </li>
-            <li class="page-item"
-              *ngFor="let page of getSubDeptPageNumbers()"
+            <li class="page-item" *ngFor="let page of getSubDeptPageNumbers()"
               [class.active]="subDeptCurrentPage === page">
               <a class="page-link" (click)="changeSubDeptPage(page)">{{ page }}</a>
             </li>
@@ -384,8 +360,7 @@
 
   <!-- Error Alert -->
   <div *ngIf="errorMessage"
-    class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn"
-    role="alert">
+    class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn" role="alert">
     <i class="bi bi-exclamation-triangle-fill me-2"></i>
     <span>{{ errorMessage }}</span>
     <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
@@ -409,14 +384,12 @@
         <div class="modal-body pt-3">
 
           <!-- Success -->
-          <div *ngIf="addSubDeptSuccess"
-            class="alert alert-success d-flex align-items-center mb-3 py-2" role="alert">
+          <div *ngIf="addSubDeptSuccess" class="alert alert-success d-flex align-items-center mb-3 py-2" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i>{{ addSubDeptSuccess }}
           </div>
 
           <!-- Error -->
-          <div *ngIf="addSubDeptError"
-            class="alert alert-danger d-flex align-items-center mb-3 py-2" role="alert">
+          <div *ngIf="addSubDeptError" class="alert alert-danger d-flex align-items-center mb-3 py-2" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ addSubDeptError }}
           </div>
 
@@ -431,22 +404,18 @@
 
           <div class="mb-3">
             <label class="form-label fw-semibold">Sub-Department Name <span class="text-danger">*</span></label>
-            <input type="text" class="form-control"
-              [(ngModel)]="addSubDeptForm.name"
+            <input type="text" class="form-control" [(ngModel)]="addSubDeptForm.name"
               placeholder="e.g. Computer Graphics">
           </div>
 
           <div class="mb-3">
             <label class="form-label fw-semibold">Unique Code <span class="text-danger">*</span></label>
-            <input type="text" class="form-control"
-              [(ngModel)]="addSubDeptForm.code"
-              placeholder="e.g. CSE_CG">
+            <input type="text" class="form-control" [(ngModel)]="addSubDeptForm.code" placeholder="e.g. CSE_CG">
           </div>
 
           <div class="mb-3">
             <label class="form-label fw-semibold">Description</label>
-            <textarea class="form-control" rows="3"
-              [(ngModel)]="addSubDeptForm.description"
+            <textarea class="form-control" rows="3" [(ngModel)]="addSubDeptForm.description"
               placeholder="Describe the focus/deliverables..."></textarea>
           </div>
         </div>
@@ -456,9 +425,7 @@
           <button type="button" class="btn btn-secondary px-4" (click)="closeAddSubDeptModal()">
             Cancel
           </button>
-          <button type="button" class="btn btn-success px-4"
-            (click)="saveAddSubDept()"
-            [disabled]="addSubDeptSaving">
+          <button type="button" class="btn btn-success px-4" (click)="saveAddSubDept()" [disabled]="addSubDeptSaving">
             <span *ngIf="addSubDeptSaving" class="spinner-border spinner-border-sm me-1" role="status"></span>
             <i *ngIf="!addSubDeptSaving" class="bi bi-plus-circle me-1"></i>
             {{ addSubDeptSaving ? 'Creating…' : 'Create Sub-Department' }}
@@ -487,14 +454,12 @@
         <div class="modal-body pt-3">
 
           <!-- Success -->
-          <div *ngIf="editSubDeptSuccess"
-            class="alert alert-success d-flex align-items-center mb-3 py-2" role="alert">
+          <div *ngIf="editSubDeptSuccess" class="alert alert-success d-flex align-items-center mb-3 py-2" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i>{{ editSubDeptSuccess }}
           </div>
 
           <!-- Error -->
-          <div *ngIf="editSubDeptError"
-            class="alert alert-danger d-flex align-items-center mb-3 py-2" role="alert">
+          <div *ngIf="editSubDeptError" class="alert alert-danger d-flex align-items-center mb-3 py-2" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ editSubDeptError }}
           </div>
 
@@ -509,22 +474,17 @@
 
           <div class="mb-3">
             <label class="form-label fw-semibold">Sub-Department Name <span class="text-danger">*</span></label>
-            <input type="text" class="form-control"
-              [(ngModel)]="editForm.name"
-              placeholder="e.g. Computer Graphics">
+            <input type="text" class="form-control" [(ngModel)]="editForm.name" placeholder="e.g. Computer Graphics">
           </div>
 
           <div class="mb-3">
             <label class="form-label fw-semibold">Unique Code <span class="text-danger">*</span></label>
-            <input type="text" class="form-control"
-              [(ngModel)]="editForm.code"
-              placeholder="e.g. CSE_CG">
+            <input type="text" class="form-control" [(ngModel)]="editForm.code" placeholder="e.g. CSE_CG">
           </div>
 
           <div class="mb-3">
             <label class="form-label fw-semibold">Description</label>
-            <textarea class="form-control" rows="3"
-              [(ngModel)]="editForm.description"
+            <textarea class="form-control" rows="3" [(ngModel)]="editForm.description"
               placeholder="Describe the focus/deliverables..."></textarea>
           </div>
         </div>
@@ -534,8 +494,7 @@
           <button type="button" class="btn btn-secondary px-4" (click)="closeEditModal()">
             Cancel
           </button>
-          <button type="button" class="btn btn-warning px-4 text-white"
-            (click)="saveEditSubDept()"
+          <button type="button" class="btn btn-warning px-4 text-white" (click)="saveEditSubDept()"
             [disabled]="editSubDeptSaving">
             <span *ngIf="editSubDeptSaving" class="spinner-border spinner-border-sm me-1" role="status"></span>
             <i *ngIf="!editSubDeptSaving" class="bi bi-save me-1"></i>
