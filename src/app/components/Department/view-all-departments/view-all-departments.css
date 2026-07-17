@@ -183,3 +183,11 @@
   box-shadow: 0 4px 16px rgba(79, 70, 229, 0.18) !important;
   transform: translateY(-2px);
 }
+
+/* ── Edit Sub-Department Modal Backdrop ── */
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1054;
+}

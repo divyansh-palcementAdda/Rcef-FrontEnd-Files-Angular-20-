@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { UserApiService } from '../../../Services/UserApiService';
@@ -181,6 +181,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private deptApiService: DepartmentApiService,
     private userApiService: UserApiService,
     private snackBar: MatSnackBar
@@ -447,7 +448,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/sub-departments']);
+    this.location.back();
   }
 
   showError(msg: string): void {

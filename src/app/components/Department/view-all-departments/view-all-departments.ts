@@ -48,6 +48,25 @@ export class ViewDepartmentsComponent implements OnInit {
   subDeptPageSize    = 8;
   subDeptTotalPages  = 1;
 
+  // ── All Sub-Departments panel state ──────────────────────────────────────
+  showAllSubDepts = false;
+  allSubDepts: SubDepartmentResponse[] = [];
+  filteredAllSubDepts: SubDepartmentResponse[] = [];
+  allSubDeptsLoading = false;
+  allSubDeptsError: string | null = null;
+  allSubDeptsSearchTerm = '';
+  allSubDeptsCurrentPage = 1;
+  allSubDeptsPageSize    = 10;
+  allSubDeptsTotalPages  = 1;
+
+  // ── Edit Sub-Department Modal state ───────────────────────────────────────
+  showEditModal = false;
+  editSubDeptId: string | null = null;
+  editSubDeptSaving = false;
+  editSubDeptError: string | null = null;
+  editSubDeptSuccess: string | null = null;
+  editForm = { name: '', code: '', description: '', departmentId: null as number | null };
+
   // card colour helper
   cardColor(index: number) { return CARD_COLORS[index % CARD_COLORS.length]; }
 
@@ -65,7 +84,7 @@ export class ViewDepartmentsComponent implements OnInit {
 
   constructor(
     private apiService: DepartmentApiService,
-    private router: Router,
+    public router: Router,
     private jwtService: JwtService,
     private authApiService: AuthApiService,
     private route: ActivatedRoute
@@ -156,6 +175,135 @@ export class ViewDepartmentsComponent implements OnInit {
     return this.filteredSubDepts.slice(start, start + this.subDeptPageSize);
   }
 
+  // ── All Sub-Departments handlers ──────────────────────────────────────────
+  openAllSubDepts(): void {
+    this.showAllSubDepts = true;
+    this.allSubDeptsSearchTerm = '';
+    this.allSubDeptsError = null;
+    if (this.allSubDepts.length === 0) {
+      this.loadAllSubDepts();
+    } else {
+      this.applyAllSubDeptsFilters();
+    }
+  }
+
+  closeAllSubDepts(): void {
+    this.showAllSubDepts = false;
+  }
+
+  private loadAllSubDepts(): void {
+    this.allSubDeptsLoading = true;
+    this.apiService.getAllSubDepartments().pipe(
+      catchError(err => {
+        this.allSubDeptsError = err?.message || 'Failed to load sub-departments.';
+        return of([]);
+      })
+    ).subscribe((res: SubDepartmentResponse[]) => {
+      this.allSubDepts = res || [];
+      this.applyAllSubDeptsFilters();
+      this.allSubDeptsLoading = false;
+    });
+  }
+
+  applyAllSubDeptsFilters(): void {
+    const term = this.allSubDeptsSearchTerm.toLowerCase();
+    this.filteredAllSubDepts = this.allSubDepts.filter(sd =>
+      !term ||
+      sd.name?.toLowerCase().includes(term) ||
+      sd.code?.toLowerCase().includes(term) ||
+      sd.department?.name?.toLowerCase().includes(term)
+    );
+    this.allSubDeptsTotalPages  = Math.ceil(this.filteredAllSubDepts.length / this.allSubDeptsPageSize) || 1;
+    this.allSubDeptsCurrentPage = 1;
+  }
+
+  resetAllSubDeptsFilters(): void {
+    this.allSubDeptsSearchTerm = '';
+    this.applyAllSubDeptsFilters();
+  }
+
+  changeAllSubDeptsPage(page: number): void {
+    if (page >= 1 && page <= this.allSubDeptsTotalPages) this.allSubDeptsCurrentPage = page;
+  }
+
+  getAllSubDeptsPageNumbers(): number[] {
+    return Array.from({ length: this.allSubDeptsTotalPages }, (_, i) => i + 1);
+  }
+
+  get paginatedAllSubDepts(): SubDepartmentResponse[] {
+    const start = (this.allSubDeptsCurrentPage - 1) * this.allSubDeptsPageSize;
+    return this.filteredAllSubDepts.slice(start, start + this.allSubDeptsPageSize);
+  }
+
+  // ── Edit Sub-Department Modal handlers ───────────────────────────────────
+  openEditSubDeptModal(sd: SubDepartmentResponse): void {
+    this.editSubDeptId = sd.id;
+    this.editForm = {
+      name: sd.name,
+      code: sd.code,
+      description: sd.description,
+      departmentId: sd.department?.departmentId ?? null
+    };
+    this.editSubDeptError = null;
+    this.editSubDeptSuccess = null;
+    this.showEditModal = true;
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.editSubDeptId = null;
+    this.editSubDeptError = null;
+    this.editSubDeptSuccess = null;
+  }
+
+  saveEditSubDept(): void {
+    if (!this.editSubDeptId) return;
+    if (!this.editForm.name?.trim()) {
+      this.editSubDeptError = 'Name is required.';
+      return;
+    }
+    if (!this.editForm.code?.trim()) {
+      this.editSubDeptError = 'Code is required.';
+      return;
+    }
+    if (!this.editForm.departmentId) {
+      this.editSubDeptError = 'Please select a department.';
+      return;
+    }
+
+    this.editSubDeptSaving = true;
+    this.editSubDeptError = null;
+
+    const payload = {
+      name: this.editForm.name.trim(),
+      code: this.editForm.code.trim(),
+      description: this.editForm.description?.trim() || '',
+      departmentId: this.editForm.departmentId
+    };
+
+    this.apiService.updateSubDepartment(this.editSubDeptId, payload).subscribe({
+      next: (updated: any) => {
+        this.editSubDeptSaving = false;
+        this.editSubDeptSuccess = 'Sub-department updated successfully!';
+
+        // Update in-memory lists so UI reflects change immediately
+        const patch = (list: SubDepartmentResponse[]) => list.map(sd =>
+          sd.id === this.editSubDeptId ? { ...sd, ...payload } : sd
+        );
+        this.subDepts         = patch(this.subDepts);
+        this.filteredSubDepts = patch(this.filteredSubDepts);
+        this.allSubDepts         = patch(this.allSubDepts);
+        this.filteredAllSubDepts = patch(this.filteredAllSubDepts);
+
+        setTimeout(() => this.closeEditModal(), 1200);
+      },
+      error: (err: any) => {
+        this.editSubDeptSaving = false;
+        this.editSubDeptError = err?.message || 'Failed to update sub-department.';
+      }
+    });
+  }
+
   // ── Dept loaders ──────────────────────────────────────────────────────────
   private loadZeroDueDepartments(): void {
     this.loading = true;
@@ -220,6 +368,14 @@ export class ViewDepartmentsComponent implements OnInit {
     this.departments = depts || [];
     this.applyFilters();
     this.loading = false;
+
+    // Auto-select Admission department by default
+    const admissionDept = this.departments.find(d =>
+      d.name?.toLowerCase().includes('admission')
+    );
+    if (admissionDept) {
+      this.selectDepartment(admissionDept);
+    }
   }
 
   private handleError(err: any, fallback: string): void {
