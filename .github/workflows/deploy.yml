@@ -1,0 +1,55 @@
+name: Deploy RCEF Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Angular
+        run: npm run build -- --configuration production
+
+      - name: Verify Build
+        run: |
+          ls -la dist
+          ls -la dist/divyansh
+          ls -la dist/divyansh/browser
+
+      - name: Create Archive
+        run: |
+          cd dist/divyansh/browser
+          tar -czf ../../../rcef-build.tar.gz .
+
+      - name: Upload Build
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "rcef-build.tar.gz"
+          target: "/opt/deployments/rcef"
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            /opt/scripts/deploy-rcef-frontend.sh
