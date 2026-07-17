@@ -223,77 +223,89 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
     localLinks.push({ label: 'Dashboard', route: dashboardRoute, icon: 'bi-grid-fill' });
 
-    // 2. Tasks
+    // 2. All Tasks
     if (this.hasPermission('TASK_VIEW')) {
-      localLinks.push({ label: 'Tasks', route: '/view-tasks', icon: 'bi-list-check' });
+      localLinks.push({ label: 'All Task', route: '/view-tasks', icon: 'bi-list-check' });
 
-      // Scoped Task Views
+      // 3. Self Task
       if (this.hasPermission('AUDIT_LOG_VIEW')) {
-        localLinks.push({ label: 'Self Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
-        localLinks.push({ label: 'Pending Approvals', route: '/view-tasks', queryParams: { status: 'Approval' }, icon: 'bi-check2-circle' });
+        localLinks.push({ label: 'Self Task', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
       } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
-        localLinks.push({ label: 'My Tasks', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
-        localLinks.push({ label: 'Self-Assigned Tasks', route: '/view-tasks', queryParams: { status: 'selfAssigned' }, icon: 'bi-person-check-fill' });
+        localLinks.push({ label: 'Self Task', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
       } else {
-        localLinks.push({ label: 'My Tasks', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'bi-person-badge' });
+        localLinks.push({ label: 'Self Task', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'bi-person-badge' });
       }
+
+      // Commented out: Pending Approvals
+      // localLinks.push({ label: 'Pending Approvals', route: '/view-tasks', queryParams: { status: 'Approval' }, icon: 'bi-check2-circle' });
+
+      // Commented out: Self-Assigned Tasks
+      // localLinks.push({ label: 'Self-Assigned Tasks', route: '/view-tasks', queryParams: { status: 'selfAssigned' }, icon: 'bi-person-check-fill' });
     }
 
-    // 3. User lists
+    // 4. All User
     if (this.hasPermission('USER_VIEW')) {
-      if (this.hasPermission('AUDIT_LOG_VIEW')) {
-        localLinks.push({ label: 'Users', route: '/viewAllUsers', icon: 'bi-people' });
-      } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
-        localLinks.push({ label: 'Team Members', route: '/viewAllUsers', icon: 'bi-people-fill' });
-      } else {
-        localLinks.push({ label: 'Users', route: '/viewAllUsers', icon: 'bi-people' });
-      }
+      localLinks.push({ label: 'All User', route: '/viewAllUsers', icon: 'bi-people' });
     }
 
-    // 4. Departments
+    // 5. All Department / Sub Department
     if (this.hasPermission('DEPARTMENT_VIEW')) {
-      localLinks.push({ label: 'Departments', route: '/departments', icon: 'bi-building' });
+      localLinks.push({ label: 'All Department / Sub Department', route: '/departments', icon: 'bi-building' });
+    }
+    // Commented out: Sub Department as separate link (merged with All Department above)
+    // if (this.hasPermission('SUB_DEPARTMENT_VIEW')) {
+    //   localLinks.push({ label: 'Sub Department', route: '/sub-departments', icon: 'bi-diagram-2-fill' });
+    // }
+
+    // Commented out: Subjects
+    // if (this.hasPermission('SUBJECT_VIEW')) {
+    //   localLinks.push({ label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' });
+    // }
+
+    // 6. All Work (Task Requests)
+    if (this.hasPermission('TASK_APPROVE')) {
+      localLinks.push({ label: 'All Work', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'bi-briefcase-fill' });
+    } else if (this.hasPermission('REPORT_VIEW')) {
+      localLinks.push({ label: 'All Work', route: '/task-requests', icon: 'bi-briefcase-fill' });
     }
 
-    // 5. Sub-Departments
-    if (this.hasPermission('SUB_DEPARTMENT_VIEW')) {
-      localLinks.push({ label: 'Sub-Departments', route: '/sub-departments', icon: 'bi-diagram-2-fill' });
-    }
-
-    // 6. Subjects
-    if (this.hasPermission('SUBJECT_VIEW')) {
-      localLinks.push({ label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' });
-    }
-
-    // 7. User Hierarchy
+    // 7. User Hierarchy (User Heriky)
     if (this.hasPermission('USER_VIEW') && (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW') || this.hasPermission('AUDIT_LOG_VIEW'))) {
       localLinks.push({ label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' });
     }
 
-    // 8. Recurring Tasks & Templates
+    // 8. Recurring Task
     if (this.hasPermission('TASK_CREATE') && this.hasPermission('AUDIT_LOG_VIEW')) {
-      localLinks.push({ label: 'Recurring Tasks', route: '/createRecurring', icon: 'bi-arrow-repeat' });
-      localLinks.push({ label: 'Task Templates', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' });
+      localLinks.push({ label: 'Recurring Task', route: '/createRecurring', icon: 'bi-arrow-repeat' });
     }
 
-    // 9. Task Requests
-    if (this.hasPermission('TASK_APPROVE')) {
-      localLinks.push({ label: 'Task Requests', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'bi-clock-history' });
-    } else if (this.hasPermission('REPORT_VIEW')) {
-      localLinks.push({ label: 'Task Requests', route: '/task-requests', icon: 'bi-clock-history' });
-    }
+    // Commented out: Import Users
+    // if (this.hasPermission('USER_CREATE')) {
+    //   localLinks.push({ label: 'Import Users', route: '/users/import', icon: 'bi-file-earmark-excel-fill' });
+    // }
 
-    // 10. Bulk Import
-    if (this.hasPermission('USER_CREATE')) {
-      localLinks.push({ label: 'Import Users', route: '/users/import', icon: 'bi-file-earmark-excel-fill' });
-    }
-    if (this.hasPermission('TASK_CREATE')) {
-      localLinks.push({ label: 'Import Tasks', route: '/tasks/import', icon: 'bi-file-earmark-arrow-up-fill' });
-    }
+    // Commented out: Import Tasks
+    // if (this.hasPermission('TASK_CREATE')) {
+    //   localLinks.push({ label: 'Import Tasks', route: '/tasks/import', icon: 'bi-file-earmark-arrow-up-fill' });
+    // }
 
-    // 11. Roles & Permissions Management
-    if (this.hasPermission('USER_EDIT') && this.hasPermission('AUDIT_LOG_VIEW')) {
-      localLinks.push({ label: 'Roles & Permissions', route: '/roles-permissions', icon: 'bi-shield-lock-fill' });
+    // 9. Setting (group) — Task Template & Roles & Permissions inside it
+    if (this.hasPermission('TASK_CREATE') && this.hasPermission('AUDIT_LOG_VIEW')) {
+      const settingsChildren: SidebarLink[] = [];
+
+      settingsChildren.push({ label: 'Task Template', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' });
+
+      if (this.hasPermission('USER_EDIT')) {
+        settingsChildren.push({ label: 'Role and Permission', route: '/roles-permissions', icon: 'bi-shield-lock-fill' });
+      }
+
+      localLinks.push({
+        label: 'Setting',
+        route: '',
+        icon: 'bi-gear-fill',
+        isGroup: true,
+        children: settingsChildren
+      });
     }
 
     this.links = localLinks;

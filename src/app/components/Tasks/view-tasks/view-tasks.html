@@ -79,6 +79,22 @@
     class="main-content-flow animate__animated animate__fadeIn">
 
     <!-- ==========================================
+       0. TOP ACTION BAR (Above Hero)
+       ========================================== -->
+    <div class="stitch-top-action-bar">
+      <div class="stitch-top-action-bar-right">
+        <button class="stitch-top-btn stitch-top-btn--outline" (click)="goToBulkImport()"
+          *ngIf="hasPermission('TASK_CREATE')" title="Bulk Upload Tasks">
+          <i class="bi bi-file-earmark-excel-fill"></i> Upload Tasks
+        </button>
+        <button class="stitch-top-btn stitch-top-btn--primary" (click)="openAddTaskModal()"
+          *ngIf="hasPermission('TASK_CREATE')" title="Add New Task">
+          <i class="bi bi-plus-lg"></i> Add Task
+        </button>
+      </div>
+    </div>
+
+    <!-- ==========================================
        1. HERO HEADER
        ========================================== -->
     <div class="stitch-hero">
@@ -424,14 +440,6 @@
         <span *ngIf="loading && !isInitialLoad" class="stitch-toolbar-spinner" title="Loading...">
           <i class="bi bi-arrow-repeat spin-icon"></i>
         </span>
-        <button class="stitch-toolbar-btn stitch-toolbar-btn--text" (click)="goToBulkImport()" *ngIf="hasPermission('TASK_CREATE')"
-          title="Bulk Upload Tasks">
-          <i class="bi bi-file-earmark-excel-fill"></i> Upload Tasks
-        </button>
-        <button class="stitch-toolbar-btn stitch-toolbar-btn--primary" (click)="openAddTaskModal()" *ngIf="hasPermission('TASK_CREATE')"
-          title="Add New Task">
-          <i class="bi bi-plus-lg"></i> Add Task
-        </button>
         <button class="stitch-toolbar-btn" (click)="loadCurrentUserAndTasks()" title="Refresh list">
           <i class="bi bi-arrow-clockwise"></i>
         </button>

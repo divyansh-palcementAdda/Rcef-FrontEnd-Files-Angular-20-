@@ -1,175 +1,240 @@
-<h1 class="text-center my-4 fw-bold" style="color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-  Task Requests
-</h1>
+<div class="view-tasks-container py-4 px-3 animate__animated animate__fadeIn">
 
-<div class="container my-5">
-  <div class="card shadow-lg animate__animated animate__fadeIn border-0">
+  <!-- Error State -->
+  <div *ngIf="errorMessage"
+    class="card border border-danger bg-danger-subtle p-5 text-center my-4 rounded-4 animate__animated animate__headShake">
+    <div class="fs-1 mb-3">❌</div>
+    <h4 class="fw-bold text-danger">Unable to Load Requests</h4>
+    <p class="text-muted mb-4">{{ errorMessage }}</p>
+    <button class="btn btn-primary d-inline-flex align-items-center gap-2 mx-auto" (click)="errorMessage = null">
+      <i class="bi bi-x-circle"></i> Dismiss
+    </button>
+  </div>
 
-    <!-- Premium Gradient Header -->
-    <div class="card-header py-4 text-white text-center rounded-top"
-         style="background: linear-gradient(135deg, #2b7818 0%, #34D399 50%, #1e3a8a 100%);">
-      <h3 class="mb-1 fw-bold">Task Requests Management</h3>
-      <small class="opacity-90">
-        {{ hasPermission('AUDIT_LOG_VIEW') ? 'All Requests in System' :
-           hasPermission('TASK_APPROVE') ? 'Requests from Your Department(s)' :
-           'Your Submitted Requests' }}
-      </small>
+  <!-- Main Content -->
+  <div *ngIf="!errorMessage" class="main-content-flow animate__animated animate__fadeIn">
+
+    <!-- Top Action Bar -->
+    <div class="stitch-top-action-bar">
+      <div class="stitch-top-action-bar-right">
+        <button class="stitch-top-btn stitch-top-btn--outline" (click)="refresh()">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+        <button class="stitch-top-btn stitch-top-btn--outline" (click)="goBackToDashboard()">
+          <i class="bi bi-arrow-left-circle"></i> Dashboard
+        </button>
+      </div>
     </div>
 
-    <div class="card-body p-4">
-
-      <!-- Error Alert -->
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>Error!</strong> {{ errorMessage }}
-        <button type="button" class="btn-close" (click)="errorMessage = null"></button>
-      </div>
-
-      <!-- Loading Spinner -->
-      <div *ngIf="loading" class="text-center my-5 py-5">
-        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-4 fs-5 text-muted">Loading requests...</p>
-      </div>
-
-      <!-- Filters Row -->
-      <div class="row mb-4 g-3 align-items-end" *ngIf="!loading">
-        <div class="col-lg-5 col-md-12">
-          <input
-            type="text"
-            class="form-control form-control-lg"
-            placeholder="Search by task title, user, or remarks..."
-            [(ngModel)]="filters.search"
-            (input)="applyFilters()">
-        </div>
-
-        <div class="col-lg-2 col-md-4">
-          <select class="form-select" [(ngModel)]="filters.type" (change)="applyFilters()">
-            <option value="ALL">All Types</option>
-            <option value="EXTENSION">Extension</option>
-            <option value="CLOSURE">Closure</option>
-          </select>
-        </div>
-
-        <div class="col-lg-3 col-md-4">
-          <div class="d-flex gap-2">
-            <button class="btn btn-outline-danger flex-fill" (click)="resetFilters()">
-              <i class="bi bi-arrow-clockwise"></i> Reset
-            </button>
+    <!-- Hero Header -->
+    <div class="stitch-hero">
+      <div class="stitch-hero-content">
+        <h1 class="stitch-hero-title">Task Requests</h1>
+        <p class="stitch-hero-subtitle">
+          {{ hasPermission('AUDIT_LOG_VIEW') ? 'All Requests in System' :
+             hasPermission('TASK_APPROVE') ? 'Requests from Your Department(s)' :
+             'Your Submitted Requests' }}
+        </p>
+        <div class="stitch-hero-pills">
+          <div class="stitch-hero-pill">
+            <span class="stitch-hero-dot" style="background-color: #ffffff;"></span>
+            <span>{{ filteredRequests.length }} Total</span>
           </div>
         </div>
       </div>
+      <div class="stitch-hero-illustration">
+        <div class="stitch-hero-illustration-card">
+          <i class="bi bi-clock-history stitch-hero-illustration-icon"></i>
+        </div>
+      </div>
+    </div>
 
-      <!-- Desktop Table -->
-      <div class="table-responsive d-none d-md-block" *ngIf="!loading">
-        <table class="table table-hover align-middle table-bordered border-light">
-          <thead class="table-success text-dark">
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-border text-primary" style="width: 3.5rem; height: 3.5rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-muted">Loading requests...</p>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="stitch-toolbar" *ngIf="!loading">
+      <div class="stitch-toolbar-left">
+        <!-- Search -->
+        <div class="stitch-search-wrapper">
+          <i class="bi bi-search stitch-search-icon"></i>
+          <input
+            type="text"
+            class="stitch-search-input"
+            placeholder="Search by task title, user, or remarks..."
+            [(ngModel)]="filters.search"
+            (input)="applyFilters()" />
+          <button
+            *ngIf="filters.search"
+            class="stitch-clear-btn"
+            type="button"
+            (click)="filters.search = ''; applyFilters()"
+            title="Clear search">
+            <i class="bi bi-x-circle-fill"></i>
+          </button>
+        </div>
+
+        <!-- Type Filter -->
+        <select class="stitch-select-filter" [(ngModel)]="filters.type" (change)="applyFilters()">
+          <option value="ALL">Type: All</option>
+          <option value="EXTENSION">Type: Extension</option>
+          <option value="CLOSURE">Type: Closure</option>
+        </select>
+      </div>
+
+      <div class="stitch-toolbar-right">
+        <button class="stitch-toolbar-btn" (click)="resetFilters()" title="Reset filters">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Data Grid -->
+    <div *ngIf="!loading && filteredRequests.length > 0" class="stitch-grid-container">
+      <div class="table-responsive">
+        <table class="stitch-table align-middle">
+          <thead>
             <tr>
-              <th scope="col">Task</th>
-              <th scope="col">Requested By</th>
-              <th scope="col">Type</th>
-              <th scope="col">Status</th>
-              <th scope="col">Requested On</th>
-              <th scope="col">Remarks</th>
-              <th scope="col" class="text-center">Actions</th>
+              <th style="width: 50px;">#</th>
+              <th>Task</th>
+              <th>Requested By</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Requested On</th>
+              <th>Remarks</th>
+              <th class="text-end" style="width: 120px;">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr
-              *ngFor="let req of paginatedRequests"
-              class="clickable-row table-row-hover"
-              (click)="navigateToTask(req.taskId)">
-              <td><strong>{{ req.taskTitle }}</strong></td>
-              <td>{{ req.requestedByName }}</td>
+              *ngFor="let req of paginatedRequests; let i = index"
+              (click)="navigateToTask(req.taskId)"
+              style="cursor: pointer;">
+              <td class="text-muted" style="font-size: 0.75rem; font-weight: 600;">
+                {{ (currentPage - 1) * pageSize + i + 1 }}
+              </td>
               <td>
-                <span class="badge bg-info text-dark px-3 py-2">
-                  <i [class]="getTypeBadge(req.requestType).icon" class="me-1"></i>
+                <div class="stitch-task-title-area">
+                  <div class="stitch-task-title-row">
+                    <span class="stitch-task-title">{{ req.taskTitle }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="stitch-assignee-layout">
+                  <div class="stitch-assignee-info">
+                    <span class="stitch-assignee-name">{{ req.requestedByName }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="stitch-tag-badge tag-template">
+                  <i [class]="getTypeBadge(req.requestType).icon"></i>
                   {{ getTypeBadge(req.requestType).text }}
                 </span>
               </td>
               <td>
-                <span class="badge rounded-pill fw-bold px-3 py-2" [ngClass]="getStatusClass(req.status)">
+                <span class="stitch-status-pill" [ngClass]="getStatusClass(req.status)">
                   {{ req.status }}
                 </span>
               </td>
-              <td>{{ req.requestDate | date:'mediumDate' }}</td>
-              <td class="text-muted small text-truncate" style="max-width: 200px;">
-                {{ req.remarks || '—' }}
+              <td>
+                <div class="stitch-timeline-info">
+                  <span class="stitch-timeline-date">{{ req.requestDate | date:'mediumDate' }}</span>
+                </div>
               </td>
-              <td class="text-center">
-                <button
-                  class="btn btn-sm btn-outline-primary"
-                  (click)="$event.stopPropagation(); navigateToTask(req.taskId)"
-                  title="View Task">
-                  <i class="bi bi-eye"></i> View Task
-                </button>
+              <td>
+                <span class="stitch-task-desc" style="max-width: 200px; display: block;">
+                  {{ req.remarks || '—' }}
+                </span>
+              </td>
+              <td>
+                <div class="stitch-action-group">
+                  <button
+                    class="stitch-action-btn btn-act-view"
+                    (click)="$event.stopPropagation(); navigateToTask(req.taskId)"
+                    title="View Task">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Mobile Cards -->
-      <div class="d-md-none" *ngIf="!loading">
-        <div class="row g-3">
-          <div class="col-12" *ngFor="let req of paginatedRequests">
-            <div
-              class="card clickable-card border-0 shadow-sm p-3 h-100"
-              (click)="navigateToTask(req.taskId)">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <h6 class="fw-bold mb-1 text-primary">{{ req.taskTitle }}</h6>
-                <span class="badge rounded-pill fw-bold" [ngClass]="getStatusClass(req.status)">
-                  {{ req.status }}
-                </span>
-              </div>
-              <p class="text-muted small mb-2">by <strong>{{ req.requestedByName }}</strong></p>
-              <div class="d-flex align-items-center text-secondary small mb-2">
-                <i [class]="getTypeBadge(req.requestType).icon" class="me-2"></i>
-                <span>{{ getTypeBadge(req.requestType).text }}</span>
-                <span class="mx-2">•</span>
-                <span>{{ req.requestDate | date:'shortDate' }}</span>
-              </div>
-              <p class="text-muted small mb-0" *ngIf="req.remarks">
-                <em>"{{ req.remarks }}"</em>
-              </p>
+      <!-- Pagination Footer -->
+      <div class="stitch-pagination">
+        <div class="stitch-pag-left">
+          <span class="stitch-pag-label">
+            {{ filteredRequests.length }} result{{ filteredRequests.length !== 1 ? 's' : '' }}
+          </span>
+        </div>
+        <div class="stitch-pag-controls">
+          <button
+            class="stitch-pag-btn"
+            [disabled]="currentPage === 1"
+            (click)="changePage(currentPage - 1)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button
+            *ngFor="let p of getPageNumbers()"
+            class="stitch-pag-btn"
+            [class.active]="currentPage === p"
+            (click)="changePage(p)">
+            {{ p }}
+          </button>
+          <button
+            class="stitch-pag-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="changePage(currentPage + 1)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="d-md-none" *ngIf="!loading && filteredRequests.length > 0">
+      <div class="row g-3">
+        <div class="col-12" *ngFor="let req of paginatedRequests">
+          <div
+            class="stitch-grid-container p-3"
+            style="cursor: pointer; border-radius: 12px;"
+            (click)="navigateToTask(req.taskId)">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="stitch-task-title">{{ req.taskTitle }}</span>
+              <span class="stitch-status-pill ms-2" [ngClass]="getStatusClass(req.status)">
+                {{ req.status }}
+              </span>
             </div>
+            <p class="stitch-assignee-name mb-1">{{ req.requestedByName }}</p>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="stitch-tag-badge tag-template">
+                <i [class]="getTypeBadge(req.requestType).icon"></i>
+                {{ getTypeBadge(req.requestType).text }}
+              </span>
+              <span class="stitch-timeline-date">{{ req.requestDate | date:'shortDate' }}</span>
+            </div>
+            <p class="stitch-task-desc" *ngIf="req.remarks">{{ req.remarks }}</p>
           </div>
         </div>
       </div>
-
-      <!-- Empty State -->
-      <div *ngIf="!loading && filteredRequests.length === 0" class="text-center py-5">
-        <i class="bi bi-inbox display-1 text-muted opacity-50"></i>
-        <p class="mt-4 fs-4 text-muted">No requests found</p>
-        <button class="btn btn-outline-primary" (click)="resetFilters()">Clear Filters</button>
-      </div>
-
-      <!-- Pagination -->
-      <nav *ngIf="filteredRequests.length > 0" class="mt-5">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" [class.disabled]="currentPage === 1">
-            <a class="page-link" (click)="changePage(currentPage - 1)" tabindex="-1">Previous</a>
-          </li>
-          <li class="page-item" *ngFor="let p of getPageNumbers()" [class.active]="currentPage === p">
-            <a class="page-link" (click)="changePage(p)">{{ p }}</a>
-          </li>
-          <li class="page-item" [class.disabled]="currentPage === totalPages">
-            <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-          </li>
-        </ul>
-      </nav>
-
-      <!-- Action Buttons -->
-      <div class="text-center mt-4">
-        <button class="btn btn-lg btn-outline-success me-3" (click)="refresh()">
-          <i class="bi bi-arrow-repeat"></i> Refresh List
-        </button>
-        <button class="btn btn-lg btn-outline-primary" (click)="goBackToDashboard()">
-          <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
-        </button>
-      </div>
-
     </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && filteredRequests.length === 0" class="stitch-grid-container text-center py-5">
+      <i class="bi bi-inbox display-4 text-muted opacity-50 d-block mb-3"></i>
+      <p class="fs-5 text-muted mb-3">No requests found</p>
+      <button class="stitch-top-btn stitch-top-btn--outline mx-auto" (click)="resetFilters()">
+        <i class="bi bi-arrow-clockwise"></i> Clear Filters
+      </button>
+    </div>
+
   </div>
 </div>
