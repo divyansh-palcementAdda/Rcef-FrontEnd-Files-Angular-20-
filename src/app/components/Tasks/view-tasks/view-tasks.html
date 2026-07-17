@@ -96,112 +96,63 @@
 
       <div class="overall-statistics-grid mb-4">
         <!-- Total Tasks -->
-        <app-analytics-stat-card
-          [title]="'Total Tasks'"
-          [value]="analyticsData.overview.totalTasks"
-          [iconClass]="'bi bi-clipboard-data'"
-          [theme]="'blue'"
-          [selected]="selectedCard === 'total' && !taskTypeFilter"
-          [subtitle]="'System-wide Tasks'"
-          (cardClick)="selectCard('total')">
+        <app-analytics-stat-card [title]="'Total Tasks'" [value]="analyticsData.overview.totalTasks"
+          [iconClass]="'bi bi-clipboard-data'" [theme]="'blue'" [selected]="selectedCard === 'total' && !taskTypeFilter"
+          [subtitle]="'System-wide Tasks'" (cardClick)="selectCard('total')">
         </app-analytics-stat-card>
 
         <!-- Template Tasks -->
-        <app-analytics-stat-card
-          [title]="'Template Tasks'"
-          [value]="analyticsData.overview.templateTasks"
-          [iconClass]="'bi bi-layers'"
-          [theme]="'cyan'"
-          [selected]="taskTypeFilter === 'TEMPLATE'"
-          [subtitle]="'Structured templates'"
-          (cardClick)="selectTaskType('TEMPLATE')">
+        <app-analytics-stat-card [title]="'Template Tasks'" [value]="analyticsData.overview.templateTasks"
+          [iconClass]="'bi bi-layers'" [theme]="'cyan'" [selected]="taskTypeFilter === 'TEMPLATE'"
+          [subtitle]="'Structured templates'" (cardClick)="selectTaskType('TEMPLATE')">
         </app-analytics-stat-card>
 
         <!-- General Tasks -->
-        <app-analytics-stat-card
-          [title]="'General Tasks'"
-          [value]="analyticsData.overview.generalTasks"
-          [iconClass]="'bi bi-file-earmark-text'"
-          [theme]="'gray'"
-          [selected]="taskTypeFilter === 'GENERAL'"
-          [subtitle]="'Ad-hoc tasks'"
-          (cardClick)="selectTaskType('GENERAL')">
+        <app-analytics-stat-card [title]="'General Tasks'" [value]="analyticsData.overview.generalTasks"
+          [iconClass]="'bi bi-file-earmark-text'" [theme]="'gray'" [selected]="taskTypeFilter === 'GENERAL'"
+          [subtitle]="'Ad-hoc tasks'" (cardClick)="selectTaskType('GENERAL')">
         </app-analytics-stat-card>
 
         <!-- Pending -->
-        <app-analytics-stat-card
-          [title]="'Pending'"
-          [value]="analyticsData.overview.pending"
-          [iconClass]="'bi bi-hourglass-split'"
-          [theme]="'amber'"
-          [selected]="statusFilter === 'PENDING'"
-          [subtitle]="'Awaiting kickoff'"
-          (cardClick)="selectStatus('PENDING')">
+        <app-analytics-stat-card [title]="'Pending'" [value]="analyticsData.overview.pending"
+          [iconClass]="'bi bi-hourglass-split'" [theme]="'amber'" [selected]="statusFilter === 'PENDING'"
+          [subtitle]="'Awaiting kickoff'" (cardClick)="selectStatus('PENDING')">
         </app-analytics-stat-card>
 
         <!-- In Progress -->
-        <app-analytics-stat-card
-          [title]="'In Progress'"
-          [value]="analyticsData.overview.inProgress"
-          [iconClass]="'bi bi-play-circle'"
-          [theme]="'indigo'"
-          [selected]="statusFilter === 'IN_PROGRESS'"
-          [subtitle]="'Currently active'"
-          (cardClick)="selectStatus('IN_PROGRESS')">
+        <app-analytics-stat-card [title]="'In Progress'" [value]="analyticsData.overview.inProgress"
+          [iconClass]="'bi bi-play-circle'" [theme]="'indigo'" [selected]="statusFilter === 'IN_PROGRESS'"
+          [subtitle]="'Currently active'" (cardClick)="selectStatus('IN_PROGRESS')">
         </app-analytics-stat-card>
 
         <!-- Completed -->
-        <app-analytics-stat-card
-          [title]="'Completed'"
-          [value]="analyticsData.overview.completed"
-          [iconClass]="'bi bi-check-circle-fill'"
-          [theme]="'green'"
-          [selected]="statusFilter === 'CLOSED'"
-          [subtitle]="'Closed & verified'"
-          (cardClick)="selectStatus('CLOSED')">
+        <app-analytics-stat-card [title]="'Completed'" [value]="analyticsData.overview.completed"
+          [iconClass]="'bi bi-check-circle-fill'" [theme]="'green'" [selected]="statusFilter === 'CLOSED'"
+          [subtitle]="'Closed & verified'" (cardClick)="selectStatus('CLOSED')">
         </app-analytics-stat-card>
 
         <!-- Delayed -->
-        <app-analytics-stat-card
-          [title]="'Delayed'"
-          [value]="analyticsData.overview.delayed"
-          [iconClass]="'bi bi-exclamation-triangle-fill'"
-          [theme]="'red'"
-          [selected]="statusFilter === 'DELAYED'"
-          [subtitle]="'Past due date'"
-          (cardClick)="selectStatus('DELAYED')">
+        <app-analytics-stat-card [title]="'Delayed'" [value]="analyticsData.overview.delayed"
+          [iconClass]="'bi bi-exclamation-triangle-fill'" [theme]="'red'" [selected]="statusFilter === 'DELAYED'"
+          [subtitle]="'Past due date'" (cardClick)="selectStatus('DELAYED')">
         </app-analytics-stat-card>
 
         <!-- Extended -->
-        <app-analytics-stat-card
-          [title]="'Extended'"
-          [value]="analyticsData.overview.extended"
-          [iconClass]="'bi bi-calendar-plus'"
-          [theme]="'orange'"
-          [selected]="statusFilter === 'EXTENDED'"
-          [subtitle]="'Granted extensions'"
-          (cardClick)="selectStatus('EXTENDED')">
+        <app-analytics-stat-card [title]="'Extended'" [value]="analyticsData.overview.extended"
+          [iconClass]="'bi bi-calendar-plus'" [theme]="'orange'" [selected]="statusFilter === 'EXTENDED'"
+          [subtitle]="'Granted extensions'" (cardClick)="selectStatus('EXTENDED')">
         </app-analytics-stat-card>
 
         <!-- Request For Closure -->
-        <app-analytics-stat-card
-          [title]="'Req. Closure'"
-          [value]="analyticsData.overview.requestForClosure"
-          [iconClass]="'bi bi-shield-lock-fill'"
-          [theme]="'emerald'"
-          [selected]="statusFilter === 'REQUEST_FOR_CLOSURE'"
-          [subtitle]="'Awaiting closure review'"
-          (cardClick)="selectStatus('REQUEST_FOR_CLOSURE')">
+        <app-analytics-stat-card [title]="'Req. Closure'" [value]="analyticsData.overview.requestForClosure"
+          [iconClass]="'bi bi-shield-lock-fill'" [theme]="'emerald'" [selected]="statusFilter === 'REQUEST_FOR_CLOSURE'"
+          [subtitle]="'Awaiting closure review'" (cardClick)="selectStatus('REQUEST_FOR_CLOSURE')">
         </app-analytics-stat-card>
 
         <!-- Request For Extension -->
-        <app-analytics-stat-card
-          [title]="'Req. Extension'"
-          [value]="analyticsData.overview.requestForExtension"
-          [iconClass]="'bi bi-calendar-range-fill'"
-          [theme]="'pink'"
-          [selected]="statusFilter === 'REQUEST_FOR_EXTENSION'"
-          [subtitle]="'Awaiting extension review'"
+        <app-analytics-stat-card [title]="'Req. Extension'" [value]="analyticsData.overview.requestForExtension"
+          [iconClass]="'bi bi-calendar-range-fill'" [theme]="'pink'"
+          [selected]="statusFilter === 'REQUEST_FOR_EXTENSION'" [subtitle]="'Awaiting extension review'"
           (cardClick)="selectStatus('REQUEST_FOR_EXTENSION')">
         </app-analytics-stat-card>
       </div>
@@ -499,7 +450,8 @@
                         'pill-in-progress': task.status === 'IN_PROGRESS',
                         'pill-pending': task.status === 'PENDING' || task.status === 'UPCOMING',
                         'pill-approval': task.status === 'REQUEST_FOR_CLOSURE' || task.status === 'REQUEST_FOR_EXTENSION',
-                        'pill-completed': task.status === 'CLOSED'
+                        'pill-completed': task.status === 'CLOSED',
+                        'pill-overdue' :task.status === 'DELAYED'
                       }">
                   {{task.status}}
                 </span>
