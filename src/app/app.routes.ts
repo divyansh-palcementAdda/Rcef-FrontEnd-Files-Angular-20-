@@ -61,19 +61,19 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminDashboardComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { permissions: ['AUDIT_LOG_VIEW'] } // ✅ Admin/Sub-Admin/Super-Admin dashboard
+    data: { roles: ['SUPER_ADMIN', 'ADMIN', 'SUB_ADMIN'] } // ✅ Admin/Sub-Admin/Super-Admin dashboard
   },
   {
     path: 'hod',
     component: HodsDashboard,
     canActivate: [AuthGuard, RoleGuard],
-    data: { permissions: ['SUB_DEPARTMENT_REPORT_VIEW'] } // ✅ HOD-level dashboard
+    data: { roles: ['HOD'] } // ✅ HOD-level dashboard
   },
   {
     path: 'teacher',
     component: FacultysDashboard,
     canActivate: [AuthGuard, RoleGuard],
-    data: { permissions: ['REPORT_VIEW'] } // ✅ Teacher-level dashboard
+    data: { roles: ['TEACHER'] } // ✅ Teacher-level dashboard
   },
   {
     path: 'viewAllUsers',

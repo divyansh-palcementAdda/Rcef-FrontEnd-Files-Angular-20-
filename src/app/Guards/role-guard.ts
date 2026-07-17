@@ -32,26 +32,25 @@ export const RoleGuard: CanActivateFn = (
   }
 
   const requiredPermissions = (route.data['permissions'] as string[]) ?? [];
+  const allowedRoles = (route.data['roles'] as string[]) ?? [];
 
   // SUPER_ADMIN gets a master bypass
   if (authSrv.getCurrentRole() === 'SUPER_ADMIN') {
     return true;
   }
 
-  if (requiredPermissions.length > 0) {
-    const hasPermission = requiredPermissions.every(p => authSrv.hasPermission(p));
-    if (hasPermission) {
+  // Role-based check (used for dashboard routes)
+  if (allowedRoles.length > 0) {
+    const userRole = authSrv.getCurrentRole();
+    if (userRole && allowedRoles.includes(userRole)) {
       return true;
     }
   }
 
-  // Fallback to allowedRoles for backward compatibility if defined on route,
-  // but log a warning encouraging permission-based guards.
-  const allowedRoles = (route.data['roles'] as string[]) ?? [];
-  if (allowedRoles.length > 0) {
-    const userRole = authSrv.getCurrentRole();
-    if (userRole && allowedRoles.includes(userRole)) {
-      console.warn(`[SECURITY] Route ${route.routeConfig?.path} accessed via deprecated role guard. Migrate to permissions.`);
+  // Permission-based check (used for feature routes)
+  if (requiredPermissions.length > 0) {
+    const hasPermission = requiredPermissions.every(p => authSrv.hasPermission(p));
+    if (hasPermission) {
       return true;
     }
   }

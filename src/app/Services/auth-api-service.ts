@@ -282,12 +282,16 @@ export class AuthApiService {
     }
 
     try {
-      if (this.hasPermission('AUDIT_LOG_VIEW')) {
+      const role = this.getCurrentRole();
+      if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'SUB_ADMIN') {
         this.router.navigate(['/admin']);
-      } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
+      } else if (role === 'HOD') {
         this.router.navigate(['/hod']);
-      } else {
+      } else if (role === 'TEACHER') {
         this.router.navigate(['/teacher']);
+      } else {
+        // Unknown role — fallback to login
+        this.clearAuthAndRedirect();
       }
     } catch (e) {
       this.clearAuthAndRedirect();
