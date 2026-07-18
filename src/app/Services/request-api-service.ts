@@ -1,7 +1,7 @@
 // src/app/core/services/request-api.service.ts
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environment/environment';
 import { TaskRequestDto } from '../Model/TaskRequestDto';
@@ -10,6 +10,7 @@ import { TaskRequestDto } from '../Model/TaskRequestDto';
 export interface ApproveRequestPayload {
   requestId: number;
   newDueDate?: string; // "2025-12-31"
+  remarks?: string;
 }
 
 export interface RejectRequestPayload {
@@ -40,7 +41,7 @@ export class RequestApiService {
     return this.http.get<ApiResponse<TaskRequestDto[]>>(`${environment.apiUrl}/tasks/${taskId}/requests`);
   }
 
-  // APPROVE request (PATCH)
+  // APPROVE request (PATCH) - legacy
   approveRequest(taskId: number, requestId: number, payload: { newDueDate?: string }): Observable<ApiResponse<TaskRequestDto>> {
     const body: ApproveRequestPayload = {
       requestId,
@@ -53,7 +54,7 @@ export class RequestApiService {
     );
   }
 
-  // REJECT request (PATCH)
+  // REJECT request (PATCH) - legacy
   rejectRequest(taskId: number, requestId: number, reason: string): Observable<ApiResponse<TaskRequestDto>> {
     const body: RejectRequestPayload = { requestId, reason };
 
@@ -63,21 +64,46 @@ export class RequestApiService {
     );
   }
 
-  // ROLE-BASED LIST ENDPOINTS — ALL RETURN SAME DTO & WRAPPER
-
-  /** ADMIN: View all requests in the system */
-  getAllRequests(): Observable<ApiResponse<TaskRequestDto[]>> {
-    return this.http.get<ApiResponse<TaskRequestDto[]>>(`${this.baseUrl}/all`);
+  // Paginated search and filtering
+  searchRequests(params: any): Observable<ApiResponse<any>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      const val = params[key];
+      if (val !== null && val !== undefined && val !== '') {
+        httpParams = httpParams.set(key, val.toString());
+      }
+    });
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/search`, { params: httpParams });
   }
 
-  /** HOD: View requests from teachers in his/her department(s) */
-  getRequestsByHodDepartments(): Observable<ApiResponse<TaskRequestDto[]>> {
-    return this.http.get<ApiResponse<TaskRequestDto[]>>(`${this.baseUrl}/hod`);
+  // Export to CSV
+  exportRequests(params: any): Observable<Blob> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      const val = params[key];
+      if (val !== null && val !== undefined && val !== '') {
+        httpParams = httpParams.set(key, val.toString());
+      }
+    });
+    return this.http.get(`${this.baseUrl}/export`, {
+      params: httpParams,
+      responseType: 'blob'
+    });
   }
 
-  /** TEACHER: View only own submitted requests */
-  getMyRequests(): Observable<ApiResponse<TaskRequestDto[]>> {
-    return this.http.get<ApiResponse<TaskRequestDto[]>>(`${this.baseUrl}/my`);
+  // Direct approve endpoint
+  approveRequestDirect(requestId: number, body: ApproveRequestPayload): Observable<ApiResponse<TaskRequestDto>> {
+    return this.http.patch<ApiResponse<TaskRequestDto>>(`${this.baseUrl}/${requestId}/approve`, body);
+  }
+
+  // Direct reject endpoint
+  rejectRequestDirect(requestId: number, body: RejectRequestPayload): Observable<ApiResponse<TaskRequestDto>> {
+    return this.http.patch<ApiResponse<TaskRequestDto>>(`${this.baseUrl}/${requestId}/reject`, body);
+  }
+
+  // Delete request
+  deleteRequest(requestId: number): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/${requestId}`);
   }
 
   /** Optional: Get single request by ID */

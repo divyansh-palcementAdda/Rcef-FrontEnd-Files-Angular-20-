@@ -1,49 +1,105 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, Subscription, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize, catchError, takeUntil } from 'rxjs/operators';
 
 import { RequestApiService } from '../../../Services/request-api-service';
 import { JwtService } from '../../../Services/jwt-service';
-import { TaskRequestDto } from '../../../Model/TaskRequestDto';
 import { AuthApiService } from '../../../Services/auth-api-service';
-
-type RequestType = 'CLOSURE' | 'EXTENSION';
-type RequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-
-interface Filters {
-  search: string;
-  type: RequestType | 'ALL';
-  status: RequestStatus | 'ALL';  // ← Still needed internally
-}
+import { TaskRequestDto } from '../../../Model/TaskRequestDto';
+import { FilterDrawerComponent, FilterFieldConfig } from '../../Shared/filter-drawer/filter-drawer.component';
+import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.component';
+import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
 
 @Component({
   selector: 'app-view-all-requests',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent],
   templateUrl: './view-all-requests.html',
   styleUrls: ['./view-all-requests.css']
 })
 export class ViewAllRequests implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private subscriptions = new Subscription();
 
-  requests: TaskRequestDto[] = [];
-  filteredRequests: TaskRequestDto[] = [];
-  loading = true;
-  errorMessage: string | null = null;
-
-  currentRole: string = '';
-  currentUserId!: number;
-
-  filters: Filters = { search: '', type: 'ALL', status: 'ALL' };
-
-  // Pagination
+  // Search results
+  requests: any[] = [];
+  totalElements = 0;
+  totalPages = 1;
   currentPage = 1;
   pageSize = 10;
-  get totalPages(): number {
-    return Math.ceil(this.filteredRequests.length / this.pageSize) || 1;
-  }
+  sortBy = 'requestedDate';
+  sortDirection = 'desc';
+  loading = false;
+  isInitialLoad = true;
+  errorMessage: string | null = null;
+  isForbidden = false;
+
+  // Filters state
+  searchTerm = '';
+  requestTypeFilter = '';
+  statusFilter = '';
+  priorityFilter = '';
+  taskTypeFilter = '';
+  hasProofFilter = '';
+  departmentIdFilter = '';
+  subDepartmentIdFilter = '';
+  onlyActionableRequestsFilter = '';
+  onlyMyRequestsFilter = '';
+
+  // Dropdown options (dynamic)
+  departmentsList: any[] = [];
+  subDepartmentsList: any[] = [];
+  filterFields: FilterFieldConfig[] = [];
+  filterValues: { [key: string]: any } = {};
+
+  // Stats
+  stats = {
+    totalRequests: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    extensionRequests: 0,
+    closureRequests: 0
+  };
+
+  selectedCard = 'total';
+  filterDrawerOpen = false;
+  protected readonly Math = Math;
+
+  // Role info
+  currentRole = '';
+  currentUserId!: number;
+
+  // Active Modals state
+  activeRequestDetail: any = null;
+  loadingDetail = false;
+  
+  approveDialog: {
+    isOpen: boolean;
+    requestId: number | null;
+    requestType: string | null;
+    remarks: string;
+    newDueDate: string;
+  } = {
+    isOpen: false,
+    requestId: null,
+    requestType: null,
+    remarks: '',
+    newDueDate: ''
+  };
+
+  rejectDialog: {
+    isOpen: boolean;
+    requestId: number | null;
+    reason: string;
+  } = {
+    isOpen: false,
+    requestId: null,
+    reason: ''
+  };
 
   constructor(
     private requestService: RequestApiService,
@@ -51,128 +107,323 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private jwtService: JwtService,
     private authApiService: AuthApiService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.loadCurrentUserAndRequests();
+    this.loadCurrentUser();
 
-    // Listen to query params — ONLY for status
-    this.route.queryParams
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
+    // Listen to query params for status triggers (e.g. from Dashboard cards)
+    this.subscriptions.add(
+      this.route.queryParams.subscribe(params => {
         const statusParam = params['status']?.toUpperCase();
-
         if (statusParam && ['PENDING', 'APPROVED', 'REJECTED'].includes(statusParam)) {
-          this.filters.status = statusParam as RequestStatus;
+          this.statusFilter = statusParam;
+          this.selectedCard = statusParam.toLowerCase();
         } else {
-          this.filters.status = 'ALL';
+          this.statusFilter = '';
+          this.selectedCard = 'total';
+        }
+        
+        const typeParam = params['type']?.toUpperCase();
+        if (typeParam && ['CLOSURE', 'EXTENSION'].includes(typeParam)) {
+          this.requestTypeFilter = typeParam;
         }
 
-        // Re-apply filters whenever URL changes
-        this.applyFilters();
-      });
+        this.currentPage = 1;
+        this.loadRequestsFromServer();
+      })
+    );
+
+    this.initializeFilterFields();
   }
 
   ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private loadCurrentUserAndRequests(): void {
+  private loadCurrentUser(): void {
     const token = this.jwtService.getAccessToken();
     if (!token) {
       this.router.navigate(['/login']);
       return;
     }
-
     const decoded = this.jwtService.decodeToken(token);
-    if (!decoded) {
-      this.errorMessage = 'Invalid token';
-      this.loading = false;
-      return;
+    if (decoded) {
+      this.currentUserId = decoded['userId'];
+      this.currentRole = this.authApiService.getCurrentRole() ?? '';
     }
-
-    this.currentUserId = decoded['userId'];
-    this.currentRole = this.authApiService.getCurrentRole() ?? '';
-
-    this.loadRequests();
   }
 
-  hasPermission(permission: string): boolean {
-    return this.authApiService.hasPermission(permission);
+  initializeFilterFields(): void {
+    this.filterFields = [
+      { key: 'searchTerm', label: 'Search Keyword', type: 'text', section: 'general', placeholder: 'Enter keywords...' },
+      {
+        key: 'requestTypeFilter',
+        label: 'Request Type',
+        type: 'select',
+        section: 'general',
+        options: [
+          { value: 'CLOSURE', label: 'Closure Request' },
+          { value: 'EXTENSION', label: 'Extension Request' }
+        ]
+      },
+      {
+        key: 'statusFilter',
+        label: 'Request Status',
+        type: 'select',
+        section: 'general',
+        options: [
+          { value: 'PENDING', label: 'Pending' },
+          { value: 'APPROVED', label: 'Approved' },
+          { value: 'REJECTED', label: 'Rejected' }
+        ]
+      },
+      {
+        key: 'priorityFilter',
+        label: 'Task Priority',
+        type: 'select',
+        section: 'general',
+        options: [
+          { value: 'HIGH', label: 'High' },
+          { value: 'MEDIUM', label: 'Medium' },
+          { value: 'LOW', label: 'Low' }
+        ]
+      },
+      {
+        key: 'taskTypeFilter',
+        label: 'Task Type',
+        type: 'select',
+        section: 'general',
+        options: [
+          { value: 'TEMPLATE', label: 'Template' },
+          { value: 'GENERAL', label: 'General' }
+        ]
+      },
+      {
+        key: 'hasProofFilter',
+        label: 'Has Proofs',
+        type: 'select',
+        section: 'general',
+        options: [
+          { value: 'true', label: 'Yes' },
+          { value: 'false', label: 'No' }
+        ]
+      },
+      {
+        key: 'departmentIdFilter',
+        label: 'Department',
+        type: 'select',
+        section: 'organization',
+        options: this.departmentsList.map(d => ({ value: d.id, label: d.name }))
+      },
+      {
+        key: 'subDepartmentIdFilter',
+        label: 'Sub Department',
+        type: 'select',
+        section: 'organization',
+        options: this.subDepartmentsList.map(s => ({ value: s.id, label: s.name }))
+      },
+      {
+        key: 'onlyActionableRequestsFilter',
+        label: 'Actionable by Me',
+        type: 'select',
+        section: 'advanced',
+        options: [
+          { value: 'true', label: 'Actionable only' },
+          { value: 'false', label: 'All' }
+        ]
+      },
+      {
+        key: 'onlyMyRequestsFilter',
+        label: 'My Requests Only',
+        type: 'select',
+        section: 'advanced',
+        options: [
+          { value: 'true', label: 'My requests' },
+          { value: 'false', label: 'All' }
+        ]
+      }
+    ];
+
+    this.filterValues = {
+      searchTerm: this.searchTerm,
+      requestTypeFilter: this.requestTypeFilter,
+      statusFilter: this.statusFilter,
+      priorityFilter: this.priorityFilter,
+      taskTypeFilter: this.taskTypeFilter,
+      hasProofFilter: this.hasProofFilter,
+      departmentIdFilter: this.departmentIdFilter,
+      subDepartmentIdFilter: this.subDepartmentIdFilter,
+      onlyActionableRequestsFilter: this.onlyActionableRequestsFilter,
+      onlyMyRequestsFilter: this.onlyMyRequestsFilter
+    };
   }
 
-  private loadRequests(): void {
+  loadRequestsFromServer(): void {
     this.loading = true;
     this.errorMessage = null;
 
-    let request$: any;
+    const params: any = {
+      page: this.currentPage - 1,
+      size: this.pageSize,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection,
+      search: this.searchTerm,
+      departmentId: this.departmentIdFilter,
+      subDepartmentId: this.subDepartmentIdFilter,
+      requestType: this.requestTypeFilter,
+      status: this.statusFilter,
+      taskPriority: this.priorityFilter,
+      taskType: this.taskTypeFilter,
+      hasProof: this.hasProofFilter !== '' ? this.hasProofFilter === 'true' : '',
+      onlyPending: this.statusFilter === 'PENDING' ? 'true' : '',
+      onlyMyRequests: this.onlyMyRequestsFilter === 'true' ? 'true' : '',
+      onlyActionableRequests: this.onlyActionableRequestsFilter === 'true' ? 'true' : ''
+    };
 
-    if (this.hasPermission('AUDIT_LOG_VIEW')) {
-      request$ = this.requestService.getAllRequests();
-    } else if (this.hasPermission('TASK_APPROVE')) {
-      request$ = this.requestService.getRequestsByHodDepartments();
-    } else if (this.hasPermission('REPORT_VIEW')) {
-      request$ = this.requestService.getMyRequests();
-    } else {
-      this.errorMessage = 'Access denied';
-      this.loading = false;
-      return;
-    }
+    this.subscriptions.add(
+      this.requestService.searchRequests(params)
+        .pipe(
+          finalize(() => {
+            this.loading = false;
+            this.isInitialLoad = false;
+          }),
+          catchError(err => {
+            if (err.status === 403) {
+              this.isForbidden = true;
+            } else {
+              this.errorMessage = err?.error?.message || 'Failed to load requests';
+            }
+            return of({ success: false, data: null });
+          })
+        )
+        .subscribe(res => {
+          if (res?.success && res.data) {
+            const data = res.data;
+            this.requests = data.content || [];
+            this.totalElements = data.totalElements || 0;
+            this.totalPages = data.totalPages || 1;
+            
+            if (data.stats) {
+              this.stats = data.stats;
+            }
 
-    request$.subscribe({
-      next: (response: any) => {
-        this.requests = response?.data || [];
-        this.applyFilters(); // Re-apply with current status from URL
-        this.loading = false;
-      },
-      error: (err: any) => {
-        this.errorMessage = err?.error?.message || 'Failed to load requests';
-        this.loading = false;
-      }
-    });
+            // Sync filters dropdown lists
+            if (data.filters) {
+              this.departmentsList = data.filters.departments || [];
+              this.subDepartmentsList = data.filters.subDepartments || [];
+              this.initializeFilterFields();
+            }
+          }
+        })
+    );
   }
 
-  applyFilters(): void {
-    let result = [...this.requests];
-
-    if (this.filters.search.trim()) {
-      const term = this.filters.search.toLowerCase();
-      result = result.filter(r =>
-        r.taskTitle?.toLowerCase().includes(term) ||
-        r.requestedByName?.toLowerCase().includes(term) ||
-        r.remarks?.toLowerCase().includes(term)
-      );
+  get activeChips(): { key: string; label: string }[] {
+    const chips: { key: string; label: string }[] = [];
+    if (this.searchTerm) chips.push({ key: 'searchTerm', label: `Keyword: ${this.searchTerm}` });
+    if (this.requestTypeFilter) chips.push({ key: 'requestTypeFilter', label: `Type: ${this.requestTypeFilter}` });
+    if (this.statusFilter) chips.push({ key: 'statusFilter', label: `Status: ${this.statusFilter}` });
+    if (this.priorityFilter) chips.push({ key: 'priorityFilter', label: `Priority: ${this.priorityFilter}` });
+    if (this.taskTypeFilter) chips.push({ key: 'taskTypeFilter', label: `Task: ${this.taskTypeFilter}` });
+    if (this.hasProofFilter !== '') chips.push({ key: 'hasProofFilter', label: `Has Proof: ${this.hasProofFilter === 'true' ? 'Yes' : 'No'}` });
+    if (this.departmentIdFilter) {
+      const d = this.departmentsList.find(dept => dept.id.toString() === this.departmentIdFilter.toString());
+      chips.push({ key: 'departmentIdFilter', label: `Dept: ${d ? d.name : this.departmentIdFilter}` });
     }
-
-    if (this.filters.type !== 'ALL') {
-      result = result.filter(r => r.requestType === this.filters.type);
+    if (this.subDepartmentIdFilter) {
+      const s = this.subDepartmentsList.find(sub => sub.id.toString() === this.subDepartmentIdFilter.toString());
+      chips.push({ key: 'subDepartmentIdFilter', label: `Sub-Dept: ${s ? s.name : this.subDepartmentIdFilter}` });
     }
+    if (this.onlyActionableRequestsFilter === 'true') chips.push({ key: 'onlyActionableRequestsFilter', label: 'Actionable by Me' });
+    if (this.onlyMyRequestsFilter === 'true') chips.push({ key: 'onlyMyRequestsFilter', label: 'My Requests Only' });
+    return chips;
+  }
 
-    // Status filter is controlled ONLY by URL
-    if (this.filters.status !== 'ALL') {
-      result = result.filter(r => r.status === this.filters.status);
+  removeChip(key: string): void {
+    if (key === 'searchTerm') this.searchTerm = '';
+    else if (key === 'requestTypeFilter') this.requestTypeFilter = '';
+    else if (key === 'statusFilter') {
+      this.statusFilter = '';
+      this.selectedCard = 'total';
     }
-
-    this.filteredRequests = result;
+    else if (key === 'priorityFilter') this.priorityFilter = '';
+    else if (key === 'taskTypeFilter') this.taskTypeFilter = '';
+    else if (key === 'hasProofFilter') this.hasProofFilter = '';
+    else if (key === 'departmentIdFilter') this.departmentIdFilter = '';
+    else if (key === 'subDepartmentIdFilter') this.subDepartmentIdFilter = '';
+    else if (key === 'onlyActionableRequestsFilter') this.onlyActionableRequestsFilter = '';
+    else if (key === 'onlyMyRequestsFilter') this.onlyMyRequestsFilter = '';
+    
     this.currentPage = 1;
+    this.loadRequestsFromServer();
   }
 
   resetFilters(): void {
-    this.filters = { search: '', type: 'ALL', status: this.filters.status }; // Keep status from URL
-    this.applyFilters();
-    // Do NOT clear status from URL — it's external control
+    this.searchTerm = '';
+    this.requestTypeFilter = '';
+    this.statusFilter = '';
+    this.priorityFilter = '';
+    this.taskTypeFilter = '';
+    this.hasProofFilter = '';
+    this.departmentIdFilter = '';
+    this.subDepartmentIdFilter = '';
+    this.onlyActionableRequestsFilter = '';
+    this.onlyMyRequestsFilter = '';
+    this.selectedCard = 'total';
+    this.currentPage = 1;
+    this.loadRequestsFromServer();
+  }
+
+  onToolbarSearch(term: string): void {
+    this.searchTerm = term;
+    this.currentPage = 1;
+    this.loadRequestsFromServer();
+  }
+
+  onToolbarSearchClear(): void {
+    this.searchTerm = '';
+    this.currentPage = 1;
+    this.loadRequestsFromServer();
+  }
+
+  onApplyDrawerFilters(newValues: { [key: string]: any }): void {
+    this.searchTerm = newValues['searchTerm'] || '';
+    this.requestTypeFilter = newValues['requestTypeFilter'] || '';
+    this.statusFilter = newValues['statusFilter'] || '';
+    this.priorityFilter = newValues['priorityFilter'] || '';
+    this.taskTypeFilter = newValues['taskTypeFilter'] || '';
+    this.hasProofFilter = newValues['hasProofFilter'] || '';
+    this.departmentIdFilter = newValues['departmentIdFilter'] || '';
+    this.subDepartmentIdFilter = newValues['subDepartmentIdFilter'] || '';
+    this.onlyActionableRequestsFilter = newValues['onlyActionableRequestsFilter'] || '';
+    this.onlyMyRequestsFilter = newValues['onlyMyRequestsFilter'] || '';
+
+    if (this.statusFilter) {
+      this.selectedCard = this.statusFilter.toLowerCase();
+    } else {
+      this.selectedCard = 'total';
+    }
+
+    this.currentPage = 1;
+    this.loadRequestsFromServer();
+  }
+
+  selectCard(card: string, status: string) {
+    this.selectedCard = card;
+    this.statusFilter = status;
+    this.currentPage = 1;
+    this.loadRequestsFromServer();
   }
 
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      this.loadRequestsFromServer();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }
-
-  get paginatedRequests(): TaskRequestDto[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredRequests.slice(start, start + this.pageSize);
   }
 
   getPageNumbers(): number[] {
@@ -180,38 +431,198 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     const half = Math.floor(maxVisiblePages / 2);
     let start = Math.max(this.currentPage - half, 1);
     let end = Math.min(start + maxVisiblePages - 1, this.totalPages);
+
     if (end - start + 1 < maxVisiblePages) {
       start = Math.max(end - maxVisiblePages + 1, 1);
     }
+
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
-  getStatusClass(status: RequestStatus): string {
-    switch (status) {
-      case 'PENDING': return 'bg-warning text-dark blink';
-      case 'APPROVED': return 'bg-success text-white';
-      case 'REJECTED': return 'bg-danger text-white';
-      default: return 'bg-secondary';
+  setSort(field: string): void {
+    if (this.sortBy === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = field;
+      this.sortDirection = 'desc';
+    }
+    this.currentPage = 1;
+    this.loadRequestsFromServer();
+  }
+
+  exportRequests(): void {
+    const params: any = {
+      search: this.searchTerm,
+      departmentId: this.departmentIdFilter,
+      subDepartmentId: this.subDepartmentIdFilter,
+      requestType: this.requestTypeFilter,
+      status: this.statusFilter,
+      taskPriority: this.priorityFilter,
+      taskType: this.taskTypeFilter,
+      hasProof: this.hasProofFilter !== '' ? this.hasProofFilter === 'true' : '',
+      onlyPending: this.statusFilter === 'PENDING' ? 'true' : '',
+      onlyMyRequests: this.onlyMyRequestsFilter === 'true' ? 'true' : '',
+      onlyActionableRequests: this.onlyActionableRequestsFilter === 'true' ? 'true' : ''
+    };
+
+    this.requestService.exportRequests(params).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `task-requests-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Failed to export requests', err);
+      }
+    });
+  }
+
+  // Lazy detail retrieval
+  viewRequestDetails(request: any): void {
+    this.loadingDetail = true;
+    this.activeRequestDetail = { ...request, proofs: [] };
+    
+    this.requestService.getRequestById(request.requestId).subscribe({
+      next: (res) => {
+        this.loadingDetail = false;
+        if (res?.success && res.data) {
+          this.activeRequestDetail = res.data;
+        }
+      },
+      error: (err) => {
+        this.loadingDetail = false;
+        console.error('Failed to load request details', err);
+      }
+    });
+  }
+
+  closeDetailModal(): void {
+    this.activeRequestDetail = null;
+  }
+
+  // Direct Action triggers
+  openApproveDialog(request: any, event: Event): void {
+    event.stopPropagation();
+    this.approveDialog = {
+      isOpen: true,
+      requestId: request.requestId,
+      requestType: request.requestType,
+      remarks: '',
+      newDueDate: ''
+    };
+  }
+
+  closeApproveDialog(): void {
+    this.approveDialog.isOpen = false;
+  }
+
+  submitApprove(): void {
+    if (!this.approveDialog.requestId) return;
+
+    const payload: any = {
+      requestId: this.approveDialog.requestId,
+      remarks: this.approveDialog.remarks
+    };
+
+    if (this.approveDialog.requestType === 'EXTENSION' && this.approveDialog.newDueDate) {
+      payload.newDueDate = this.approveDialog.newDueDate;
+    }
+
+    this.loading = true;
+    this.requestService.approveRequestDirect(this.approveDialog.requestId, payload).subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.closeApproveDialog();
+        this.loadRequestsFromServer();
+      },
+      error: (err) => {
+        this.loading = false;
+        alert(err?.error?.message || 'Failed to approve request');
+      }
+    });
+  }
+
+  openRejectDialog(request: any, event: Event): void {
+    event.stopPropagation();
+    this.rejectDialog = {
+      isOpen: true,
+      requestId: request.requestId,
+      reason: ''
+    };
+  }
+
+  closeRejectDialog(): void {
+    this.rejectDialog.isOpen = false;
+  }
+
+  submitReject(): void {
+    if (!this.rejectDialog.requestId) return;
+    if (!this.rejectDialog.reason.trim()) {
+      alert('Remarks/rejection reason is required.');
+      return;
+    }
+
+    const payload = {
+      requestId: this.rejectDialog.requestId,
+      reason: this.rejectDialog.reason
+    };
+
+    this.loading = true;
+    this.requestService.rejectRequestDirect(this.rejectDialog.requestId, payload).subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.closeRejectDialog();
+        this.loadRequestsFromServer();
+      },
+      error: (err) => {
+        this.loading = false;
+        alert(err?.error?.message || 'Failed to reject request');
+      }
+    });
+  }
+
+  deleteRequestDirect(request: any, event: Event): void {
+    event.stopPropagation();
+    if (confirm(`Are you sure you want to delete Request ID: ${request.requestId}?`)) {
+      this.loading = true;
+      this.requestService.deleteRequest(request.requestId).subscribe({
+        next: () => {
+          this.loading = false;
+          this.loadRequestsFromServer();
+        },
+        error: (err) => {
+          this.loading = false;
+          alert(err?.error?.message || 'Failed to delete request');
+        }
+      });
     }
   }
 
-  getTypeBadge(type: RequestType): { text: string; icon: string } {
+  getTypeBadge(type: string): { text: string; icon: string } {
     return type === 'EXTENSION'
       ? { text: 'Extension Request', icon: 'bi-clock-history' }
       : { text: 'Closure Request', icon: 'bi-lock-fill' };
   }
 
-  navigateToTask(taskId: number): void {
-    if (taskId > 0) {
-      this.router.navigate(['/task', taskId]);
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'PENDING': return 'bg-warning text-dark';
+      case 'APPROVED': return 'bg-success text-white';
+      case 'REJECTED': return 'bg-danger text-white';
+      default: return 'bg-secondary text-white';
     }
   }
 
-  goBackToDashboard() {
-    this.authApiService.goToDashboard();
+  hasPermission(perm: string): boolean {
+    return this.authApiService.hasPermission(perm);
   }
 
-  refresh(): void {
-    this.loadRequests();
+  goBackToDashboard(): void {
+    this.authApiService.goToDashboard();
   }
 }
