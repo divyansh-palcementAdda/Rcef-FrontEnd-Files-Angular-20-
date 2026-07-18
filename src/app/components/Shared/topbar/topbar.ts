@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { NotificationBellComponent } from '../notification-bell-component/notification-bell-component';
 import { UserApiService } from '../../../Services/UserApiService';
+import { userDto } from '../../../Model/userDto';
 import { JwtService } from '../../../Services/jwt-service';
 import { SidebarService } from '../../../Services/sidebar-service';
 
@@ -19,13 +20,16 @@ export class TopbarComponent implements OnInit {
   fullName: string = 'User';
   role: string | null = null;
   currentDate = new Date();
+  userProfile: userDto | null = null;
+  profileDropdownOpen = false;
 
   constructor(
     private authService: AuthApiService,
     private router: Router,
     private userApiService: UserApiService,
     private jwtService: JwtService,
-    private sidebarService: SidebarService
+    private sidebarService: SidebarService,
+    private elRef: ElementRef
   ) { }
 
   ngOnInit(): void {
@@ -49,6 +53,7 @@ export class TopbarComponent implements OnInit {
             if (user && user.fullName) {
               this.fullName = user.fullName;
             }
+            this.userProfile = user;
           },
           error: (err) => console.warn('Failed to load user profile in topbar:', err)
         });
@@ -98,6 +103,22 @@ export class TopbarComponent implements OnInit {
     } else {
       this.sidebarService.toggleCollapsed();
     }
+  }
+
+  toggleProfileDropdown(): void {
+    this.profileDropdownOpen = !this.profileDropdownOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elRef.nativeElement.contains(event.target)) {
+      this.profileDropdownOpen = false;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.profileDropdownOpen = false;
   }
 
   logout(): void {

@@ -205,3 +205,34 @@
 @media (max-width: 576px) {
   .modal-dialog { margin: 0.5rem; }
 }
+
+/* ── 403 Access Denied Modal ── */
+.access-denied-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 1050;
+}
+
+.access-denied-modal {
+  width: 100%;
+  max-width: 460px;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.access-denied-icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.06));
+  border: 2px solid rgba(239, 68, 68, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.access-denied-icon-wrap i {
+  font-size: 2.2rem;
+  color: #ef4444;
+}

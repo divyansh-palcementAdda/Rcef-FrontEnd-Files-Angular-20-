@@ -11,7 +11,8 @@ import { DepartmentApiService } from '../../../Services/department-api-service';
 import { Department } from '../../../Model/department';
 import { ApiService } from '../../../Services/api-service';
 import { SubjectApiService } from '../../../Services/subject-api.service';
-import { forkJoin, Observable, of, switchMap } from 'rxjs';
+import { forkJoin, Observable, of, Subject, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../Services/modal-service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
@@ -41,6 +42,7 @@ export class ViewAllUserss implements OnInit {
 
   // Filter values
   searchTerm = '';
+  private _searchTerm$ = new Subject<string>();
   roleFilter = '';
   departmentIdFilter: number | '' = '';
   subDepartmentIdFilter = '';
@@ -79,6 +81,10 @@ export class ViewAllUserss implements OnInit {
   subjectBreakdown: any[] = [];
 
   selectedCard = 'total';
+
+  // ── Access Control ──────────────────────────────────────────
+  showAccessDeniedModal = false;
+  // ────────────────────────────────────────────────────────────
 
   // ── Edit User Modal ─────────────────────────────────────────
   showEditUserModal = false;
@@ -125,6 +131,8 @@ export class ViewAllUserss implements OnInit {
   addUserEligibleManagers: userDto[] = [];
   addUserShowManagerDrop = false;
   addUserManagerSearch = '';
+  private _addUserManagerSearch$ = new Subject<string>();
+  _filteredManagers: userDto[] = [];
 
   // Sub-departments
   addUserSubDepts: any[] = [];
@@ -132,12 +140,16 @@ export class ViewAllUserss implements OnInit {
 
   // Department search
   addUserDeptSearch = '';
+  private _addUserDeptSearch$ = new Subject<string>();
+  _filteredDepts: Department[] = [];
 
   // Subjects
   addUserSubjects: any[] = [];
   addUserSelectedSubjectIds: number[] = [];
   addUserSubjectSearch = '';
   addUserShowSubjectDrop = false;
+  private _addUserSubjectSearch$ = new Subject<string>();
+  _filteredSubjects: any[] = [];
 
   addUserPayload = {
     fullName: '',
@@ -186,11 +198,34 @@ export class ViewAllUserss implements OnInit {
   }
 
   ngOnInit(): void {
+    // ── Debounced main search (prevents API call on every keystroke) ──
+    this._searchTerm$.pipe(
+      debounceTime(400), distinctUntilChanged()
+    ).subscribe(() => {
+      this.currentPage = 1;
+      this.loadUsersForRole();
+    });
+
+    // ── Debounced search streams for Add User modal dropdowns ──
+    this._addUserManagerSearch$.pipe(
+      debounceTime(300), distinctUntilChanged()
+    ).subscribe(() => this._rebuildFilteredManagers());
+
+    this._addUserSubjectSearch$.pipe(
+      debounceTime(300), distinctUntilChanged()
+    ).subscribe(() => this._rebuildFilteredSubjects());
+
+    this._addUserDeptSearch$.pipe(
+      debounceTime(300), distinctUntilChanged()
+    ).subscribe(() => this._rebuildFilteredDepts());
+    // ──────────────────────────────────────────────────────────
+
     this.initCurrentUser()
       .pipe(
         switchMap(() => this.route.queryParams)
       )
       .subscribe(params => {
+        if (this.showAccessDeniedModal) return; // Teacher blocked — skip data load
         const status = params['status'];
         this.statusFilter = status ? status.toUpperCase() : '';
         this.loadDropdownOptions();
@@ -218,6 +253,13 @@ export class ViewAllUserss implements OnInit {
     this.currentUserId = decoded['userId'];
     this.currentRole = this.authApiService.getCurrentRole() ?? '';
 
+    // TEACHER has no access to this page — show 403 modal instead
+    if (this.currentRole === 'TEACHER') {
+      this.showAccessDeniedModal = true;
+      this.loading = false;
+      return of(void 0);
+    }
+
     if (this.currentRole === 'HOD') {
       // HOD needs sub-department → fetch full user DTO
       return this.apiService.getUserById(this.currentUserId).pipe(
@@ -242,6 +284,7 @@ export class ViewAllUserss implements OnInit {
       next: (depts) => {
         this.departmentsList = depts || [];
         this.availableDepartments = depts || [];
+        this._rebuildFilteredDepts();
         this.initializeFilterFields();
       },
       error: (err) => console.error('Failed to load departments', err)
@@ -368,7 +411,12 @@ export class ViewAllUserss implements OnInit {
     });
   }
 
-  /** Apply search and status filters */
+  /** Called from the search input — debounced via Subject */
+  onSearchInput(): void {
+    this._searchTerm$.next(this.searchTerm);
+  }
+
+  /** Apply filters immediately (status, role, dept changes) */
   applyFilters(): void {
     this.currentPage = 1;
     this.loadUsersForRole();
@@ -704,12 +752,14 @@ export class ViewAllUserss implements OnInit {
     this.addUserVerifiedEmail = null;
     this.addUserPwdStrength = { score: 0, label: 'None', color: '#dee2e6' };
     this.addUserEligibleManagers = [];
+    this._rebuildFilteredManagers();
     this.addUserSubDepts = [];
     this.addUserShowManagerDrop = false;
     this.addUserShowSubDeptDrop = false;
     this.addUserDeptSearch = '';
     this.addUserManagerSearch = '';
     this.addUserSubjects = [];
+    this._rebuildFilteredSubjects();
     this.addUserSelectedSubjectIds = [];
     this.addUserSubjectSearch = '';
     this.addUserShowSubjectDrop = false;
@@ -724,9 +774,11 @@ export class ViewAllUserss implements OnInit {
     // Load departments (already pre-loaded on init, refresh if empty)
     if (this.availableDepartments.length === 0) {
       this.departmentApiService.getAllDepartments().subscribe({
-        next: (depts) => { this.availableDepartments = depts; },
+        next: (depts) => { this.availableDepartments = depts; this._rebuildFilteredDepts(); },
         error: () => {}
       });
+    } else {
+      this._rebuildFilteredDepts();
     }
   }
 
@@ -803,7 +855,7 @@ export class ViewAllUserss implements OnInit {
 
     if (role && role !== 'SUPER_ADMIN') {
       this.apiService.getEligibleManagers(role).subscribe({
-        next: (managers) => { this.addUserEligibleManagers = managers; },
+        next: (managers) => { this.addUserEligibleManagers = managers; this._rebuildFilteredManagers(); },
         error: () => {}
       });
     }
@@ -841,16 +893,27 @@ export class ViewAllUserss implements OnInit {
   }
 
   filteredAddUserDepts(): Department[] {
-    if (!this.addUserDeptSearch.trim()) return this.availableDepartments;
-    return this.availableDepartments.filter(d =>
-      d.name.toLowerCase().includes(this.addUserDeptSearch.toLowerCase())
-    );
+    return this._filteredDepts;
+  }
+
+  /** Call whenever availableDepartments or addUserDeptSearch changes */
+  private _rebuildFilteredDepts(): void {
+    const q = this.addUserDeptSearch.toLowerCase().trim();
+    this._filteredDepts = q
+      ? this.availableDepartments.filter(d => d.name.toLowerCase().includes(q))
+      : [...this.availableDepartments];
+  }
+
+  onAddUserDeptSearchChange(val: string): void {
+    this.addUserDeptSearch = val;
+    this._addUserDeptSearch$.next(val);
   }
 
   reloadAddUserSubDepts(): void {
     if (this.addUserPayload.departmentIds.length === 0) {
       this.addUserSubDepts = [];
       this.addUserSubjects = [];
+      this._rebuildFilteredSubjects();
       this.addUserSelectedSubjectIds = [];
       return;
     }
@@ -899,11 +962,21 @@ export class ViewAllUserss implements OnInit {
   }
 
   filteredAddUserManagers(): userDto[] {
+    return this._filteredManagers;
+  }
+
+  /** Call whenever addUserEligibleManagers or addUserManagerSearch changes */
+  private _rebuildFilteredManagers(): void {
     const q = this.addUserManagerSearch.toLowerCase().trim();
-    if (!q) return this.addUserEligibleManagers;
-    return this.addUserEligibleManagers.filter(u =>
-      u.fullName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)
-    );
+    this._filteredManagers = q
+      ? this.addUserEligibleManagers.filter(u =>
+          u.fullName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q))
+      : [...this.addUserEligibleManagers];
+  }
+
+  onAddUserManagerSearchChange(val: string): void {
+    this.addUserManagerSearch = val;
+    this._addUserManagerSearch$.next(val);
   }
 
   toggleAddUserManager(id: number, event: Event): void {
@@ -938,6 +1011,7 @@ export class ViewAllUserss implements OnInit {
 
     if (!subDeptId && deptIds.length === 0) {
       this.addUserSubjects = [];
+      this._rebuildFilteredSubjects();
       this.addUserSelectedSubjectIds = [];
       return;
     }
@@ -947,6 +1021,7 @@ export class ViewAllUserss implements OnInit {
       this.subjectApiService.getSubjects(null, subDeptId).subscribe({
         next: (subs) => {
           this.addUserSubjects = subs;
+          this._rebuildFilteredSubjects();
           // Remove selected subjects no longer valid
           this.addUserSelectedSubjectIds = this.addUserSelectedSubjectIds.filter(
             id => subs.some((s: any) => s.id === id)
@@ -962,6 +1037,7 @@ export class ViewAllUserss implements OnInit {
           const merged = results.flat();
           const unique = merged.filter((s, i, arr) => arr.findIndex((x: any) => x.id === s.id) === i);
           this.addUserSubjects = unique;
+          this._rebuildFilteredSubjects();
           this.addUserSelectedSubjectIds = this.addUserSelectedSubjectIds.filter(
             id => unique.some((s: any) => s.id === id)
           );
@@ -972,11 +1048,21 @@ export class ViewAllUserss implements OnInit {
   }
 
   filteredAddUserSubjects(): any[] {
+    return this._filteredSubjects;
+  }
+
+  /** Call whenever addUserSubjects or addUserSubjectSearch changes */
+  private _rebuildFilteredSubjects(): void {
     const q = this.addUserSubjectSearch.toLowerCase().trim();
-    if (!q) return this.addUserSubjects;
-    return this.addUserSubjects.filter(s =>
-      s.subjectName?.toLowerCase().includes(q) || s.subjectCode?.toLowerCase().includes(q)
-    );
+    this._filteredSubjects = q
+      ? this.addUserSubjects.filter(s =>
+          s.subjectName?.toLowerCase().includes(q) || s.subjectCode?.toLowerCase().includes(q))
+      : [...this.addUserSubjects];
+  }
+
+  onAddUserSubjectSearchChange(val: string): void {
+    this.addUserSubjectSearch = val;
+    this._addUserSubjectSearch$.next(val);
   }
 
   toggleAddUserSubject(id: number, event: Event): void {

@@ -63,3 +63,18 @@
     font-size: 0.7rem;
   }
 }
+
+/* Quick Actions Cards */
+.quick-actions-section .card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-actions-section .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+.quick-action-icon-wrap {
+  flex-shrink: 0;
+  line-height: 1;
+}

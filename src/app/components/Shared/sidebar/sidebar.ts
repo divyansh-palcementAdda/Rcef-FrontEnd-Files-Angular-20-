@@ -5,8 +5,8 @@ import { AuthApiService } from '../../../Services/auth-api-service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { JwtService } from '../../../Services/jwt-service';
 import { SidebarService } from '../../../Services/sidebar-service';
-import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { Subject, Subscription } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 
 interface SidebarLink {
   label: string;
@@ -36,6 +36,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private lastClickedRoute: string | null = null;
   private lastClickedQueryParams: Record<string, string> | null = null;
   private routerSub = new Subscription();
+  private readonly destroy$ = new Subject<void>();
 
   // Tracks the previous URL to detect navigation from view-tasks → task detail
   private previousUrl: string = '';
@@ -57,7 +58,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
         this.fullName = this.formatName(name);
       }
     });
+    // Build links once now (with whatever permissions are cached), then
+    // rebuild whenever permissions finish loading from the backend so the
+    // Dashboard link always points to the correct route.
     this.buildLinks();
+    this.authService.permissionsObservable$.pipe(
+      filter(perms => perms.length > 0),
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.buildLinks());
     this.loadUserProfile();
     this.sidebarService.isCollapsed$.subscribe(collapsed => {
       this.isCollapsed = collapsed;
@@ -102,6 +110,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.routerSub.unsubscribe();
   }
 
@@ -214,12 +224,25 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private buildLinks(): void {
     const localLinks: SidebarLink[] = [];
 
-    // 1. Dashboard (dynamic route based on permissions)
-    let dashboardRoute = '/teacher';
-    if (this.hasPermission('AUDIT_LOG_VIEW')) {
+    // 1. Dashboard (dynamic route based on role first, then permissions)
+    // Role is always available from the JWT; permissions may load asynchronously,
+    // so we use role as the authoritative source to avoid a race condition where
+    // buildLinks() runs before permissions are fetched from the backend.
+    const currentRole = this.authService.getCurrentRole();
+    let dashboardRoute: string;
+    if (currentRole === 'SUPER_ADMIN' || currentRole === 'ADMIN' || currentRole === 'SUB_ADMIN') {
+      dashboardRoute = '/admin';
+    } else if (currentRole === 'HOD') {
+      dashboardRoute = '/hod';
+    } else if (currentRole === 'TEACHER') {
+      dashboardRoute = '/teacher';
+    } else if (this.hasPermission('AUDIT_LOG_VIEW')) {
+      // Fallback to permission-based detection for unknown/future roles
       dashboardRoute = '/admin';
     } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
       dashboardRoute = '/hod';
+    } else {
+      dashboardRoute = '/teacher';
     }
     localLinks.push({ label: 'Dashboard', route: dashboardRoute, icon: 'bi-grid-fill' });
 
