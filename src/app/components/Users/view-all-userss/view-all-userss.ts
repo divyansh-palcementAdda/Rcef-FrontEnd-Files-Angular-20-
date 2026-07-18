@@ -21,12 +21,13 @@ import { EditUser } from '../edit-user/edit-user';
 import { FilterDrawerComponent, FilterFieldConfig } from '../../Shared/filter-drawer/filter-drawer.component';
 import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
 import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.component';
+import { UsersImportComponent } from '../users-import/users-import';
 
 @Component({
   selector: 'app-view-all-users',
   templateUrl: './view-all-userss.html',
   styleUrls: ['./view-all-userss.css'],
-  imports: [CommonModule, FormsModule, EditUser, FilterDrawerComponent, AnalyticsStatCardComponent, PageToolbarComponent]
+  imports: [CommonModule, FormsModule, EditUser, FilterDrawerComponent, AnalyticsStatCardComponent, PageToolbarComponent, UsersImportComponent]
 })
 export class ViewAllUserss implements OnInit {
 
@@ -58,6 +59,8 @@ export class ViewAllUserss implements OnInit {
   // Filter drawer config
   filterFields: FilterFieldConfig[] = [];
   isDrawerOpen = false;
+
+  showBulkUploadModal = false;
 
   // Stats & breakdown responses
   stats = {
@@ -1160,7 +1163,13 @@ export class ViewAllUserss implements OnInit {
   }
 
   goToBulkImport(): void {
-    this.router.navigate(['/users/import']);
+    this.showBulkUploadModal = true;
+  }
+
+  closeBulkUploadModal(): void {
+    this.showBulkUploadModal = false;
+    // Optionally refresh users list if needed
+    // this.loadUsers(); 
   }
 
   hasPermission(permission: string): boolean {

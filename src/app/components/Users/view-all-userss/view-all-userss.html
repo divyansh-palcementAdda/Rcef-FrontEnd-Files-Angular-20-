@@ -780,3 +780,25 @@
     </div>
   </div>
 </div>
+
+<!-- ===================== Bulk Upload Modal ===================== -->
+<div class="modal-backdrop-custom" *ngIf="showBulkUploadModal" (click)="closeBulkUploadModal()"></div>
+<div class="modal fade" [class.show]="showBulkUploadModal" [style.display]="showBulkUploadModal ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="bulkUploadModalLabel" [attr.aria-hidden]="!showBulkUploadModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title fw-bold mb-0" id="bulkUploadModalLabel">
+            <i class="bi bi-file-earmark-excel-fill me-2 text-primary"></i>Bulk Upload Users
+          </h5>
+          <p class="text-muted small mb-0">Upload a CSV/Excel file to import users in bulk</p>
+        </div>
+        <button type="button" class="btn-close" (click)="closeBulkUploadModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <app-users-import *ngIf="showBulkUploadModal"></app-users-import>
+      </div>
+    </div>
+  </div>
+</div>
