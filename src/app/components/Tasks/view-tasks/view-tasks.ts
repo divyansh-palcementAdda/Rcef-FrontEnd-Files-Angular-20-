@@ -23,6 +23,7 @@ import { SubjectDto } from '../../../Model/subject';
 import { FilterDrawerComponent, FilterFieldConfig } from '../../Shared/filter-drawer/filter-drawer.component';
 import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.component';
 import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
+import { TasksImportComponent } from '../tasks-import/tasks-import';
 
 
 interface ApiResponse<T> {
@@ -34,7 +35,7 @@ interface ApiResponse<T> {
 @Component({
   selector: 'app-view-tasks',
   standalone: true,
-  imports: [CommonModule, FormsModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent],
+  imports: [CommonModule, FormsModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent, TasksImportComponent],
 
   templateUrl: './view-tasks.html',
   styleUrls: ['./view-tasks.css']
@@ -57,6 +58,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
   isForbidden = false;
   isEmpty = false;
+  showBulkUploadModal = false;
 
   // Filters
   searchTerm = '';
@@ -1129,7 +1131,12 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   goToBulkImport(): void {
-    this.router.navigate(['/tasks/import']);
+    this.showBulkUploadModal = true;
+  }
+
+  closeBulkUploadModal(): void {
+    this.showBulkUploadModal = false;
+    this.applyFilters();
   }
 
   openAddTaskModal(): void {
