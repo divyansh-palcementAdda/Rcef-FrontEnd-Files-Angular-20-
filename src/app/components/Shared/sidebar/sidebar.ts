@@ -287,7 +287,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     // 6. All Work (Task Requests)
     if (this.hasPermission('TASK_APPROVE')) {
-      localLinks.push({ label: 'All Work', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'bi-briefcase-fill' });
+      localLinks.push({ label: 'Pending Approval', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'bi-hourglass-split' });
     } else if (this.hasPermission('REPORT_VIEW')) {
       localLinks.push({ label: 'All Work', route: '/task-requests', icon: 'bi-briefcase-fill' });
     }
