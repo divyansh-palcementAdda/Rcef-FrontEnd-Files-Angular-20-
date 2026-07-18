@@ -167,20 +167,32 @@
   }
 }
 
-/* ── Department Summary Cards ── */
+/* ── Department Summary Cards (grid/tile layout, no gaps) ── */
+.dept-cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.dept-card-item {
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+
 .dept-summary-card {
-  border: 2px solid transparent !important;
   transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+  border: 2px solid transparent !important;
 }
 
 .dept-summary-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09) !important;
   transform: translateY(-2px);
 }
 
 .dept-card-active {
   border-color: var(--primary-color, #4f46e5) !important;
   box-shadow: 0 4px 16px rgba(79, 70, 229, 0.18) !important;
+  background: #eff6ff !important;
   transform: translateY(-2px);
 }
 
@@ -190,4 +202,35 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   z-index: 1054;
+}
+
+/* ── ACTION BUTTONS (same style as users table) ── */
+.row-actions {
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #9ca3af;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.action-icon-btn:hover {
+  color: #374151;
+  background: rgba(0, 0, 0, 0.06);
+}
+.action-icon-btn:focus-visible {
+  outline: 2px solid var(--primary-color, #0d6efd);
+  outline-offset: 2px;
 }

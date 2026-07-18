@@ -459,20 +459,17 @@
 
               <!-- Actions -->
               <td class="text-end actions-td" (click)="$event.stopPropagation()">
-                <div class="stitch-action-group">
-                  <button class="stitch-action-btn btn-act-view" (click)="viewTaskDetails(task.taskId)"
-                    title="View Details">
-                    <i class="bi bi-eye-fill"></i>
+                <div class="row-actions">
+                  <button class="action-icon-btn" (click)="viewTaskDetails(task.taskId)" title="View Details">
+                    <i class="bi bi-eye"></i>
                   </button>
-                  <button *ngIf="canEditTask(task)" class="stitch-action-btn btn-act-edit"
-                    (click)="editTask(task.taskId)" title="Edit Task">
-                    <i class="bi bi-pencil-fill"></i>
+                  <button *ngIf="canEditTask(task)" class="action-icon-btn" (click)="editTask(task.taskId)" title="Edit Task">
+                    <i class="bi bi-pencil-square"></i>
                   </button>
                   <button
                     *ngIf="canDeleteTask(task) && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"
-                    class="stitch-action-btn btn-act-delete" (click)="deleteTask($event, task.taskId)"
-                    title="Delete Task">
-                    <i class="bi bi-trash-fill"></i>
+                    class="action-icon-btn" (click)="deleteTask($event, task.taskId)" title="Delete Task">
+                    <i class="bi bi-trash"></i>
                   </button>
                 </div>
               </td>

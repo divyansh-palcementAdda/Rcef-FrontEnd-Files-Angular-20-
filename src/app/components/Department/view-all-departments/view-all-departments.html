@@ -74,11 +74,11 @@
     </div>
 
     <!-- Department Cards -->
-    <div class="d-flex flex-wrap gap-3" *ngIf="!loading && departments.length">
-      <div style="flex: 1 1 200px; min-width: 180px; max-width: 280px;" *ngFor="let dept of departments; let i = index">
+    <div class="dept-cards-grid" *ngIf="!loading && departments.length">
+      <div class="dept-card-item" *ngFor="let dept of departments; let i = index">
         <div class="card border-0 shadow-sm h-100 dept-summary-card"
           [class.dept-card-active]="selectedDept?.departmentId === dept.departmentId" (click)="selectDepartment(dept)"
-          style="cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;">
+          style="cursor: pointer;">
           <div class="card-body d-flex align-items-center gap-3 p-3">
             <div class="rounded-3 p-2 flex-shrink-0" [style.background]="cardColor(i).bg">
               <i class="fs-4" [class]="'bi ' + cardColor(i).iconClass" [style.color]="cardColor(i).icon"></i>
@@ -149,6 +149,7 @@
         <table class="table table-hover align-middle">
           <thead>
             <tr>
+              <th style="width:50px;">S.No</th>
               <th>Code</th>
               <th>Name</th>
               <th>Department</th>
@@ -157,8 +158,9 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sd of paginatedAllSubDepts">
-              <td><span class="badge bg-light text-dark border fw-semibold">{{ sd.code || '—' }}</span></td>
+            <tr *ngFor="let sd of paginatedAllSubDepts; let i = index">
+              <td class="text-muted fw-semibold">{{ (allSubDeptsCurrentPage - 1) * allSubDeptsPageSize + i + 1 }}</td>
+              <td><span class="badge bg-light text-dark fw-semibold">{{ sd.code || '—' }}</span></td>
               <td class="fw-bold" style="color: var(--text-main);">{{ sd.name }}</td>
               <td>
                 <span class="badge rounded-pill" style="background: #e8f0fe; color: #3d6fd4;">
@@ -166,14 +168,13 @@
                 </span>
               </td>
               <td class="text-muted"><small>{{ sd.description || 'No description provided' }}</small></td>
-              <td class="text-end">
-                <div class="d-inline-flex gap-1">
-                  <button class="btn btn-sm btn-outline-primary"
-                    (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
-                    <i class="bi bi-eye" style="font-size: 0.75rem;"></i>
+              <td class="text-end" (click)="$event.stopPropagation()">
+                <div class="row-actions">
+                  <button class="action-icon-btn" (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
+                    <i class="bi bi-eye"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-warning" (click)="openEditSubDeptModal(sd)" title="Edit">
-                    <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
+                  <button class="action-icon-btn" (click)="openEditSubDeptModal(sd)" title="Edit">
+                    <i class="bi bi-pencil-square"></i>
                   </button>
                 </div>
               </td>
@@ -187,17 +188,16 @@
         <div class="mobile-dept-card" *ngFor="let sd of paginatedAllSubDepts">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ sd.name }}</h6>
-            <span class="badge bg-light text-dark border">{{ sd.code || '—' }}</span>
+            <span class="badge bg-light text-dark">{{ sd.code || '—' }}</span>
           </div>
           <small class="text-muted d-block mb-1">{{ sd.department.name || '—' }}</small>
           <small class="text-muted">{{ sd.description || 'No description' }}</small>
-          <div class="d-flex justify-content-end gap-1 mt-2 pt-2 border-top">
-            <button class="btn btn-sm btn-outline-primary"
-              (click)="router.navigate(['/sub-department-details', sd.id])">
-              <i class="bi bi-eye" style="font-size: 0.75rem;"></i>
+          <div class="row-actions mt-2 pt-2 border-top">
+            <button class="action-icon-btn" (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
+              <i class="bi bi-eye"></i>
             </button>
-            <button class="btn btn-sm btn-outline-warning" (click)="openEditSubDeptModal(sd)">
-              <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
+            <button class="action-icon-btn" (click)="openEditSubDeptModal(sd)" title="Edit">
+              <i class="bi bi-pencil-square"></i>
             </button>
           </div>
         </div>
@@ -278,6 +278,7 @@
         <table class="table table-hover align-middle">
           <thead>
             <tr>
+              <th style="width:50px;">S.No</th>
               <th>Code</th>
               <th>Name</th>
               <th>Description</th>
@@ -285,19 +286,18 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sd of paginatedSubDepts">
-              <td><span class="badge bg-light text-dark border fw-semibold">{{ sd.code || '—' }}</span></td>
+            <tr *ngFor="let sd of paginatedSubDepts; let i = index">
+              <td class="text-muted fw-semibold">{{ (subDeptCurrentPage - 1) * subDeptPageSize + i + 1 }}</td>
+              <td><span class="badge bg-light text-dark fw-semibold">{{ sd.code || '—' }}</span></td>
               <td class="fw-bold" style="color: var(--text-main);">{{ sd.name }}</td>
               <td class="text-muted"><small>{{ sd.description || 'No description provided' }}</small></td>
-              <td class="text-end">
-                <div class="d-inline-flex gap-1">
-                  <button class="btn btn-sm btn-outline-primary"
-                    (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
-                    <i class="bi bi-eye" style="font-size: 0.75rem;"></i>
+              <td class="text-end" (click)="$event.stopPropagation()">
+                <div class="row-actions">
+                  <button class="action-icon-btn" (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
+                    <i class="bi bi-eye"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-warning" (click)="openEditSubDeptModal(sd)"
-                    title="Edit Sub-Department">
-                    <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
+                  <button class="action-icon-btn" (click)="openEditSubDeptModal(sd)" title="Edit Sub-Department">
+                    <i class="bi bi-pencil-square"></i>
                   </button>
                 </div>
               </td>
@@ -311,17 +311,15 @@
         <div class="mobile-dept-card" *ngFor="let sd of paginatedSubDepts">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ sd.name }}</h6>
-            <span class="badge bg-light text-dark border">{{ sd.code || '—' }}</span>
+            <span class="badge bg-light text-dark">{{ sd.code || '—' }}</span>
           </div>
           <small class="text-muted">{{ sd.description || 'No description' }}</small>
-          <div class="d-flex justify-content-end gap-1 mt-2 pt-2 border-top">
-            <button class="btn btn-sm btn-outline-primary" (click)="router.navigate(['/sub-department-details', sd.id])"
-              title="View Details">
-              <i class="bi bi-eye" style="font-size: 0.75rem;"></i>
+          <div class="row-actions mt-2 pt-2 border-top">
+            <button class="action-icon-btn" (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
+              <i class="bi bi-eye"></i>
             </button>
-            <button class="btn btn-sm btn-outline-warning" (click)="openEditSubDeptModal(sd)"
-              title="Edit Sub-Department">
-              <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
+            <button class="action-icon-btn" (click)="openEditSubDeptModal(sd)" title="Edit Sub-Department">
+              <i class="bi bi-pencil-square"></i>
             </button>
           </div>
         </div>

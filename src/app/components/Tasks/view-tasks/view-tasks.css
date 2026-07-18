@@ -923,55 +923,36 @@
 }
 
 /* Actions Column Buttons */
-.stitch-action-group {
-  display: flex;
+.row-actions {
+  display: inline-flex;
   justify-content: flex-end;
   gap: 0.35rem;
 }
 
-.stitch-action-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  background-color: #ffffff;
-  display: flex;
+.action-icon-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-act-view {
-  color: #3b82f6;
-}
-
-.btn-act-view:hover {
-  background-color: #eff6ff;
-  border-color: #3b82f6;
-}
-
-.btn-act-edit {
-  color: #6366f1;
-}
-
-.btn-act-edit:hover {
-  background-color: #e0e7ff;
-  border-color: #6366f1;
-}
-
-.btn-act-delete {
-  color: #ef4444;
-}
-
-.btn-act-delete:hover {
-  background-color: #fef2f2;
-  border-color: #ef4444;
-}
-
-.btn-act-more {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
   color: #9ca3af;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.action-icon-btn:hover {
+  color: #374151;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.action-icon-btn:focus-visible {
+  outline: 2px solid var(--primary-color, #0d6efd);
+  outline-offset: 2px;
 }
 
 .btn-act-more:hover {
