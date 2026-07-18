@@ -295,7 +295,8 @@
             <div class="stitch-pagination" *ngIf="filteredTasks.length > 0">
               <div class="stitch-pag-left">
                 <span>Rows per page:</span>
-                <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="currentPage = 1; applyFilters()">
+                <select class="stitch-pag-size-selector" [(ngModel)]="pageSize"
+                  (change)="currentPage = 1; applyFilters()">
                   <option [value]="5">5</option>
                   <option [value]="10">10</option>
                   <option [value]="20">20</option>
@@ -305,19 +306,24 @@
                 </span>
               </div>
               <div class="stitch-pag-controls">
-                <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(1)" title="First Page">
+                <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(1)"
+                  title="First Page">
                   <i class="bi bi-chevron-double-left"></i>
                 </button>
-                <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)" title="Previous Page">
+                <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)"
+                  title="Previous Page">
                   <i class="bi bi-chevron-left"></i>
                 </button>
-                <button *ngFor="let page of getPageNumbers()" class="stitch-pag-btn" [class.active]="currentPage === page" (click)="changePage(page)">
+                <button *ngFor="let page of getPageNumbers()" class="stitch-pag-btn"
+                  [class.active]="currentPage === page" (click)="changePage(page)">
                   {{ page }}
                 </button>
-                <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)" title="Next Page">
+                <button class="stitch-pag-btn" [disabled]="currentPage === totalPages"
+                  (click)="changePage(currentPage + 1)" title="Next Page">
                   <i class="bi bi-chevron-right"></i>
                 </button>
-                <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)" title="Last Page">
+                <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)"
+                  title="Last Page">
                   <i class="bi bi-chevron-double-right"></i>
                 </button>
               </div>
@@ -395,7 +401,8 @@
             <div class="stitch-pagination" *ngIf="filteredLogs.length > 0">
               <div class="stitch-pag-left">
                 <span>Rows per page:</span>
-                <select class="stitch-pag-size-selector" [(ngModel)]="pageSizeLogs" (change)="currentPageLogs = 1; applyFiltersLogs()">
+                <select class="stitch-pag-size-selector" [(ngModel)]="pageSizeLogs"
+                  (change)="currentPageLogs = 1; applyFiltersLogs()">
                   <option [value]="5">5</option>
                   <option [value]="10">10</option>
                   <option [value]="20">20</option>
@@ -405,19 +412,24 @@
                 </span>
               </div>
               <div class="stitch-pag-controls">
-                <button class="stitch-pag-btn" [disabled]="currentPageLogs === 1" (click)="changePageLogs(1)" title="First Page">
+                <button class="stitch-pag-btn" [disabled]="currentPageLogs === 1" (click)="changePageLogs(1)"
+                  title="First Page">
                   <i class="bi bi-chevron-double-left"></i>
                 </button>
-                <button class="stitch-pag-btn" [disabled]="currentPageLogs === 1" (click)="changePageLogs(currentPageLogs - 1)" title="Previous Page">
+                <button class="stitch-pag-btn" [disabled]="currentPageLogs === 1"
+                  (click)="changePageLogs(currentPageLogs - 1)" title="Previous Page">
                   <i class="bi bi-chevron-left"></i>
                 </button>
-                <button *ngFor="let page of getPageNumbersLogs()" class="stitch-pag-btn" [class.active]="currentPageLogs === page" (click)="changePageLogs(page)">
+                <button *ngFor="let page of getPageNumbersLogs()" class="stitch-pag-btn"
+                  [class.active]="currentPageLogs === page" (click)="changePageLogs(page)">
                   {{ page }}
                 </button>
-                <button class="stitch-pag-btn" [disabled]="currentPageLogs === totalPagesLogs" (click)="changePageLogs(currentPageLogs + 1)" title="Next Page">
+                <button class="stitch-pag-btn" [disabled]="currentPageLogs === totalPagesLogs"
+                  (click)="changePageLogs(currentPageLogs + 1)" title="Next Page">
                   <i class="bi bi-chevron-right"></i>
                 </button>
-                <button class="stitch-pag-btn" [disabled]="currentPageLogs === totalPagesLogs" (click)="changePageLogs(totalPagesLogs)" title="Last Page">
+                <button class="stitch-pag-btn" [disabled]="currentPageLogs === totalPagesLogs"
+                  (click)="changePageLogs(totalPagesLogs)" title="Last Page">
                   <i class="bi bi-chevron-double-right"></i>
                 </button>
               </div>
@@ -471,15 +483,18 @@
               <span class="meta-label">Departments Linked</span>
               <span class="meta-value">{{ enrichedDepartments.length }}</span>
             </li>
-            <li class="meta-item flex-column align-items-start gap-1" *ngIf="user.reportingManagerNames && user.reportingManagerNames.length > 0">
+            <li class="meta-item flex-column align-items-start gap-1"
+              *ngIf="user.reportingManagerNames && user.reportingManagerNames.length > 0">
               <span class="meta-label">Reporting Managers</span>
               <div class="d-flex flex-wrap gap-1 mt-1">
-                <span *ngFor="let name of user.reportingManagerNames" class="badge bg-light text-dark border px-2 py-1 rounded shadow-sm small">
+                <span *ngFor="let name of user.reportingManagerNames"
+                  class="badge bg-light text-dark border px-2 py-1 rounded shadow-sm small">
                   <i class="bi bi-person text-primary"></i> {{ name }}
                 </span>
               </div>
             </li>
-            <li class="meta-item" *ngIf="(!user.reportingManagerNames || user.reportingManagerNames.length === 0) && user.parentFullName">
+            <li class="meta-item"
+              *ngIf="(!user.reportingManagerNames || user.reportingManagerNames.length === 0) && user.parentFullName">
               <span class="meta-label">Reports To</span>
               <span class="meta-value text-primary"><i class="bi bi-person me-1"></i>{{ user.parentFullName }}</span>
             </li>
@@ -498,7 +513,8 @@
                 <span *ngIf="group.subDepartmentName" class="text-muted"> / {{ group.subDepartmentName }}</span>
               </div>
               <div class="d-flex flex-wrap gap-2 ps-2 border-start border-2 border-primary-subtle">
-                <span *ngFor="let sub of group.subjects" class="badge bg-light text-dark border px-2.5 py-1.5 rounded-3 d-inline-flex align-items-center gap-1 shadow-sm">
+                <span *ngFor="let sub of group.subjects"
+                  class="badge bg-light text-dark border px-2.5 py-1.5 rounded-3 d-inline-flex align-items-center gap-1 shadow-sm">
                   <i class="bi bi-journal-bookmark-fill text-primary"></i>
                   {{ sub.name }}
                 </span>
@@ -516,9 +532,9 @@
       <button class="btn btn-secondary" (click)="goBack()">
         <i class="bi bi-arrow-left me-1"></i>Back to Users Directory
       </button>
-      <button class="btn btn-outline-secondary" onclick="window.print()">
+      <!-- <button class="btn btn-outline-secondary" onclick="window.print()">
         <i class="bi bi-printer me-1"></i>Print Page Details
-      </button>
+      </button> -->
     </div>
 
   </div>

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { 
   TaskTemplateApiService, 
   TaskTemplateDetailsDto,
@@ -18,7 +19,7 @@ import {
 @Component({
   selector: 'app-view-template-task',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './view-task-template.html',
   styleUrls: ['./view-task-template.css']
 })
@@ -44,6 +45,67 @@ export class ViewTemplateTaskComponent implements OnInit {
     users: [],
     departments: []
   };
+
+  // --- Pagination for Users Tab ---
+  usersCurrentPage: number = 1;
+  usersPageSize: number = 5;
+
+  get usersTotalPages(): number {
+    return Math.ceil((this.template.users?.length || 0) / this.usersPageSize);
+  }
+
+  get paginatedUsers(): TemplateUser[] {
+    const start = (this.usersCurrentPage - 1) * this.usersPageSize;
+    return (this.template.users || []).slice(start, start + this.usersPageSize);
+  }
+
+  getUsersPageNumbers(): number[] {
+    const total = this.usersTotalPages;
+    const current = this.usersCurrentPage;
+    const pages: number[] = [];
+    const range = 2;
+    for (let i = Math.max(1, current - range); i <= Math.min(total, current + range); i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  changeUsersPage(page: number): void {
+    if (page < 1 || page > this.usersTotalPages) return;
+    this.usersCurrentPage = page;
+  }
+
+  // --- Pagination for Departments Tab ---
+  deptsCurrentPage: number = 1;
+  deptsPageSize: number = 5;
+
+  get deptsTotalPages(): number {
+    return Math.ceil((this.template.departments?.length || 0) / this.deptsPageSize);
+  }
+
+  get paginatedDepts(): TemplateDepartment[] {
+    const start = (this.deptsCurrentPage - 1) * this.deptsPageSize;
+    return (this.template.departments || []).slice(start, start + this.deptsPageSize);
+  }
+
+  getDeptsPageNumbers(): number[] {
+    const total = this.deptsTotalPages;
+    const current = this.deptsCurrentPage;
+    const pages: number[] = [];
+    const range = 2;
+    for (let i = Math.max(1, current - range); i <= Math.min(total, current + range); i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  changeDeptsPage(page: number): void {
+    if (page < 1 || page > this.deptsTotalPages) return;
+    this.deptsCurrentPage = page;
+  }
+
+  // Math reference for template use
+  Math = Math;
 
   constructor(
     private route: ActivatedRoute,
@@ -83,6 +145,9 @@ export class ViewTemplateTaskComponent implements OnInit {
 
   setBreakdownTab(tab: 'users' | 'departments'): void {
     this.activeBreakdownTab = tab;
+    // Reset pagination on tab switch
+    this.usersCurrentPage = 1;
+    this.deptsCurrentPage = 1;
   }
 
   goBack(): void {
