@@ -5,17 +5,23 @@
      ========================================== -->
   <div *ngIf="loading && isInitialLoad" class="animate__animated animate__fadeIn px-2">
     <!-- Hero Skeleton -->
-    <div class="skeleton-hero mb-4 rounded-4" style="height: 180px; background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); animation: skeleton-pulse 1.5s infinite ease-in-out;"></div>
+    <div class="skeleton-hero mb-4 rounded-4"
+      style="height: 180px; background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); animation: skeleton-pulse 1.5s infinite ease-in-out;">
+    </div>
 
     <!-- KPI Cards Grid Skeleton -->
     <div class="row g-3 mb-4">
       <div class="col-md-3" *ngFor="let k of [1,2,3,4]">
-        <div class="skeleton-card rounded-3" style="height: 85px; background: rgba(255,255,255,0.05); animation: skeleton-pulse 1.5s infinite ease-in-out;"></div>
+        <div class="skeleton-card rounded-3"
+          style="height: 85px; background: rgba(255,255,255,0.05); animation: skeleton-pulse 1.5s infinite ease-in-out;">
+        </div>
       </div>
     </div>
 
     <!-- Table Skeleton -->
-    <div class="skeleton-card rounded-4" style="height: 400px; background: rgba(255,255,255,0.05); animation: skeleton-pulse 1.5s infinite ease-in-out;"></div>
+    <div class="skeleton-card rounded-4"
+      style="height: 400px; background: rgba(255,255,255,0.05); animation: skeleton-pulse 1.5s infinite ease-in-out;">
+    </div>
   </div>
 
   <!-- Error States -->
@@ -49,7 +55,8 @@
     <div class="stitch-hero">
       <div class="stitch-hero-content">
         <h1 class="stitch-hero-title">Task Requests</h1>
-        <p class="stitch-hero-subtitle">Approve or reject closure and extension requests submitted by teachers and department staff.</p>
+        <p class="stitch-hero-subtitle">Approve or reject closure and extension requests submitted by teachers and
+          department staff.</p>
         <div class="stitch-hero-pills">
           <div class="stitch-hero-pill">
             <span class="stitch-hero-dot" style="background-color: #ffffff;"></span>
@@ -93,9 +100,8 @@
           (click)="selectCard('approved', 'APPROVED')">
         </app-analytics-stat-card>
         <!-- Rejected -->
-        <app-analytics-stat-card [title]="'Rejected Requests'" [value]="stats.rejected"
-          [iconClass]="'bi bi-x-circle'" [theme]="'rose'" [selected]="selectedCard === 'rejected'"
-          (click)="selectCard('rejected', 'REJECTED')">
+        <app-analytics-stat-card [title]="'Rejected Requests'" [value]="stats.rejected" [iconClass]="'bi bi-x-circle'"
+          [theme]="'rose'" [selected]="selectedCard === 'rejected'" (click)="selectCard('rejected', 'REJECTED')">
         </app-analytics-stat-card>
       </div>
     </div>
@@ -104,10 +110,9 @@
        3. REUSABLE MODERN ACTION TOOLBAR
        ========================================== -->
     <app-page-toolbar [searchPlaceholder]="'Search by Task, Requester, or Remarks...'" [searchValue]="searchTerm"
-      [activeChips]="activeChips" [refreshLoading]="loading" [showExport]="true"
-      [showUpload]="false" [showAdd]="false" [exportLabel]="'Export CSV'"
-      (searchChange)="onToolbarSearch($event)"
-      (searchClear)="onToolbarSearchClear()" (filterClick)="filterValues = {
+      [activeChips]="activeChips" [refreshLoading]="loading" [showExport]="true" [showUpload]="false" [showAdd]="false"
+      [exportLabel]="'Export CSV'" (searchChange)="onToolbarSearch($event)" (searchClear)="onToolbarSearchClear()"
+      (filterClick)="filterValues = {
         searchTerm: searchTerm,
         requestTypeFilter: requestTypeFilter,
         statusFilter: statusFilter,
@@ -118,8 +123,8 @@
         subDepartmentIdFilter: subDepartmentIdFilter,
         onlyActionableRequestsFilter: onlyActionableRequestsFilter,
         onlyMyRequestsFilter: onlyMyRequestsFilter
-      }; filterDrawerOpen = true" (clearFilters)="resetFilters()"
-      (removeChip)="removeChip($event)" (refreshClick)="loadRequestsFromServer()" (exportClick)="exportRequests()">
+      }; filterDrawerOpen = true" (clearFilters)="resetFilters()" (removeChip)="removeChip($event)"
+      (refreshClick)="loadRequestsFromServer()" (exportClick)="exportRequests()">
     </app-page-toolbar>
 
     <!-- Filter Drawer Component -->
@@ -135,6 +140,7 @@
         <table class="stitch-table align-middle">
           <thead>
             <tr>
+              <th style="width: 60px;">S.No</th>
               <th style="width: 60px;">ID</th>
               <th (click)="setSort('task.title')" style="cursor: pointer; white-space: nowrap;">
                 Task & Requester
@@ -160,7 +166,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let req of requests" (click)="viewRequestDetails(req)" style="cursor: pointer;">
+            <tr *ngFor="let req of requests; let i = index" (click)="viewRequestDetails(req)" style="cursor: pointer;">
+              <!-- S.No -->
+              <td data-label="S.No">
+                <span class="fw-semibold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
+              </td>
+
               <!-- ID -->
               <td data-label="ID">
                 <span class="fw-semibold text-muted">#{{ req.requestId }}</span>
@@ -177,7 +188,8 @@
                       'tag-priority-low': req.taskPriority === 'LOW'
                     }">{{ req.taskPriority }}</span>
                   </div>
-                  <p class="stitch-task-desc">By: <strong class="text-white opacity-90">{{ req.requester }}</strong> ({{ req.requesterRole }})</p>
+                  <p class="stitch-task-desc">By: <strong class="text-white opacity-90">{{ req.requester }}</strong> ({{
+                    req.requesterRole }})</p>
                 </div>
               </td>
 
@@ -202,7 +214,8 @@
               <td data-label="Details">
                 <div class="d-flex align-items-center gap-2">
                   <div class="proof-thumbnail-container" *ngIf="req.hasProof && req.thumbnail">
-                    <img [src]="req.thumbnail" alt="Proof" class="proof-thumbnail-mini rounded border border-light opacity-80" />
+                    <img [src]="req.thumbnail" alt="Proof"
+                      class="proof-thumbnail-mini rounded border border-light opacity-80" />
                   </div>
                   <span class="small badge bg-dark text-light border border-secondary" *ngIf="req.hasProof">
                     <i class="bi bi-file-earmark-arrow-up me-1"></i>{{ req.proofCount }} Proofs
@@ -222,11 +235,15 @@
 
               <!-- Timeline / Pending Days -->
               <td data-label="Timeline">
-                <div class="stitch-timeline-wrapper" [class.timeline-urgent]="req.status === 'PENDING' && req.pendingDays >= 3">
+                <div class="stitch-timeline-wrapper"
+                  [class.timeline-urgent]="req.status === 'PENDING' && req.pendingDays >= 3">
                   <div class="stitch-timeline-info">
-                    <span class="stitch-timeline-date" *ngIf="req.status === 'PENDING'">Pending for {{ req.pendingDays }} days</span>
-                    <span class="stitch-timeline-date text-success" *ngIf="req.status === 'APPROVED'">Processed in {{ req.pendingDays }} days</span>
-                    <span class="stitch-timeline-date text-danger" *ngIf="req.status === 'REJECTED'">Processed in {{ req.pendingDays }} days</span>
+                    <span class="stitch-timeline-date" *ngIf="req.status === 'PENDING'">Pending for {{ req.pendingDays
+                      }} days</span>
+                    <span class="stitch-timeline-date text-success" *ngIf="req.status === 'APPROVED'">Processed in {{
+                      req.pendingDays }} days</span>
+                    <span class="stitch-timeline-date text-danger" *ngIf="req.status === 'REJECTED'">Processed in {{
+                      req.pendingDays }} days</span>
                     <span class="stitch-timeline-relative">Requested: {{ req.requestedDate | date:'shortDate' }}</span>
                   </div>
                 </div>
@@ -238,13 +255,16 @@
                   <button class="action-icon-btn" (click)="viewRequestDetails(req)" title="View Details">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <button *ngIf="req.canApprove" class="action-icon-btn text-success border-success-subtle" (click)="openApproveDialog(req, $event)" title="Approve Request">
+                  <button *ngIf="req.canApprove" class="action-icon-btn text-success border-success-subtle"
+                    (click)="openApproveDialog(req, $event)" title="Approve Request">
                     <i class="bi bi-check-circle"></i>
                   </button>
-                  <button *ngIf="req.canReject" class="action-icon-btn text-danger border-danger-subtle" (click)="openRejectDialog(req, $event)" title="Reject Request">
+                  <button *ngIf="req.canReject" class="action-icon-btn text-danger border-danger-subtle"
+                    (click)="openRejectDialog(req, $event)" title="Reject Request">
                     <i class="bi bi-x-circle"></i>
                   </button>
-                  <button *ngIf="req.canDelete" class="action-icon-btn text-secondary border-secondary-subtle" (click)="deleteRequestDirect(req, $event)" title="Delete Request">
+                  <button *ngIf="req.canDelete" class="action-icon-btn text-secondary border-secondary-subtle"
+                    (click)="deleteRequestDirect(req, $event)" title="Delete Request">
                     <i class="bi bi-trash"></i>
                   </button>
                 </div>
@@ -258,7 +278,8 @@
       <div class="stitch-pagination">
         <div class="stitch-pag-left">
           <span>Rows per page:</span>
-          <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="currentPage = 1; loadRequestsFromServer()">
+          <select class="stitch-pag-size-selector" [(ngModel)]="pageSize"
+            (change)="currentPage = 1; loadRequestsFromServer()">
             <option [value]="5">5</option>
             <option [value]="8">8</option>
             <option [value]="10">10</option>
@@ -266,7 +287,8 @@
             <option [value]="20">20</option>
           </select>
           <span class="stitch-pag-label">
-            {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalElements) }} of {{ totalElements }} results
+            {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalElements) }} of {{
+            totalElements }} results
           </span>
         </div>
 
@@ -274,16 +296,20 @@
           <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(1)" title="First Page">
             <i class="bi bi-chevron-double-left"></i>
           </button>
-          <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)" title="Previous Page">
+          <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)"
+            title="Previous Page">
             <i class="bi bi-chevron-left"></i>
           </button>
-          <button *ngFor="let page of getPageNumbers()" class="stitch-pag-btn" [class.active]="page === currentPage" (click)="changePage(page)">
+          <button *ngFor="let page of getPageNumbers()" class="stitch-pag-btn" [class.active]="page === currentPage"
+            (click)="changePage(page)">
             {{ page }}
           </button>
-          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)" title="Next Page">
+          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)"
+            title="Next Page">
             <i class="bi bi-chevron-right"></i>
           </button>
-          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)" title="Last Page">
+          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)"
+            title="Last Page">
             <i class="bi bi-chevron-double-right"></i>
           </button>
         </div>
@@ -292,172 +318,226 @@
 
     <!-- Empty State -->
     <div *ngIf="requests.length === 0" class="empty-state-illustration p-5 text-center bg-white rounded-4 border my-4">
-      <div class="empty-icon-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%;">
+      <div class="empty-icon-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center"
+        style="width: 60px; height: 60px; border-radius: 50%;">
         <i class="bi bi-clock-history text-muted fs-2"></i>
       </div>
       <h4 class="fw-bold text-dark mb-2">No Requests Found</h4>
       <p class="text-muted mb-4 small">
-        {{ (searchTerm || requestTypeFilter || statusFilter || departmentIdFilter || subDepartmentIdFilter || priorityFilter || taskTypeFilter) ? 'We couldn\'t find any requests matching your active filter options.' : 'There are currently no requests assigned to you.' }}
+        {{ (searchTerm || requestTypeFilter || statusFilter || departmentIdFilter || subDepartmentIdFilter ||
+        priorityFilter || taskTypeFilter) ? 'We couldn\'t find any requests matching your active filter options.' :
+        'There are currently no requests assigned to you.' }}
       </p>
-      <button *ngIf="searchTerm || requestTypeFilter || statusFilter || departmentIdFilter || subDepartmentIdFilter || priorityFilter || taskTypeFilter" class="btn btn-primary d-inline-flex align-items-center gap-2 mx-auto" (click)="resetFilters()">
+      <button
+        *ngIf="searchTerm || requestTypeFilter || statusFilter || departmentIdFilter || subDepartmentIdFilter || priorityFilter || taskTypeFilter"
+        class="btn btn-primary d-inline-flex align-items-center gap-2 mx-auto" (click)="resetFilters()">
         <i class="bi bi-x-circle-fill"></i> Clear All Filters
       </button>
     </div>
 
   </div>
 
-  <!-- ==========================================
-     5. DYNAMIC GLASSMORPHIC MODALS / DIALOGS
-     ========================================== -->
+</div>
 
-  <!-- A. LAZY RETRIEVAL REQUEST DETAILS DRAWER / MODAL -->
-  <div class="modal-overlay" *ngIf="activeRequestDetail" (click)="closeDetailModal()">
-    <div class="glass-modal-card p-4 animate__animated animate__slideInRight" (click)="$event.stopPropagation()">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="modal-title m-0"><i class="bi bi-info-circle-fill text-primary me-2"></i> Request Details</h3>
-        <button class="btn-close-modal" (click)="closeDetailModal()">&times;</button>
-      </div>
+<!-- ==========================================
+   5. DYNAMIC MODALS / DIALOGS
+   ========================================== -->
 
-      <!-- Spinner while lazy loading from GET /api/task-requests/{id} -->
-      <div *ngIf="loadingDetail" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading details...</span>
+  <!-- A. LAZY RETRIEVAL REQUEST DETAILS MODAL -->
+  <div class="modal-backdrop-custom" *ngIf="activeRequestDetail" (click)="closeDetailModal()"></div>
+  <div class="modal fade" [class.show]="activeRequestDetail" [style.display]="activeRequestDetail ? 'block' : 'none'"
+    tabindex="-1" aria-labelledby="requestDetailModalLabel" [attr.aria-hidden]="!activeRequestDetail">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header border-bottom bg-light">
+          <div>
+            <h5 class="modal-title fw-bold mb-0" id="requestDetailModalLabel">
+              <i class="bi bi-info-circle-fill text-primary me-2"></i>Request Details
+            </h5>
+          </div>
+          <button type="button" class="btn-close" (click)="closeDetailModal()" aria-label="Close"></button>
         </div>
-        <p class="text-muted mt-2 small">Lazy loading proof documents...</p>
-      </div>
 
-      <div *ngIf="!loadingDetail">
-        <div class="modal-body-scroll">
-          <!-- Request general meta -->
-          <div class="detail-section mb-4 p-3 rounded bg-white bg-opacity-5 border">
-            <h5 class="fw-bold text-white mb-2">{{ activeRequestDetail.taskTitle }}</h5>
-            <p class="text-muted small mb-3">Task ID: #{{ activeRequestDetail.taskId }} | Priority: {{ activeRequestDetail.taskPriority }}</p>
-
-            <div class="row g-3">
-              <div class="col-6">
-                <span class="small text-muted d-block">Submitted By</span>
-                <span class="small fw-semibold text-white">{{ activeRequestDetail.requestedByFullName }}</span>
-              </div>
-              <div class="col-6">
-                <span class="small text-muted d-block">Request Type</span>
-                <span class="badge bg-secondary small">{{ activeRequestDetail.requestType }}</span>
-              </div>
-              <div class="col-6">
-                <span class="small text-muted d-block">Requested Date</span>
-                <span class="small text-white">{{ activeRequestDetail.requestDate | date:'medium' }}</span>
-              </div>
-              <div class="col-6">
-                <span class="small text-muted d-block">Status</span>
-                <span class="badge small" [ngClass]="getStatusClass(activeRequestDetail.status)">{{ activeRequestDetail.status }}</span>
-              </div>
+        <div class="modal-body p-4">
+          <!-- Spinner while lazy loading from GET /api/task-requests/{id} -->
+          <div *ngIf="loadingDetail" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading details...</span>
             </div>
+            <p class="text-muted mt-2 small">Lazy loading proof documents...</p>
           </div>
 
-          <!-- User Remarks -->
-          <div class="mb-4">
-            <h6 class="fw-bold text-white mb-2"><i class="bi bi-chat-left-text me-1 text-info"></i> User Remarks</h6>
-            <div class="p-3 rounded bg-white bg-opacity-5 border text-white small">
-              {{ activeRequestDetail.remarks || 'No remarks provided.' }}
-            </div>
-          </div>
+          <div *ngIf="!loadingDetail">
+            <!-- Request general meta -->
+            <div class="detail-section mb-4 p-3 rounded bg-light border">
+              <h5 class="fw-bold text-dark mb-2">{{ activeRequestDetail.taskTitle }}</h5>
+              <p class="text-muted small mb-3">Task ID: #{{ activeRequestDetail.taskId }} | Priority: <span class="badge bg-secondary">{{
+                activeRequestDetail.taskPriority }}</span></p>
 
-          <!-- Action remarks if approved/rejected -->
-          <div class="mb-4" *ngIf="activeRequestDetail.status !== 'PENDING'">
-            <h6 class="fw-bold text-white mb-2"><i class="bi bi-person-check me-1 text-success"></i> Resolution Info</h6>
-            <div class="p-3 rounded bg-white bg-opacity-5 border text-white small">
-              <p class="mb-1" *ngIf="activeRequestDetail.approvedByFullName">Processed By: <strong>{{ activeRequestDetail.approvedByFullName }}</strong></p>
-              <p class="mb-1" *ngIf="activeRequestDetail.processedAt">Processed At: {{ activeRequestDetail.processedAt | date:'medium' }}</p>
-              <p class="mb-0" *ngIf="activeRequestDetail.rejectionReason">Resolution Notes: <em>{{ activeRequestDetail.rejectionReason }}</em></p>
-            </div>
-          </div>
-
-          <!-- LAZY LOADED PROOF SECTION -->
-          <div class="mb-4">
-            <h6 class="fw-bold text-white mb-2"><i class="bi bi-file-earmark-check me-1 text-primary"></i> Uploaded Proof Artifacts ({{ activeRequestDetail.proofs?.length || 0 }})</h6>
-            
-            <div class="proofs-grid mt-2" *ngIf="activeRequestDetail.proofs && activeRequestDetail.proofs.length > 0">
-              <div class="proof-card p-2 rounded border bg-white bg-opacity-5 d-flex align-items-center justify-content-between mb-2" *ngFor="let proof of activeRequestDetail.proofs">
-                <div class="d-flex align-items-center gap-2 text-truncate" style="max-width: 80%;">
-                  <!-- Image thumbnail or file icon -->
-                  <i class="bi bi-image text-info fs-4" *ngIf="proof.fileUrl.endsWith('.jpg') || proof.fileUrl.endsWith('.png') || proof.fileUrl.endsWith('.jpeg')"></i>
-                  <i class="bi bi-file-pdf text-danger fs-4" *ngIf="proof.fileUrl.endsWith('.pdf')"></i>
-                  <i class="bi bi-file-earmark-text text-secondary fs-4" *ngIf="!proof.fileUrl.endsWith('.pdf') && !proof.fileUrl.endsWith('.jpg') && !proof.fileUrl.endsWith('.png') && !proof.fileUrl.endsWith('.jpeg')"></i>
-                  <div class="text-truncate">
-                    <span class="d-block small text-white text-truncate">{{ proof.fileName || 'Proof Document' }}</span>
-                    <span class="small text-muted" style="font-size: 0.7rem;">{{ proof.proofTypeName || 'Task Proof' }}</span>
-                  </div>
+              <div class="row g-3">
+                <div class="col-6">
+                  <span class="small text-muted d-block">Submitted By</span>
+                  <span class="small fw-semibold text-dark">{{ activeRequestDetail.requestedByFullName }}</span>
                 </div>
-                <a [href]="proof.fileUrl" target="_blank" class="btn btn-sm btn-outline-light d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 50%;" title="Download File">
-                  <i class="bi bi-download"></i>
-                </a>
+                <div class="col-6">
+                  <span class="small text-muted d-block">Request Type</span>
+                  <span class="badge bg-secondary small">{{ activeRequestDetail.requestType }}</span>
+                </div>
+                <div class="col-6">
+                  <span class="small text-muted d-block">Requested Date</span>
+                  <span class="small text-dark">{{ activeRequestDetail.requestDate | date:'medium' }}</span>
+                </div>
+                <div class="col-6">
+                  <span class="small text-muted d-block">Status</span>
+                  <span class="badge small" [ngClass]="getStatusClass(activeRequestDetail.status)">{{
+                    activeRequestDetail.status }}</span>
+                </div>
               </div>
             </div>
 
-            <!-- Empty proofs -->
-            <div class="text-center py-4 rounded bg-white bg-opacity-5 border border-dashed" *ngIf="!activeRequestDetail.proofs || activeRequestDetail.proofs.length === 0">
-              <i class="bi bi-folder-x text-muted fs-3"></i>
-              <p class="text-muted small mt-2 mb-0">No compliance proof files attached to this request.</p>
+            <!-- User Remarks -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-chat-left-text me-1 text-info"></i> User Remarks</h6>
+              <div class="p-3 rounded bg-light border text-dark small">
+                {{ activeRequestDetail.remarks || 'No remarks provided.' }}
+              </div>
+            </div>
+
+            <!-- Action remarks if approved/rejected -->
+            <div class="mb-4" *ngIf="activeRequestDetail.status !== 'PENDING'">
+              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-person-check me-1 text-success"></i> Resolution Info
+              </h6>
+              <div class="p-3 rounded bg-light border text-dark small">
+                <p class="mb-1" *ngIf="activeRequestDetail.approvedByFullName">Processed By: <strong>{{
+                    activeRequestDetail.approvedByFullName }}</strong></p>
+                <p class="mb-1" *ngIf="activeRequestDetail.processedAt">Processed At: {{ activeRequestDetail.processedAt |
+                  date:'medium' }}</p>
+                <p class="mb-0" *ngIf="activeRequestDetail.rejectionReason">Resolution Notes: <em>{{
+                    activeRequestDetail.rejectionReason }}</em></p>
+              </div>
+            </div>
+
+            <!-- LAZY LOADED PROOF SECTION -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-file-earmark-check me-1 text-primary"></i> Uploaded
+                Proof Artifacts ({{ activeRequestDetail.proofs?.length || 0 }})</h6>
+
+              <div class="proofs-grid mt-2" *ngIf="activeRequestDetail.proofs && activeRequestDetail.proofs.length > 0">
+                <div
+                  class="proof-card p-2 rounded border bg-white d-flex align-items-center justify-content-between mb-2 shadow-sm"
+                  *ngFor="let proof of activeRequestDetail.proofs">
+                  <div class="d-flex align-items-center gap-2 text-truncate" style="max-width: 80%;">
+                    <!-- Image thumbnail or file icon -->
+                    <i class="bi bi-image text-info fs-4"
+                      *ngIf="proof.fileUrl.endsWith('.jpg') || proof.fileUrl.endsWith('.png') || proof.fileUrl.endsWith('.jpeg')"></i>
+                    <i class="bi bi-file-pdf text-danger fs-4" *ngIf="proof.fileUrl.endsWith('.pdf')"></i>
+                    <i class="bi bi-file-earmark-text text-secondary fs-4"
+                      *ngIf="!proof.fileUrl.endsWith('.pdf') && !proof.fileUrl.endsWith('.jpg') && !proof.fileUrl.endsWith('.png') && !proof.fileUrl.endsWith('.jpeg')"></i>
+                    <div class="text-truncate">
+                      <span class="d-block small text-dark fw-semibold text-truncate">{{ proof.fileName || 'Proof Document' }}</span>
+                      <span class="small text-muted" style="font-size: 0.7rem;">{{ proof.proofTypeName || 'Task Proof'
+                        }}</span>
+                    </div>
+                  </div>
+                  <a [href]="proof.fileUrl" target="_blank"
+                    class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center"
+                    style="width: 32px; height: 32px; border-radius: 50%;" title="Download File">
+                    <i class="bi bi-download"></i>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Empty proofs -->
+              <div class="text-center py-4 rounded bg-light border border-dashed"
+                *ngIf="!activeRequestDetail.proofs || activeRequestDetail.proofs.length === 0">
+                <i class="bi bi-folder-x text-muted fs-3"></i>
+                <p class="text-muted small mt-2 mb-0">No compliance proof files attached to this request.</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Inline actions inside modal if pending and authorized -->
-        <div class="modal-footer-actions d-flex gap-2 mt-4 pt-3 border-top">
-          <button *ngIf="activeRequestDetail.canApprove" class="btn btn-success flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2" (click)="openApproveDialog(activeRequestDetail, $event); closeDetailModal()">
+        <div class="modal-footer bg-light border-top">
+          <button *ngIf="activeRequestDetail?.canApprove"
+            class="btn btn-success d-flex align-items-center gap-2"
+            (click)="openApproveDialog(activeRequestDetail, $event); closeDetailModal()">
             <i class="bi bi-check-circle"></i> Approve Request
           </button>
-          <button *ngIf="activeRequestDetail.canReject" class="btn btn-danger flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2" (click)="openRejectDialog(activeRequestDetail, $event); closeDetailModal()">
+          <button *ngIf="activeRequestDetail?.canReject"
+            class="btn btn-danger d-flex align-items-center gap-2"
+            (click)="openRejectDialog(activeRequestDetail, $event); closeDetailModal()">
             <i class="bi bi-x-circle"></i> Reject Request
           </button>
-          <button class="btn btn-secondary py-2 px-4" (click)="closeDetailModal()">Close</button>
+          <button class="btn btn-secondary px-4" (click)="closeDetailModal()">Close</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- B. APPROVE REQUEST DIALOG -->
-  <div class="modal-overlay" *ngIf="approveDialog.isOpen" (click)="closeApproveDialog()">
-    <div class="glass-modal-card p-4 animate__animated animate__fadeInDown" style="max-width: 500px;" (click)="$event.stopPropagation()">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="modal-title m-0 text-success"><i class="bi bi-check-circle-fill me-2"></i> Approve Request</h3>
-        <button class="btn-close-modal" (click)="closeApproveDialog()">&times;</button>
-      </div>
+  <div class="modal-backdrop-custom" *ngIf="approveDialog.isOpen" (click)="closeApproveDialog()"></div>
+  <div class="modal fade" [class.show]="approveDialog.isOpen" [style.display]="approveDialog.isOpen ? 'block' : 'none'"
+    tabindex="-1" aria-labelledby="approveDialogLabel" [attr.aria-hidden]="!approveDialog.isOpen">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header border-bottom bg-light">
+          <div>
+            <h5 class="modal-title fw-bold mb-0 text-success" id="approveDialogLabel">
+              <i class="bi bi-check-circle-fill me-2"></i>Approve Request
+            </h5>
+          </div>
+          <button type="button" class="btn-close" (click)="closeApproveDialog()" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3" *ngIf="approveDialog.requestType === 'EXTENSION'">
+            <label class="form-label text-dark small fw-semibold">NEW DUE DATE (Required for extension)</label>
+            <input type="datetime-local" class="form-control border-secondary"
+              [(ngModel)]="approveDialog.newDueDate" />
+          </div>
 
-      <div class="mb-3" *ngIf="approveDialog.requestType === 'EXTENSION'">
-        <label class="form-label text-muted small fw-semibold">NEW DUE DATE (Required for extension)</label>
-        <input type="datetime-local" class="form-control bg-dark text-white border-secondary" [(ngModel)]="approveDialog.newDueDate" />
-      </div>
+          <div class="mb-4">
+            <label class="form-label text-dark small fw-semibold">REMARKS (Optional)</label>
+            <textarea class="form-control border-secondary" rows="3"
+              placeholder="Add approval remarks or compliance notes..." [(ngModel)]="approveDialog.remarks"></textarea>
+          </div>
 
-      <div class="mb-4">
-        <label class="form-label text-muted small fw-semibold">REMARKS (Optional)</label>
-        <textarea class="form-control bg-dark text-white border-secondary" rows="3" placeholder="Add approval remarks or compliance notes..." [(ngModel)]="approveDialog.remarks"></textarea>
-      </div>
-
-      <div class="d-flex gap-2 justify-content-end">
-        <button class="btn btn-secondary px-4" (click)="closeApproveDialog()">Cancel</button>
-        <button class="btn btn-success px-4" (click)="submitApprove()">Approve</button>
+          <div class="d-flex gap-2 justify-content-end">
+            <button class="btn btn-light px-4 border" (click)="closeApproveDialog()">Cancel</button>
+            <button class="btn btn-success px-4" (click)="submitApprove()">Approve</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- C. REJECT REQUEST DIALOG -->
-  <div class="modal-overlay" *ngIf="rejectDialog.isOpen" (click)="closeRejectDialog()">
-    <div class="glass-modal-card p-4 animate__animated animate__fadeInDown" style="max-width: 500px;" (click)="$event.stopPropagation()">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="modal-title m-0 text-danger"><i class="bi bi-x-circle-fill me-2"></i> Reject Request</h3>
-        <button class="btn-close-modal" (click)="closeRejectDialog()">&times;</button>
-      </div>
+  <div class="modal-backdrop-custom" *ngIf="rejectDialog.isOpen" (click)="closeRejectDialog()"></div>
+  <div class="modal fade" [class.show]="rejectDialog.isOpen" [style.display]="rejectDialog.isOpen ? 'block' : 'none'"
+    tabindex="-1" aria-labelledby="rejectDialogLabel" [attr.aria-hidden]="!rejectDialog.isOpen">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header border-bottom bg-light">
+          <div>
+            <h5 class="modal-title fw-bold mb-0 text-danger" id="rejectDialogLabel">
+              <i class="bi bi-x-circle-fill me-2"></i>Reject Request
+            </h5>
+          </div>
+          <button type="button" class="btn-close" (click)="closeRejectDialog()" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-4">
+            <label class="form-label text-danger small fw-semibold">REJECTION REMARKS / REASON (Required)</label>
+            <textarea class="form-control border-danger" rows="3"
+              placeholder="Provide a detailed explanation for rejection..." [(ngModel)]="rejectDialog.reason"
+              required></textarea>
+          </div>
 
-      <div class="mb-4">
-        <label class="form-label text-danger small fw-semibold">REJECTION REMARKS / REASON (Required)</label>
-        <textarea class="form-control bg-dark text-white border-danger" rows="3" placeholder="Provide a detailed explanation for rejection..." [(ngModel)]="rejectDialog.reason" required></textarea>
-      </div>
-
-      <div class="d-flex gap-2 justify-content-end">
-        <button class="btn btn-secondary px-4" (click)="closeRejectDialog()">Cancel</button>
-        <button class="btn btn-danger px-4" [disabled]="!rejectDialog.reason.trim()" (click)="submitReject()">Reject Request</button>
+          <div class="d-flex gap-2 justify-content-end">
+            <button class="btn btn-light px-4 border" (click)="closeRejectDialog()">Cancel</button>
+            <button class="btn btn-danger px-4" [disabled]="!rejectDialog.reason.trim()" (click)="submitReject()">Reject
+              Request</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
-</div>
