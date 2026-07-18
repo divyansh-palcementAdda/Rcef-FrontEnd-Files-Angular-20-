@@ -1,0 +1,370 @@
+/* Centralized All Work Module - Stitch UI Stylesheet */
+
+.all-work-container {
+  min-height: calc(100vh - var(--topbar-height) - 4rem);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1f2937;
+  background-color: #f9fafb;
+  padding: 1.5rem;
+}
+
+/* ==========================================
+   1. HERO HEADER
+   ========================================== */
+.stitch-hero {
+  background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 150px;
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
+}
+
+.stitch-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.stitch-hero-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.stitch-hero-subtitle {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-weight: 400;
+  max-width: 600px;
+}
+
+.stitch-hero-pills {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.stitch-hero-pill {
+  background-color: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.4rem 0.95rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  backdrop-filter: blur(8px);
+}
+
+.stitch-hero-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: var(--success-color) !important;
+}
+
+.progress-bar.bg-success {
+  background-color: var(--success-color) !important;
+}
+
+.stitch-hero-illustration {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stitch-hero-illustration-card {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transform: rotate(-5deg);
+  transition: transform 0.3s ease;
+}
+
+.stitch-hero-illustration-card:hover {
+  transform: rotate(0deg) scale(1.05);
+}
+
+.stitch-hero-illustration-icon {
+  font-size: 2.25rem;
+  color: #ffffff;
+}
+
+/* Background Glowing Shape */
+.stitch-hero::after {
+  content: '';
+  position: absolute;
+  right: -5%;
+  top: -20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+  z-index: 1;
+}
+
+/* ==========================================
+   2. HORIZONTAL SELECTOR CARDS
+   ========================================== */
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dept-cards-wrapper {
+  margin-bottom: 2rem;
+}
+
+.dept-cards-container {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.dept-cards-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.dept-cards-container::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
+}
+
+.dept-card {
+  flex: 0 0 280px;
+  background-color: #ffffff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.dept-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.05);
+  border-color: #818cf8;
+}
+
+.dept-card.active {
+  border-color: #4f46e5;
+  background-color: #f5f3ff;
+  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.08);
+}
+
+.dept-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.dept-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.badge-active {
+  background-color: #e0e7ff;
+  color: #4f46e5;
+}
+
+.dept-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.text-warning .metric-value { color: #d97706; }
+.text-danger .metric-value { color: #dc2626; }
+.text-success .metric-value { color: #059669; }
+
+/* ==========================================
+   3. TABLE VIEWS & LAYOUTS
+   ========================================== */
+.table-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.search-box-wrapper {
+  position: relative;
+  flex: 1;
+  max-width: 450px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
+.search-input {
+  padding-left: 2.35rem;
+  height: 42px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.88rem;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #4f46e5;
+  box-shadow: none;
+}
+
+.table-container {
+  overflow: hidden;
+  border: 1.5px solid #e5e7eb;
+}
+
+.table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: #4b5563;
+  padding: 1rem;
+}
+
+.table td {
+  padding: 1rem;
+  font-size: 0.88rem;
+}
+
+.status-indicator-bar {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.indicator-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  font-family: monospace;
+}
+
+/* ==========================================
+   4. MODALS & OVERLAYS
+   ========================================== */
+
+
+/* Task Tab Buttons */
+.status-tabs-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.tab-btn.active {
+  background-color: #4f46e5;
+  color: #ffffff;
+  border-color: #4f46e5;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.15);
+}
+
+
+
+/* Clickable row navigation styles */
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.clickable-row:hover {
+  background-color: #f8fafc !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.clickable-row:focus-within {
+  outline: 2px solid #4f46e5;
+  outline-offset: -2px;
+}

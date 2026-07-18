@@ -1,0 +1,494 @@
+<div class="all-work-container">
+  <!-- 1. Hero Header Banner -->
+  <div class="stitch-hero">
+    <div class="stitch-hero-content">
+      <h1 class="stitch-hero-title">All Work Operational Hub</h1>
+      <p class="stitch-hero-subtitle">centralized analytics, task metrics, and cross-department performance tracking.</p>
+      <div class="stitch-hero-pills">
+        <span class="stitch-hero-pill">
+          <span class="stitch-hero-dot"></span>
+          Role: {{ role }}
+        </span>
+        <span class="stitch-hero-pill" *ngIf="selectedDeptId">
+          Department Scope Active
+        </span>
+      </div>
+    </div>
+    <div class="stitch-hero-illustration">
+      <div class="stitch-hero-illustration-card">
+        <i class="bi bi-briefcase-fill stitch-hero-illustration-icon"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Horizontal Scrolling Department Cards (Super Admin & Admin Only) -->
+  <div class="dept-cards-wrapper" *ngIf="role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'SUB_ADMIN'">
+    <h3 class="section-title">Departments</h3>
+    <div class="dept-cards-container">
+      <div 
+        class="dept-card" 
+        *ngFor="let dept of departments"
+        [class.active]="dept.departmentId === selectedDeptId"
+        (click)="selectDepartment(dept.departmentId)">
+        <div class="dept-card-header">
+          <h4 class="dept-name">{{ dept.name }}</h4>
+          <span class="badge" [class.badge-active]="dept.departmentId === selectedDeptId">
+            {{ dept.totalSubDepartments }} Sub-Depts
+          </span>
+        </div>
+        
+        <div class="dept-metrics-grid">
+          <div class="metric-item">
+            <span class="metric-value">{{ dept.totalTasks }}</span>
+            <span class="metric-label">Total Tasks</span>
+          </div>
+          <div class="metric-item text-warning">
+            <span class="metric-value">{{ dept.pending }}</span>
+            <span class="metric-label">Pending</span>
+          </div>
+          <div class="metric-item text-danger">
+            <span class="metric-value">{{ dept.delayed }}</span>
+            <span class="metric-label">Delayed</span>
+          </div>
+          <div class="metric-item text-success">
+            <span class="metric-value">{{ dept.completed }}</span>
+            <span class="metric-label">Completed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Sub Department List & Table View (All Roles Except Teacher) -->
+  <div class="main-content-section" *ngIf="role !== 'TEACHER'">
+    <div class="table-header-actions">
+      <div class="search-box-wrapper">
+        <i class="bi bi-search search-icon"></i>
+        <input 
+          type="text" 
+          placeholder="Search sub departments by name or code..." 
+          [(ngModel)]="subDeptSearch"
+          (input)="onSubDeptSearchChange()"
+          class="form-control search-input" />
+      </div>
+
+      <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
+        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-download me-1"></i> Export Data
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+          <li><a class="dropdown-item" (click)="exportSubDepartments('EXCEL')"><i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Export Excel</a></li>
+          <li><a class="dropdown-item" (click)="exportSubDepartments('CSV')"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sub Departments Grid Table -->
+    <div class="table-container shadow-sm rounded-3 bg-white mt-3">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Sub Department</th>
+            <th>Total Users</th>
+            <th>Subjects</th>
+            <th>Assigned Tasks</th>
+            <th class="text-center">Task Statuses (P / I / C / D)</th>
+            <th>Completion Rate</th>
+            <th>Last Activity</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr 
+            *ngFor="let sd of subDepartments"
+            (click)="navigateToEntity('sub-department', sd.id, $event)"
+            (keydown.enter)="navigateToEntity('sub-department', sd.id, $event)"
+            (keydown.space)="navigateToEntity('sub-department', sd.id, $event); $event.preventDefault()"
+            tabindex="0"
+            class="clickable-row">
+            <td>
+              <div class="fw-bold text-dark">{{ sd.name }}</div>
+              <small class="text-muted">{{ sd.departmentName }}</small>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ sd.totalUsers }} Users</span>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ sd.totalSubjects }} Subjects</span>
+            </td>
+            <td>
+              <div class="fw-bold">{{ sd.totalAssignedTasks }} Tasks</div>
+            </td>
+            <td class="text-center">
+              <div class="status-indicator-bar">
+                <span class="indicator-badge bg-warning-subtle text-warning-emphasis" title="Pending">{{ sd.pending }}</span>
+                <span class="indicator-badge bg-info-subtle text-info-emphasis" title="In Progress">{{ sd.inProgress }}</span>
+                <span class="indicator-badge bg-success-subtle text-success-emphasis" title="Completed">{{ sd.completed }}</span>
+                <span class="indicator-badge bg-danger-subtle text-danger-emphasis" title="Delayed">{{ sd.delayed }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="progress w-100" style="height: 6px;">
+                  <div class="progress-bar bg-success" role="progressbar" [style.width.%]="sd.completionPercentage"></div>
+                </div>
+                <span class="small fw-bold">{{ sd.completionPercentage | number:'1.0-1' }}%</span>
+              </div>
+            </td>
+            <td>
+              <small class="text-secondary" *ngIf="sd.lastActivity">
+                {{ sd.lastActivity | date:'mediumDate' }}<br>
+                {{ sd.lastActivity | date:'shortTime' }}
+              </small>
+              <small class="text-muted" *ngIf="!sd.lastActivity">-</small>
+            </td>
+            <td class="text-end">
+              <div class="btn-group gap-1">
+                <button class="btn btn-sm btn-outline-secondary" *ngIf="dashboardData?.canViewUsers" (click)="openUsers(sd)" title="View Users">
+                  <i class="bi bi-people"></i> Users
+                </button>
+                <button class="btn btn-sm btn-outline-primary" *ngIf="dashboardData?.canViewTasks" (click)="openTasks(sd)" title="View Tasks">
+                  <i class="bi bi-list-check"></i> Tasks
+                </button>
+                <button class="btn btn-sm btn-outline-info" *ngIf="dashboardData?.canOpenAnalytics" (click)="openSubDeptAnalytics(sd)" title="Analytics">
+                  <i class="bi bi-bar-chart"></i> Metrics
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts">
+            <td colspan="8" class="text-center py-5">
+              <i class="bi bi-inbox text-muted display-4"></i>
+              <p class="mt-2 text-secondary">No sub departments found matching search criteria.</p>
+            </td>
+          </tr>
+          <tr *ngIf="loadingSubDepts">
+            <td colspan="8" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2 text-secondary">Loading sub departments...</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-content-between align-items-center p-3 border-top" *ngIf="totalSubDepts > subDeptSize">
+        <span class="text-muted small">Showing page {{ subDeptPage + 1 }} of {{ Math.ceil(totalSubDepts / subDeptSize) }}</span>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-outline-secondary" [disabled]="subDeptPage === 0" (click)="changeSubDeptPage(-1)">
+            Previous
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" [disabled]="(subDeptPage + 1) * subDeptSize >= totalSubDepts" (click)="changeSubDeptPage(1)">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1: VIEW USERS MODAL
+       ========================================================================= -->
+  <!-- =========================================================================
+       CENTRALIZED MODAL OVERLAY (Views Stack - Option A)
+       ========================================================================= -->
+  <app-modal-wrapper 
+    *ngIf="modalStack.length > 0" 
+    [title]="getCurrentModalTitle()" 
+    [subtitle]="getCurrentModalSubtitle()" 
+    [sizeClass]="getCurrentModalSizeClass()" 
+    [showBackButton]="modalStack.length > 1"
+    (close)="closeAllModals()"
+    (back)="goBackModal()">
+
+    <ng-container [ngSwitch]="modalStack[modalStack.length - 1]">
+
+      <!-- 1. VIEW USERS VIEW -->
+      <div *ngSwitchCase="'users'">
+        <div class="table-header-actions mb-3">
+          <div class="search-box-wrapper">
+            <i class="bi bi-search search-icon"></i>
+            <input 
+              type="text" 
+              placeholder="Search users by name..." 
+              [(ngModel)]="userSearch"
+              (input)="onUserSearchChange()"
+              class="form-control search-input" />
+          </div>
+
+          <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="exportUsersDropdown" data-bs-toggle="dropdown">
+              <i class="bi bi-download"></i> Export Users
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" (click)="exportUsers('EXCEL')"><i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Excel</a></li>
+              <li><a class="dropdown-item" (click)="exportUsers('CSV')"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> CSV</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>User Details</th>
+                <th>Role</th>
+                <th>Subjects</th>
+                <th>Reporting Managers</th>
+                <th>Total Tasks</th>
+                <th>Completion Rate</th>
+                <th>Last Activity</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr 
+                *ngFor="let u of users"
+                (click)="navigateToEntity('user', u.userId, $event)"
+                (keydown.enter)="navigateToEntity('user', u.userId, $event)"
+                (keydown.space)="navigateToEntity('user', u.userId, $event); $event.preventDefault()"
+                tabindex="0"
+                class="clickable-row">
+                <td>
+                  <div class="fw-bold text-dark">{{ u.fullName }}</div>
+                  <small class="text-muted">{{ u.username }}</small>
+                </td>
+                <td>
+                  <span class="badge bg-info-subtle text-info-emphasis">{{ u.role }}</span>
+                </td>
+                <td>
+                  <div class="d-flex flex-wrap gap-1">
+                    <span class="badge bg-light text-secondary border" *ngFor="let s of u.subjects">{{ s }}</span>
+                    <small class="text-muted" *ngIf="u.subjects.length === 0">-</small>
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex flex-wrap gap-1">
+                    <span class="badge bg-light text-dark border" *ngFor="let m of u.managers">{{ m }}</span>
+                    <small class="text-muted" *ngIf="u.managers.length === 0">-</small>
+                  </div>
+                </td>
+                <td>
+                  <span class="fw-bold">{{ u.totalAssignedTasks }}</span>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="progress" style="width: 80px; height: 6px;">
+                      <div class="progress-bar bg-success" role="progressbar" [style.width.%]="u.completionPercentage"></div>
+                    </div>
+                    <span class="small fw-bold">{{ u.completionPercentage | number:'1.0-1' }}%</span>
+                  </div>
+                </td>
+                <td>
+                  <small class="text-secondary" *ngIf="u.lastActivity">
+                    {{ u.lastActivity | date:'mediumDate' }}
+                  </small>
+                  <small class="text-muted" *ngIf="!u.lastActivity">-</small>
+                </td>
+                <td class="text-end">
+                  <div class="btn-group gap-1">
+                    <button class="btn btn-sm btn-outline-primary" *ngIf="dashboardData?.canViewTasks" (click)="openUserTasks(u)">
+                      <i class="bi bi-list-check"></i> Tasks
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" *ngIf="dashboardData?.canOpenAnalytics" (click)="openUserAnalytics(u)">
+                      <i class="bi bi-bar-chart"></i> Metrics
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="users.length === 0 && !loadingUsers">
+                <td colspan="8" class="text-center py-5">
+                  <p class="text-muted">No users mapped to this subdepartment.</p>
+                </td>
+              </tr>
+              <tr *ngIf="loadingUsers">
+                <td colspan="8" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. VIEW TASKS VIEW -->
+      <div *ngSwitchCase="'tasks'">
+        <!-- Status Tabs -->
+        <div class="status-tabs-wrapper mb-3">
+          <button 
+            class="tab-btn" 
+            *ngFor="let tab of statusTabs"
+            [class.active]="tab.value === taskStatus"
+            (click)="selectStatusTab(tab.value)">
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div class="table-header-actions mb-3">
+          <div class="search-box-wrapper">
+            <i class="bi bi-search search-icon"></i>
+            <input 
+              type="text" 
+              placeholder="Search tasks by title or keyword..." 
+              [(ngModel)]="taskSearch"
+              (input)="onTaskSearchChange()"
+              class="form-control search-input" />
+          </div>
+
+          <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="exportTasksDropdown" data-bs-toggle="dropdown">
+              <i class="bi bi-download"></i> Export Tasks
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" (click)="exportTasks('EXCEL')"><i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Excel</a></li>
+              <li><a class="dropdown-item" (click)="exportTasks('CSV')"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> CSV</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Task Title</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Department / Sub-Dept</th>
+                <th>Subject</th>
+                <th>Due Date</th>
+                <th>Created By</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr 
+                *ngFor="let t of tasks"
+                (click)="navigateToEntity('task', t.taskId, $event)"
+                (keydown.enter)="navigateToEntity('task', t.taskId, $event)"
+                (keydown.space)="navigateToEntity('task', t.taskId, $event); $event.preventDefault()"
+                tabindex="0"
+                class="clickable-row">
+                <td>
+                  <div class="fw-bold text-dark">{{ t.title }}</div>
+                  <small class="text-muted" *ngIf="t.templateTitle">Template: {{ t.templateTitle }}</small>
+                </td>
+                <td>
+                  <span class="badge" [class.bg-warning]="t.status === 'PENDING'" [class.bg-info]="t.status === 'IN_PROGRESS'" [class.bg-success]="t.status === 'CLOSED'" [class.bg-danger]="t.status === 'DELAYED'">
+                    {{ t.status }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border">{{ t.priority || 'MEDIUM' }}</span>
+                </td>
+                <td>
+                  <div class="small fw-semibold">{{ t.departmentName }}</div>
+                  <small class="text-muted">{{ t.subDepartmentName }}</small>
+                </td>
+                <td>
+                  <span class="badge bg-light text-secondary border">{{ t.subjectName || '-' }}</span>
+                </td>
+                <td>
+                  <small class="text-dark fw-bold">{{ t.dueDate | date:'mediumDate' }}</small>
+                </td>
+                <td>
+                  <small class="text-muted">{{ t.createdByName }}</small>
+                </td>
+              </tr>
+              <tr *ngIf="tasks.length === 0 && !loadingTasks">
+                <td colspan="7" class="text-center py-5">
+                  <p class="text-muted">No tasks found matching current filters.</p>
+                </td>
+              </tr>
+              <tr *ngIf="loadingTasks">
+                <td colspan="7" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. VIEW ANALYTICS VIEW -->
+      <div *ngSwitchCase="'analytics'">
+        <div *ngIf="!loadingAnalytics && analytics">
+          <!-- Stat Cards -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-3" *ngIf="selectedSubDept">
+              <div class="metric-card bg-light p-3 rounded shadow-sm">
+                <span class="d-block text-muted small">Total Users</span>
+                <h3 class="fw-bold mt-1 mb-0">{{ analytics.users }}</h3>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="metric-card bg-light p-3 rounded shadow-sm">
+                <span class="d-block text-muted small">Total Tasks</span>
+                <h3 class="fw-bold mt-1 mb-0">{{ analytics.tasks }}</h3>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="metric-card bg-light p-3 rounded shadow-sm">
+                <span class="d-block text-muted small">Active Requests</span>
+                <h3 class="fw-bold mt-1 mb-0">{{ analytics.requests }}</h3>
+              </div>
+            </div>
+            <div class="col-md-3" *ngIf="selectedSubDept">
+              <div class="metric-card bg-light p-3 rounded shadow-sm">
+                <span class="d-block text-muted small">Subjects</span>
+                <h3 class="fw-bold mt-1 mb-0">{{ analytics.subjects }}</h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Rates -->
+          <div class="card p-3 mb-4 border-0 bg-light">
+            <h6 class="fw-bold mb-3">Key Performance Rates</h6>
+            <div class="row g-4">
+              <div class="col-md-4 text-center">
+                <div class="percentage-circle text-success font-monospace mb-2" style="font-size: 1.5rem; font-weight: 800;">
+                  {{ analytics.completionPercentage | number:'1.0-1' }}%
+                </div>
+                <span class="small text-muted">Completion Rate</span>
+              </div>
+              <div class="col-md-4 text-center">
+                <div class="percentage-circle text-danger font-monospace mb-2" style="font-size: 1.5rem; font-weight: 800;">
+                  {{ analytics.delayedPercentage | number:'1.0-1' }}%
+                </div>
+                <span class="small text-muted">Delayed Rate</span>
+              </div>
+              <div class="col-md-4 text-center">
+                <div class="percentage-circle text-info font-monospace mb-2" style="font-size: 1.5rem; font-weight: 800;">
+                  {{ analytics.upcomingPercentage | number:'1.0-1' }}%
+                </div>
+                <span class="small text-muted">Upcoming Rate</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Task Status Distribution -->
+          <div class="card p-3 mb-4 border">
+            <h6 class="fw-bold mb-3">Task Status Distribution</h6>
+            <div class="d-flex flex-column gap-2">
+              <div *ngFor="let stat of analytics.statusDistribution | keyvalue">
+                <div class="d-flex justify-content-between small mb-1">
+                  <span>{{ stat.key }}</span>
+                  <span class="fw-bold">{{ stat.value }} tasks</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-primary" role="progressbar" [style.width.%]="(stat.value / analytics.tasks) * 100"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center py-5" *ngIf="loadingAnalytics">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-secondary">Retrieving analytics details...</p>
+        </div>
+      </div>
+
+    </ng-container>
+  </app-modal-wrapper>
+</div>

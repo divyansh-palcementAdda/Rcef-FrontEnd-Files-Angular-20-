@@ -37,6 +37,7 @@ import { UsersImportComponent } from './components/Users/users-import/users-impo
 import { TasksImportComponent } from './components/Tasks/tasks-import/tasks-import';
 import { ModalRedirectGuard } from './Guards/modal-redirect.guard';
 import { AccessDeniedComponent } from './components/Shared/access-denied/access-denied';
+import { AllWorkComponent } from './components/AllWork/all-work.component';
 
 
 export const routes: Routes = [
@@ -131,6 +132,12 @@ export const routes: Routes = [
   { path: 'subject/:id', component: SubjectDetailComponent, canActivate: [AuthGuard] },
   { path: 'users/import', component: UsersImportComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['USER_CREATE'] } },
   { path: 'tasks/import', component: TasksImportComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['TASK_CREATE'] } },
+  {
+    path: 'all-work',
+    component: AllWorkComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { permissions: ['WORK_VIEW'] }
+  },
 
   { path: 'access-denied', component: AccessDeniedComponent },
 
