@@ -813,7 +813,6 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   applyFilters(): void {
     this.currentPage = 1;
     this.loadTasksFromServer();
-    this.loadAnalyticsFromServer();
   }
 
 

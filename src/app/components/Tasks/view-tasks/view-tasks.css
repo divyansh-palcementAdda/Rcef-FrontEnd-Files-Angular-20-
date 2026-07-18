@@ -1515,7 +1515,6 @@
   border-color: #3b82f6 !important;
   background-color: #eff6ff !important;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12) !important;
-  transform: translateY(-2px);
 }
 
 .card-selected-indicator {
