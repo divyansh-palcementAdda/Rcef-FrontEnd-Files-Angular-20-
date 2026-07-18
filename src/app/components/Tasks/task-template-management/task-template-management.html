@@ -92,22 +92,17 @@
                   </span>
                 </td>
                 <td class="text-end">
-                    
-                  <button
-                   class="btn btn-sm btn-outline-info border-0 me-1"
-                  (click)="viewTemplatePage(tpl); $event.stopPropagation()"
-                  title="View">
-                  <i class="bi bi-eye"></i>
-                  </button>
-
-                  <button class="btn btn-sm btn-outline-primary border-0 me-1"
-                    (click)="editTemplate(tpl); $event.stopPropagation()" title="Edit">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger border-0"
-                    (click)="deleteTemplate(tpl.id!); $event.stopPropagation()" title="Delete">
-                    <i class="bi bi-trash"></i>
-                  </button>
+                  <div class="row-actions">
+                    <button class="action-icon-btn" (click)="viewTemplatePage(tpl); $event.stopPropagation()" title="View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="action-icon-btn" (click)="editTemplate(tpl); $event.stopPropagation()" title="Edit">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="action-icon-btn" (click)="deleteTemplate(tpl.id!); $event.stopPropagation()" title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
               <tr *ngIf="templates.length === 0">
@@ -119,44 +114,35 @@
         </div>
 
         <!-- Pagination Footer – Templates -->
-        <div class="tpl-pagination-footer d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 px-1"
-          *ngIf="templates.length > 0">
-          <!-- Left: record info + page-size selector -->
-          <div class="d-flex align-items-center gap-2">
-            <span class="tpl-pag-label">
-              Showing
-              <strong>{{ (templateCurrentPage - 1) * templatePageSize + 1 }}</strong>–<strong>{{ templateCurrentPage *
-                templatePageSize > templates.length ? templates.length : templateCurrentPage * templatePageSize
-                }}</strong>
-              of <strong>{{ templates.length }}</strong> templates
-            </span>
-            <select class="form-select form-select-sm tpl-pag-size-select" [(ngModel)]="templatePageSize"
-              (change)="templateCurrentPage = 1">
-              <option [value]="5">5 / page</option>
-              <option [value]="10">10 / page</option>
-              <option [value]="20">20 / page</option>
+        <div class="stitch-pagination" *ngIf="templates.length > 0">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector" [(ngModel)]="templatePageSize" (change)="templateCurrentPage = 1">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
             </select>
+            <span class="stitch-pag-label">
+              {{ (templateCurrentPage - 1) * templatePageSize + 1 }}-{{ templateCurrentPage * templatePageSize > templates.length ? templates.length : templateCurrentPage * templatePageSize }} of {{ templates.length }} templates
+            </span>
           </div>
-
-          <!-- Right: prev / page numbers / next -->
-          <nav aria-label="Templates pagination">
-            <ul class="pagination pagination-sm mb-0 tpl-pagination">
-              <li class="page-item" [class.disabled]="templateCurrentPage === 1">
-                <button class="page-link" (click)="changeTemplatePage(templateCurrentPage - 1)" aria-label="Previous">
-                  <i class="bi bi-chevron-left"></i>
-                </button>
-              </li>
-              <li class="page-item" *ngFor="let page of templatePageNumbers"
-                [class.active]="templateCurrentPage === page">
-                <button class="page-link" (click)="changeTemplatePage(page)">{{ page }}</button>
-              </li>
-              <li class="page-item" [class.disabled]="templateCurrentPage === templateTotalPages">
-                <button class="page-link" (click)="changeTemplatePage(templateCurrentPage + 1)" aria-label="Next">
-                  <i class="bi bi-chevron-right"></i>
-                </button>
-              </li>
-            </ul>
-          </nav>
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === 1" (click)="changeTemplatePage(1)" title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === 1" (click)="changeTemplatePage(templateCurrentPage - 1)" title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button *ngFor="let page of templatePageNumbers" class="stitch-pag-btn" [class.active]="templateCurrentPage === page" (click)="changeTemplatePage(page)">
+              {{ page }}
+            </button>
+            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === templateTotalPages" (click)="changeTemplatePage(templateCurrentPage + 1)" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === templateTotalPages" (click)="changeTemplatePage(templateTotalPages)" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -237,9 +223,11 @@
                   </span>
                 </td>
                 <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary border-0" (click)="editCategory(cat)" title="Edit">
-                    <i class="bi bi-pencil"></i>
-                  </button>
+                  <div class="row-actions">
+                    <button class="action-icon-btn" (click)="editCategory(cat)" title="Edit">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
               <tr *ngIf="categories.length === 0">
@@ -251,42 +239,35 @@
         </div>
 
         <!-- Pagination Footer – Categories -->
-        <div class="tpl-pagination-footer d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 px-1"
-          *ngIf="categories.length > 0">
-          <div class="d-flex align-items-center gap-2">
-            <span class="tpl-pag-label">
-              Showing
-              <strong>{{ (categoryCurrentPage - 1) * categoryPageSize + 1 }}</strong>–<strong>{{ categoryCurrentPage *
-                categoryPageSize > categories.length ? categories.length : categoryCurrentPage * categoryPageSize
-                }}</strong>
-              of <strong>{{ categories.length }}</strong> categories
-            </span>
-            <select class="form-select form-select-sm tpl-pag-size-select" [(ngModel)]="categoryPageSize"
-              (change)="categoryCurrentPage = 1">
-              <option [value]="5">5 / page</option>
-              <option [value]="10">10 / page</option>
-              <option [value]="20">20 / page</option>
+        <div class="stitch-pagination" *ngIf="categories.length > 0">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector" [(ngModel)]="categoryPageSize" (change)="categoryCurrentPage = 1">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
             </select>
+            <span class="stitch-pag-label">
+              {{ (categoryCurrentPage - 1) * categoryPageSize + 1 }}-{{ categoryCurrentPage * categoryPageSize > categories.length ? categories.length : categoryCurrentPage * categoryPageSize }} of {{ categories.length }} categories
+            </span>
           </div>
-
-          <nav aria-label="Categories pagination">
-            <ul class="pagination pagination-sm mb-0 tpl-pagination">
-              <li class="page-item" [class.disabled]="categoryCurrentPage === 1">
-                <button class="page-link" (click)="changeCategoryPage(categoryCurrentPage - 1)" aria-label="Previous">
-                  <i class="bi bi-chevron-left"></i>
-                </button>
-              </li>
-              <li class="page-item" *ngFor="let page of categoryPageNumbers"
-                [class.active]="categoryCurrentPage === page">
-                <button class="page-link" (click)="changeCategoryPage(page)">{{ page }}</button>
-              </li>
-              <li class="page-item" [class.disabled]="categoryCurrentPage === categoryTotalPages">
-                <button class="page-link" (click)="changeCategoryPage(categoryCurrentPage + 1)" aria-label="Next">
-                  <i class="bi bi-chevron-right"></i>
-                </button>
-              </li>
-            </ul>
-          </nav>
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === 1" (click)="changeCategoryPage(1)" title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === 1" (click)="changeCategoryPage(categoryCurrentPage - 1)" title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button *ngFor="let page of categoryPageNumbers" class="stitch-pag-btn" [class.active]="categoryCurrentPage === page" (click)="changeCategoryPage(page)">
+              {{ page }}
+            </button>
+            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === categoryTotalPages" (click)="changeCategoryPage(categoryCurrentPage + 1)" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === categoryTotalPages" (click)="changeCategoryPage(categoryTotalPages)" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -389,9 +370,11 @@
                   </td>
                   <td class="text-muted small">{{ field.options || '—' }}</td>
                   <td class="text-end">
-                    <button class="btn btn-sm btn-outline-danger border-0" (click)="removeField(idx)">
-                      <i class="bi bi-trash"></i>
-                    </button>
+                    <div class="row-actions">
+                      <button class="action-icon-btn" (click)="removeField(idx)" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
                 <tr *ngIf="!selectedTemplate.fields || selectedTemplate.fields.length === 0">
@@ -458,9 +441,11 @@
                     <span class="text-muted" *ngIf="!req.isRequired">Optional</span>
                   </td>
                   <td class="text-end">
-                    <button class="btn btn-sm btn-outline-danger border-0" (click)="removeRequirement(idx)">
-                      <i class="bi bi-trash"></i>
-                    </button>
+                    <div class="row-actions">
+                      <button class="action-icon-btn" (click)="removeRequirement(idx)" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
                 <tr *ngIf="!selectedTemplate.proofRequirements || selectedTemplate.proofRequirements.length === 0">
@@ -508,15 +493,16 @@
                     {{ pt.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary border-0 me-1" (click)="editProofType(pt)" title="Edit">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger border-0" (click)="deleteProofType(pt.id!)"
-                    title="Delete">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </td>
+                  <td class="text-end">
+                    <div class="row-actions">
+                      <button class="action-icon-btn" (click)="editProofType(pt)" title="Edit">
+                        <i class="bi bi-pencil-square"></i>
+                      </button>
+                      <button class="action-icon-btn" (click)="deleteProofType(pt.id!)" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
               </tr>
               <tr *ngIf="proofTypeList.length === 0">
                 <td colspan="5" class="text-center py-4 text-muted">No proof types yet. Click <strong>New Proof
@@ -527,42 +513,35 @@
         </div>
 
         <!-- Pagination Footer – Proof Types -->
-        <div class="tpl-pagination-footer d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 px-1"
-          *ngIf="proofTypeList.length > 0">
-          <div class="d-flex align-items-center gap-2">
-            <span class="tpl-pag-label">
-              Showing
-              <strong>{{ (proofTypeCurrentPage - 1) * proofTypePageSize + 1 }}</strong>–<strong>{{ proofTypeCurrentPage
-                * proofTypePageSize > proofTypeList.length ? proofTypeList.length : proofTypeCurrentPage *
-                proofTypePageSize }}</strong>
-              of <strong>{{ proofTypeList.length }}</strong> proof types
-            </span>
-            <select class="form-select form-select-sm tpl-pag-size-select" [(ngModel)]="proofTypePageSize"
-              (change)="proofTypeCurrentPage = 1">
-              <option [value]="5">5 / page</option>
-              <option [value]="10">10 / page</option>
-              <option [value]="20">20 / page</option>
+        <div class="stitch-pagination" *ngIf="proofTypeList.length > 0">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector" [(ngModel)]="proofTypePageSize" (change)="proofTypeCurrentPage = 1">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
             </select>
+            <span class="stitch-pag-label">
+              {{ (proofTypeCurrentPage - 1) * proofTypePageSize + 1 }}-{{ proofTypeCurrentPage * proofTypePageSize > proofTypeList.length ? proofTypeList.length : proofTypeCurrentPage * proofTypePageSize }} of {{ proofTypeList.length }} proof types
+            </span>
           </div>
-
-          <nav aria-label="Proof Types pagination">
-            <ul class="pagination pagination-sm mb-0 tpl-pagination">
-              <li class="page-item" [class.disabled]="proofTypeCurrentPage === 1">
-                <button class="page-link" (click)="changeProofTypePage(proofTypeCurrentPage - 1)" aria-label="Previous">
-                  <i class="bi bi-chevron-left"></i>
-                </button>
-              </li>
-              <li class="page-item" *ngFor="let page of proofTypePageNumbers"
-                [class.active]="proofTypeCurrentPage === page">
-                <button class="page-link" (click)="changeProofTypePage(page)">{{ page }}</button>
-              </li>
-              <li class="page-item" [class.disabled]="proofTypeCurrentPage === proofTypeTotalPages">
-                <button class="page-link" (click)="changeProofTypePage(proofTypeCurrentPage + 1)" aria-label="Next">
-                  <i class="bi bi-chevron-right"></i>
-                </button>
-              </li>
-            </ul>
-          </nav>
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === 1" (click)="changeProofTypePage(1)" title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === 1" (click)="changeProofTypePage(proofTypeCurrentPage - 1)" title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button *ngFor="let page of proofTypePageNumbers" class="stitch-pag-btn" [class.active]="proofTypeCurrentPage === page" (click)="changeProofTypePage(page)">
+              {{ page }}
+            </button>
+            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === proofTypeTotalPages" (click)="changeProofTypePage(proofTypeCurrentPage + 1)" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === proofTypeTotalPages" (click)="changeProofTypePage(proofTypeTotalPages)" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
         </div>
       </div>
 

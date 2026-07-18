@@ -18,6 +18,7 @@ import { UpdateTaskComponent } from './components/Tasks/update-task/update-task'
 import { ModalService } from './Services/modal-service';
 import { SidebarService } from './Services/sidebar-service';
 import { ConfirmDialogComponent } from './components/Shared/confirm-dialog/confirm-dialog.component';
+import { AccessDeniedModalService } from './Services/access-denied-modal.service';
 
 @Component({
   selector: 'app-root',
@@ -51,6 +52,7 @@ export class App {
   private modalService = inject(ModalService);
   private route = inject(ActivatedRoute);
   public sidebarService = inject(SidebarService);
+  public accessDeniedModalService = inject(AccessDeniedModalService);
 
   constructor(private authService: AuthApiService, private router: Router) {
     this.isLoggedIn$ = this.authService.isLoggedIn$;
@@ -104,6 +106,7 @@ export class App {
     if (this.activeModal) {
       this.closeActiveModal(false);
     }
+    this.accessDeniedModalService.hide();
     this.sidebarService.setMobileSidebarOpen(false);
   }
 

@@ -376,3 +376,127 @@ button, input, select, textarea {
     font-size: 0.84rem !important;
   }
 }
+
+/* ============================================================
+   SHARED: Stitch Pagination & Action Icons (Global)
+   Reference: All Tasks (view-tasks) component
+   ============================================================ */
+
+/* Action Icon Buttons */
+.row-actions {
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #9ca3af;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.action-icon-btn:hover {
+  color: #374151;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.action-icon-btn:focus-visible {
+  outline: 2px solid var(--primary-color, #4f46e5);
+  outline-offset: 2px;
+}
+
+/* Stitch Pagination Footer */
+.stitch-pagination {
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.stitch-pag-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.7rem;
+  color: #4b5563;
+}
+
+.stitch-pag-size-selector {
+  height: 30px;
+  padding: 0 1.5rem 0 0.5rem !important;
+  background-color: #f3f4f6 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: #4b5563 !important;
+  cursor: pointer;
+}
+
+.stitch-pag-label {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.stitch-pag-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stitch-pag-btn {
+  height: 28px;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px !important;
+  border: 1px solid #e5e7eb !important;
+  background-color: #ffffff !important;
+  color: #4b5563 !important;
+  font-size: 0.75rem !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.stitch-pag-btn:hover:not(:disabled) {
+  background-color: #f3f4f6 !important;
+  color: #1f2937 !important;
+}
+
+.stitch-pag-btn.active {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+  border-color: #4f46e5 !important;
+}
+
+.stitch-pag-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .stitch-pagination {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-top: 1rem;
+  }
+}

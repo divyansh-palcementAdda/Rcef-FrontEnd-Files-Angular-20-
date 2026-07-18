@@ -175,7 +175,12 @@ export class ViewDepartmentsComponent implements OnInit {
   }
 
   getSubDeptPageNumbers(): number[] {
-    return Array.from({ length: this.subDeptTotalPages }, (_, i) => i + 1);
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(this.subDeptCurrentPage - half, 1);
+    let end = Math.min(start + maxVisible - 1, this.subDeptTotalPages);
+    if (end - start + 1 < maxVisible) start = Math.max(end - maxVisible + 1, 1);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
   get paginatedSubDepts(): SubDepartmentResponse[] {
@@ -238,7 +243,12 @@ export class ViewDepartmentsComponent implements OnInit {
   }
 
   getAllSubDeptsPageNumbers(): number[] {
-    return Array.from({ length: this.allSubDeptsTotalPages }, (_, i) => i + 1);
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(this.allSubDeptsCurrentPage - half, 1);
+    let end = Math.min(start + maxVisible - 1, this.allSubDeptsTotalPages);
+    if (end - start + 1 < maxVisible) start = Math.max(end - maxVisible + 1, 1);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
   get paginatedAllSubDepts(): SubDepartmentResponse[] {

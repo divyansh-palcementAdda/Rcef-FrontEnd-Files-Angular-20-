@@ -210,25 +210,35 @@
       </div>
 
       <!-- Pagination -->
-      <div class="mt-3 pt-2 border-top" *ngIf="!allSubDeptsLoading && filteredAllSubDepts.length > allSubDeptsPageSize">
-        <nav aria-label="All sub-dept pagination">
-          <ul class="pagination mb-0">
-            <li class="page-item" [class.disabled]="allSubDeptsCurrentPage === 1">
-              <a class="page-link" (click)="changeAllSubDeptsPage(allSubDeptsCurrentPage - 1)">
-                <i class="bi bi-chevron-left"></i>
-              </a>
-            </li>
-            <li class="page-item" *ngFor="let page of getAllSubDeptsPageNumbers()"
-              [class.active]="allSubDeptsCurrentPage === page">
-              <a class="page-link" (click)="changeAllSubDeptsPage(page)">{{ page }}</a>
-            </li>
-            <li class="page-item" [class.disabled]="allSubDeptsCurrentPage === allSubDeptsTotalPages">
-              <a class="page-link" (click)="changeAllSubDeptsPage(allSubDeptsCurrentPage + 1)">
-                <i class="bi bi-chevron-right"></i>
-              </a>
-            </li>
-          </ul>
-        </nav>
+      <div class="stitch-pagination" *ngIf="!allSubDeptsLoading && filteredAllSubDepts.length > allSubDeptsPageSize">
+        <div class="stitch-pag-left">
+          <span>Rows per page:</span>
+          <select class="stitch-pag-size-selector" [(ngModel)]="allSubDeptsPageSize" (change)="allSubDeptsCurrentPage = 1">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+          </select>
+          <span class="stitch-pag-label">
+            {{ (allSubDeptsCurrentPage - 1) * allSubDeptsPageSize + 1 }}-{{ allSubDeptsCurrentPage * allSubDeptsPageSize > filteredAllSubDepts.length ? filteredAllSubDepts.length : allSubDeptsCurrentPage * allSubDeptsPageSize }} of {{ filteredAllSubDepts.length }} results
+          </span>
+        </div>
+        <div class="stitch-pag-controls">
+          <button class="stitch-pag-btn" [disabled]="allSubDeptsCurrentPage === 1" (click)="changeAllSubDeptsPage(1)" title="First Page">
+            <i class="bi bi-chevron-double-left"></i>
+          </button>
+          <button class="stitch-pag-btn" [disabled]="allSubDeptsCurrentPage === 1" (click)="changeAllSubDeptsPage(allSubDeptsCurrentPage - 1)" title="Previous Page">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button *ngFor="let page of getAllSubDeptsPageNumbers()" class="stitch-pag-btn" [class.active]="allSubDeptsCurrentPage === page" (click)="changeAllSubDeptsPage(page)">
+            {{ page }}
+          </button>
+          <button class="stitch-pag-btn" [disabled]="allSubDeptsCurrentPage === allSubDeptsTotalPages" (click)="changeAllSubDeptsPage(allSubDeptsCurrentPage + 1)" title="Next Page">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+          <button class="stitch-pag-btn" [disabled]="allSubDeptsCurrentPage === allSubDeptsTotalPages" (click)="changeAllSubDeptsPage(allSubDeptsTotalPages)" title="Last Page">
+            <i class="bi bi-chevron-double-right"></i>
+          </button>
+        </div>
       </div>
 
     </div>
@@ -332,25 +342,35 @@
       </div>
 
       <!-- Sub-dept pagination -->
-      <div class="mt-3 pt-2 border-top" *ngIf="!subDeptLoading && filteredSubDepts.length > subDeptPageSize">
-        <nav aria-label="Sub-dept pagination">
-          <ul class="pagination mb-0">
-            <li class="page-item" [class.disabled]="subDeptCurrentPage === 1">
-              <a class="page-link" (click)="changeSubDeptPage(subDeptCurrentPage - 1)">
-                <i class="bi bi-chevron-left"></i>
-              </a>
-            </li>
-            <li class="page-item" *ngFor="let page of getSubDeptPageNumbers()"
-              [class.active]="subDeptCurrentPage === page">
-              <a class="page-link" (click)="changeSubDeptPage(page)">{{ page }}</a>
-            </li>
-            <li class="page-item" [class.disabled]="subDeptCurrentPage === subDeptTotalPages">
-              <a class="page-link" (click)="changeSubDeptPage(subDeptCurrentPage + 1)">
-                <i class="bi bi-chevron-right"></i>
-              </a>
-            </li>
-          </ul>
-        </nav>
+      <div class="stitch-pagination" *ngIf="!subDeptLoading && filteredSubDepts.length > subDeptPageSize">
+        <div class="stitch-pag-left">
+          <span>Rows per page:</span>
+          <select class="stitch-pag-size-selector" [(ngModel)]="subDeptPageSize" (change)="subDeptCurrentPage = 1">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+          </select>
+          <span class="stitch-pag-label">
+            {{ (subDeptCurrentPage - 1) * subDeptPageSize + 1 }}-{{ subDeptCurrentPage * subDeptPageSize > filteredSubDepts.length ? filteredSubDepts.length : subDeptCurrentPage * subDeptPageSize }} of {{ filteredSubDepts.length }} results
+          </span>
+        </div>
+        <div class="stitch-pag-controls">
+          <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === 1" (click)="changeSubDeptPage(1)" title="First Page">
+            <i class="bi bi-chevron-double-left"></i>
+          </button>
+          <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === 1" (click)="changeSubDeptPage(subDeptCurrentPage - 1)" title="Previous Page">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button *ngFor="let page of getSubDeptPageNumbers()" class="stitch-pag-btn" [class.active]="subDeptCurrentPage === page" (click)="changeSubDeptPage(page)">
+            {{ page }}
+          </button>
+          <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === subDeptTotalPages" (click)="changeSubDeptPage(subDeptCurrentPage + 1)" title="Next Page">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+          <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === subDeptTotalPages" (click)="changeSubDeptPage(subDeptTotalPages)" title="Last Page">
+            <i class="bi bi-chevron-double-right"></i>
+          </button>
+        </div>
       </div>
 
     </div>

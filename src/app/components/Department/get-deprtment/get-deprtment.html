@@ -235,9 +235,9 @@
                   </span>
                 </td>
                 <td class="text-end" (click)="$event.stopPropagation()">
-                  <div class="stitch-action-group">
-                    <a [routerLink]="['/user', u.userId]" class="stitch-action-btn btn-act-view" title="View Member Profile">
-                      <i class="bi bi-eye-fill"></i>
+                  <div class="row-actions">
+                    <a [routerLink]="['/user', u.userId]" class="action-icon-btn" title="View Member Profile">
+                      <i class="bi bi-eye"></i>
                     </a>
                   </div>
                 </td>
@@ -258,14 +258,27 @@
             </button>
           </div>
           <div class="footer-right" *ngIf="userFiltered.length > userPageSize">
-            <span class="page-indicator me-3">Page {{ userPage }} of {{ userTotalPages }}</span>
-            <div class="pagination-buttons">
-              <button class="pag-btn" [disabled]="userPage === 1" (click)="changeUserPage(userPage - 1)">
-                <i class="bi bi-chevron-left"></i>
-              </button>
-              <button class="pag-btn" [disabled]="userPage === userTotalPages" (click)="changeUserPage(userPage + 1)">
-                <i class="bi bi-chevron-right"></i>
-              </button>
+            <div class="stitch-pagination" style="border-top: none; padding: 0;">
+              <div class="stitch-pag-left">
+                <span class="stitch-pag-label">Page {{ userPage }} of {{ userTotalPages }}</span>
+              </div>
+              <div class="stitch-pag-controls">
+                <button class="stitch-pag-btn" [disabled]="userPage === 1" (click)="changeUserPage(1)" title="First Page">
+                  <i class="bi bi-chevron-double-left"></i>
+                </button>
+                <button class="stitch-pag-btn" [disabled]="userPage === 1" (click)="changeUserPage(userPage - 1)" title="Previous Page">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button *ngFor="let p of getUserPageNumbers()" class="stitch-pag-btn" [class.active]="userPage === p" (click)="changeUserPage(p)">
+                  {{ p }}
+                </button>
+                <button class="stitch-pag-btn" [disabled]="userPage === userTotalPages" (click)="changeUserPage(userPage + 1)" title="Next Page">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+                <button class="stitch-pag-btn" [disabled]="userPage === userTotalPages" (click)="changeUserPage(userTotalPages)" title="Last Page">
+                  <i class="bi bi-chevron-double-right"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -309,9 +322,9 @@
                     </span>
                   </td>
                   <td class="text-end" (click)="$event.stopPropagation()">
-                    <div class="stitch-action-group">
-                      <a [routerLink]="['/task', t.taskId]" class="stitch-action-btn btn-act-view" title="View Task Details">
-                        <i class="bi bi-eye-fill"></i>
+                    <div class="row-actions">
+                      <a [routerLink]="['/task', t.taskId]" class="action-icon-btn" title="View Task Details">
+                        <i class="bi bi-eye"></i>
                       </a>
                     </div>
                   </td>
@@ -332,14 +345,27 @@
               </button>
             </div>
             <div class="footer-right" *ngIf="taskFiltered.length > taskPageSize">
-              <span class="page-indicator me-3">Page {{ taskPage }} of {{ taskTotalPages }}</span>
-              <div class="pagination-buttons">
-                <button class="pag-btn" [disabled]="taskPage === 1" (click)="changeTaskPage(taskPage - 1)">
-                  <i class="bi bi-chevron-left"></i>
-                </button>
-                <button class="pag-btn" [disabled]="taskPage === taskTotalPages" (click)="changeTaskPage(taskPage + 1)">
-                  <i class="bi bi-chevron-right"></i>
-                </button>
+              <div class="stitch-pagination" style="border-top: none; padding: 0;">
+                <div class="stitch-pag-left">
+                  <span class="stitch-pag-label">Page {{ taskPage }} of {{ taskTotalPages }}</span>
+                </div>
+                <div class="stitch-pag-controls">
+                  <button class="stitch-pag-btn" [disabled]="taskPage === 1" (click)="changeTaskPage(1)" title="First Page">
+                    <i class="bi bi-chevron-double-left"></i>
+                  </button>
+                  <button class="stitch-pag-btn" [disabled]="taskPage === 1" (click)="changeTaskPage(taskPage - 1)" title="Previous Page">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                  <button *ngFor="let p of getTaskPageNumbers()" class="stitch-pag-btn" [class.active]="taskPage === p" (click)="changeTaskPage(p)">
+                    {{ p }}
+                  </button>
+                  <button class="stitch-pag-btn" [disabled]="taskPage === taskTotalPages" (click)="changeTaskPage(taskPage + 1)" title="Next Page">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                  <button class="stitch-pag-btn" [disabled]="taskPage === taskTotalPages" (click)="changeTaskPage(taskTotalPages)" title="Last Page">
+                    <i class="bi bi-chevron-double-right"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

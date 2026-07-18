@@ -171,15 +171,31 @@
       <!-- Pagination Footer -->
       <div class="stitch-pagination">
         <div class="stitch-pag-left">
+          <span>Rows per page:</span>
+          <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="currentPage = 1; applyFilters()">
+            <option [value]="5">5</option>
+            <option [value]="8">8</option>
+            <option [value]="10">10</option>
+            <option [value]="12">12</option>
+            <option [value]="20">20</option>
+          </select>
           <span class="stitch-pag-label">
-            {{ filteredRequests.length }} result{{ filteredRequests.length !== 1 ? 's' : '' }}
+            {{ filteredRequests.length > 0 ? ((currentPage - 1) * pageSize + 1) : 0 }}-{{ currentPage * pageSize > filteredRequests.length ? filteredRequests.length : currentPage * pageSize }} of {{ filteredRequests.length }} results
           </span>
         </div>
         <div class="stitch-pag-controls">
           <button
             class="stitch-pag-btn"
             [disabled]="currentPage === 1"
-            (click)="changePage(currentPage - 1)">
+            (click)="changePage(1)"
+            title="First Page">
+            <i class="bi bi-chevron-double-left"></i>
+          </button>
+          <button
+            class="stitch-pag-btn"
+            [disabled]="currentPage === 1"
+            (click)="changePage(currentPage - 1)"
+            title="Previous Page">
             <i class="bi bi-chevron-left"></i>
           </button>
           <button
@@ -192,8 +208,16 @@
           <button
             class="stitch-pag-btn"
             [disabled]="currentPage === totalPages"
-            (click)="changePage(currentPage + 1)">
+            (click)="changePage(currentPage + 1)"
+            title="Next Page">
             <i class="bi bi-chevron-right"></i>
+          </button>
+          <button
+            class="stitch-pag-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="changePage(totalPages)"
+            title="Last Page">
+            <i class="bi bi-chevron-double-right"></i>
           </button>
         </div>
       </div>

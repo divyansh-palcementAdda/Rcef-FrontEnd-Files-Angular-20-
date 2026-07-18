@@ -308,6 +308,15 @@ export class SubDepartmentDetailsComponent implements OnInit {
     }
   }
 
+  getPageArray(): number[] {
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(this.currentPage - half, 1);
+    let end = Math.min(start + maxVisible - 1, this.totalPages);
+    if (end - start + 1 < maxVisible) start = Math.max(end - maxVisible + 1, 1);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
   resetAllFilters(): void {
     this.searchTerm = '';
     this.statusFilter = '';

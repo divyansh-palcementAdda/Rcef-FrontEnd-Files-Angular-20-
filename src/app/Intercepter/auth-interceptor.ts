@@ -12,6 +12,7 @@ import { catchError, filter, switchMap, take, finalize } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthApiService } from '../Services/auth-api-service';
 import { HttpContextToken } from '@angular/common/http';
+import { AccessDeniedModalService } from '../Services/access-denied-modal.service';
 
 export const SKIP_AUTH = new HttpContextToken<boolean>(() => false);
 
@@ -51,6 +52,11 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401 && !isPublic) {
           return this.handle401Error(authReq, next);
+        }
+        if (error.status === 403) {
+          const accessDeniedModal = this.injector.get(AccessDeniedModalService);
+          accessDeniedModal.show();
+          return throwError(() => error);
         }
         return throwError(() => error);
       })

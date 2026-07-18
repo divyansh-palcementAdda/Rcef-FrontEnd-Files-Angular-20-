@@ -372,14 +372,35 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination-footer" *ngIf="totalPages > 1">
-          <button [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)">
-            <i class="bi bi-chevron-left"></i> Previous
-          </button>
-          <span>Page {{ currentPage }} of {{ totalPages }}</span>
-          <button [disabled]="currentPage === totalPages" (click)="setPage(currentPage + 1)">
-            Next <i class="bi bi-chevron-right"></i>
-          </button>
+        <div class="stitch-pagination" *ngIf="totalPages > 1">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="setPage(1)">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
+            </select>
+            <span class="stitch-pag-label">
+              Page {{ currentPage }} of {{ totalPages }}
+            </span>
+          </div>
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="setPage(1)" title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)" title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button *ngFor="let p of getPageArray()" class="stitch-pag-btn" [class.active]="currentPage === p" (click)="setPage(p)">
+              {{ p }}
+            </button>
+            <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="setPage(currentPage + 1)" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="setPage(totalPages)" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>

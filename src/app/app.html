@@ -23,6 +23,36 @@
 <!-- Global Confirm Dialog -->
 <app-confirm-dialog></app-confirm-dialog>
 
+<!-- Global 403 Access Denied Modal -->
+<div *ngIf="accessDeniedModalService.visible$ | async"
+  class="access-denied-overlay d-flex align-items-center justify-content-center"
+  (click)="accessDeniedModalService.hide()">
+  <div class="access-denied-modal text-center p-5 rounded-4 shadow-lg animate__animated animate__zoomIn"
+    (click)="$event.stopPropagation()">
+    <!-- Shield Icon -->
+    <div class="access-denied-icon-wrap mx-auto mb-4">
+      <i class="bi bi-shield-lock-fill"></i>
+    </div>
+    <!-- Badge -->
+    <div class="mb-3">
+      <span class="badge px-3 py-2 rounded-pill fw-semibold"
+        style="background: rgba(239,68,68,0.1); color: #ef4444; font-size: 0.8rem; letter-spacing: 0.05em;">
+        403 &nbsp;•&nbsp; ACCESS DENIED
+      </span>
+    </div>
+    <h3 class="fw-bold mb-2" style="color: #1f2937;">You don't have permission</h3>
+    <p class="text-muted mb-4" style="max-width: 340px; margin: 0 auto 1.5rem;">
+      You do not have the required permissions to perform this action.<br>
+      If you believe this is an error, please contact your systems administrator.
+    </p>
+    <div class="d-flex gap-3 justify-content-center">
+      <button class="btn btn-primary px-4 rounded-3 fw-semibold" (click)="accessDeniedModalService.hide()">
+        <i class="bi bi-x-circle me-2"></i>Dismiss
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Premium Global Modals Overlay -->
 <div class="modal-backdrop-overlay" *ngIf="activeModal" (click)="closeActiveModal(false)">
   <div class="modal-window-wrapper" [ngClass]="{

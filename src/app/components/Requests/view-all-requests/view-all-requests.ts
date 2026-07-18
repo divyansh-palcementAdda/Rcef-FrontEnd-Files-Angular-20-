@@ -176,7 +176,14 @@ export class ViewAllRequests implements OnInit, OnDestroy {
   }
 
   getPageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    const maxVisiblePages = 5;
+    const half = Math.floor(maxVisiblePages / 2);
+    let start = Math.max(this.currentPage - half, 1);
+    let end = Math.min(start + maxVisiblePages - 1, this.totalPages);
+    if (end - start + 1 < maxVisiblePages) {
+      start = Math.max(end - maxVisiblePages + 1, 1);
+    }
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
   getStatusClass(status: RequestStatus): string {

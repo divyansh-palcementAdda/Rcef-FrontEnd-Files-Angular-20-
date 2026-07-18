@@ -272,9 +272,11 @@
                     </td>
                     <td><small class="text-muted">{{ formatDate(task.dueDate) }}</small></td>
                     <td class="text-end">
-                      <button class="btn btn-sm btn-outline-primary  px-2 py-1" (click)="viewTask(task.taskId)">
-                        <i class="bi bi-eye"></i> View
-                      </button>
+                      <div class="row-actions">
+                        <button class="action-icon-btn" (click)="viewTask(task.taskId)" title="View Task">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   <tr *ngIf="filteredTasks.length === 0">
@@ -290,30 +292,35 @@
             </div>
 
             <!-- Tasks Pagination controls -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 pt-3 border-top"
-              *ngIf="filteredTasks.length > 0">
-              <div class="small text-muted">
-                Showing {{ startIndex }}-{{ endIndex }} of {{ filteredTasks.length }} tasks
+            <div class="stitch-pagination" *ngIf="filteredTasks.length > 0">
+              <div class="stitch-pag-left">
+                <span>Rows per page:</span>
+                <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="currentPage = 1; applyFilters()">
+                  <option [value]="5">5</option>
+                  <option [value]="10">10</option>
+                  <option [value]="20">20</option>
+                </select>
+                <span class="stitch-pag-label">
+                  {{ startIndex }}-{{ endIndex }} of {{ filteredTasks.length }} tasks
+                </span>
               </div>
-              <nav aria-label="Tasks pagination">
-                <ul class="pagination pagination-sm mb-0">
-                  <li class="page-item" [class.disabled]="currentPage === 1">
-                    <a class="page-link" (click)="changePage(1)"><i class="bi bi-chevron-double-left"></i></a>
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPage === 1">
-                    <a class="page-link" (click)="changePage(currentPage - 1)"><i class="bi bi-chevron-left"></i></a>
-                  </li>
-                  <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="currentPage === page">
-                    <a class="page-link" (click)="changePage(page)">{{ page }}</a>
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPage === totalPages">
-                    <a class="page-link" (click)="changePage(currentPage + 1)"><i class="bi bi-chevron-right"></i></a>
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPage === totalPages">
-                    <a class="page-link" (click)="changePage(totalPages)"><i class="bi bi-chevron-double-right"></i></a>
-                  </li>
-                </ul>
-              </nav>
+              <div class="stitch-pag-controls">
+                <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(1)" title="First Page">
+                  <i class="bi bi-chevron-double-left"></i>
+                </button>
+                <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)" title="Previous Page">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button *ngFor="let page of getPageNumbers()" class="stitch-pag-btn" [class.active]="currentPage === page" (click)="changePage(page)">
+                  {{ page }}
+                </button>
+                <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)" title="Next Page">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+                <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)" title="Last Page">
+                  <i class="bi bi-chevron-double-right"></i>
+                </button>
+              </div>
             </div>
 
           </div>
@@ -385,34 +392,35 @@
             </div>
 
             <!-- Logs Pagination controls -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 pt-3 border-top"
-              *ngIf="filteredLogs.length > 0">
-              <div class="small text-muted">
-                Showing logs pagination
+            <div class="stitch-pagination" *ngIf="filteredLogs.length > 0">
+              <div class="stitch-pag-left">
+                <span>Rows per page:</span>
+                <select class="stitch-pag-size-selector" [(ngModel)]="pageSizeLogs" (change)="currentPageLogs = 1; applyFiltersLogs()">
+                  <option [value]="5">5</option>
+                  <option [value]="10">10</option>
+                  <option [value]="20">20</option>
+                </select>
+                <span class="stitch-pag-label">
+                  Page {{ currentPageLogs }} of {{ totalPagesLogs }}
+                </span>
               </div>
-              <nav aria-label="Activity logs pagination">
-                <ul class="pagination pagination-sm mb-0">
-                  <li class="page-item" [class.disabled]="currentPageLogs === 1">
-                    <a class="page-link" (click)="changePageLogs(1)"><i class="bi bi-chevron-double-left"></i></a>
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPageLogs === 1">
-                    <a class="page-link" (click)="changePageLogs(currentPageLogs - 1)"><i
-                        class="bi bi-chevron-left"></i></a>
-                  </li>
-                  <li class="page-item" *ngFor="let page of getPageNumbersLogs()"
-                    [class.active]="currentPageLogs === page">
-                    <a class="page-link" (click)="changePageLogs(page)">{{ page }}</a>
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPageLogs === totalPagesLogs">
-                    <a class="page-link" (click)="changePageLogs(currentPageLogs + 1)"><i
-                        class="bi bi-chevron-right"></i></a>
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPageLogs === totalPagesLogs">
-                    <a class="page-link" (click)="changePageLogs(totalPagesLogs)"><i
-                        class="bi bi-chevron-double-right"></i></a>
-                  </li>
-                </ul>
-              </nav>
+              <div class="stitch-pag-controls">
+                <button class="stitch-pag-btn" [disabled]="currentPageLogs === 1" (click)="changePageLogs(1)" title="First Page">
+                  <i class="bi bi-chevron-double-left"></i>
+                </button>
+                <button class="stitch-pag-btn" [disabled]="currentPageLogs === 1" (click)="changePageLogs(currentPageLogs - 1)" title="Previous Page">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button *ngFor="let page of getPageNumbersLogs()" class="stitch-pag-btn" [class.active]="currentPageLogs === page" (click)="changePageLogs(page)">
+                  {{ page }}
+                </button>
+                <button class="stitch-pag-btn" [disabled]="currentPageLogs === totalPagesLogs" (click)="changePageLogs(currentPageLogs + 1)" title="Next Page">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+                <button class="stitch-pag-btn" [disabled]="currentPageLogs === totalPagesLogs" (click)="changePageLogs(totalPagesLogs)" title="Last Page">
+                  <i class="bi bi-chevron-double-right"></i>
+                </button>
+              </div>
             </div>
 
           </div>

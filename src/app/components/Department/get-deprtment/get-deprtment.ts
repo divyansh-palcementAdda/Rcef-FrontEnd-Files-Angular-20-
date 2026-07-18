@@ -222,6 +222,14 @@ export class GetDepartment implements OnInit {
   taskPages(): number[] {
     return Array.from({ length: this.taskTotalPages }, (_, i) => i + 1);
   }
+  getTaskPageNumbers(): number[] {
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(this.taskPage - half, 1);
+    let end = Math.min(start + maxVisible - 1, this.taskTotalPages);
+    if (end - start + 1 < maxVisible) start = Math.max(end - maxVisible + 1, 1);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
 
   initUserFilter(): void {
     this.userFiltered = this.department.users || [];
@@ -243,6 +251,14 @@ export class GetDepartment implements OnInit {
   }
   userPages(): number[] {
     return Array.from({ length: this.userTotalPages }, (_, i) => i + 1);
+  }
+  getUserPageNumbers(): number[] {
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(this.userPage - half, 1);
+    let end = Math.min(start + maxVisible - 1, this.userTotalPages);
+    if (end - start + 1 < maxVisible) start = Math.max(end - maxVisible + 1, 1);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
   getInitials(name?: string): string {
