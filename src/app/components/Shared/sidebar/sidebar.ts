@@ -266,8 +266,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
       // localLinks.push({ label: 'Self-Assigned Tasks', route: '/view-tasks', queryParams: { status: 'selfAssigned' }, icon: 'bi-person-check-fill' });
     }
 
-    // 4. All User
-    if (this.hasPermission('USER_VIEW')) {
+    // 4. All User (hidden for TEACHER role)
+    if (this.hasPermission('USER_VIEW') && currentRole !== 'TEACHER') {
       localLinks.push({ label: 'All User', route: '/viewAllUsers', icon: 'bi-people' });
     }
 

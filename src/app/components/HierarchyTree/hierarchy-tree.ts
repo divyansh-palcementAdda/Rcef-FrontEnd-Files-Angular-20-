@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UserApiService } from '../../Services/UserApiService';
 import { userDto } from '../../Model/userDto';
+import { JwtService } from '../../Services/jwt-service';
 
 interface TreeNode {
   user: userDto;
@@ -24,7 +25,8 @@ export class HierarchyViewerComponent implements OnInit {
 
   constructor(
     private userApiService: UserApiService,
-    private router: Router
+    private router: Router,
+    private jwtService: JwtService
   ) {}
 
   ngOnInit(): void {
@@ -38,6 +40,18 @@ export class HierarchyViewerComponent implements OnInit {
         this.users = usersList;
         this.treeRoots = this.constructTree(usersList);
         this.loading = false;
+        
+        // Auto-select logged-in user by default
+        const token = this.jwtService.getAccessToken();
+        if (token) {
+          const currentUserId = this.jwtService.getUserIdFromToken(token);
+          if (currentUserId) {
+            const currentUser = this.users.find(u => u.userId === currentUserId);
+            if (currentUser) {
+              this.selectUser(currentUser);
+            }
+          }
+        }
       },
       error: (err) => {
         console.error('Failed to build user hierarchy', err);

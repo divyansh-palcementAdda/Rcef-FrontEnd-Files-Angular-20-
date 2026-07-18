@@ -346,6 +346,7 @@
         <table class="stitch-table align-middle">
           <thead>
             <tr>
+              <th style="width: 60px;">S.No</th>
               <th (click)="setSort('title')" style="cursor: pointer;">
                 <span style="white-space: nowrap;">
                   Task Details
@@ -393,6 +394,11 @@
           <tbody>
             <tr *ngFor="let task of paginatedTasks; let i = index; trackBy: trackByTaskId"
               (click)="viewTaskDetails(task.taskId)" style="cursor: pointer;">
+
+              <!-- S.No -->
+              <td data-label="S.No">
+                <span class="fw-semibold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
+              </td>
 
               <!-- Task Details -->
               <td data-label="Task Details">
@@ -463,7 +469,8 @@
                   <button class="action-icon-btn" (click)="viewTaskDetails(task.taskId)" title="View Details">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <button *ngIf="canEditTask(task)" class="action-icon-btn" (click)="editTask(task.taskId)" title="Edit Task">
+                  <button *ngIf="canEditTask(task)" class="action-icon-btn" (click)="editTask(task.taskId)"
+                    title="Edit Task">
                     <i class="bi bi-pencil-square"></i>
                   </button>
                   <button
