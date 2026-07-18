@@ -20,7 +20,7 @@
         <!-- Group item (e.g. Settings) -->
         <li class="nav-item" *ngIf="link.isGroup">
           <button class="nav-link d-flex align-items-center rounded-3 transition w-100 border-0 bg-transparent settings-group-btn"
-                  [class.active]="isSettingsActive()"
+                  [class.active-parent]="isSettingsActive()"
                   (click)="toggleSettings()">
             <i class="bi {{ link.icon }} fs-5"></i>
             <span class="link-label ms-3 flex-grow-1 text-start" *ngIf="!isCollapsed">{{ link.label }}</span>

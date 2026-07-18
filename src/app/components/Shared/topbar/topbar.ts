@@ -109,6 +109,15 @@ export class TopbarComponent implements OnInit {
     this.profileDropdownOpen = !this.profileDropdownOpen;
   }
 
+  navigateToProfile(): void {
+    const token = this.authService.getAccessToken();
+    const userId = this.userProfile?.userId || (token ? this.jwtService.getUserIdFromToken(token) : null);
+    if (userId) {
+      this.profileDropdownOpen = false;
+      this.router.navigate(['/user', userId]);
+    }
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.elRef.nativeElement.contains(event.target)) {

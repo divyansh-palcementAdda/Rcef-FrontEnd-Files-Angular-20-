@@ -39,7 +39,7 @@
               <span class="text-danger">*</span>
             </label>
             <div class="input-group">
-              <span class="input-group-text bg-emerald-50 text-emerald-700">
+              <span class="input-group-text bg-indigo-subtle text-indigo-dark">
                 <i class="bi bi-pencil"></i>
               </span>
               <input type="text" class="form-control" formControlName="title"
@@ -70,7 +70,7 @@
               }
             </label>
             <div class="input-group">
-              <span class="input-group-text bg-emerald-50 text-emerald-700 align-items-start pt-3">
+              <span class="input-group-text bg-indigo-subtle text-indigo-dark align-items-start pt-3">
                 <i class="bi bi-chat-dots"></i>
               </span>
               <textarea class="form-control" rows="4" formControlName="description"
@@ -80,7 +80,7 @@
             <div class="field-hint">
               Concise but complete — help assignees understand scope & expectations.
               @if (f['description'].value) {
-              <span class="text-emerald-600 ms-2">
+              <span class="text-indigo ms-2">
                 {{ f['description'].value.length }}/2000 characters
               </span>
               }
@@ -99,7 +99,7 @@
               <span class="text-danger">*</span>
             </label>
             <div class="input-group">
-              <span class="input-group-text bg-emerald-50 text-emerald-700">
+              <span class="input-group-text bg-indigo-subtle text-indigo-dark">
                 <i class="bi bi-tag"></i>
               </span>
               <select class="form-select" formControlName="status"
@@ -111,7 +111,7 @@
               </select>
             </div>
             <div class="field-hint mt-2">
-<!-- <strong>UPCOMING</strong> → future planned task (requires future start date)<br> -->
+              <!-- <strong>UPCOMING</strong> → future planned task (requires future start date)<br> -->
               <strong>PENDING</strong> → can start now (due date cannot be in past)
             </div>
             @if (f['status'].touched && f['status'].invalid) {
@@ -129,7 +129,7 @@
               <span class="text-danger">*</span>
             </label>
             <div class="input-group clickable" (click)="focusInput($event, startDateInput)">
-              <span class="input-group-text bg-emerald-50 text-emerald-700">
+              <span class="input-group-text bg-indigo-subtle text-indigo-dark">
                 <i class="bi bi-calendar-plus"></i>
               </span>
               <input #startDateInput type="date" class="form-control" formControlName="startDate" [min]="minDate"
@@ -152,7 +152,7 @@
               <span class="text-danger">*</span>
             </label>
             <div class="input-group clickable" (click)="focusInput($event, dueDateInput)">
-              <span class="input-group-text bg-emerald-50 text-emerald-700">
+              <span class="input-group-text bg-indigo-subtle text-indigo-dark">
                 <i class="bi bi-calendar-check"></i>
               </span>
               <input #dueDateInput type="date" class="form-control" formControlName="dueDate" [min]="minDate"
@@ -181,7 +181,7 @@
             <div class="border rounded-3 p-3 bg-white shadow-sm department-wrapper">
               <!-- Search -->
               <div class="input-group mb-3">
-                <span class="input-group-text bg-emerald-50 text-emerald-700">
+                <span class="input-group-text bg-indigo-subtle text-indigo-dark">
                   <i class="bi bi-search"></i>
                 </span>
                 <input #deptSearchInput type="text" class="form-control border-0" placeholder="Search departments..."
@@ -198,7 +198,7 @@
                 <input type="checkbox" class="form-check-input custom-checkbox" id="selectAllDepts"
                   [checked]="selectAllDepts" (change)="toggleSelectAllDepts()"
                   [disabled]="taskForm.value.assignToSelf || isLoadingDepartments" />
-                <label class="form-check-label fw-bold text-emerald-700" for="selectAllDepts">
+                <label class="form-check-label fw-bold text-indigo-dark" for="selectAllDepts">
                   Select All Departments
                 </label>
               </div>
@@ -236,7 +236,7 @@
               <div class="field-hint mt-3">
                 Select at least one department. Task will be visible and assignable within chosen departments.
                 @if (taskForm.value.departmentIds?.length) {
-                <span class="text-emerald-600 ms-2">
+                <span class="text-indigo ms-2">
                   ({{ taskForm.value.departmentIds.length }} selected)
                 </span>
                 }
@@ -253,12 +253,12 @@
             <!-- Self-assign notice -->
             @if (taskForm.value.assignToSelf && currentUser) {
             <div class="alert alert-success d-flex align-items-center gap-3 p-3 mb-4 rounded-3 shadow-sm">
-              <i class="bi bi-person-check-fill fs-4 text-emerald-600"></i>
+              <i class="bi bi-person-check-fill fs-4 text-indigo"></i>
               <div>
                 <strong>Assigned to you:</strong><br />
                 <span class="small">
                   {{ currentUser.fullName }}
-                  <span class="badge bg-emerald-100 text-emerald-700 ms-2">{{ currentUser.role }}</span>
+                  <span class="badge bg-indigo-light text-indigo-dark ms-2">{{ currentUser.role }}</span>
                   @if (currentUser.departmentIds.length) {
                   <span class="text-muted ms-2">
                     — {{ getDepartmentNames(currentUser.departmentIds) }}
@@ -278,7 +278,7 @@
                     [attr.aria-controls]="'collapse-' + deptId" [class.collapsed]="i !== 0"
                     (click)="toggleAccordion(deptId)">
                     {{ getDepartmentName(deptId) }}
-                    <span class="badge bg-emerald-100 text-emerald-700 ms-3">
+                    <span class="badge bg-indigo-light text-indigo-dark ms-3">
                       {{ (filteredUsersByDept.get(deptId) || []).length }}
                     </span>
                   </button>
@@ -288,7 +288,7 @@
                     <!-- User search -->
                     <div class="input-group mb-3">
                       <span class="input-group-text bg-white border-0">
-                        <i class="bi bi-search text-emerald-600"></i>
+                        <i class="bi bi-search text-indigo"></i>
                       </span>
                       <input type="text" class="form-control border-0" placeholder="Search users..."
                         [(ngModel)]="userSearchByDept[deptId]" (ngModelChange)="onUserSearch(deptId)"
@@ -306,7 +306,7 @@
                       <input type="checkbox" class="form-check-input custom-checkbox" [id]="'selectAllUsers-' + deptId"
                         [checked]="selectAllUsersByDept[deptId]" (change)="toggleSelectAllUsers(deptId)"
                         [disabled]="taskForm.value.assignToSelf" />
-                      <label class="form-check-label fw-bold text-emerald-700" [for]="'selectAllUsers-' + deptId">
+                      <label class="form-check-label fw-bold text-indigo-dark" [for]="'selectAllUsers-' + deptId">
                         Select All in this Department
                       </label>
                     </div>
@@ -348,7 +348,7 @@
             <div class="form-check mt-4">
               <input type="checkbox" class="form-check-input custom-checkbox" id="assignToSelf"
                 formControlName="assignToSelf" [disabled]="!currentUser" />
-              <label class="form-check-label text-emerald-700 fw-medium" for="assignToSelf">
+              <label class="form-check-label text-indigo-dark fw-medium" for="assignToSelf">
                 Assign this task to myself
               </label>
             </div>
@@ -363,14 +363,14 @@
             <div class="form-check form-switch form-switch-lg">
               <input type="checkbox" class="form-check-input custom-checkbox" id="isRecurring"
                 formControlName="isRecurring" />
-              <label class="form-check-label fw-semibold text-emerald-700 fs-5 ms-2" for="isRecurring">
+              <label class="form-check-label fw-semibold text-indigo-dark fs-5 ms-2" for="isRecurring">
                 Make this task recurring
               </label>
             </div>
             <div class="field-hint mt-2">
               Task will be automatically recreated according to the chosen recurrence pattern.
               @if (taskForm.value.isRecurring) {
-              <span class="text-emerald-600 ms-2">
+              <span class="text-indigo ms-2">
                 <i class="bi bi-info-circle"></i>
                 Configure recurrence settings
               </span>
@@ -441,7 +441,7 @@
           aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content rounded-4 shadow-xl border-0 overflow-hidden">
-              <div class="modal-header border-0 py-4 px-5 bg-gradient-emerald text-white">
+              <div class="modal-header border-0 py-4 px-5 bg-gradient-indigo text-white">
                 <h5 class="modal-title fw-bold fs-4" id="recurrenceModalLabel">Recurrence Settings</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                   aria-label="Close"></button>
@@ -473,7 +473,7 @@
                   <div class="col-md-5">
                     <label class="form-label fw-semibold">End after</label>
                     <div class="input-group input-group-lg">
-                      <span class="input-group-text bg-emerald-50 text-emerald-700">
+                      <span class="input-group-text bg-indigo-subtle text-indigo-dark">
                         <i class="bi bi-calendar-x"></i>
                       </span>
                       <input type="date" class="form-control" formControlName="recurrenceEndDate"

@@ -13,27 +13,14 @@
 
   <!-- Main Content -->
   <div *ngIf="!errorMessage" class="main-content-flow animate__animated animate__fadeIn">
-
-    <!-- Top Action Bar -->
-    <div class="stitch-top-action-bar">
-      <div class="stitch-top-action-bar-right">
-        <button class="stitch-top-btn stitch-top-btn--outline" (click)="refresh()">
-          <i class="bi bi-arrow-clockwise"></i> Refresh
-        </button>
-        <button class="stitch-top-btn stitch-top-btn--outline" (click)="goBackToDashboard()">
-          <i class="bi bi-arrow-left-circle"></i> Dashboard
-        </button>
-      </div>
-    </div>
-
     <!-- Hero Header -->
     <div class="stitch-hero">
       <div class="stitch-hero-content">
         <h1 class="stitch-hero-title">Task Requests</h1>
         <p class="stitch-hero-subtitle">
           {{ hasPermission('AUDIT_LOG_VIEW') ? 'All Requests in System' :
-             hasPermission('TASK_APPROVE') ? 'Requests from Your Department(s)' :
-             'Your Submitted Requests' }}
+          hasPermission('TASK_APPROVE') ? 'Requests from Your Department(s)' :
+          'Your Submitted Requests' }}
         </p>
         <div class="stitch-hero-pills">
           <div class="stitch-hero-pill">
@@ -63,18 +50,10 @@
         <!-- Search -->
         <div class="stitch-search-wrapper">
           <i class="bi bi-search stitch-search-icon"></i>
-          <input
-            type="text"
-            class="stitch-search-input"
-            placeholder="Search by task title, user, or remarks..."
-            [(ngModel)]="filters.search"
-            (input)="applyFilters()" />
-          <button
-            *ngIf="filters.search"
-            class="stitch-clear-btn"
-            type="button"
-            (click)="filters.search = ''; applyFilters()"
-            title="Clear search">
+          <input type="text" class="stitch-search-input" placeholder="Search by task title, user, or remarks..."
+            [(ngModel)]="filters.search" (input)="applyFilters()" />
+          <button *ngIf="filters.search" class="stitch-clear-btn" type="button"
+            (click)="filters.search = ''; applyFilters()" title="Clear search">
             <i class="bi bi-x-circle-fill"></i>
           </button>
         </div>
@@ -111,9 +90,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              *ngFor="let req of paginatedRequests; let i = index"
-              (click)="navigateToTask(req.taskId)"
+            <tr *ngFor="let req of paginatedRequests; let i = index" (click)="navigateToTask(req.taskId)"
               style="cursor: pointer;">
               <td class="text-muted" style="font-size: 0.75rem; font-weight: 600;">
                 {{ (currentPage - 1) * pageSize + i + 1 }}
@@ -155,10 +132,8 @@
               </td>
               <td>
                 <div class="stitch-action-group">
-                  <button
-                    class="stitch-action-btn btn-act-view"
-                    (click)="$event.stopPropagation(); navigateToTask(req.taskId)"
-                    title="View Task">
+                  <button class="stitch-action-btn btn-act-view"
+                    (click)="$event.stopPropagation(); navigateToTask(req.taskId)" title="View Task">
                     <i class="bi bi-eye"></i>
                   </button>
                 </div>
@@ -180,42 +155,28 @@
             <option [value]="20">20</option>
           </select>
           <span class="stitch-pag-label">
-            {{ filteredRequests.length > 0 ? ((currentPage - 1) * pageSize + 1) : 0 }}-{{ currentPage * pageSize > filteredRequests.length ? filteredRequests.length : currentPage * pageSize }} of {{ filteredRequests.length }} results
+            {{ filteredRequests.length > 0 ? ((currentPage - 1) * pageSize + 1) : 0 }}-{{ currentPage * pageSize >
+            filteredRequests.length ? filteredRequests.length : currentPage * pageSize }} of {{ filteredRequests.length
+            }} results
           </span>
         </div>
         <div class="stitch-pag-controls">
-          <button
-            class="stitch-pag-btn"
-            [disabled]="currentPage === 1"
-            (click)="changePage(1)"
-            title="First Page">
+          <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(1)" title="First Page">
             <i class="bi bi-chevron-double-left"></i>
           </button>
-          <button
-            class="stitch-pag-btn"
-            [disabled]="currentPage === 1"
-            (click)="changePage(currentPage - 1)"
+          <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)"
             title="Previous Page">
             <i class="bi bi-chevron-left"></i>
           </button>
-          <button
-            *ngFor="let p of getPageNumbers()"
-            class="stitch-pag-btn"
-            [class.active]="currentPage === p"
+          <button *ngFor="let p of getPageNumbers()" class="stitch-pag-btn" [class.active]="currentPage === p"
             (click)="changePage(p)">
             {{ p }}
           </button>
-          <button
-            class="stitch-pag-btn"
-            [disabled]="currentPage === totalPages"
-            (click)="changePage(currentPage + 1)"
+          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)"
             title="Next Page">
             <i class="bi bi-chevron-right"></i>
           </button>
-          <button
-            class="stitch-pag-btn"
-            [disabled]="currentPage === totalPages"
-            (click)="changePage(totalPages)"
+          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)"
             title="Last Page">
             <i class="bi bi-chevron-double-right"></i>
           </button>
@@ -227,9 +188,7 @@
     <div class="d-md-none" *ngIf="!loading && filteredRequests.length > 0">
       <div class="row g-3">
         <div class="col-12" *ngFor="let req of paginatedRequests">
-          <div
-            class="stitch-grid-container p-3"
-            style="cursor: pointer; border-radius: 12px;"
+          <div class="stitch-grid-container p-3" style="cursor: pointer; border-radius: 12px;"
             (click)="navigateToTask(req.taskId)">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <span class="stitch-task-title">{{ req.taskTitle }}</span>

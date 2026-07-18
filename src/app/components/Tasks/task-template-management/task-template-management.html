@@ -1,32 +1,33 @@
 <div class="container-fluid my-4 my-md-5">
   <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
     <!-- Premium Header -->
-    <div class="card-header text-white text-center py-5 bg-gradient-emerald sticky-top">
-      <h3 class="mb-1 fw-bold">Task Template Control Center</h3>
-      <p class="mb-0 opacity-90">Manage categories, templates, dynamic fields, and proof requirements in one dashboard.
-      </p>
+    <div class="stitch-hero">
+      <div class="stitch-hero-content text-center w-100">
+        <h1 class="stitch-hero-title">Task Template Control Center</h1>
+        <p class="stitch-hero-subtitle mt-2">Manage categories, templates, dynamic fields, and proof requirements in one dashboard.</p>
+      </div>
     </div>
 
     <!-- Navigation Tabs -->
     <div class="bg-light border-bottom p-2 d-flex flex-wrap gap-2">
-      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-emerald]="activeTab === 'templates'"
+      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-primary]="activeTab === 'templates'"
         [class.btn-light]="activeTab !== 'templates'" (click)="activeTab = 'templates'">
         <i class="bi bi-file-earmark-text me-1"></i> Templates
       </button>
-      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-emerald]="activeTab === 'categories'"
+      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-primary]="activeTab === 'categories'"
         [class.btn-light]="activeTab !== 'categories'" (click)="activeTab = 'categories'">
         <i class="bi bi-tags me-1"></i> Categories
       </button>
-      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-emerald]="activeTab === 'fields'"
+      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-primary]="activeTab === 'fields'"
         [class.btn-light]="activeTab !== 'fields'" [disabled]="!selectedTemplate" (click)="activeTab = 'fields'">
         <i class="bi bi-list-stars me-1"></i> Dynamic Fields
       </button>
-      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-emerald]="activeTab === 'requirements'"
+      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-primary]="activeTab === 'requirements'"
         [class.btn-light]="activeTab !== 'requirements'" [disabled]="!selectedTemplate"
         (click)="activeTab = 'requirements'">
         <i class="bi bi-clipboard-check me-1"></i> Proof Requirements
       </button>
-      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-emerald]="activeTab === 'proofTypes'"
+      <button class="btn btn-sm px-3 py-2 border-0 rounded-3" [class.btn-primary]="activeTab === 'proofTypes'"
         [class.btn-light]="activeTab !== 'proofTypes'" (click)="activeTab = 'proofTypes'">
         <i class="bi bi-shield-check me-1"></i> Proof Types
       </button>
@@ -49,7 +50,7 @@
         <i class="bi bi-info-circle-fill fs-5 text-info me-3"></i>
         <div>
           Configuring template: <strong class="text-dark">{{ selectedTemplate.title }}</strong>
-          <span class="badge bg-emerald-100 text-emerald-800 ms-2">{{ selectedTemplate.category.name }}</span>
+          <span class="badge bg-primary-subtle text-primary ms-2">{{ selectedTemplate.category.name }}</span>
         </div>
       </div>
 
@@ -57,8 +58,8 @@
       <div *ngIf="activeTab === 'templates'" class="animate_animated animate_fadeIn">
         <!-- Toolbar -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="fw-bold text-emerald-800 mb-0">All Templates</h6>
-          <button class="btn btn-emerald btn-sm px-3" (click)="openCreateTemplateModal()">
+          <h6 class="fw-bold text-primary mb-0">All Templates</h6>
+          <button class="btn btn-primary btn-sm px-3" (click)="openCreateTemplateModal()">
             <i class="bi bi-plus-lg me-1"></i> New Template
           </button>
         </div>
@@ -66,8 +67,9 @@
         <!-- Full-width Table -->
         <div class="table-responsive border rounded-3 bg-white shadow-sm">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-emerald text-white">
-              <tr class="table-emerald">
+            <thead class="table-primary text-white">
+              <tr class="table-primary">
+                <th>S.No</th>
                 <th>Title</th>
                 <th>Category</th>
                 <th>Status</th>
@@ -75,8 +77,9 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let tpl of paginatedTemplates" [class.table-active]="selectedTemplate?.id === tpl.id"
+              <tr *ngFor="let tpl of paginatedTemplates; let idx = index" [class.table-active]="selectedTemplate?.id === tpl.id"
                 (click)="selectTemplate(tpl)" class="cursor-pointer">
+                <td><span class="fw-semibold text-muted">{{ (templateCurrentPage - 1) * templatePageSize + idx + 1 }}</span></td>
                 <td>
                   <div class="fw-bold">{{ tpl.title }}</div>
                   <div class="text-muted small">{{ tpl.description }}</div>
@@ -93,20 +96,22 @@
                 </td>
                 <td class="text-end">
                   <div class="row-actions">
-                    <button class="action-icon-btn" (click)="viewTemplatePage(tpl); $event.stopPropagation()" title="View">
+                    <button class="action-icon-btn" (click)="viewTemplatePage(tpl); $event.stopPropagation()"
+                      title="View">
                       <i class="bi bi-eye"></i>
                     </button>
                     <button class="action-icon-btn" (click)="editTemplate(tpl); $event.stopPropagation()" title="Edit">
                       <i class="bi bi-pencil-square"></i>
                     </button>
-                    <button class="action-icon-btn" (click)="deleteTemplate(tpl.id!); $event.stopPropagation()" title="Delete">
+                    <button class="action-icon-btn" (click)="deleteTemplate(tpl.id!); $event.stopPropagation()"
+                      title="Delete">
                       <i class="bi bi-trash"></i>
                     </button>
                   </div>
                 </td>
               </tr>
               <tr *ngIf="templates.length === 0">
-                <td colspan="4" class="text-center py-4 text-muted">No templates yet. Click <strong>New
+                <td colspan="5" class="text-center py-4 text-muted">No templates yet. Click <strong>New
                     Template</strong> to create one.</td>
               </tr>
             </tbody>
@@ -123,23 +128,30 @@
               <option [value]="20">20</option>
             </select>
             <span class="stitch-pag-label">
-              {{ (templateCurrentPage - 1) * templatePageSize + 1 }}-{{ templateCurrentPage * templatePageSize > templates.length ? templates.length : templateCurrentPage * templatePageSize }} of {{ templates.length }} templates
+              {{ (templateCurrentPage - 1) * templatePageSize + 1 }}-{{ templateCurrentPage * templatePageSize >
+              templates.length ? templates.length : templateCurrentPage * templatePageSize }} of {{ templates.length }}
+              templates
             </span>
           </div>
           <div class="stitch-pag-controls">
-            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === 1" (click)="changeTemplatePage(1)" title="First Page">
+            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === 1" (click)="changeTemplatePage(1)"
+              title="First Page">
               <i class="bi bi-chevron-double-left"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === 1" (click)="changeTemplatePage(templateCurrentPage - 1)" title="Previous Page">
+            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === 1"
+              (click)="changeTemplatePage(templateCurrentPage - 1)" title="Previous Page">
               <i class="bi bi-chevron-left"></i>
             </button>
-            <button *ngFor="let page of templatePageNumbers" class="stitch-pag-btn" [class.active]="templateCurrentPage === page" (click)="changeTemplatePage(page)">
+            <button *ngFor="let page of templatePageNumbers" class="stitch-pag-btn"
+              [class.active]="templateCurrentPage === page" (click)="changeTemplatePage(page)">
               {{ page }}
             </button>
-            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === templateTotalPages" (click)="changeTemplatePage(templateCurrentPage + 1)" title="Next Page">
+            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === templateTotalPages"
+              (click)="changeTemplatePage(templateCurrentPage + 1)" title="Next Page">
               <i class="bi bi-chevron-right"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === templateTotalPages" (click)="changeTemplatePage(templateTotalPages)" title="Last Page">
+            <button class="stitch-pag-btn" [disabled]="templateCurrentPage === templateTotalPages"
+              (click)="changeTemplatePage(templateTotalPages)" title="Last Page">
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </div>
@@ -150,7 +162,7 @@
       <div *ngIf="showTemplateModal" class="modal-backdrop-custom" (click)="resetTemplateForm()">
         <div class="modal-dialog-custom card border-0 rounded-4 shadow-lg p-4" (click)="$event.stopPropagation()">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-emerald-800 mb-0">
+            <h5 class="fw-bold text-primary mb-0">
               <i class="bi bi-file-earmark-text me-2"></i>
               {{ isEditingTemplate ? 'Edit Template' : 'Create New Template' }}
             </h5>
@@ -179,11 +191,11 @@
             <div class="form-check mb-4">
               <input type="checkbox" class="form-check-input custom-checkbox" id="tplActive"
                 formControlName="isActive" />
-              <label class="form-check-label text-emerald-700" for="tplActive">Template Active</label>
+              <label class="form-check-label text-primary" for="tplActive">Template Active</label>
             </div>
             <div class="d-flex gap-2 justify-content-end">
               <button type="button" class="btn btn-outline-secondary" (click)="resetTemplateForm()">Cancel</button>
-              <button type="submit" class="btn btn-emerald px-4" [disabled]="templateForm.invalid">
+              <button type="submit" class="btn btn-primary px-4" [disabled]="templateForm.invalid">
                 {{ isEditingTemplate ? 'Save Changes' : 'Create Template' }}
               </button>
             </div>
@@ -191,13 +203,13 @@
         </div>
       </div>
 
-      
+
       <!-- ==================== TAB 2: CATEGORIES ==================== -->
       <div *ngIf="activeTab === 'categories'" class="animate_animated animate_fadeIn">
         <!-- Toolbar -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="fw-bold text-emerald-800 mb-0">All Categories</h6>
-          <button class="btn btn-emerald btn-sm px-3" (click)="openCreateCategoryModal()">
+          <h6 class="fw-bold text-primary mb-0">All Categories</h6>
+          <button class="btn btn-primary btn-sm px-3" (click)="openCreateCategoryModal()">
             <i class="bi bi-plus-lg me-1"></i> New Category
           </button>
         </div>
@@ -205,8 +217,9 @@
         <!-- Full-width Table -->
         <div class="table-responsive border rounded-3 bg-white shadow-sm">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-emerald text-white">
-              <tr class="table-emerald">
+            <thead class="table-primary text-white">
+              <tr class="table-primary">
+                <th>S.No</th>
                 <th>Category Name</th>
                 <th>Subcategory</th>
                 <th>Status</th>
@@ -214,7 +227,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let cat of paginatedCategories">
+              <tr *ngFor="let cat of paginatedCategories; let idx = index">
+                <td><span class="fw-semibold text-muted">{{ (categoryCurrentPage - 1) * categoryPageSize + idx + 1 }}</span></td>
                 <td class="fw-bold">{{ cat.name }}</td>
                 <td>{{ cat.subcategory || '—' }}</td>
                 <td>
@@ -231,7 +245,7 @@
                 </td>
               </tr>
               <tr *ngIf="categories.length === 0">
-                <td colspan="4" class="text-center py-4 text-muted">No categories yet. Click <strong>New
+                <td colspan="5" class="text-center py-4 text-muted">No categories yet. Click <strong>New
                     Category</strong> to create one.</td>
               </tr>
             </tbody>
@@ -248,23 +262,30 @@
               <option [value]="20">20</option>
             </select>
             <span class="stitch-pag-label">
-              {{ (categoryCurrentPage - 1) * categoryPageSize + 1 }}-{{ categoryCurrentPage * categoryPageSize > categories.length ? categories.length : categoryCurrentPage * categoryPageSize }} of {{ categories.length }} categories
+              {{ (categoryCurrentPage - 1) * categoryPageSize + 1 }}-{{ categoryCurrentPage * categoryPageSize >
+              categories.length ? categories.length : categoryCurrentPage * categoryPageSize }} of {{ categories.length
+              }} categories
             </span>
           </div>
           <div class="stitch-pag-controls">
-            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === 1" (click)="changeCategoryPage(1)" title="First Page">
+            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === 1" (click)="changeCategoryPage(1)"
+              title="First Page">
               <i class="bi bi-chevron-double-left"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === 1" (click)="changeCategoryPage(categoryCurrentPage - 1)" title="Previous Page">
+            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === 1"
+              (click)="changeCategoryPage(categoryCurrentPage - 1)" title="Previous Page">
               <i class="bi bi-chevron-left"></i>
             </button>
-            <button *ngFor="let page of categoryPageNumbers" class="stitch-pag-btn" [class.active]="categoryCurrentPage === page" (click)="changeCategoryPage(page)">
+            <button *ngFor="let page of categoryPageNumbers" class="stitch-pag-btn"
+              [class.active]="categoryCurrentPage === page" (click)="changeCategoryPage(page)">
               {{ page }}
             </button>
-            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === categoryTotalPages" (click)="changeCategoryPage(categoryCurrentPage + 1)" title="Next Page">
+            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === categoryTotalPages"
+              (click)="changeCategoryPage(categoryCurrentPage + 1)" title="Next Page">
               <i class="bi bi-chevron-right"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === categoryTotalPages" (click)="changeCategoryPage(categoryTotalPages)" title="Last Page">
+            <button class="stitch-pag-btn" [disabled]="categoryCurrentPage === categoryTotalPages"
+              (click)="changeCategoryPage(categoryTotalPages)" title="Last Page">
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </div>
@@ -275,7 +296,7 @@
       <div *ngIf="showCategoryModal" class="modal-backdrop-custom" (click)="resetCategoryForm()">
         <div class="modal-dialog-custom card border-0 rounded-4 shadow-lg p-4" (click)="$event.stopPropagation()">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-emerald-800 mb-0">
+            <h5 class="fw-bold text-primary mb-0">
               <i class="bi bi-tags me-2"></i>
               {{ isEditingCategory ? 'Edit Category' : 'Create New Category' }}
             </h5>
@@ -295,11 +316,11 @@
             <div class="form-check mb-4">
               <input type="checkbox" class="form-check-input custom-checkbox" id="catActive"
                 formControlName="isActive" />
-              <label class="form-check-label text-emerald-700" for="catActive">Category Active</label>
+              <label class="form-check-label text-primary" for="catActive">Category Active</label>
             </div>
             <div class="d-flex gap-2 justify-content-end">
               <button type="button" class="btn btn-outline-secondary" (click)="resetCategoryForm()">Cancel</button>
-              <button type="submit" class="btn btn-emerald px-4" [disabled]="categoryForm.invalid">
+              <button type="submit" class="btn btn-primary px-4" [disabled]="categoryForm.invalid">
                 {{ isEditingCategory ? 'Save Changes' : 'Create Category' }}
               </button>
             </div>
@@ -311,7 +332,7 @@
       <div *ngIf="activeTab === 'fields' && selectedTemplate" class="row g-4 animate_animated animate_fadeIn">
         <div class="col-lg-5">
           <div class="card border border-slate-100 rounded-3 p-4 bg-slate-50 shadow-sm">
-            <h5 class="fw-bold mb-3 text-emerald-800">Add Template Field</h5>
+            <h5 class="fw-bold mb-3 text-primary">Add Template Field</h5>
             <form [formGroup]="fieldForm" (ngSubmit)="addField()">
               <div class="mb-3">
                 <label class="form-label fw-semibold">Field Name <span class="text-danger">*</span></label>
@@ -335,10 +356,10 @@
               <div class="form-check mb-4">
                 <input type="checkbox" class="form-check-input custom-checkbox" id="fieldReq"
                   formControlName="isRequired" />
-                <label class="form-check-label text-emerald-700" for="fieldReq">Is Required Field</label>
+                <label class="form-check-label text-primary" for="fieldReq">Is Required Field</label>
               </div>
 
-              <button type="submit" class="btn btn-emerald px-4" [disabled]="fieldForm.invalid">
+              <button type="submit" class="btn btn-primary px-4" [disabled]="fieldForm.invalid">
                 Add Field
               </button>
             </form>
@@ -348,8 +369,9 @@
         <div class="col-lg-7">
           <div class="table-responsive border rounded-3 bg-white shadow-sm">
             <table class="table table-hover align-middle mb-0">
-              <thead class="table-emerald text-white">
-                <tr class="table-emerald">
+              <thead class="table-primary text-white">
+                <tr class="table-primary">
+                  <th>S.No</th>
                   <th>Field Name</th>
                   <th>Type</th>
                   <th>Required</th>
@@ -359,9 +381,10 @@
               </thead>
               <tbody>
                 <tr *ngFor="let field of selectedTemplate.fields; let idx = index">
+                  <td><span class="fw-semibold text-muted">{{ idx + 1 }}</span></td>
                   <td class="fw-bold">{{ field.fieldName }}</td>
                   <td>
-                    <span class="badge bg-light text-emerald-800 border border-emerald-200">{{ field.fieldType }}</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ field.fieldType }}</span>
                   </td>
                   <td>
                     <span class="text-success" *ngIf="field.isRequired"><i class="bi bi-check-circle-fill"></i>
@@ -378,7 +401,7 @@
                   </td>
                 </tr>
                 <tr *ngIf="!selectedTemplate.fields || selectedTemplate.fields.length === 0">
-                  <td colspan="5" class="text-center py-4 text-muted">No dynamic fields configured for this template
+                  <td colspan="6" class="text-center py-4 text-muted">No dynamic fields configured for this template
                     yet.</td>
                 </tr>
               </tbody>
@@ -391,13 +414,13 @@
       <div *ngIf="activeTab === 'requirements' && selectedTemplate" class="row g-4 animate_animated animate_fadeIn">
         <div class="col-lg-5">
           <div class="card border border-slate-100 rounded-3 p-4 bg-slate-50 shadow-sm">
-            <h5 class="fw-bold mb-3 text-emerald-800">Add Proof Requirement</h5>
+            <h5 class="fw-bold mb-3 text-primary">Add Proof Requirement</h5>
             <form [formGroup]="requirementForm" (ngSubmit)="addRequirement()">
               <div class="mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                   <label class="form-label fw-semibold mb-0">Proof Type <span class="text-danger">*</span></label>
                   <button type="button"
-                    class="btn btn-link text-emerald btn-xs p-0 border-0 text-decoration-none fw-bold"
+                    class="btn btn-link text-primary btn-xs p-0 border-0 text-decoration-none fw-bold"
                     (click)="openCreateProofTypeModal()">
                     + Create New Proof Type
                   </button>
@@ -412,10 +435,10 @@
               <div class="form-check mb-4">
                 <input type="checkbox" class="form-check-input custom-checkbox" id="reqReq"
                   formControlName="isRequired" />
-                <label class="form-check-label text-emerald-700" for="reqReq">Mandatory Requirement</label>
+                <label class="form-check-label text-primary" for="reqReq">Mandatory Requirement</label>
               </div>
 
-              <button type="submit" class="btn btn-emerald px-4" [disabled]="requirementForm.invalid">
+              <button type="submit" class="btn btn-primary px-4" [disabled]="requirementForm.invalid">
                 Add Requirement
               </button>
             </form>
@@ -425,8 +448,9 @@
         <div class="col-lg-7">
           <div class="table-responsive border rounded-3 bg-white shadow-sm">
             <table class="table table-hover align-middle mb-0">
-              <thead class="table-emerald text-white">
-                <tr class="table-emerald">
+              <thead class="table-primary text-white">
+                <tr class="table-primary">
+                  <th>S.No</th>
                   <th>Proof Type</th>
                   <th>Mandatory</th>
                   <th class="text-end">Actions</th>
@@ -434,6 +458,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let req of selectedTemplate.proofRequirements; let idx = index">
+                  <td><span class="fw-semibold text-muted">{{ idx + 1 }}</span></td>
                   <td class="fw-bold">{{ req.proofTypeName || req.proofType }}</td>
                   <td>
                     <span class="text-danger fw-semibold" *ngIf="req.isRequired"><i
@@ -449,7 +474,7 @@
                   </td>
                 </tr>
                 <tr *ngIf="!selectedTemplate.proofRequirements || selectedTemplate.proofRequirements.length === 0">
-                  <td colspan="3" class="text-center py-4 text-muted">No proof requirements configured for this template
+                  <td colspan="4" class="text-center py-4 text-muted">No proof requirements configured for this template
                     yet.</td>
                 </tr>
               </tbody>
@@ -462,8 +487,8 @@
       <div *ngIf="activeTab === 'proofTypes'" class="animate_animated animate_fadeIn">
         <!-- Toolbar -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="fw-bold text-emerald-800 mb-0">All Proof Types</h6>
-          <button class="btn btn-emerald btn-sm px-3" (click)="openCreateProofTypeModal()">
+          <h6 class="fw-bold text-primary mb-0">All Proof Types</h6>
+          <button class="btn btn-primary btn-sm px-3" (click)="openCreateProofTypeModal()">
             <i class="bi bi-plus-lg me-1"></i> New Proof Type
           </button>
         </div>
@@ -471,8 +496,9 @@
         <!-- Full-width Table -->
         <div class="table-responsive border rounded-3 bg-white shadow-sm">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-emerald text-white">
-              <tr class="table-emerald">
+            <thead class="table-primary text-white">
+              <tr class="table-primary">
+                <th>S.No</th>
                 <th>Proof Type Name</th>
                 <th>Datatype</th>
                 <th>Description</th>
@@ -481,10 +507,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let pt of paginatedProofTypes">
+              <tr *ngFor="let pt of paginatedProofTypes; let idx = index">
+                <td><span class="fw-semibold text-muted">{{ (proofTypeCurrentPage - 1) * proofTypePageSize + idx + 1 }}</span></td>
                 <td class="fw-bold">{{ pt.proofTypeName }}</td>
                 <td>
-                  <span class="badge bg-dark text-emerald-800 border border-emerald-200">{{ pt.fieldType || 'FILE'
+                  <span class="badge bg-dark text-primary border border-primary-subtle">{{ pt.fieldType || 'FILE'
                     }}</span>
                 </td>
                 <td>{{ pt.description || '—' }}</td>
@@ -493,19 +520,19 @@
                     {{ pt.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
-                  <td class="text-end">
-                    <div class="row-actions">
-                      <button class="action-icon-btn" (click)="editProofType(pt)" title="Edit">
-                        <i class="bi bi-pencil-square"></i>
-                      </button>
-                      <button class="action-icon-btn" (click)="deleteProofType(pt.id!)" title="Delete">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </td>
+                <td class="text-end">
+                  <div class="row-actions">
+                    <button class="action-icon-btn" (click)="editProofType(pt)" title="Edit">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="action-icon-btn" (click)="deleteProofType(pt.id!)" title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
               </tr>
               <tr *ngIf="proofTypeList.length === 0">
-                <td colspan="5" class="text-center py-4 text-muted">No proof types yet. Click <strong>New Proof
+                <td colspan="6" class="text-center py-4 text-muted">No proof types yet. Click <strong>New Proof
                     Type</strong> to create one.</td>
               </tr>
             </tbody>
@@ -516,29 +543,37 @@
         <div class="stitch-pagination" *ngIf="proofTypeList.length > 0">
           <div class="stitch-pag-left">
             <span>Rows per page:</span>
-            <select class="stitch-pag-size-selector" [(ngModel)]="proofTypePageSize" (change)="proofTypeCurrentPage = 1">
+            <select class="stitch-pag-size-selector" [(ngModel)]="proofTypePageSize"
+              (change)="proofTypeCurrentPage = 1">
               <option [value]="5">5</option>
               <option [value]="10">10</option>
               <option [value]="20">20</option>
             </select>
             <span class="stitch-pag-label">
-              {{ (proofTypeCurrentPage - 1) * proofTypePageSize + 1 }}-{{ proofTypeCurrentPage * proofTypePageSize > proofTypeList.length ? proofTypeList.length : proofTypeCurrentPage * proofTypePageSize }} of {{ proofTypeList.length }} proof types
+              {{ (proofTypeCurrentPage - 1) * proofTypePageSize + 1 }}-{{ proofTypeCurrentPage * proofTypePageSize >
+              proofTypeList.length ? proofTypeList.length : proofTypeCurrentPage * proofTypePageSize }} of {{
+              proofTypeList.length }} proof types
             </span>
           </div>
           <div class="stitch-pag-controls">
-            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === 1" (click)="changeProofTypePage(1)" title="First Page">
+            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === 1" (click)="changeProofTypePage(1)"
+              title="First Page">
               <i class="bi bi-chevron-double-left"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === 1" (click)="changeProofTypePage(proofTypeCurrentPage - 1)" title="Previous Page">
+            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === 1"
+              (click)="changeProofTypePage(proofTypeCurrentPage - 1)" title="Previous Page">
               <i class="bi bi-chevron-left"></i>
             </button>
-            <button *ngFor="let page of proofTypePageNumbers" class="stitch-pag-btn" [class.active]="proofTypeCurrentPage === page" (click)="changeProofTypePage(page)">
+            <button *ngFor="let page of proofTypePageNumbers" class="stitch-pag-btn"
+              [class.active]="proofTypeCurrentPage === page" (click)="changeProofTypePage(page)">
               {{ page }}
             </button>
-            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === proofTypeTotalPages" (click)="changeProofTypePage(proofTypeCurrentPage + 1)" title="Next Page">
+            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === proofTypeTotalPages"
+              (click)="changeProofTypePage(proofTypeCurrentPage + 1)" title="Next Page">
               <i class="bi bi-chevron-right"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === proofTypeTotalPages" (click)="changeProofTypePage(proofTypeTotalPages)" title="Last Page">
+            <button class="stitch-pag-btn" [disabled]="proofTypeCurrentPage === proofTypeTotalPages"
+              (click)="changeProofTypePage(proofTypeTotalPages)" title="Last Page">
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </div>
@@ -549,7 +584,7 @@
       <div *ngIf="showProofTypeModal" class="modal-backdrop-custom" (click)="resetProofTypeForm()">
         <div class="modal-dialog-custom card border-0 rounded-4 shadow-lg p-4" (click)="$event.stopPropagation()">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-emerald-800 mb-0">
+            <h5 class="fw-bold text-primary mb-0">
               <i class="bi bi-shield-check me-2"></i>
               {{ isEditingProofType ? 'Edit Proof Type' : 'Create New Proof Type' }}
             </h5>
@@ -580,11 +615,11 @@
             <div class="form-check mb-4">
               <input type="checkbox" class="form-check-input custom-checkbox" id="ptActive"
                 formControlName="isActive" />
-              <label class="form-check-label text-emerald-700" for="ptActive">Proof Type Active</label>
+              <label class="form-check-label text-primary" for="ptActive">Proof Type Active</label>
             </div>
             <div class="d-flex gap-2 justify-content-end">
               <button type="button" class="btn btn-outline-secondary" (click)="resetProofTypeForm()">Cancel</button>
-              <button type="submit" class="btn btn-emerald px-4" [disabled]="proofTypeForm.invalid">
+              <button type="submit" class="btn btn-primary px-4" [disabled]="proofTypeForm.invalid">
                 {{ isEditingProofType ? 'Save Changes' : 'Create Proof Type' }}
               </button>
             </div>

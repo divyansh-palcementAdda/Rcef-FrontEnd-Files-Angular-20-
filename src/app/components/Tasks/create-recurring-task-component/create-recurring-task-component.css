@@ -6,8 +6,8 @@
   box-shadow: 0 20px 70px rgba(0,0,0,0.18);
 }
 
-.modal-header.bg-gradient-emerald {
-  background: linear-gradient(135deg, #10b981, #34d399) !important;
+.modal-header.bg-gradient-indigo {
+  background: linear-gradient(135deg, var(--primary-color), #818cf8) !important;
 }
 
 .btn-close-white {
@@ -46,7 +46,7 @@
 }
 
 .field-hint strong {
-  color:  #10b981;
+  color:  var(--primary-color);
 }
 
 /* Make sure dark mode modal looks good */
@@ -64,17 +64,17 @@
 }
 
 .accordion-button:not(.collapsed) {
-  background: linear-gradient(135deg, #10b981, #34d399);
+  background: linear-gradient(135deg, var(--primary-color), #818cf8);
   color: white;
 }
 
 .accordion-button:focus {
-  box-shadow: 0 0 0 0.25rem rgba(52, 211, 153, 0.25);
-  border-color:  #34d399;
+  box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+  border-color:  #818cf8;
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #10b981, #34d399);
+  background: linear-gradient(135deg, var(--primary-color), #818cf8);
   color: white;
   border-bottom: none;
   padding: 1.5rem 2rem;
@@ -87,7 +87,7 @@
 
 .modal-body {
   padding: 1.75rem 2rem;
-  background:  #f8fafc;
+  background:  var(--bg-color);
 }
 
 .modal-footer {
@@ -104,8 +104,8 @@
 
 .modal .form-control:focus,
 .modal .form-select:focus {
-  border-color: #34d399;
-  box-shadow: 0 0 0 0.25rem rgba(52, 211, 153, 0.25);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
   outline: none;
 }
 
@@ -125,21 +125,21 @@ input[type="number"]::-webkit-outer-spin-button {
 /* ====================== GENERAL STYLES ====================== */
 
 .table_head {
-  background: linear-gradient(135deg, #1e3a8a 0%, #10b981 50%, #34d399 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
   border-radius: 1.5rem 1.5rem 0 0;
   padding: 2.5rem 1.5rem;
   color: white;
 }
 
 .card {
-  border: none;
+  border: 1px solid var(--border-color);
   overflow: hidden;
-  background:  #f8fafc;
-  color: #1e293b;
+  background: var(--card-bg);
+  color: var(--text-main);
 }
 
 .card-body {
-  background: linear-gradient(to bottom, #f8fafc, #ffffff);
+  background: var(--card-bg);
   border-radius: 0 0 1.5rem 1.5rem;
 }
 
@@ -159,8 +159,8 @@ textarea.form-control {
 .form-control:focus,
 .form-select:focus,
 textarea.form-control:focus {
-  border-color:  #34d399;
-  box-shadow: 0 0 0 0.25rem rgba(52, 211, 153, 0.2);
+  border-color:  var(--primary-color);
+  box-shadow: 0 0 0 0.25rem var(--primary-subtle);
   outline: none;
 }
 
@@ -200,8 +200,8 @@ textarea.form-control:focus {
 }
 
 .custom-checkbox:checked {
-  background: linear-gradient(135deg, #10b981,  #34d399);
-  border-color: #10b981;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .custom-checkbox:checked::after {
@@ -228,7 +228,7 @@ textarea.form-control:focus {
 
 /* Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, #10b981,  #34d399);
+  background: var(--primary-color);
   border: none;
   font-weight: 600;
   border-radius: 0.75rem;
@@ -238,9 +238,9 @@ textarea.form-control:focus {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669, #10b981);
+  background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -264,7 +264,7 @@ textarea.form-control:focus {
   max-height: 240px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #34d399 #e2e8f0;
+  scrollbar-color: var(--primary-color) var(--border-color);
 }
 
 .department-list::-webkit-scrollbar,
@@ -280,19 +280,19 @@ textarea.form-control:focus {
 
 .department-list::-webkit-scrollbar-thumb,
 .max-h-48::-webkit-scrollbar-thumb {
-  background: #34d399;
+  background: var(--primary-color);
   border-radius: 3px;
 }
 
 .department-list::-webkit-scrollbar-thumb:hover,
 .max-h-48::-webkit-scrollbar-thumb:hover {
-  background:  #10b981;
+  background:  var(--primary-hover);
 }
 
 /* Department wrapper */
 .department-wrapper {
-  background:  #f8fafc;
-  border: 1px solid  #e2e8f0;
+  background:  var(--bg-color);
+  border: 1px solid  var(--border-color);
 }
 
 /* HOD highlight */
@@ -432,4 +432,21 @@ textarea.form-control:focus {
     box-shadow: none;
     border: 1px solid #ddd;
   }
+}
+
+/* Project Theme Helper Classes */
+.bg-indigo-subtle {
+  background-color: var(--primary-subtle) !important;
+}
+
+.text-indigo {
+  color: var(--primary-color) !important;
+}
+
+.text-indigo-dark {
+  color: var(--primary-hover) !important;
+}
+
+.bg-indigo-light {
+  background-color: var(--primary-subtle) !important;
 }

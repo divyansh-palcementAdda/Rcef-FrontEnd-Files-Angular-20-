@@ -78,6 +78,15 @@
   background-color: var(--primary-subtle) !important;
 }
 
+.nav-link.active-parent {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+.nav-link.active-parent i {
+  color: var(--primary-color) !important;
+}
+
 .nav-link i {
   transition: transform 0.2s ease;
 }
