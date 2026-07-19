@@ -111,15 +111,8 @@
 .modal-backdrop-custom {
   position: fixed;
   inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1050;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  animation: fadeInBackdrop 0.15s ease;
 }
 
 @keyframes fadeInBackdrop {

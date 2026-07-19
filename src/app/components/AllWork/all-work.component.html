@@ -61,131 +61,280 @@
 
   <!-- 3. Sub Department List & Table View (All Roles Except Teacher) -->
   <div class="main-content-section" *ngIf="role !== 'TEACHER'">
-    <div class="table-header-actions">
-      <div class="search-box-wrapper">
-        <i class="bi bi-search search-icon"></i>
-        <input 
-          type="text" 
-          placeholder="Search sub departments by name or code..." 
-          [(ngModel)]="subDeptSearch"
-          (input)="onSubDeptSearchChange()"
-          class="form-control search-input" />
-      </div>
-
-      <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
-        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="bi bi-download me-1"></i> Export Data
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-          <li><a class="dropdown-item" (click)="exportSubDepartments('EXCEL')"><i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Export Excel</a></li>
-          <li><a class="dropdown-item" (click)="exportSubDepartments('CSV')"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Sub Departments Grid Table -->
-    <div class="table-container shadow-sm rounded-3 bg-white mt-3">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>Sub Department</th>
-            <th>Total Users</th>
-            <th>Subjects</th>
-            <th>Assigned Tasks</th>
-            <th class="text-center">Task Statuses (P / I / C / D)</th>
-            <th>Completion Rate</th>
-            <th>Last Activity</th>
-            <th class="text-end">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr 
-            *ngFor="let sd of subDepartments"
-            (click)="navigateToEntity('sub-department', sd.id, $event)"
-            (keydown.enter)="navigateToEntity('sub-department', sd.id, $event)"
-            (keydown.space)="navigateToEntity('sub-department', sd.id, $event); $event.preventDefault()"
-            tabindex="0"
-            class="clickable-row">
-            <td>
-              <div class="fw-bold text-dark">{{ sd.name }}</div>
-              <small class="text-muted">{{ sd.departmentName }}</small>
-            </td>
-            <td>
-              <span class="badge bg-light text-dark border">{{ sd.totalUsers }} Users</span>
-            </td>
-            <td>
-              <span class="badge bg-light text-dark border">{{ sd.totalSubjects }} Subjects</span>
-            </td>
-            <td>
-              <div class="fw-bold">{{ sd.totalAssignedTasks }} Tasks</div>
-            </td>
-            <td class="text-center">
-              <div class="status-indicator-bar">
-                <span class="indicator-badge bg-warning-subtle text-warning-emphasis" title="Pending">{{ sd.pending }}</span>
-                <span class="indicator-badge bg-info-subtle text-info-emphasis" title="In Progress">{{ sd.inProgress }}</span>
-                <span class="indicator-badge bg-success-subtle text-success-emphasis" title="Completed">{{ sd.completed }}</span>
-                <span class="indicator-badge bg-danger-subtle text-danger-emphasis" title="Delayed">{{ sd.delayed }}</span>
-              </div>
-            </td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress w-100" style="height: 6px;">
-                  <div class="progress-bar bg-success" role="progressbar" [style.width.%]="sd.completionPercentage"></div>
-                </div>
-                <span class="small fw-bold">{{ sd.completionPercentage | number:'1.0-1' }}%</span>
-              </div>
-            </td>
-            <td>
-              <small class="text-secondary" *ngIf="sd.lastActivity">
-                {{ sd.lastActivity | date:'mediumDate' }}<br>
-                {{ sd.lastActivity | date:'shortTime' }}
-              </small>
-              <small class="text-muted" *ngIf="!sd.lastActivity">-</small>
-            </td>
-            <td class="text-end">
-              <div class="btn-group gap-1">
-                <button class="btn btn-sm btn-outline-secondary" *ngIf="dashboardData?.canViewUsers" (click)="openUsers(sd)" title="View Users">
-                  <i class="bi bi-people"></i> Users
-                </button>
-                <button class="btn btn-sm btn-outline-primary" *ngIf="dashboardData?.canViewTasks" (click)="openTasks(sd)" title="View Tasks">
-                  <i class="bi bi-list-check"></i> Tasks
-                </button>
-                <button class="btn btn-sm btn-outline-info" *ngIf="dashboardData?.canOpenAnalytics" (click)="openSubDeptAnalytics(sd)" title="Analytics">
-                  <i class="bi bi-bar-chart"></i> Metrics
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts">
-            <td colspan="8" class="text-center py-5">
-              <i class="bi bi-inbox text-muted display-4"></i>
-              <p class="mt-2 text-secondary">No sub departments found matching search criteria.</p>
-            </td>
-          </tr>
-          <tr *ngIf="loadingSubDepts">
-            <td colspan="8" class="text-center py-5">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-2 text-secondary">Loading sub departments...</p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Pagination -->
-      <div class="d-flex justify-content-between align-items-center p-3 border-top" *ngIf="totalSubDepts > subDeptSize">
-        <span class="text-muted small">Showing page {{ subDeptPage + 1 }} of {{ Math.ceil(totalSubDepts / subDeptSize) }}</span>
-        <div class="btn-group">
-          <button class="btn btn-sm btn-outline-secondary" [disabled]="subDeptPage === 0" (click)="changeSubDeptPage(-1)">
-            Previous
-          </button>
-          <button class="btn btn-sm btn-outline-secondary" [disabled]="(subDeptPage + 1) * subDeptSize >= totalSubDepts" (click)="changeSubDeptPage(1)">
-            Next
+    <!-- HOD Empty State -->
+    <div class="empty-state-container" *ngIf="role === 'HOD' && subDepartments.length === 0 && !loadingSubDepts">
+      <div class="empty-state-card">
+        <div class="empty-state-icon">
+          <i class="bi bi-building-exclamation"></i>
+        </div>
+        <h3 class="empty-state-title">No Sub-Departments Assigned</h3>
+        <p class="empty-state-description">
+          You are not currently mapped to any sub-departments. Please contact your administrator to assign sub-departments to your profile.
+        </p>
+        <div class="empty-state-actions">
+          <button class="btn btn-primary" (click)="loadSubDepartments()">
+            <i class="bi bi-arrow-clockwise me-2"></i> Refresh
           </button>
         </div>
       </div>
     </div>
+
+    <!-- Regular Table View (Admin/Sub-Admin or HOD with data) -->
+    <ng-container *ngIf="role !== 'HOD' || subDepartments.length > 0 || loadingSubDepts">
+      <div class="table-header-actions">
+        <div class="search-box-wrapper">
+          <i class="bi bi-search search-icon"></i>
+          <input 
+            type="text" 
+            placeholder="Search sub departments by name or code..." 
+            [(ngModel)]="subDeptSearch"
+            (input)="onSubDeptSearchChange()"
+            class="form-control search-input" />
+        </div>
+
+        <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
+          <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-download me-1"></i> Export Data
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+            <li><a class="dropdown-item" (click)="exportSubDepartments('EXCEL')"><i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Export Excel</a></li>
+            <li><a class="dropdown-item" (click)="exportSubDepartments('CSV')"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Sub Departments Grid Table -->
+      <div class="table-container shadow-sm rounded-3 bg-white mt-3">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-head-sticky">
+            <tr>
+              <th class="sortable-th" (click)="sortSubDeptBy('name')">
+                <div class="th-inner">
+                  Sub Department
+                  <i class="bi ms-1" [ngClass]="getSortIcon('name')"></i>
+                </div>
+              </th>
+              <th class="sortable-th" (click)="sortSubDeptBy('totalUsers')">
+                <div class="th-inner">
+                  Total Users
+                  <i class="bi ms-1" [ngClass]="getSortIcon('totalUsers')"></i>
+                </div>
+              </th>
+              <th class="sortable-th" (click)="sortSubDeptBy('totalSubjects')">
+                <div class="th-inner">
+                  Subjects
+                  <i class="bi ms-1" [ngClass]="getSortIcon('totalSubjects')"></i>
+                </div>
+              </th>
+              <th class="sortable-th" (click)="sortSubDeptBy('totalAssignedTasks')">
+                <div class="th-inner">
+                  Assigned Tasks
+                  <i class="bi ms-1" [ngClass]="getSortIcon('totalAssignedTasks')"></i>
+                </div>
+              </th>
+              <th class="text-center">
+                <div class="th-inner justify-content-center">
+                  Task Statuses
+                  <span class="th-hint ms-1">(P / I / C / D)</span>
+                </div>
+              </th>
+              <th class="sortable-th" (click)="sortSubDeptBy('completionPercentage')">
+                <div class="th-inner">
+                  Completion Rate
+                  <i class="bi ms-1" [ngClass]="getSortIcon('completionPercentage')"></i>
+                </div>
+              </th>
+              <th class="sortable-th" (click)="sortSubDeptBy('lastActivity')">
+                <div class="th-inner">
+                  Last Activity
+                  <i class="bi ms-1" [ngClass]="getSortIcon('lastActivity')"></i>
+                </div>
+              </th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Skeleton loader rows -->
+            <ng-container *ngIf="loadingSubDepts">
+              <tr *ngFor="let _ of [1,2,3,4,5]" class="skeleton-row">
+                <td><div class="skeleton-line w-60"></div><div class="skeleton-line w-40 mt-1"></div></td>
+                <td><div class="skeleton-chip"></div></td>
+                <td><div class="skeleton-chip"></div></td>
+                <td><div class="skeleton-line w-40"></div></td>
+                <td><div class="skeleton-badges"></div></td>
+                <td><div class="skeleton-progress"></div></td>
+                <td><div class="skeleton-line w-50"></div></td>
+                <td><div class="skeleton-actions"></div></td>
+              </tr>
+            </ng-container>
+
+            <ng-container *ngIf="!loadingSubDepts">
+            <tr 
+              *ngFor="let sd of subDepartments; let i = index"
+              (click)="navigateToEntity('sub-department', sd.id, $event)"
+              (keydown.enter)="navigateToEntity('sub-department', sd.id, $event)"
+              (keydown.space)="navigateToEntity('sub-department', sd.id, $event); $event.preventDefault()"
+              tabindex="0"
+              class="clickable-row">
+              <td [attr.data-label]="'Sub Department'">
+                <div class="sd-name-cell">
+                  <div class="sd-avatar">{{ sd.name.charAt(0).toUpperCase() }}</div>
+                  <div>
+                    <div class="fw-semibold text-dark lh-sm">{{ sd.name }}</div>
+                    <small class="text-muted">{{ sd.departmentName }}</small>
+                  </div>
+                </div>
+              </td>
+              <td [attr.data-label]="'Total Users'">
+                <div class="metric-chip metric-chip--blue">
+                  <i class="bi bi-people-fill"></i>
+                  {{ sd.totalUsers }}
+                </div>
+              </td>
+              <td [attr.data-label]="'Subjects'">
+                <div class="metric-chip metric-chip--violet">
+                  <i class="bi bi-book-fill"></i>
+                  {{ sd.totalSubjects }}
+                </div>
+              </td>
+              <td [attr.data-label]="'Assigned Tasks'">
+                <span class="fw-bold text-dark">{{ sd.totalAssignedTasks }}</span>
+                <small class="text-muted d-block">tasks</small>
+              </td>
+              <td class="text-center" [attr.data-label]="'Task Statuses'">
+                <div class="status-pills">
+                  <span class="status-pill status-pill--pending" title="Pending">
+                    <span class="status-dot"></span>{{ sd.pending }}
+                  </span>
+                  <span class="status-pill status-pill--inprogress" title="In Progress">
+                    <span class="status-dot"></span>{{ sd.inProgress }}
+                  </span>
+                  <span class="status-pill status-pill--completed" title="Completed">
+                    <span class="status-dot"></span>{{ sd.completed }}
+                  </span>
+                  <span class="status-pill status-pill--delayed" title="Delayed">
+                    <span class="status-dot"></span>{{ sd.delayed }}
+                  </span>
+                </div>
+              </td>
+              <td [attr.data-label]="'Completion Rate'">
+                <div class="completion-cell">
+                  <div class="completion-bar-track">
+                    <div 
+                      class="completion-bar-fill" 
+                      [style.width.%]="sd.completionPercentage > 100 ? 100 : sd.completionPercentage"
+                      [class.completion-bar-fill--low]="sd.completionPercentage < 30"
+                      [class.completion-bar-fill--mid]="sd.completionPercentage >= 30 && sd.completionPercentage < 70"
+                      [class.completion-bar-fill--high]="sd.completionPercentage >= 70">
+                    </div>
+                  </div>
+                  <span class="completion-pct" 
+                    [class.text-danger]="sd.completionPercentage < 30"
+                    [class.text-warning]="sd.completionPercentage >= 30 && sd.completionPercentage < 70"
+                    [class.text-success]="sd.completionPercentage >= 70">
+                    {{ sd.completionPercentage | number:'1.0-1' }}%
+                  </span>
+                </div>
+              </td>
+              <td [attr.data-label]="'Last Activity'">
+                <ng-container *ngIf="sd.lastActivity; else noActivity">
+                  <div class="activity-cell">
+                    <i class="bi bi-clock text-muted me-1" style="font-size:0.75rem;"></i>
+                    <div>
+                      <div class="small fw-semibold text-dark">{{ sd.lastActivity | date:'d MMM y' }}</div>
+                      <small class="text-muted">{{ sd.lastActivity | date:'shortTime' }}</small>
+                    </div>
+                  </div>
+                </ng-container>
+                <ng-template #noActivity>
+                  <span class="text-muted small">—</span>
+                </ng-template>
+              </td>
+              <td class="text-end" [attr.data-label]="'Actions'">
+                <div class="row-actions">
+                  <button 
+                    class="action-btn action-btn--users" 
+                    *ngIf="dashboardData?.canViewUsers" 
+                    (click)="openUsers(sd)" 
+                    title="View Users"
+                    data-testid="btn-users">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Users</span>
+                  </button>
+                  <button 
+                    class="action-btn action-btn--tasks" 
+                    *ngIf="dashboardData?.canViewTasks" 
+                    (click)="openTasks(sd)" 
+                    title="View Tasks"
+                    data-testid="btn-tasks">
+                    <i class="bi bi-list-check"></i>
+                    <span>Tasks</span>
+                  </button>
+                  <button 
+                    class="action-btn action-btn--metrics" 
+                    *ngIf="dashboardData?.canOpenAnalytics" 
+                    (click)="openSubDeptAnalytics(sd)" 
+                    title="Analytics"
+                    data-testid="btn-analytics">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Metrics</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            </ng-container>
+
+            <!-- Empty state -->
+            <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role !== 'HOD'">
+              <td colspan="8" class="empty-state-row">
+                <div class="empty-inline">
+                  <div class="empty-inline-icon"><i class="bi bi-building"></i></div>
+                  <div class="empty-inline-title">No Sub Departments Found</div>
+                  <div class="empty-inline-sub">Try adjusting your search or select a different department.</div>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role === 'HOD'">
+              <td colspan="8" class="empty-state-row">
+                <div class="empty-inline">
+                  <div class="empty-inline-icon"><i class="bi bi-person-x"></i></div>
+                  <div class="empty-inline-title">No Sub Departments Assigned</div>
+                  <div class="empty-inline-sub">You have not been assigned to any Sub Departments yet. Please contact your administrator.</div>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="subDeptError">
+              <td colspan="8" class="empty-state-row">
+                <div class="empty-inline">
+                  <div class="empty-inline-icon text-danger"><i class="bi bi-exclamation-triangle"></i></div>
+                  <div class="empty-inline-title">Failed to Load</div>
+                  <div class="empty-inline-sub">Something went wrong while fetching sub departments.</div>
+                  <button class="btn btn-sm btn-outline-primary mt-2" (click)="loadSubDepartments()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Retry
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="table-pagination" *ngIf="totalSubDepts > 0">
+          <span class="pagination-info">
+            Showing <strong>{{ subDeptPage * subDeptSize + 1 }}–{{ Math.min((subDeptPage + 1) * subDeptSize, totalSubDepts) }}</strong> of <strong>{{ totalSubDepts }}</strong>
+          </span>
+          <div class="pagination-controls">
+            <button class="pag-btn" [disabled]="subDeptPage === 0" (click)="changeSubDeptPage(-1)">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="pag-current">{{ subDeptPage + 1 }} / {{ Math.ceil(totalSubDepts / subDeptSize) }}</span>
+            <button class="pag-btn" [disabled]="(subDeptPage + 1) * subDeptSize >= totalSubDepts" (click)="changeSubDeptPage(1)">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
   </div>
 
   <!-- =========================================================================

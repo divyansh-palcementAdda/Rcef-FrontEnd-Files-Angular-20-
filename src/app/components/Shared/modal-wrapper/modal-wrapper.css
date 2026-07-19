@@ -1,39 +1,53 @@
+/*
+ * MODAL WRAPPER — Stacking-safe layout
+ *
+ * Key principle: the dark overlay and the dialog are siblings via
+ * the .modal-backdrop-custom container being a flex centering shell,
+ * with NO backdrop-filter on any ancestor of .modal-content-custom.
+ * backdrop-filter on an ancestor creates a new stacking context and
+ * causes the entire subtree (including the modal panel) to appear blurred.
+ */
+
+/* ── Outer shell: covers viewport, centers the dialog ── */
 .modal-backdrop-custom {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(6px);
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  transition: backdrop-filter 0.2s ease, background-color 0.2s ease;
+  /* Dim overlay on the shell itself — no blur here */
+  background-color: rgba(15, 23, 42, 0.5);
+  /* NO backdrop-filter — it would blur child elements */
 }
 
 .modal-backdrop-custom.backdrop-nested {
-  background-color: rgba(15, 23, 42, 0.15);
-  backdrop-filter: none;
+  background-color: rgba(15, 23, 42, 0.18);
 }
 
+/* ── Dialog panel ── */
 .modal-dialog-custom {
+  position: relative; /* establishes its own stacking context, above overlay */
   width: 100%;
   max-height: 90vh;
   display: flex;
   outline: none;
+  /* Ensure dialog is always above the dim overlay */
+  z-index: 1;
 }
 
-.modal-dialog-custom.modal-sm { max-width: 400px; }
-.modal-dialog-custom.modal-md { max-width: 600px; }
-.modal-dialog-custom.modal-lg { max-width: 900px; }
-.modal-dialog-custom.modal-xl { max-width: 1200px; }
+.modal-dialog-custom.modal-sm  { max-width: 420px;  }
+.modal-dialog-custom.modal-md  { max-width: 640px;  }
+.modal-dialog-custom.modal-lg  { max-width: 920px;  }
+.modal-dialog-custom.modal-xl  { max-width: 1200px; }
 
+/* ── White panel ── */
 .modal-content-custom {
   background-color: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 20px 40px -8px rgba(0, 0, 0, 0.18);
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -41,6 +55,7 @@
   border: 1px solid #e5e7eb;
 }
 
+/* ── Header ── */
 .modal-header-custom {
   padding: 1.25rem 1.5rem;
   border-bottom: 1.5px solid #e5e7eb;
@@ -48,42 +63,84 @@
   justify-content: space-between;
   align-items: center;
   background-color: #f8fafc;
+  flex-shrink: 0;
 }
 
 .modal-title-custom {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
+  line-height: 1.3;
 }
 
 .modal-subtitle-custom {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: #64748b;
-  margin: 0.25rem 0 0 0;
+  margin: 0.2rem 0 0 0;
 }
 
+/* ── Body ── */
 .modal-body-custom {
   padding: 1.5rem;
   overflow-y: auto;
-  max-height: calc(90vh - 80px);
+  flex: 1;
+  max-height: calc(90vh - 76px);
 }
 
+/* When modal is behind another modal, lock its scroll */
 .modal-scrolling-locked .modal-body-custom {
   overflow-y: hidden !important;
 }
 
+/* ── Enter animation ── */
 .animate-fade-in {
-  animation: modalEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: modalEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes modalEnter {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(10px);
+    transform: scale(0.97) translateY(8px);
   }
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 599px) {
+  .modal-backdrop-custom {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-dialog-custom.modal-sm,
+  .modal-dialog-custom.modal-md,
+  .modal-dialog-custom.modal-lg,
+  .modal-dialog-custom.modal-xl {
+    max-width: 100vw;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-content-custom {
+    border-radius: 16px 16px 0 0;
+  }
+
+  .animate-fade-in {
+    animation: modalEnterMobile 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes modalEnterMobile {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

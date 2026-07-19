@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -43,6 +43,11 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   subDeptSize = 10;
   subDeptSort = 'name,asc';
   loadingSubDepts = false;
+  subDeptError = false;
+
+  // Sort tracking for UI indicators
+  subDeptSortField = 'name';
+  subDeptSortDir: 'asc' | 'desc' = 'asc';
 
   // Modal Overlays views stack
   modalStack: string[] = [];
@@ -93,7 +98,8 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     private apiService: AllWorkApiService,
     private jwtService: JwtService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -102,25 +108,76 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     
     this.subscriptions.add(
       this.route.queryParams.subscribe(params => {
+        // Restore state from query parameters (handles browser back navigation)
+        if (params['dept'] !== undefined) this.selectedDeptId = params['dept'] ? parseInt(params['dept'], 10) : null;
+        if (params['subDeptSearch'] !== undefined) this.subDeptSearch = params['subDeptSearch'] || '';
+        if (params['subDeptPage'] !== undefined) this.subDeptPage = parseInt(params['subDeptPage'], 10) || 0;
+        if (params['subDeptSize'] !== undefined) this.subDeptSize = parseInt(params['subDeptSize'], 10) || 10;
+        if (params['subDeptSort'] !== undefined) {
+          this.subDeptSort = params['subDeptSort'] || 'name,asc';
+          const parts = this.subDeptSort.split(',');
+          this.subDeptSortField = parts[0] || 'name';
+          this.subDeptSortDir = (parts[1] === 'desc' ? 'desc' : 'asc') as 'asc' | 'desc';
+        }
+        if (params['userSearch'] !== undefined) this.userSearch = params['userSearch'] || '';
+        if (params['userPage'] !== undefined) this.userPage = parseInt(params['userPage'], 10) || 0;
+        if (params['userSize'] !== undefined) this.userSize = parseInt(params['userSize'], 10) || 10;
+        if (params['userSort'] !== undefined) this.userSort = params['userSort'] || 'fullName,asc';
+        if (params['taskSearch'] !== undefined) this.taskSearch = params['taskSearch'] || '';
+        if (params['taskStatus'] !== undefined) this.taskStatus = params['taskStatus'] || 'ALL';
+        if (params['taskPage'] !== undefined) this.taskPage = parseInt(params['taskPage'], 10) || 0;
+        if (params['taskSize'] !== undefined) this.taskSize = parseInt(params['taskSize'], 10) || 10;
+        if (params['taskSort'] !== undefined) this.taskSort = params['taskSort'] || 'createdAt,desc';
+
+        // Restore modal state
+        const subDeptId = params['subDeptId'];
+        const userId = params['userId'] ? parseInt(params['userId'], 10) : null;
+        const modal = params['modal'];
+
+        if (modal && subDeptId) {
+          this.selectedSubDept = { id: subDeptId } as SubDepartmentRowDTO;
+          if (modal === 'users') {
+            this.modalStack = ['users'];
+            this.loadUsers();
+          } else if (modal === 'tasks') {
+            if (userId) {
+              this.selectedUser = { userId } as UserRowDTO;
+              this.modalStack = ['users', 'tasks'];
+              this.loadUsers();
+            } else {
+              this.selectedUser = null;
+              this.modalStack = ['tasks'];
+            }
+            this.loadTasks();
+          } else if (modal === 'analytics') {
+            if (userId) {
+              this.selectedUser = { userId } as UserRowDTO;
+              this.modalStack = ['users', 'analytics'];
+              this.loadUsers();
+            } else {
+              this.selectedUser = null;
+              this.modalStack = ['analytics'];
+            }
+            this.loadAnalytics();
+          }
+        } else if (!modal) {
+          // No modal in params, close all modals
+          this.closeAllModals();
+        }
+
+        // Load dashboard data on initial load or when department changes
         if (this.isInitialLoad) {
           this.isInitialLoad = false;
-          
-          if (params['dept']) this.selectedDeptId = parseInt(params['dept'], 10);
-          if (params['subDeptSearch']) this.subDeptSearch = params['subDeptSearch'];
-          if (params['subDeptPage']) this.subDeptPage = parseInt(params['subDeptPage'], 10);
-          if (params['subDeptSize']) this.subDeptSize = parseInt(params['subDeptSize'], 10);
-          if (params['subDeptSort']) this.subDeptSort = params['subDeptSort'];
-          if (params['userSearch']) this.userSearch = params['userSearch'];
-          if (params['userPage']) this.userPage = parseInt(params['userPage'], 10);
-          if (params['userSize']) this.userSize = parseInt(params['userSize'], 10);
-          if (params['userSort']) this.userSort = params['userSort'];
-          if (params['taskSearch']) this.taskSearch = params['taskSearch'];
-          if (params['taskStatus']) this.taskStatus = params['taskStatus'];
-          if (params['taskPage']) this.taskPage = parseInt(params['taskPage'], 10);
-          if (params['taskSize']) this.taskSize = parseInt(params['taskSize'], 10);
-          if (params['taskSort']) this.taskSort = params['taskSort'];
-
           this.loadDashboard(params);
+        } else if (this.dashboardData) {
+          // On subsequent navigation (browser back), reload data if needed
+          if (this.role === 'SUPER_ADMIN' || this.role === 'ADMIN' || this.role === 'SUB_ADMIN') {
+            if (this.selectedDeptId !== null) {
+              this.loadSubDepartments();
+            }
+          } else if (this.role === 'HOD') {
+            this.loadSubDepartments();
+          }
         }
       })
     );
@@ -136,9 +193,13 @@ export class AllWorkComponent implements OnInit, OnDestroy {
 
   loadDashboard(params: any = {}): void {
     this.loadingDashboard = true;
+    this.cdr.markForCheck(); // Signal change detection for OnPush
     this.subscriptions.add(
       this.apiService.getDashboardData()
-        .pipe(finalize(() => this.loadingDashboard = false))
+        .pipe(finalize(() => {
+          this.loadingDashboard = false;
+          this.cdr.markForCheck();
+        }))
         .subscribe({
           next: (res) => {
             this.dashboardData = res;
@@ -146,9 +207,8 @@ export class AllWorkComponent implements OnInit, OnDestroy {
             this.departments = res.departments || [];
             
             if (this.role === 'SUPER_ADMIN' || this.role === 'ADMIN' || this.role === 'SUB_ADMIN') {
-              if (params['dept']) {
-                this.selectedDeptId = parseInt(params['dept'], 10);
-              } else if (res.defaultId) {
+              // Only set default department if not already set from query params
+              if (this.selectedDeptId === null && res.defaultId) {
                 this.selectedDeptId = parseInt(res.defaultId, 10);
               }
               this.loadSubDepartments();
@@ -159,54 +219,12 @@ export class AllWorkComponent implements OnInit, OnDestroy {
                 this.openUserTasksDirectly(this.currentUserId);
               }
             }
-
-            // Restore modal state if query parameters specify it
-            if (params['modal']) {
-              const subDeptId = params['subDeptId'];
-              const userId = params['userId'] ? parseInt(params['userId'], 10) : null;
-              
-              if (params['modal'] === 'users' && subDeptId) {
-                this.selectedSubDept = { id: subDeptId } as SubDepartmentRowDTO;
-                this.modalStack = ['users'];
-                this.loadUsers();
-              } else if (params['modal'] === 'tasks') {
-                if (userId) {
-                  this.selectedUser = { userId: userId } as UserRowDTO;
-                  if (subDeptId) {
-                    this.selectedSubDept = { id: subDeptId } as SubDepartmentRowDTO;
-                    this.modalStack = ['users', 'tasks'];
-                    this.loadUsers();
-                  } else {
-                    this.selectedSubDept = null;
-                    this.modalStack = ['tasks'];
-                  }
-                } else if (subDeptId) {
-                  this.selectedSubDept = { id: subDeptId } as SubDepartmentRowDTO;
-                  this.selectedUser = null;
-                  this.modalStack = ['tasks'];
-                }
-                this.loadTasks();
-              } else if (params['modal'] === 'analytics') {
-                if (userId) {
-                  this.selectedUser = { userId: userId } as UserRowDTO;
-                  if (subDeptId) {
-                    this.selectedSubDept = { id: subDeptId } as SubDepartmentRowDTO;
-                    this.modalStack = ['users', 'analytics'];
-                    this.loadUsers();
-                  } else {
-                    this.selectedSubDept = null;
-                    this.modalStack = ['analytics'];
-                  }
-                } else if (subDeptId) {
-                  this.selectedSubDept = { id: subDeptId } as SubDepartmentRowDTO;
-                  this.selectedUser = null;
-                  this.modalStack = ['analytics'];
-                }
-                this.loadAnalytics();
-              }
-            }
+            this.cdr.markForCheck();
           },
-          error: (err) => console.error('Failed to load work dashboard data', err)
+          error: (err) => {
+            console.error('Failed to load work dashboard data', err);
+            this.cdr.markForCheck();
+          }
         })
     );
   }
@@ -295,19 +313,29 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   loadSubDepartments(): void {
     if (this.role !== 'HOD' && this.selectedDeptId === null) return;
     this.loadingSubDepts = true;
+    this.subDeptError = false;
+    this.cdr.markForCheck();
     
     // Passing selectedDeptId or 0 if HOD (backend visibility filters will handle HOD subdepartments automatically)
     const deptId = this.selectedDeptId || 0;
 
     this.subscriptions.add(
       this.apiService.getSubDepartments(deptId, this.subDeptSearch, this.subDeptPage, this.subDeptSize, this.subDeptSort)
-        .pipe(finalize(() => this.loadingSubDepts = false))
+        .pipe(finalize(() => {
+          this.loadingSubDepts = false;
+          this.cdr.markForCheck();
+        }))
         .subscribe({
           next: (res) => {
             this.subDepartments = res.content || [];
             this.totalSubDepts = res.totalElements || 0;
+            this.cdr.markForCheck();
           },
-          error: (err) => console.error('Failed to load subdepartments', err)
+          error: (err) => {
+            console.error('Failed to load subdepartments', err);
+            this.subDeptError = true;
+            this.cdr.markForCheck();
+          }
         })
     );
   }
@@ -322,6 +350,24 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     this.subDeptPage += delta;
     this.updateQueryParams();
     this.loadSubDepartments();
+  }
+
+  sortSubDeptBy(field: string): void {
+    if (this.subDeptSortField === field) {
+      this.subDeptSortDir = this.subDeptSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.subDeptSortField = field;
+      this.subDeptSortDir = 'asc';
+    }
+    this.subDeptSort = `${this.subDeptSortField},${this.subDeptSortDir}`;
+    this.subDeptPage = 0;
+    this.updateQueryParams();
+    this.loadSubDepartments();
+  }
+
+  getSortIcon(field: string): string {
+    if (this.subDeptSortField !== field) return 'bi-arrow-down-up text-muted opacity-50';
+    return this.subDeptSortDir === 'asc' ? 'bi-sort-up text-primary' : 'bi-sort-down text-primary';
   }
 
   // =========================================================================
@@ -340,15 +386,23 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   loadUsers(): void {
     if (!this.selectedSubDept) return;
     this.loadingUsers = true;
+    this.cdr.markForCheck();
     this.subscriptions.add(
       this.apiService.getSubDepartmentUsers(this.selectedSubDept.id, this.userSearch, this.userPage, this.userSize, this.userSort)
-        .pipe(finalize(() => this.loadingUsers = false))
+        .pipe(finalize(() => {
+          this.loadingUsers = false;
+          this.cdr.markForCheck();
+        }))
         .subscribe({
           next: (res) => {
             this.users = res.content || [];
             this.totalUsers = res.totalElements || 0;
+            this.cdr.markForCheck();
           },
-          error: (err) => console.error('Failed to load subdepartment users', err)
+          error: (err) => {
+            console.error('Failed to load subdepartment users', err);
+            this.cdr.markForCheck();
+          }
         })
     );
   }
@@ -381,6 +435,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     this.taskStatus = 'ALL';
     this.modalStack = ['tasks'];
     this.updateQueryParams();
+    this.cdr.detectChanges(); // Force immediate rendering
     this.loadTasks();
   }
 
@@ -398,6 +453,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
       this.modalStack = ['tasks'];
     }
     this.updateQueryParams();
+    this.cdr.detectChanges(); // Force immediate rendering
     this.loadTasks();
   }
 
@@ -409,11 +465,13 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     this.taskStatus = 'ALL';
     this.modalStack = ['tasks'];
     this.updateQueryParams();
+    this.cdr.detectChanges(); // Force immediate rendering
     this.loadTasks();
   }
 
   loadTasks(): void {
     this.loadingTasks = true;
+    this.cdr.markForCheck();
     let obs$;
     
     if (this.selectedUser) {
@@ -422,17 +480,25 @@ export class AllWorkComponent implements OnInit, OnDestroy {
       obs$ = this.apiService.getSubDepartmentTasks(this.selectedSubDept.id, this.taskSearch, this.taskStatus, this.taskPage, this.taskSize, this.taskSort);
     } else {
       this.loadingTasks = false;
+      this.cdr.markForCheck();
       return;
     }
 
     this.subscriptions.add(
-      obs$.pipe(finalize(() => this.loadingTasks = false))
+      obs$.pipe(finalize(() => {
+        this.loadingTasks = false;
+        this.cdr.markForCheck();
+      }))
         .subscribe({
           next: (res) => {
             this.tasks = res.content || [];
             this.totalTasks = res.totalElements || 0;
+            this.cdr.markForCheck();
           },
-          error: (err) => console.error('Failed to load tasks', err)
+          error: (err) => {
+            console.error('Failed to load tasks', err);
+            this.cdr.markForCheck();
+          }
         })
     );
   }
@@ -469,6 +535,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     this.selectedUser = null;
     this.modalStack = ['analytics'];
     this.updateQueryParams();
+    this.cdr.detectChanges(); // Force immediate rendering
     this.loadAnalytics();
   }
 
@@ -483,11 +550,13 @@ export class AllWorkComponent implements OnInit, OnDestroy {
       this.modalStack = ['analytics'];
     }
     this.updateQueryParams();
+    this.cdr.detectChanges(); // Force immediate rendering
     this.loadAnalytics();
   }
 
   loadAnalytics(): void {
     this.loadingAnalytics = true;
+    this.cdr.markForCheck();
     let obs$;
     
     if (this.selectedUser) {
@@ -496,16 +565,24 @@ export class AllWorkComponent implements OnInit, OnDestroy {
       obs$ = this.apiService.getSubDepartmentAnalytics(this.selectedSubDept.id);
     } else {
       this.loadingAnalytics = false;
+      this.cdr.markForCheck();
       return;
     }
 
     this.subscriptions.add(
-      obs$.pipe(finalize(() => this.loadingAnalytics = false))
+      obs$.pipe(finalize(() => {
+        this.loadingAnalytics = false;
+        this.cdr.markForCheck();
+      }))
         .subscribe({
           next: (res) => {
             this.analytics = res;
+            this.cdr.markForCheck();
           },
-          error: (err) => console.error('Failed to load analytics data', err)
+          error: (err) => {
+            console.error('Failed to load analytics data', err);
+            this.cdr.markForCheck();
+          }
         })
     );
   }
@@ -534,6 +611,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
         this.analytics = null;
       }
       this.updateQueryParams();
+      this.cdr.detectChanges(); // Force immediate rendering for nested modal
     } else {
       this.closeAllModals();
     }

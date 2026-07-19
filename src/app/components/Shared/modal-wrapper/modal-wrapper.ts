@@ -28,11 +28,11 @@ export class ModalWrapperComponent implements OnInit, OnDestroy {
     this.modalService.register(this);
     
     // Set focus to the modal dialog for keyboard interaction & focus trap
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       if (this.modalDialog) {
         this.modalDialog.nativeElement.focus();
       }
-    }, 50);
+    });
   }
 
   ngOnDestroy(): void {
