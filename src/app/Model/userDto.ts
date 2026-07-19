@@ -19,6 +19,9 @@ export interface userDto {
   subDepartmentNames?: string[];
   permissions?: string[];
 
+  createdAt?: string;
+  updatedAt?: string;
+
 
   // Task counters
   pendingTasks: number;    // count of pending tasks

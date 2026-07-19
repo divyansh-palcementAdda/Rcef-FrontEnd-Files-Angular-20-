@@ -18,16 +18,14 @@ import { ModalService } from '../../../Services/modal-service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { ToastService } from '../../../Services/ToastData';
 import { EditUser } from '../edit-user/edit-user';
-import { FilterDrawerComponent, FilterFieldConfig } from '../../Shared/filter-drawer/filter-drawer.component';
-import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
-import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.component';
+import { FilterFieldConfig } from '../../Shared/filter-drawer/filter-drawer.component';
 import { UsersImportComponent } from '../users-import/users-import';
 
 @Component({
   selector: 'app-view-all-users',
   templateUrl: './view-all-userss.html',
   styleUrls: ['./view-all-userss.css'],
-  imports: [CommonModule, FormsModule, EditUser, FilterDrawerComponent, AnalyticsStatCardComponent, PageToolbarComponent, UsersImportComponent]
+  imports: [CommonModule, FormsModule, EditUser, UsersImportComponent]
 })
 export class ViewAllUserss implements OnInit {
 
@@ -206,7 +204,7 @@ export class ViewAllUserss implements OnInit {
       debounceTime(400), distinctUntilChanged()
     ).subscribe(() => {
       this.currentPage = 1;
-      this.loadUsersForRole();
+      this.updateQueryParams();
     });
 
     // ── Debounced search streams for Add User modal dropdowns ──
@@ -229,8 +227,19 @@ export class ViewAllUserss implements OnInit {
       )
       .subscribe(params => {
         if (this.showAccessDeniedModal) return; // Teacher blocked — skip data load
-        const status = params['status'];
-        this.statusFilter = status ? status.toUpperCase() : '';
+        
+        this.currentPage = params['page'] ? Number(params['page']) : 1;
+        this.pageSize = params['pageSize'] ? Number(params['pageSize']) : 10;
+        this.sortBy = params['sortBy'] || 'fullName';
+        this.sortDirection = params['sortDirection'] || 'asc';
+        this.searchTerm = params['search'] || '';
+        this.roleFilter = params['role'] || '';
+        this.departmentIdFilter = params['department'] ? Number(params['department']) : '';
+        this.subDepartmentIdFilter = params['subDepartment'] || '';
+        this.subjectIdFilter = params['subject'] ? Number(params['subject']) : '';
+        this.statusFilter = params['status'] ? params['status'].toUpperCase() : '';
+        this.selectedCard = params['card'] || 'total';
+
         this.loadDropdownOptions();
         this.loadUsersForRole();
       });
@@ -422,7 +431,7 @@ export class ViewAllUserss implements OnInit {
   /** Apply filters immediately (status, role, dept changes) */
   applyFilters(): void {
     this.currentPage = 1;
-    this.loadUsersForRole();
+    this.updateQueryParams();
   }
 
   /** Reset filters */
@@ -435,7 +444,7 @@ export class ViewAllUserss implements OnInit {
     this.statusFilter = '';
     this.selectedCard = 'total';
     this.currentPage = 1;
-    this.loadUsersForRole();
+    this.updateQueryParams();
   }
 
   // Handle click on stats card to filter the list
@@ -461,14 +470,14 @@ export class ViewAllUserss implements OnInit {
       this.statusFilter = 'INACTIVE';
     }
     
-    this.loadUsersForRole();
+    this.updateQueryParams();
   }
 
   // Handle click on department breakdown card to filter
   selectDepartment(deptId: number): void {
     this.departmentIdFilter = deptId;
     this.currentPage = 1;
-    this.loadUsersForRole();
+    this.updateQueryParams();
   }
 
   // Handle sort direction and column
@@ -480,7 +489,7 @@ export class ViewAllUserss implements OnInit {
       this.sortDirection = 'asc';
     }
     this.currentPage = 1;
-    this.loadUsersForRole();
+    this.updateQueryParams();
   }
 
   // Drawer events
@@ -496,7 +505,7 @@ export class ViewAllUserss implements OnInit {
     this.subDepartmentIdFilter = values.subDepartmentIdFilter || '';
     this.subjectIdFilter = values.subjectIdFilter || '';
     this.currentPage = 1;
-    this.loadUsersForRole();
+    this.updateQueryParams();
   }
 
   onDrawerReset(): void {
@@ -571,35 +580,6 @@ export class ViewAllUserss implements OnInit {
     this.loadUsersForRole();
   }
 
-  /** Export users with current filters */
-  exportUsers(): void {
-    const params: any = {};
-    if (this.searchTerm)           params.search = this.searchTerm;
-    if (this.roleFilter)           params.role = this.roleFilter;
-    if (this.departmentIdFilter)   params.departmentId = this.departmentIdFilter.toString();
-    if (this.subDepartmentIdFilter) params.subDepartmentId = this.subDepartmentIdFilter;
-    if (this.subjectIdFilter)      params.subjectId = this.subjectIdFilter.toString();
-    if (this.statusFilter)         params.status = this.statusFilter;
-
-    this.apiService.searchUsers({ ...params, export: 'true', size: 10000, page: 0 }).subscribe({
-      next: (res: any) => {
-        const users: userDto[] = res?.data?.content ?? [];
-        const header = 'ID,Full Name,Username,Email,Role,Status,Departments\n';
-        const rows = users.map(u =>
-          `${u.userId},"${u.fullName}","${u.username}","${u.email}","${u.role}","${u.status}","${(u.departmentNames || []).join('; ')}"`
-        ).join('\n');
-        const blob = new Blob([header + rows], { type: 'text/csv' });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href = url; a.download = 'users_export.csv';
-        document.body.appendChild(a); a.click();
-        document.body.removeChild(a); URL.revokeObjectURL(url);
-        this.toastService.show({ title: 'Success', message: 'Users exported successfully.' });
-      },
-      error: () => this.toastService.show({ title: 'Error', message: 'Export failed. Please try again.' })
-    });
-  }
-
   /** Role-wise user count helpers */
   get adminCount(): number { return this.stats.admins; }
   get subAdminCount(): number { return this.stats.subAdmins; }
@@ -621,8 +601,53 @@ export class ViewAllUserss implements OnInit {
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
-      this.loadUsersForRole();
+      this.updateQueryParams();
     }
+  }
+
+  updateQueryParams(): void {
+    const queryParams: any = {
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection,
+      search: this.searchTerm || null,
+      role: this.roleFilter || null,
+      department: this.departmentIdFilter || null,
+      subDepartment: this.subDepartmentIdFilter || null,
+      subject: this.subjectIdFilter || null,
+      status: this.statusFilter || null,
+      card: this.selectedCard !== 'total' ? this.selectedCard : null
+    };
+
+    Object.keys(queryParams).forEach(key => {
+      if (queryParams[key] === null || queryParams[key] === undefined || queryParams[key] === '') {
+        delete queryParams[key];
+      }
+    });
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  exportUsers(format: string): void {
+    const params = {
+      format,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection,
+      search: this.searchTerm,
+      role: this.roleFilter,
+      departmentId: this.departmentIdFilter,
+      subDepartmentId: this.subDepartmentIdFilter,
+      subjectId: this.subjectIdFilter,
+      status: this.statusFilter
+    };
+    const url = this.apiService.getExportUsersUrl(params);
+    window.open(url, '_blank');
   }
 
   /** Handle page click with type safety */

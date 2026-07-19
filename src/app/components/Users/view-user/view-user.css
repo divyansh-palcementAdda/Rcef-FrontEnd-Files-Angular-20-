@@ -476,3 +476,401 @@
   color: #374151;
   border: 1px solid #d1d5db;
 }
+
+/* Task Distribution Styles */
+.hover-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary-color) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Custom background & text colors for bootstrap status labels inside table cells */
+.bg-success-subtle {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+}
+.bg-warning-subtle {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+}
+.bg-danger-subtle {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+}
+.bg-info-subtle {
+  background-color: #e0e7ff !important;
+  color: #3730a3 !important;
+}
+.bg-primary-subtle {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+}
+.bg-secondary-subtle {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+}
+
+/* Modal Tab Highlight styling */
+.nav-tabs .nav-link.active {
+  border-bottom: 2px solid var(--primary-color) !important;
+  color: var(--primary-color) !important;
+  background-color: transparent !important;
+}
+
+/* ── Task Distribution Analytics Responsive Redesign ── */
+
+/* 1. Custom CSS Grid for Metric Cards */
+.distribution-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1400px) {
+  .distribution-metrics-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 1200px) {
+  .distribution-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 991px) {
+  .distribution-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .distribution-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .distribution-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card Improvements */
+.hover-card {
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hover-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-color) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* 2. Reusable Responsive Table Wrapper */
+.responsive-table-wrapper {
+  overflow-x: auto;
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+
+/* Table elements improvements */
+.responsive-table-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+.responsive-table-wrapper th {
+  position: sticky;
+  top: 0;
+  background-color: var(--bg-color) !important;
+  z-index: 5;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.725rem;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-color) !important;
+  padding: 0.85rem 0.75rem !important;
+  white-space: nowrap;
+}
+
+.responsive-table-wrapper td {
+  padding: 0.75rem 0.75rem !important;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  height: 48px;
+}
+
+/* Column Width Constraints - Prevent Stacked Letters */
+.col-width-name {
+  min-width: 200px !important;
+  max-width: 300px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.col-width-parent {
+  min-width: 160px !important;
+  max-width: 250px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.col-width-count {
+  min-width: 80px !important;
+  text-align: center;
+}
+
+.col-width-progress {
+  min-width: 150px !important;
+}
+
+.col-width-activity {
+  min-width: 130px !important;
+  text-align: center;
+}
+
+.col-width-action {
+  min-width: 120px !important;
+  text-align: center;
+}
+
+/* 3. Search and Export Toolbar Layouts */
+.analytics-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.analytics-toolbar-search {
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+}
+
+.analytics-toolbar-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 991px) {
+  .analytics-toolbar-search {
+    max-width: 100%;
+  }
+  .analytics-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .analytics-toolbar-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 576px) {
+  .analytics-toolbar-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+  .analytics-toolbar-actions .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* 4. Mobile Cards Layout */
+.mobile-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.mobile-distribution-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.mobile-distribution-card:active {
+  transform: scale(0.98);
+}
+
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.mobile-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.15rem;
+}
+
+.mobile-card-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.mobile-card-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 360px) {
+  .mobile-card-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.mobile-stat-item {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-stat-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.mobile-stat-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-top: 0.15rem;
+  font-weight: 600;
+}
+
+.mobile-card-progress-wrapper {
+  margin-bottom: 0.75rem;
+  background-color: var(--bg-color);
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.mobile-card-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* 5. Skeleton Loading State */
+.skeleton-shimmer-box {
+  background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-metric-card {
+  height: 90px;
+  border-radius: 12px;
+}
+
+.skeleton-table-header {
+  height: 40px;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.skeleton-table-row {
+  height: 48px;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-card-mobile {
+  height: 180px;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+/* Center Empty States */
+.responsive-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px dashed var(--border-color);
+}
+
+.responsive-empty-icon {
+  font-size: 2.25rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.responsive-empty-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
+}
+
+.responsive-empty-subtext {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
