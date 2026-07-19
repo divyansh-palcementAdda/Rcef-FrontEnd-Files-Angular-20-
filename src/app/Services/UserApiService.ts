@@ -330,6 +330,89 @@ export class UserApiService {
     );
   }
 
+  getUserTaskDistribution(userId: number, params: any = {}): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${userId}/task-distribution`, { params }).pipe(
+      catchError(err => this.handleError(err, 'fetch user task distribution'))
+    );
+  }
+
+  getUserDepartmentTasks(
+    userId: number,
+    departmentId: number,
+    params: any
+  ): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${userId}/departments/${departmentId}/tasks`, { params }).pipe(
+      catchError(err => this.handleError(err, 'fetch user department tasks'))
+    );
+  }
+
+  getUserSubDepartmentTasks(
+    userId: number,
+    subDepartmentId: string,
+    params: any
+  ): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${userId}/subdepartments/${subDepartmentId}/tasks`, { params }).pipe(
+      catchError(err => this.handleError(err, 'fetch user subdepartment tasks'))
+    );
+  }
+
+  getUserTasks(
+    userId: number,
+    params: any
+  ): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${userId}/tasks`, { params }).pipe(
+      catchError(err => this.handleError(err, 'fetch user tasks'))
+    );
+  }
+
+  getExportUserDepartmentTasksUrl(userId: number, departmentId: number, params: any): string {
+    let url = `${this.apiUrl}/${userId}/departments/${departmentId}/tasks/export?format=${params.format}`;
+    if (params.search) url += `&search=${encodeURIComponent(params.search)}`;
+    if (params.status) url += `&status=${params.status}`;
+    if (params.priority) url += `&priority=${params.priority}`;
+    if (params.taskType) url += `&taskType=${params.taskType}`;
+    return url;
+  }
+
+  getExportUserSubDepartmentTasksUrl(userId: number, subDepartmentId: string, params: any): string {
+    let url = `${this.apiUrl}/${userId}/subdepartments/${subDepartmentId}/tasks/export?format=${params.format}`;
+    if (params.search) url += `&search=${encodeURIComponent(params.search)}`;
+    if (params.status) url += `&status=${params.status}`;
+    if (params.priority) url += `&priority=${params.priority}`;
+    if (params.taskType) url += `&taskType=${params.taskType}`;
+    return url;
+  }
+
+  getExportUserTasksUrl(userId: number, params: any): string {
+    let url = `${this.apiUrl}/${userId}/tasks/export?format=${params.format}`;
+    if (params.search) url += `&search=${encodeURIComponent(params.search)}`;
+    if (params.status) url += `&status=${params.status}`;
+    if (params.priority) url += `&priority=${params.priority}`;
+    if (params.taskType) url += `&taskType=${params.taskType}`;
+    return url;
+  }
+
+  getExportUsersUrl(params: any): string {
+    let url = `${this.apiUrl}/export?format=${params.format}`;
+    if (params.sortBy) url += `&sortBy=${params.sortBy}`;
+    if (params.sortDirection) url += `&sortDirection=${params.sortDirection}`;
+    if (params.search) url += `&search=${encodeURIComponent(params.search)}`;
+    if (params.role) url += `&role=${params.role}`;
+    if (params.departmentId) url += `&departmentId=${params.departmentId}`;
+    if (params.subDepartmentId) url += `&subDepartmentId=${params.subDepartmentId}`;
+    if (params.subjectId) url += `&subjectId=${params.subjectId}`;
+    if (params.status) url += `&status=${params.status}`;
+    return url;
+  }
+
+  getExportTaskDistributionUrl(userId: number, params: any): string {
+    let url = `${this.apiUrl}/${userId}/task-distribution/export?type=${params.type}&format=${params.format}`;
+    if (params.search) url += `&search=${encodeURIComponent(params.search)}`;
+    if (params.sortBy) url += `&sortBy=${params.sortBy}`;
+    if (params.sortDir) url += `&sortDir=${params.sortDir}`;
+    return url;
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);

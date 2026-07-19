@@ -1,0 +1,40 @@
+<div 
+  class="modal-backdrop-custom" 
+  [style.z-index]="zIndex" 
+  [class.backdrop-top]="isTopModal" 
+  [class.backdrop-nested]="!isFirstModal"
+  (click)="onBackdropClick($event)">
+  
+  <div 
+    class="modal-dialog-custom animate-fade-in" 
+    [class]="sizeClass"
+    [class.modal-scrolling-locked]="!isTopModal"
+    #modalDialog
+    tabindex="-1"
+    (keydown)="onDialogKeydown($event)">
+    
+    <div class="modal-content-custom">
+      <div class="modal-header-custom" *ngIf="title">
+        <div class="d-flex align-items-center">
+          <button 
+            type="button" 
+            class="btn btn-link text-dark p-0 me-3 border-0" 
+            *ngIf="showBackButton" 
+            (click)="onBackClick()" 
+            aria-label="Back">
+            <i class="bi bi-arrow-left fs-4"></i>
+          </button>
+          <div>
+            <h5 class="modal-title-custom mb-0">{{ title }}</h5>
+            <p class="modal-subtitle-custom mb-0" *ngIf="subtitle">{{ subtitle }}</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" aria-label="Close" (click)="onCloseClick()"></button>
+      </div>
+      
+      <div class="modal-body-custom">
+        <ng-content></ng-content>
+      </div>
+    </div>
+  </div>
+</div>

@@ -285,9 +285,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     //   localLinks.push({ label: 'Subjects', route: '/subjects', icon: 'bi-journal-text' });
     // }
 
-    // 6. All Work (Task Requests)
+    // 6. All Work (Task Requests & Analytics)
     if (this.hasPermission('TASK_APPROVE')) {
       localLinks.push({ label: 'Pending Approval', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'bi-hourglass-split' });
+    }
+    if (this.hasPermission('WORK_VIEW')) {
+      localLinks.push({ label: 'All Work', route: '/all-work', icon: 'bi-briefcase-fill' });
     } else if (this.hasPermission('REPORT_VIEW')) {
       localLinks.push({ label: 'All Work', route: '/task-requests', icon: 'bi-briefcase-fill' });
     }

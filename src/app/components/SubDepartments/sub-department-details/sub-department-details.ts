@@ -9,6 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables, ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { forkJoin } from 'rxjs';
 
 Chart.register(...registerables);
 
@@ -23,6 +24,7 @@ interface SubDepartmentAnalytics {
   totalUsers: number;
   totalTeachers: number;
   totalHods: number;
+  totalSubjects?: number;
   totalTasks: number;
   pendingTasks: number;
   upcomingTasks: number;
@@ -111,12 +113,20 @@ export class SubDepartmentDetailsComponent implements OnInit {
   readonly Math = Math;
   subDeptId!: string;
   subDeptDetail: SubDepartmentDetail | null = null;
+  
+  // Loading flags
   loading = false;
+  basicLoading = false;
+  analyticsLoading = false;
+  tasksLoading = false;
+  usersLoading = false;
+  subjectsLoading = false;
+  activityLoading = false;
+  chartsLoading = false;
+
   activeTab: 'overview' | 'tasks' | 'users' | 'subjects' | 'analytics' | 'activity' = 'overview';
 
   // Task Grid Variables
-  allTasks: any[] = [];
-  filteredTasks: any[] = [];
   paginatedTasks: any[] = [];
   
   // Filter Fields
@@ -200,88 +210,186 @@ export class SubDepartmentDetailsComponent implements OnInit {
 
   loadSubDepartmentDetail(): void {
     this.loading = true;
-    this.deptApiService.getSubDepartmentById(this.subDeptId).subscribe({
-      next: (detail: SubDepartmentDetail) => {
-        this.subDeptDetail = detail;
-        this.allTasks = detail.allTasks || [];
-        this.filteredTasks = [...this.allTasks];
-        
-        // Extract filter values
-        this.extractFilterOptions();
-        this.applyTaskFilters();
-        this.updateCharts(detail);
+    this.basicLoading = true;
+    this.analyticsLoading = true;
 
+    forkJoin({
+      basic: this.deptApiService.getSubDepartmentById(this.subDeptId),
+      analytics: this.deptApiService.getSubDepartmentAnalytics(this.subDeptId)
+    }).subscribe({
+      next: (res: any) => {
+        this.subDeptDetail = res.basic;
+        if (this.subDeptDetail) {
+          this.subDeptDetail.analytics = res.analytics;
+        }
+        this.basicLoading = false;
+        this.analyticsLoading = false;
         this.loading = false;
+
+        // Start background tasks
+        this.loadFilterOptions();
+        this.loadOverviewActivity();
       },
       error: (err: any) => {
         this.showError('Failed to load sub-department details: ' + err.message);
+        this.basicLoading = false;
+        this.analyticsLoading = false;
         this.loading = false;
       }
     });
   }
 
-  extractFilterOptions(): void {
-    const usersSet = new Set<string>();
-    const subjectsSet = new Set<string>();
-    const templatesSet = new Set<string>();
-
-    this.allTasks.forEach(t => {
-      if (t.assignedToNames) {
-        t.assignedToNames.forEach((n: string) => usersSet.add(n));
-      } else if (t.assignedToName) {
-        usersSet.add(t.assignedToName);
+  loadOverviewActivity(): void {
+    this.activityLoading = true;
+    this.deptApiService.getSubDepartmentActivity(this.subDeptId, 0, 6).subscribe({
+      next: (res: any) => {
+        if (this.subDeptDetail) {
+          this.subDeptDetail.recentActivity = res.content || [];
+        }
+        this.activityLoading = false;
+      },
+      error: () => {
+        this.activityLoading = false;
       }
-      if (t.subjectName) subjectsSet.add(t.subjectName);
-      if (t.templateTitle) templatesSet.add(t.templateTitle);
+    });
+  }
+
+  loadFilterOptions(): void {
+    // Load users breakdown for filter dropdown
+    this.deptApiService.getSubDepartmentUserBreakdowns(this.subDeptId).subscribe({
+      next: (users: any[]) => {
+        this.filterUsers = users.map(u => u.fullName).sort();
+      }
     });
 
-    this.filterUsers = Array.from(usersSet).sort();
-    this.filterSubjects = Array.from(subjectsSet).sort();
-    this.filterTemplates = Array.from(templatesSet).sort();
+    // Load subjects for subjects filter
+    this.deptApiService.getSubDepartmentSubjects(this.subDeptId, '', 0, 100).subscribe({
+      next: (res: any) => {
+        const list = res.content || [];
+        this.filterSubjects = list.map((s: any) => s.name).sort();
+      }
+    });
+
+    // Load templates for templates filter
+    this.deptApiService.getSubDepartmentTemplates(this.subDeptId, 0, 100).subscribe({
+      next: (res: any) => {
+        const list = res.content || [];
+        this.filterTemplates = list.map((t: any) => t.title).sort();
+      }
+    });
+  }
+
+  onTabChange(tab: 'overview' | 'tasks' | 'users' | 'subjects' | 'analytics' | 'activity'): void {
+    this.activeTab = tab;
+    if (tab === 'tasks') {
+      this.fetchTasks();
+    } else if (tab === 'users') {
+      this.loadUserBreakdowns();
+    } else if (tab === 'subjects') {
+      this.loadSubjectsBreakdown();
+    } else if (tab === 'analytics') {
+      this.loadChartsData();
+    } else if (tab === 'activity') {
+      this.loadAllActivity();
+    }
+  }
+
+  fetchTasks(): void {
+    this.tasksLoading = true;
+    const params = {
+      page: this.currentPage - 1,
+      size: this.pageSize,
+      search: this.searchTerm,
+      status: this.statusFilter,
+      priority: this.priorityFilter,
+      taskType: this.typeFilter,
+      sortBy: this.sortColumn,
+      sortDir: this.sortDirection
+    };
+    this.deptApiService.getSubDepartmentTasks(this.subDeptId, params).subscribe({
+      next: (res: any) => {
+        this.paginatedTasks = res.content || [];
+        this.totalPages = res.totalPages || 1;
+        this.tasksLoading = false;
+      },
+      error: (err: any) => {
+        this.showError('Failed to load tasks: ' + err.message);
+        this.tasksLoading = false;
+      }
+    });
+  }
+
+  loadUserBreakdowns(): void {
+    if (this.subDeptDetail?.userBreakdowns && this.subDeptDetail.userBreakdowns.length > 0) return;
+    this.usersLoading = true;
+    this.deptApiService.getSubDepartmentUserBreakdowns(this.subDeptId).subscribe({
+      next: (users: UserBreakdown[]) => {
+        if (this.subDeptDetail) {
+          this.subDeptDetail.userBreakdowns = users;
+        }
+        this.usersLoading = false;
+      },
+      error: (err: any) => {
+        this.showError('Failed to load user breakdown: ' + err.message);
+        this.usersLoading = false;
+      }
+    });
+  }
+
+  loadSubjectsBreakdown(): void {
+    if (this.subDeptDetail?.subjectBreakdowns && this.subDeptDetail.subjectBreakdowns.length > 0) return;
+    this.subjectsLoading = true;
+    this.deptApiService.getSubDepartmentSubjects(this.subDeptId, '', 0, 100).subscribe({
+      next: (res: any) => {
+        if (this.subDeptDetail) {
+          this.subDeptDetail.subjectBreakdowns = res.content || [];
+        }
+        this.subjectsLoading = false;
+      },
+      error: (err: any) => {
+        this.showError('Failed to load subjects: ' + err.message);
+        this.subjectsLoading = false;
+      }
+    });
+  }
+
+  loadChartsData(): void {
+    if (this.statusChartData) return;
+    this.chartsLoading = true;
+    this.deptApiService.getSubDepartmentCharts(this.subDeptId).subscribe({
+      next: (charts: any) => {
+        if (this.subDeptDetail) {
+          this.subDeptDetail.charts = charts;
+        }
+        this.updateCharts(this.subDeptDetail);
+        this.chartsLoading = false;
+      },
+      error: (err: any) => {
+        this.showError('Failed to load charts: ' + err.message);
+        this.chartsLoading = false;
+      }
+    });
+  }
+
+  loadAllActivity(): void {
+    this.activityLoading = true;
+    this.deptApiService.getSubDepartmentActivity(this.subDeptId, 0, 50).subscribe({
+      next: (res: any) => {
+        if (this.subDeptDetail) {
+          this.subDeptDetail.recentActivity = res.content || [];
+        }
+        this.activityLoading = false;
+      },
+      error: (err: any) => {
+        this.showError('Failed to load activity logs: ' + err.message);
+        this.activityLoading = false;
+      }
+    });
   }
 
   applyTaskFilters(): void {
-    this.filteredTasks = this.allTasks.filter(t => {
-      const matchSearch = !this.searchTerm || 
-        t.title.toLowerCase().includes(this.searchTerm.toLowerCase()) || 
-        t.taskId.toString().includes(this.searchTerm);
-
-      const matchStatus = !this.statusFilter || t.status === this.statusFilter;
-      const matchPriority = !this.priorityFilter || t.priority === this.priorityFilter;
-      const matchType = !this.typeFilter || t.taskType === this.typeFilter;
-      
-      const matchUser = !this.userFilter || 
-        (t.assignedToNames && t.assignedToNames.includes(this.userFilter)) || 
-        t.assignedToName === this.userFilter;
-
-      const matchSubject = !this.subjectFilter || t.subjectName === this.subjectFilter;
-      const matchTemplate = !this.templateFilter || t.templateTitle === this.templateFilter;
-
-      return matchSearch && matchStatus && matchPriority && matchType && matchUser && matchSubject && matchTemplate;
-    });
-
-    // Sort tasks
-    this.sortTasks();
-
-    // Paginate
     this.currentPage = 1;
-    this.updatePagination();
-  }
-
-  sortTasks(): void {
-    this.filteredTasks.sort((a, b) => {
-      let valA = a[this.sortColumn];
-      let valB = b[this.sortColumn];
-
-      if (this.sortColumn === 'dueDate' || this.sortColumn === 'createdAt') {
-        valA = valA ? new Date(valA).getTime() : 0;
-        valB = valB ? new Date(valB).getTime() : 0;
-      }
-
-      if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
-      if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
+    this.fetchTasks();
   }
 
   toggleSort(column: string): void {
@@ -291,20 +399,13 @@ export class SubDepartmentDetailsComponent implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-    this.sortTasks();
-    this.updatePagination();
-  }
-
-  updatePagination(): void {
-    this.totalPages = Math.ceil(this.filteredTasks.length / this.pageSize) || 1;
-    const startIdx = (this.currentPage - 1) * this.pageSize;
-    this.paginatedTasks = this.filteredTasks.slice(startIdx, startIdx + this.pageSize);
+    this.fetchTasks();
   }
 
   setPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
-      this.updatePagination();
+      this.fetchTasks();
     }
   }
 
@@ -329,7 +430,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   }
 
   filterByCard(type: string, value: string): void {
-    this.activeTab = 'tasks';
+    this.onTabChange('tasks');
     this.resetAllFilters();
     if (type === 'status') {
       this.statusFilter = value;
@@ -429,7 +530,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
       ]
     };
 
-    // Creation Trend (kept for backward compat)
+    // Creation Trend
     this.creationTrendChartData = {
       labels: Object.keys(charts.taskCreationTrend || {}),
       datasets: [{

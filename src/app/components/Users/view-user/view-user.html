@@ -110,8 +110,8 @@
 
       </div>
     </div>
-
-    <!-- Performance Stats Overview Section -->
+    <!-- 
+     Performance Stats Overview Section 
     <div class="mb-4">
       <h5 class="fw-bold mb-3" style="color: var(--text-main);">Performance Metrics</h5>
 
@@ -142,7 +142,7 @@
 
       </div>
 
-      <!-- Task Type Breakdown Cards -->
+     Task Type Breakdown Cards 
       <h6 class="fw-semibold mb-3 mt-2"
         style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;">
         Task Type Breakdown
@@ -151,7 +151,7 @@
       </h6>
       <div class="task-type-grid">
 
-        <!-- Loading skeleton cards -->
+        Loading skeleton cards
         <ng-container *ngIf="loadingTypeSummary">
           <div class="task-type-card skeleton-card" *ngFor="let s of [1,2,3,4,5]">
             <div>
@@ -164,10 +164,10 @@
           </div>
         </ng-container>
 
-        <!-- Dynamic cards from API -->
+        Dynamic cards from API
         <ng-container *ngIf="!loadingTypeSummary">
 
-          <!-- Populated cards -->
+           Populated cards 
           <div *ngFor="let summary of taskTypeSummary" class="task-type-card"
             [class.task-type-card--active]="taskTypeFilter === summary.templateTitle"
             (click)="selectTaskType(summary.templateTitle)" style="cursor:pointer;"
@@ -181,13 +181,882 @@
             </div>
           </div>
 
-          <!-- Empty state when API returns nothing -->
+           Empty state when API returns nothing
           <div *ngIf="taskTypeSummary.length === 0" class="col-12 text-muted small py-2">
             <i class="bi bi-info-circle me-1"></i>No task type data available for this user.
           </div>
 
         </ng-container>
 
+      </div>
+    </div> -->
+
+    <!-- ==================== Task Distribution Section ==================== -->
+    
+    <!-- 1. Skeleton Loader for Task Distribution Section -->
+    <div *ngIf="loadingDistribution" class="panel-card mb-4 animate__animated animate__fadeIn">
+      <div class="panel-header d-flex justify-content-between align-items-center mb-3">
+        <div class="skeleton-shimmer-box skeleton-table-header" style="width: 250px; height: 28px;"></div>
+        <div class="skeleton-shimmer-box skeleton-table-header" style="width: 160px; height: 24px;"></div>
+      </div>
+      <div class="skeleton-shimmer-box skeleton-table-row mb-4" style="height: 40px; width: 100%;"></div>
+      
+      <!-- Skeleton metrics cards -->
+      <div class="distribution-metrics-grid mb-4">
+        <div *ngFor="let s of [1,2,3,4,5,6]" class="skeleton-shimmer-box skeleton-metric-card"></div>
+      </div>
+      
+      <!-- Skeleton breakdowns -->
+      <div class="mb-4" *ngFor="let sec of [1,2]">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="skeleton-shimmer-box skeleton-table-header" style="width: 200px; height: 24px;"></div>
+          <div class="skeleton-shimmer-box skeleton-table-header" style="width: 320px; height: 32px;"></div>
+        </div>
+        <div class="skeleton-shimmer-box skeleton-table-row mb-2" *ngFor="let r of [1,2,3]"></div>
+      </div>
+    </div>
+
+    <!-- 2. Main Distribution Section (Loaded) -->
+    <div *ngIf="hasDistributionAccess && !loadingDistribution && taskDistribution"
+      class="panel-card mb-4 animate__animated animate__fadeIn">
+      <div class="panel-header d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h5 class="panel-title mb-0">
+          <i class="bi bi-pie-chart-fill text-primary me-2"></i>Task Distribution Analytics
+        </h5>
+        <span class="badge bg-primary-subtle text-primary border px-2 py-1 small">
+          Active Status Filter: <strong>{{ selectedDistributionStatus }}</strong>
+        </span>
+      </div>
+
+      <p class="text-muted small mb-4">
+        Click on any of the metric cards below to highlight departments and sub-departments with active tasks under that
+        status.
+        Clicking on a specific task count triggers a paginated list modal for that status.
+      </p>
+
+      <!-- Distribution Metrics Cards Grid -->
+      <div class="distribution-metrics-grid mb-4">
+        <div *ngFor="let card of distributionStatsCards">
+          <div class="card p-3 h-100 border-1 shadow-sm text-center position-relative cursor-pointer hover-card"
+            [ngClass]="selectedDistributionStatus === card.key ? 'border-primary bg-primary-subtle shadow-md' : 'border-color'"
+            (click)="selectDistributionStatus(card.key)" style="transition: all 0.2s ease; border-radius: 12px;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge rounded-circle p-2" [ngClass]="'bg-' + card.color + '-subtle text-' + card.color">
+                <i class="bi" [ngClass]="card.icon" style="font-size: 1.1rem;"></i>
+              </span>
+              <span class="fs-4 fw-bold text-main cursor-pointer hover-link"
+                style="color: var(--text-main); text-decoration: underline;"
+                (click)="openUserTasks(card.key); $event.stopPropagation()">{{ card.count }}</span>
+            </div>
+            <div class="text-start small fw-semibold text-muted text-truncate" [title]="card.label">{{ card.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== Department Distribution ==================== -->
+      <div class="mb-5">
+        <div class="analytics-toolbar">
+          <h6 class="fw-bold mb-0" style="color: var(--text-main);">
+            <i class="bi bi-building me-2 text-secondary"></i>Department breakdown
+          </h6>
+          <div class="analytics-toolbar-search">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" class="form-control form-control-sm border-start-0" placeholder="Search department..."
+                [(ngModel)]="departmentSearch" (input)="onDepartmentSearch()">
+            </div>
+          </div>
+          <div class="analytics-toolbar-actions">
+            <button class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1" 
+              (click)="exportTaskDistribution('DEPARTMENT', 'EXCEL')" title="Export Excel">
+              <i class="bi bi-file-earmark-excel"></i><span>Excel</span>
+            </button>
+            <button class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1" 
+              (click)="exportTaskDistribution('DEPARTMENT', 'CSV')" title="Export CSV">
+              <i class="bi bi-file-earmark-spreadsheet"></i><span>CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Desktop View (Table) -->
+        <ng-container *ngIf="!isMobile">
+          <div class="responsive-table-wrapper">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="ps-3 sortable-header col-width-name" (click)="sortDepartment('departmentName')" style="cursor: pointer;">
+                    Department Name
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'departmentName' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('totalTasks')" style="cursor: pointer;">
+                    Total
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'totalTasks' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('pending')" style="cursor: pointer;">
+                    Pending
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'pending' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('inProgress')" style="cursor: pointer;">
+                    In Progress
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'inProgress' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('completed')" style="cursor: pointer;">
+                    Completed
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'completed' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('delayed')" style="cursor: pointer;">
+                    Delayed
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'delayed' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('upcoming')" style="cursor: pointer;">
+                    Upcoming
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'upcoming' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('extended')" style="cursor: pointer;">
+                    Extended
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'extended' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('requestForExtension')" style="cursor: pointer;">
+                    Req. Ext.
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'requestForExtension' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('requestForClosure')" style="cursor: pointer;">
+                    Req. Cl.
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'requestForClosure' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortDepartment('recurringParent')" style="cursor: pointer;">
+                    Recur. Parent
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'recurringParent' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-progress" (click)="sortDepartment('completionPercentage')" style="cursor: pointer;">
+                    Completion %
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'completionPercentage' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-activity" (click)="sortDepartment('lastActivity')" style="cursor: pointer;">
+                    Last Activity
+                    <i class="bi ms-1"
+                      [ngClass]="departmentSortBy === 'lastActivity' ? (departmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center pe-3 col-width-action">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let dept of getFilteredDepartments()">
+                  <td class="fw-semibold ps-3" style="color: var(--text-main);">{{ dept.departmentName }}</td>
+                  <td class="text-center fw-bold">
+                    <a (click)="openDepartmentTasks(dept, 'ALL')"
+                      class="text-primary text-decoration-none cursor-pointer">{{ dept.totalTasks }}</a>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="dept.pending > 0" class="badge bg-warning-subtle text-warning border cursor-pointer"
+                      (click)="openDepartmentTasks(dept, 'PENDING')">{{ dept.pending }}</span>
+                    <span *ngIf="dept.pending === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="dept.inProgress > 0" class="badge bg-info-subtle text-info border cursor-pointer"
+                      (click)="openDepartmentTasks(dept, 'IN_PROGRESS')">{{ dept.inProgress }}</span>
+                    <span *ngIf="dept.inProgress === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="dept.completed > 0" class="badge bg-success-subtle text-success border cursor-pointer"
+                      (click)="openDepartmentTasks(dept, 'COMPLETED')">{{ dept.completed }}</span>
+                    <span *ngIf="dept.completed === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="dept.delayed > 0" class="badge bg-danger-subtle text-danger border cursor-pointer"
+                      (click)="openDepartmentTasks(dept, 'DELAYED')">{{ dept.delayed }}</span>
+                    <span *ngIf="dept.delayed === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="dept.upcoming > 0" class="badge bg-secondary-subtle text-secondary border cursor-pointer"
+                      (click)="openDepartmentTasks(dept, 'UPCOMING')">{{ dept.upcoming }}</span>
+                    <span *ngIf="dept.upcoming === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="dept.extended > 0" class="badge bg-primary-subtle text-primary border cursor-pointer"
+                      (click)="openDepartmentTasks(dept, 'EXTENDED')">{{ dept.extended }}</span>
+                    <span *ngIf="dept.extended === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="dept.requestForExtension > 0"
+                      class="badge bg-warning-subtle text-warning border cursor-pointer"
+                      (click)="openDepartmentTasks(dept, 'REQUEST_FOR_EXTENSION')">{{ dept.requestForExtension }}</span>
+                    <span *ngIf="dept.requestForExtension === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="dept.requestForClosure > 0"
+                      class="badge bg-danger-subtle text-danger border cursor-pointer"
+                      (click)="openDepartmentTasks(dept, 'REQUEST_FOR_CLOSURE')">{{ dept.requestForClosure }}</span>
+                    <span *ngIf="dept.requestForClosure === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="dept.recurringParent > 0" class="badge bg-info-subtle text-info border cursor-pointer"
+                      (click)="openDepartmentTasks(dept, 'RECURRING_PARENT')">{{ dept.recurringParent }}</span>
+                    <span *ngIf="dept.recurringParent === 0" class="text-muted small">-</span>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="progress flex-grow-1" style="height: 6px; background-color: var(--bg-color);">
+                        <div class="progress-bar bg-success" role="progressbar"
+                          [style.width.%]="dept.completionPercentage"></div>
+                      </div>
+                      <span class="small fw-semibold">{{ dept.completionPercentage | number:'1.0-1' }}%</span>
+                    </div>
+                  </td>
+                  <td class="text-center text-muted small">
+                    {{ dept.lastActivity ? formatDate(dept.lastActivity) : 'No Activity' }}
+                  </td>
+                  <td class="text-center pe-3">
+                    <button class="btn btn-sm btn-outline-primary" (click)="openDepartmentTasks(dept, 'ALL')">
+                      <i class="bi bi-eye me-1"></i>View
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="getFilteredDepartments().length === 0">
+                  <td colspan="14" class="text-center py-4 text-muted">
+                    <i class="bi bi-info-circle me-1"></i>No departments match the current filters.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+
+        <!-- Mobile View (Cards) -->
+        <ng-container *ngIf="isMobile">
+          <div class="mobile-cards-list">
+            <div *ngFor="let dept of getFilteredDepartments()" class="mobile-distribution-card">
+              <div class="mobile-card-header">
+                <div>
+                  <div class="mobile-card-title">{{ dept.departmentName }}</div>
+                  <div class="mobile-card-subtitle">Department</div>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border">Dept</span>
+              </div>
+              
+              <div class="mobile-card-stats-grid">
+                <div class="mobile-stat-item" (click)="openDepartmentTasks(dept, 'ALL')">
+                  <span class="mobile-stat-value text-primary">{{ dept.totalTasks }}</span>
+                  <span class="mobile-stat-label">Total</span>
+                </div>
+                <div class="mobile-stat-item" (click)="dept.pending > 0 ? openDepartmentTasks(dept, 'PENDING') : null">
+                  <span class="mobile-stat-value" [class.text-warning]="dept.pending > 0" [class.text-muted]="dept.pending === 0">
+                    {{ dept.pending > 0 ? dept.pending : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Pending</span>
+                </div>
+                <div class="mobile-stat-item" (click)="dept.inProgress > 0 ? openDepartmentTasks(dept, 'IN_PROGRESS') : null">
+                  <span class="mobile-stat-value" [class.text-info]="dept.inProgress > 0" [class.text-muted]="dept.inProgress === 0">
+                    {{ dept.inProgress > 0 ? dept.inProgress : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">In Progress</span>
+                </div>
+                <div class="mobile-stat-item" (click)="dept.completed > 0 ? openDepartmentTasks(dept, 'COMPLETED') : null">
+                  <span class="mobile-stat-value" [class.text-success]="dept.completed > 0" [class.text-muted]="dept.completed === 0">
+                    {{ dept.completed > 0 ? dept.completed : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Completed</span>
+                </div>
+                <div class="mobile-stat-item" (click)="dept.delayed > 0 ? openDepartmentTasks(dept, 'DELAYED') : null">
+                  <span class="mobile-stat-value" [class.text-danger]="dept.delayed > 0" [class.text-muted]="dept.delayed === 0">
+                    {{ dept.delayed > 0 ? dept.delayed : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Delayed</span>
+                </div>
+                <div class="mobile-stat-item" (click)="dept.upcoming > 0 ? openDepartmentTasks(dept, 'UPCOMING') : null">
+                  <span class="mobile-stat-value" [class.text-secondary]="dept.upcoming > 0" [class.text-muted]="dept.upcoming === 0">
+                    {{ dept.upcoming > 0 ? dept.upcoming : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Upcoming</span>
+                </div>
+              </div>
+
+              <div class="small d-flex flex-wrap gap-2 justify-content-between mb-3 text-muted px-1">
+                <span>Ext: <strong>{{ dept.extended || 0 }}</strong></span>
+                <span>Req. Ext: <strong>{{ dept.requestForExtension || 0 }}</strong></span>
+                <span>Req. Cl: <strong>{{ dept.requestForClosure || 0 }}</strong></span>
+                <span>Recur: <strong>{{ dept.recurringParent || 0 }}</strong></span>
+              </div>
+              
+              <div class="mobile-card-progress-wrapper">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small fw-semibold text-muted">Completion Rate</span>
+                  <span class="small fw-bold text-success">{{ dept.completionPercentage | number:'1.0-1' }}%</span>
+                </div>
+                <div class="progress" style="height: 8px; background-color: var(--border-color);">
+                  <div class="progress-bar bg-success" role="progressbar" [style.width.%]="dept.completionPercentage"></div>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-between align-items-center mb-3 text-muted small px-1">
+                <span><i class="bi bi-clock me-1"></i>Last Activity</span>
+                <span>{{ dept.lastActivity ? formatDate(dept.lastActivity) : 'No Activity' }}</span>
+              </div>
+              
+              <div class="mobile-card-actions">
+                <button class="btn btn-sm btn-outline-primary" (click)="openDepartmentTasks(dept, 'ALL')">
+                  <i class="bi bi-eye me-1"></i>View Tasks
+                </button>
+              </div>
+            </div>
+            
+            <div *ngIf="getFilteredDepartments().length === 0" class="responsive-empty-state">
+              <i class="bi bi-info-circle responsive-empty-icon"></i>
+              <div class="responsive-empty-text">No departments match current filters.</div>
+              <div class="responsive-empty-subtext">Try refining your search keyword.</div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Dept pagination -->
+        <div class="d-flex justify-content-between align-items-center mt-3 px-2 flex-wrap gap-2" *ngIf="deptTotal > deptPageSize">
+          <span class="small text-muted">Showing {{ (deptPage - 1) * deptPageSize + 1 }}-{{ Math.min(deptPage * deptPageSize, deptTotal) }} of {{ deptTotal }}</span>
+          <div class="d-flex gap-1 flex-wrap">
+            <button class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center" [disabled]="deptPage === 1"
+              (click)="changeDeptPage(deptPage - 1)">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button *ngFor="let p of getDeptTotalPagesArray()" class="btn btn-sm py-1 px-2"
+              [class.btn-primary]="p === deptPage" [class.btn-outline-secondary]="p !== deptPage"
+              (click)="changeDeptPage(p)">
+              {{ p }}
+            </button>
+            <button class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center" [disabled]="deptPage === getDeptTotalPages()"
+              (click)="changeDeptPage(deptPage + 1)">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== Sub Department Distribution ==================== -->
+      <div class="mb-5">
+        <div class="analytics-toolbar">
+          <h6 class="fw-bold mb-0" style="color: var(--text-main);">
+            <i class="bi bi-grid-3x3-gap me-2 text-secondary"></i>Sub Department breakdown
+          </h6>
+          <div class="analytics-toolbar-search">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" class="form-control form-control-sm border-start-0" placeholder="Search subdepartment..."
+                [(ngModel)]="subDepartmentSearch" (input)="onSubDepartmentSearch()">
+            </div>
+          </div>
+          <div class="analytics-toolbar-actions">
+            <button class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1" 
+              (click)="exportTaskDistribution('SUB_DEPARTMENT', 'EXCEL')" title="Export Excel">
+              <i class="bi bi-file-earmark-excel"></i><span>Excel</span>
+            </button>
+            <button class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1" 
+              (click)="exportTaskDistribution('SUB_DEPARTMENT', 'CSV')" title="Export CSV">
+              <i class="bi bi-file-earmark-spreadsheet"></i><span>CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Desktop View (Table) -->
+        <ng-container *ngIf="!isMobile">
+          <div class="responsive-table-wrapper">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="ps-3 sortable-header col-width-name" (click)="sortSubDepartment('subDepartmentName')" style="cursor: pointer;">
+                    Sub Department
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'subDepartmentName' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="sortable-header col-width-parent" (click)="sortSubDepartment('departmentName')" style="cursor: pointer;">
+                    Parent Department
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'departmentName' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('totalTasks')" style="cursor: pointer;">
+                    Total
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'totalTasks' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('pending')" style="cursor: pointer;">
+                    Pending
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'pending' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('inProgress')" style="cursor: pointer;">
+                    In Progress
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'inProgress' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('completed')" style="cursor: pointer;">
+                    Completed
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'completed' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('delayed')" style="cursor: pointer;">
+                    Delayed
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'delayed' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('upcoming')" style="cursor: pointer;">
+                    Upcoming
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'upcoming' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('extended')" style="cursor: pointer;">
+                    Extended
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'extended' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('requestForExtension')" style="cursor: pointer;">
+                    Req. Ext.
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'requestForExtension' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('requestForClosure')" style="cursor: pointer;">
+                    Req. Cl.
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'requestForClosure' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubDepartment('recurringParent')" style="cursor: pointer;">
+                    Recur. Parent
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'recurringParent' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-progress" (click)="sortSubDepartment('completionPercentage')" style="cursor: pointer;">
+                    Completion %
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'completionPercentage' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-activity" (click)="sortSubDepartment('lastActivity')" style="cursor: pointer;">
+                    Last Activity
+                    <i class="bi ms-1"
+                      [ngClass]="subDepartmentSortBy === 'lastActivity' ? (subDepartmentSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center pe-3 col-width-action">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let sd of getFilteredSubDepartments()">
+                  <td class="fw-semibold ps-3" style="color: var(--text-main);">{{ sd.subDepartmentName }}</td>
+                  <td class="text-muted">{{ sd.departmentName }}</td>
+                  <td class="text-center fw-bold">
+                    <a (click)="openSubDepartmentTasks(sd, 'ALL')"
+                      class="text-primary text-decoration-none cursor-pointer">{{ sd.totalTasks }}</a>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sd.pending > 0" class="badge bg-warning-subtle text-warning border cursor-pointer"
+                      (click)="openSubDepartmentTasks(sd, 'PENDING')">{{ sd.pending }}</span>
+                    <span *ngIf="sd.pending === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sd.inProgress > 0" class="badge bg-info-subtle text-info border cursor-pointer"
+                      (click)="openSubDepartmentTasks(sd, 'IN_PROGRESS')">{{ sd.inProgress }}</span>
+                    <span *ngIf="sd.inProgress === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sd.completed > 0" class="badge bg-success-subtle text-success border cursor-pointer"
+                      (click)="openSubDepartmentTasks(sd, 'COMPLETED')">{{ sd.completed }}</span>
+                    <span *ngIf="sd.completed === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sd.delayed > 0" class="badge bg-danger-subtle text-danger border cursor-pointer"
+                      (click)="openSubDepartmentTasks(sd, 'DELAYED')">{{ sd.delayed }}</span>
+                    <span *ngIf="sd.delayed === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sd.upcoming > 0" class="badge bg-secondary-subtle text-secondary border cursor-pointer"
+                      (click)="openSubDepartmentTasks(sd, 'UPCOMING')">{{ sd.upcoming }}</span>
+                    <span *ngIf="sd.upcoming === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sd.extended > 0" class="badge bg-primary-subtle text-primary border cursor-pointer"
+                      (click)="openSubDepartmentTasks(sd, 'EXTENDED')">{{ sd.extended }}</span>
+                    <span *ngIf="sd.extended === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sd.requestForExtension > 0"
+                      class="badge bg-warning-subtle text-warning border cursor-pointer"
+                      (click)="openSubDepartmentTasks(sd, 'REQUEST_FOR_EXTENSION')">{{ sd.requestForExtension }}</span>
+                    <span *ngIf="sd.requestForExtension === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sd.requestForClosure > 0"
+                      class="badge bg-danger-subtle text-danger border cursor-pointer"
+                      (click)="openSubDepartmentTasks(sd, 'REQUEST_FOR_CLOSURE')">{{ sd.requestForClosure }}</span>
+                    <span *ngIf="sd.requestForClosure === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sd.recurringParent > 0" class="badge bg-info-subtle text-info border cursor-pointer"
+                      (click)="openSubDepartmentTasks(sd, 'RECURRING_PARENT')">{{ sd.recurringParent }}</span>
+                    <span *ngIf="sd.recurringParent === 0" class="text-muted small">-</span>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="progress flex-grow-1" style="height: 6px; background-color: var(--bg-color);">
+                        <div class="progress-bar bg-success" role="progressbar" [style.width.%]="sd.completionPercentage">
+                        </div>
+                      </div>
+                      <span class="small fw-semibold">{{ sd.completionPercentage | number:'1.0-1' }}%</span>
+                    </div>
+                  </td>
+                  <td class="text-center text-muted small">
+                    {{ sd.lastActivity ? formatDate(sd.lastActivity) : 'No Activity' }}
+                  </td>
+                  <td class="text-center pe-3">
+                    <button class="btn btn-sm btn-outline-primary" (click)="openSubDepartmentTasks(sd, 'ALL')">
+                      <i class="bi bi-eye me-1"></i>View
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="getFilteredSubDepartments().length === 0">
+                  <td colspan="15" class="text-center py-4 text-muted">
+                    <i class="bi bi-info-circle me-1"></i>No sub-departments match the current filters.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+
+        <!-- Mobile View (Cards) -->
+        <ng-container *ngIf="isMobile">
+          <div class="mobile-cards-list">
+            <div *ngFor="let sd of getFilteredSubDepartments()" class="mobile-distribution-card">
+              <div class="mobile-card-header">
+                <div>
+                  <div class="mobile-card-title">{{ sd.subDepartmentName }}</div>
+                  <div class="mobile-card-subtitle">Parent: {{ sd.departmentName }}</div>
+                </div>
+                <span class="badge bg-info-subtle text-info border">SubDept</span>
+              </div>
+              
+              <div class="mobile-card-stats-grid">
+                <div class="mobile-stat-item" (click)="openSubDepartmentTasks(sd, 'ALL')">
+                  <span class="mobile-stat-value text-primary">{{ sd.totalTasks }}</span>
+                  <span class="mobile-stat-label">Total</span>
+                </div>
+                <div class="mobile-stat-item" (click)="sd.pending > 0 ? openSubDepartmentTasks(sd, 'PENDING') : null">
+                  <span class="mobile-stat-value" [class.text-warning]="sd.pending > 0" [class.text-muted]="sd.pending === 0">
+                    {{ sd.pending > 0 ? sd.pending : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Pending</span>
+                </div>
+                <div class="mobile-stat-item" (click)="sd.inProgress > 0 ? openSubDepartmentTasks(sd, 'IN_PROGRESS') : null">
+                  <span class="mobile-stat-value" [class.text-info]="sd.inProgress > 0" [class.text-muted]="sd.inProgress === 0">
+                    {{ sd.inProgress > 0 ? sd.inProgress : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">In Progress</span>
+                </div>
+                <div class="mobile-stat-item" (click)="sd.completed > 0 ? openSubDepartmentTasks(sd, 'COMPLETED') : null">
+                  <span class="mobile-stat-value" [class.text-success]="sd.completed > 0" [class.text-muted]="sd.completed === 0">
+                    {{ sd.completed > 0 ? sd.completed : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Completed</span>
+                </div>
+                <div class="mobile-stat-item" (click)="sd.delayed > 0 ? openSubDepartmentTasks(sd, 'DELAYED') : null">
+                  <span class="mobile-stat-value" [class.text-danger]="sd.delayed > 0" [class.text-muted]="sd.delayed === 0">
+                    {{ sd.delayed > 0 ? sd.delayed : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Delayed</span>
+                </div>
+                <div class="mobile-stat-item" (click)="sd.upcoming > 0 ? openSubDepartmentTasks(sd, 'UPCOMING') : null">
+                  <span class="mobile-stat-value" [class.text-secondary]="sd.upcoming > 0" [class.text-muted]="sd.upcoming === 0">
+                    {{ sd.upcoming > 0 ? sd.upcoming : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Upcoming</span>
+                </div>
+              </div>
+
+              <div class="small d-flex flex-wrap gap-2 justify-content-between mb-3 text-muted px-1">
+                <span>Ext: <strong>{{ sd.extended || 0 }}</strong></span>
+                <span>Req. Ext: <strong>{{ sd.requestForExtension || 0 }}</strong></span>
+                <span>Req. Cl: <strong>{{ sd.requestForClosure || 0 }}</strong></span>
+                <span>Recur: <strong>{{ sd.recurringParent || 0 }}</strong></span>
+              </div>
+              
+              <div class="mobile-card-progress-wrapper">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small fw-semibold text-muted">Completion Rate</span>
+                  <span class="small fw-bold text-success">{{ sd.completionPercentage | number:'1.0-1' }}%</span>
+                </div>
+                <div class="progress" style="height: 8px; background-color: var(--border-color);">
+                  <div class="progress-bar bg-success" role="progressbar" [style.width.%]="sd.completionPercentage"></div>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-between align-items-center mb-3 text-muted small px-1">
+                <span><i class="bi bi-clock me-1"></i>Last Activity</span>
+                <span>{{ sd.lastActivity ? formatDate(sd.lastActivity) : 'No Activity' }}</span>
+              </div>
+              
+              <div class="mobile-card-actions">
+                <button class="btn btn-sm btn-outline-primary" (click)="openSubDepartmentTasks(sd, 'ALL')">
+                  <i class="bi bi-eye me-1"></i>View Tasks
+                </button>
+              </div>
+            </div>
+            
+            <div *ngIf="getFilteredSubDepartments().length === 0" class="responsive-empty-state">
+              <i class="bi bi-info-circle responsive-empty-icon"></i>
+              <div class="responsive-empty-text">No sub-departments match current filters.</div>
+              <div class="responsive-empty-subtext">Try refining your search keyword.</div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Subdept pagination -->
+        <div class="d-flex justify-content-between align-items-center mt-3 px-2 flex-wrap gap-2" *ngIf="subDeptTotal > subDeptPageSize">
+          <span class="small text-muted">Showing {{ (subDeptPage - 1) * subDeptPageSize + 1 }}-{{ Math.min(subDeptPage *
+            subDeptPageSize, subDeptTotal) }} of {{ subDeptTotal }}</span>
+          <div class="d-flex gap-1 flex-wrap">
+            <button class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center" [disabled]="subDeptPage === 1"
+              (click)="changeSubDeptPage(subDeptPage - 1)">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button *ngFor="let p of getSubDeptTotalPagesArray()" class="btn btn-sm py-1 px-2"
+              [class.btn-primary]="p === subDeptPage" [class.btn-outline-secondary]="p !== subDeptPage"
+              (click)="changeSubDeptPage(p)">
+              {{ p }}
+            </button>
+            <button class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center"
+              [disabled]="subDeptPage === getSubDeptTotalPages()" (click)="changeSubDeptPage(subDeptPage + 1)">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== Subject Distribution ==================== -->
+      <div class="mb-4">
+        <div class="analytics-toolbar">
+          <h6 class="fw-bold mb-0" style="color: var(--text-main);">
+            <i class="bi bi-book me-2 text-secondary"></i>Subject breakdown
+          </h6>
+          <div class="analytics-toolbar-search">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" class="form-control form-control-sm border-start-0" placeholder="Search subject..."
+                [(ngModel)]="subjectSearch" (input)="onSubjectSearch()">
+            </div>
+          </div>
+          <div class="analytics-toolbar-actions">
+            <button class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1" 
+              (click)="exportTaskDistribution('SUBJECT', 'EXCEL')" title="Export Excel">
+              <i class="bi bi-file-earmark-excel"></i><span>Excel</span>
+            </button>
+            <button class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1" 
+              (click)="exportTaskDistribution('SUBJECT', 'CSV')" title="Export CSV">
+              <i class="bi bi-file-earmark-spreadsheet"></i><span>CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Desktop View (Table) -->
+        <ng-container *ngIf="!isMobile">
+          <div class="responsive-table-wrapper">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="ps-3 sortable-header col-width-name" (click)="sortSubject('subjectName')" style="cursor: pointer;">
+                    Subject Name
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'subjectName' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="sortable-header col-width-parent" (click)="sortSubject('departmentName')" style="cursor: pointer;">
+                    Department
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'departmentName' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="sortable-header col-width-parent" (click)="sortSubject('subDepartmentName')" style="cursor: pointer;">
+                    Sub Department
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'subDepartmentName' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubject('totalTasks')" style="cursor: pointer;">
+                    Total
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'totalTasks' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubject('pending')" style="cursor: pointer;">
+                    Pending
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'pending' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubject('inProgress')" style="cursor: pointer;">
+                    In Progress
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'inProgress' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubject('completed')" style="cursor: pointer;">
+                    Completed
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'completed' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-count" (click)="sortSubject('delayed')" style="cursor: pointer;">
+                    Delayed
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'delayed' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-progress" (click)="sortSubject('completionPercentage')" style="cursor: pointer;">
+                    Completion %
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'completionPercentage' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header col-width-activity" (click)="sortSubject('lastActivity')" style="cursor: pointer;">
+                    Last Activity
+                    <i class="bi ms-1"
+                      [ngClass]="subjectSortBy === 'lastActivity' ? (subjectSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let sb of getFilteredSubjects()">
+                  <td class="fw-semibold ps-3" style="color: var(--text-main);">{{ sb.subjectName }}</td>
+                  <td class="text-muted small">{{ sb.departmentName }}</td>
+                  <td class="text-muted small">{{ sb.subDepartmentName }}</td>
+                  <td class="text-center fw-bold">{{ sb.totalTasks }}</td>
+                  <td class="text-center">
+                    <span *ngIf="sb.pending > 0" class="badge bg-warning-subtle text-warning border">{{ sb.pending
+                      }}</span>
+                    <span *ngIf="sb.pending === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sb.inProgress > 0" class="badge bg-info-subtle text-info border">{{ sb.inProgress
+                      }}</span>
+                    <span *ngIf="sb.inProgress === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sb.completed > 0" class="badge bg-success-subtle text-success border">{{ sb.completed
+                      }}</span>
+                    <span *ngIf="sb.completed === 0" class="text-muted small">-</span>
+                  </td>
+                  <td class="text-center">
+                    <span *ngIf="sb.delayed > 0" class="badge bg-danger-subtle text-danger border">{{ sb.delayed }}</span>
+                    <span *ngIf="sb.delayed === 0" class="text-muted small">-</span>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="progress flex-grow-1" style="height: 6px; background-color: var(--bg-color);">
+                        <div class="progress-bar bg-success" role="progressbar" [style.width.%]="sb.completionPercentage">
+                        </div>
+                      </div>
+                      <span class="small fw-semibold">{{ sb.completionPercentage | number:'1.0-1' }}%</span>
+                    </div>
+                  </td>
+                  <td class="text-center text-muted small">
+                    {{ sb.lastActivity ? formatDate(sb.lastActivity) : 'No Activity' }}
+                  </td>
+                </tr>
+                <tr *ngIf="getFilteredSubjects().length === 0">
+                  <td colspan="10" class="text-center py-4 text-muted">
+                    <i class="bi bi-info-circle me-1"></i>No subjects match the search term.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+
+        <!-- Mobile View (Cards) -->
+        <ng-container *ngIf="isMobile">
+          <div class="mobile-cards-list">
+            <div *ngFor="let sb of getFilteredSubjects()" class="mobile-distribution-card">
+              <div class="mobile-card-header">
+                <div>
+                  <div class="mobile-card-title">{{ sb.subjectName }}</div>
+                  <div class="mobile-card-subtitle">
+                    {{ sb.departmentName }} <span *ngIf="sb.subDepartmentName">| {{ sb.subDepartmentName }}</span>
+                  </div>
+                </div>
+                <span class="badge bg-secondary-subtle text-secondary border">Subject</span>
+              </div>
+              
+              <div class="mobile-card-stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="mobile-stat-item">
+                  <span class="mobile-stat-value text-primary">{{ sb.totalTasks }}</span>
+                  <span class="mobile-stat-label">Total</span>
+                </div>
+                <div class="mobile-stat-item">
+                  <span class="mobile-stat-value" [class.text-warning]="sb.pending > 0" [class.text-muted]="sb.pending === 0">
+                    {{ sb.pending > 0 ? sb.pending : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Pending</span>
+                </div>
+                <div class="mobile-stat-item">
+                  <span class="mobile-stat-value" [class.text-info]="sb.inProgress > 0" [class.text-muted]="sb.inProgress === 0">
+                    {{ sb.inProgress > 0 ? sb.inProgress : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">In Progress</span>
+                </div>
+                <div class="mobile-stat-item">
+                  <span class="mobile-stat-value" [class.text-success]="sb.completed > 0" [class.text-muted]="sb.completed === 0">
+                    {{ sb.completed > 0 ? sb.completed : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Completed</span>
+                </div>
+                <div class="mobile-stat-item">
+                  <span class="mobile-stat-value" [class.text-danger]="sb.delayed > 0" [class.text-muted]="sb.delayed === 0">
+                    {{ sb.delayed > 0 ? sb.delayed : '-' }}
+                  </span>
+                  <span class="mobile-stat-label">Delayed</span>
+                </div>
+              </div>
+              
+              <div class="mobile-card-progress-wrapper">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small fw-semibold text-muted">Completion Rate</span>
+                  <span class="small fw-bold text-success">{{ sb.completionPercentage | number:'1.0-1' }}%</span>
+                </div>
+                <div class="progress" style="height: 8px; background-color: var(--border-color);">
+                  <div class="progress-bar bg-success" role="progressbar" [style.width.%]="sb.completionPercentage"></div>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-between align-items-center text-muted small px-1">
+                <span><i class="bi bi-clock me-1"></i>Last Activity</span>
+                <span>{{ sb.lastActivity ? formatDate(sb.lastActivity) : 'No Activity' }}</span>
+              </div>
+            </div>
+            
+            <div *ngIf="getFilteredSubjects().length === 0" class="responsive-empty-state">
+              <i class="bi bi-info-circle responsive-empty-icon"></i>
+              <div class="responsive-empty-text">No subjects match current filters.</div>
+              <div class="responsive-empty-subtext">Try refining your search keyword.</div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Subject pagination -->
+        <div class="d-flex justify-content-between align-items-center mt-3 px-2 flex-wrap gap-2" *ngIf="subjectTotal > subjectPageSize">
+          <span class="small text-muted">Showing {{ (subjectPage - 1) * subjectPageSize + 1 }}-{{ Math.min(subjectPage *
+            subjectPageSize, subjectTotal) }} of {{ subjectTotal }}</span>
+          <div class="d-flex gap-1 flex-wrap">
+            <button class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center" [disabled]="subjectPage === 1"
+              (click)="changeSubjectPage(subjectPage - 1)">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button *ngFor="let p of getSubjectTotalPagesArray()" class="btn btn-sm py-1 px-2"
+              [class.btn-primary]="p === subjectPage" [class.btn-outline-secondary]="p !== subjectPage"
+              (click)="changeSubjectPage(p)">
+              {{ p }}
+            </button>
+            <button class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center"
+              [disabled]="subjectPage === getSubjectTotalPages()" (click)="changeSubjectPage(subjectPage + 1)">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -535,6 +1404,187 @@
       <!-- <button class="btn btn-outline-secondary" onclick="window.print()">
         <i class="bi bi-printer me-1"></i>Print Page Details
       </button> -->
+    </div>
+
+    <!-- ==================== Task Drill-down Modal ==================== -->
+    <div class="modal fade show" *ngIf="isTaskModalOpen"
+      style="display: block; background: rgba(0,0,0,0.5); z-index: 1055;" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--card-bg);">
+
+          <!-- Modal Header -->
+          <div class="modal-header border-bottom p-4" style="background: var(--bg-color);">
+            <div>
+              <h5 class="modal-title fw-bold text-main" style="color: var(--text-main); margin-bottom: 0;">
+                <i class="bi bi-list-task text-primary me-2"></i>Tasks in {{ modalTargetName }}
+              </h5>
+              <p class="text-muted small mb-0 mt-1">
+                Active drill-down view for user: <strong>{{ user.fullName }}</strong>. Filtered by selected category
+                and status.
+              </p>
+            </div>
+            <button type="button" class="btn-close" (click)="closeTaskModal()" aria-label="Close"></button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="modal-body p-4">
+
+            <!-- Filters & Actions Toolbar -->
+            <div class="row g-3 align-items-center mb-4">
+
+              <!-- Search field -->
+              <div class="col-12 col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control border-start-0 ps-0" placeholder="Search tasks..."
+                    [(ngModel)]="modalSearch" (ngModelChange)="onModalSearchChange()">
+                </div>
+              </div>
+
+              <!-- Priority selector -->
+              <div class="col-6 col-md-2">
+                <select class="form-select" [(ngModel)]="modalPriority" (change)="loadModalTasks()">
+                  <option value="">All Priorities</option>
+                  <option value="HIGH">High Priority</option>
+                  <option value="MEDIUM">Medium Priority</option>
+                  <option value="LOW">Low Priority</option>
+                </select>
+              </div>
+
+              <!-- Task Type selector -->
+              <div class="col-6 col-md-2">
+                <select class="form-select" [(ngModel)]="modalTaskType" (change)="loadModalTasks()">
+                  <option value="">All Types</option>
+                  <option value="GENERAL">General Tasks</option>
+                  <option value="TEMPLATE">Template Tasks</option>
+                </select>
+              </div>
+
+              <!-- Export Buttons -->
+              <div class="col-12 col-md-4 text-md-end d-flex gap-2 justify-content-md-end">
+                <button class="btn btn-outline-success d-flex align-items-center gap-1"
+                  (click)="exportModalTasks('EXCEL')">
+                  <i class="bi bi-file-earmark-excel"></i> Export Excel
+                </button>
+                <button class="btn btn-outline-primary d-flex align-items-center gap-1"
+                  (click)="exportModalTasks('CSV')">
+                  <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
+                </button>
+              </div>
+            </div>
+
+            <!-- Status Tabs -->
+            <div class="border-bottom mb-4">
+              <ul class="nav nav-tabs border-0 flex-nowrap overflow-auto scrollbar-none" style="gap: 0.5rem;">
+                <li class="nav-item" *ngFor="let tab of modalStatusTabs">
+                  <a class="nav-link border-0 text-muted px-3 py-2 fw-semibold cursor-pointer"
+                    [class.active]="modalStatus === tab.value"
+                    [style.color]="modalStatus === tab.value ? 'var(--primary-color)' : ''"
+                    [style.border-bottom]="modalStatus === tab.value ? '2px solid var(--primary-color)' : ''"
+                    (click)="onModalStatusChange(tab.value)">
+                    {{ tab.label }}
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Loading skeleton / Spinner -->
+            <div *ngIf="modalLoading" class="text-center py-5">
+              <div class="spinner-border text-primary spinner mb-2" role="status"></div>
+              <p class="text-muted small">Loading tasks list...</p>
+            </div>
+
+            <!-- Tasks Table -->
+            <div *ngIf="!modalLoading" class="table-responsive rounded-3 border">
+              <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col" class="ps-3 cursor-pointer" (click)="sortModalBy('title')">
+                      Task <i class="bi"
+                        [ngClass]="modalSortBy === 'title' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                    </th>
+                    <!-- <th scope="col" class="text-center cursor-pointer" (click)="sortModalBy('priority')">
+                      Priority <i class="bi"
+                        [ngClass]="modalSortBy === 'priority' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                    </th> -->
+                    <th scope="col" class="text-center cursor-pointer" (click)="sortModalBy('status')">
+                      Status <i class="bi"
+                        [ngClass]="modalSortBy === 'status' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                    </th>
+                    <th scope="col" class="text-center cursor-pointer" (click)="sortModalBy('dueDate')">
+                      Due Date <i class="bi"
+                        [ngClass]="modalSortBy === 'dueDate' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                    </th>
+                    <th scope="col" class="text-center">Subject</th>
+                    <th scope="col" class="text-center">Recurring</th>
+                    <th scope="col" class="text-center">Created By</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let task of modalTasks">
+                    <td class="ps-3 fw-semibold text-main" style="color: var(--text-main);">
+                      <div>{{ task.title }}</div>
+                      <div class="text-muted small fw-normal text-truncate" style="max-width: 300px;">{{
+                        task.description }}</div>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge {{ getTaskStatusClass(task.status) }}">
+                        {{ task.status.replace('_', ' ') }}
+                      </span>
+                    </td>
+                    <td class="text-center text-muted">
+                      {{ task.dueDate ? formatDate(task.dueDate) : '-' }}
+                    </td>
+                    <td class="text-center text-muted">
+                      {{ task.subjectName || '-' }}
+                    </td>
+                    <td class="text-center">
+                      <span *ngIf="task.isRecurring" class="badge bg-info-subtle text-info border">Yes</span>
+                      <span *ngIf="!task.isRecurring" class="text-muted">-</span>
+                    </td>
+                    <td class="text-center text-muted">
+                      {{ task.createdByName || '-' }}
+                    </td>
+                  </tr>
+                  <tr *ngIf="modalTasks.length === 0">
+                    <td colspan="7" class="text-center py-5 text-muted">
+                      <i class="bi bi-info-circle me-1 fs-4 d-block mb-2"></i>No tasks found matching current filters.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Modal Pagination -->
+            <div *ngIf="!modalLoading && modalTotalTasks > 0"
+              class="d-flex justify-content-between align-items-center mt-4">
+              <span class="small text-muted">Showing {{ (modalPage - 1) * modalPageSize + 1 }} to {{ Math.min(modalPage
+                * modalPageSize, modalTotalTasks) }} of {{ modalTotalTasks }} tasks</span>
+
+              <nav aria-label="Modal pagination">
+                <ul class="pagination mb-0">
+                  <li class="page-item" [class.disabled]="modalPage === 1">
+                    <a class="page-link cursor-pointer" (click)="changeModalPage(modalPage - 1)">Previous</a>
+                  </li>
+                  <li class="page-item" *ngFor="let p of getModalTotalPagesArray()" [class.active]="modalPage === p">
+                    <a class="page-link cursor-pointer" (click)="changeModalPage(p)">{{ p }}</a>
+                  </li>
+                  <li class="page-item" [class.disabled]="modalPage === getModalTotalPages()">
+                    <a class="page-link cursor-pointer" (click)="changeModalPage(modalPage + 1)">Next</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-footer border-top p-3" style="background: var(--bg-color);">
+            <button type="button" class="btn btn-secondary" (click)="closeTaskModal()">Close</button>
+          </div>
+
+        </div>
+      </div>
     </div>
 
   </div>

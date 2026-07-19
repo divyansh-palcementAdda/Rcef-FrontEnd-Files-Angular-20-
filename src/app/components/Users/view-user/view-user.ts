@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
@@ -24,12 +24,13 @@ import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
   styleUrls: ['./view-user.css'],
 })
 export class ViewUserComponent implements OnInit {
-  
+  Math = Math;
   userId!: number;
   user?: userDto;
   isLoading = true;
   errorMessage = '';
   isForbidden = false;
+  isMobile = false;
   
   currentUserRole = '';
   currentUserDepartments: number[] = [];
@@ -76,6 +77,66 @@ export class ViewUserComponent implements OnInit {
   taskTypeFilter = '';        // holds the selected templateTitle value
   loadingTypeSummary = false;
 
+  // Task Distribution State
+  taskDistribution: any = null;
+  loadingDistribution = false;
+  hasDistributionAccess = true;
+  selectedDistributionStatus = 'ALL';
+  distributionStatsCards: any[] = [];
+
+  // Modal State
+  isTaskModalOpen = false;
+  modalTargetType: 'department' | 'subdepartment' | 'all' | null = null;
+  modalTargetId: any = null;
+  modalTargetName = '';
+
+  modalTasks: TaskDto[] = [];
+  modalTotalTasks = 0;
+  modalSearch = '';
+  modalStatus = 'ALL';
+  modalPriority = '';
+  modalTaskType = '';
+  modalPage = 1;
+  modalPageSize = 10;
+  modalSortBy = 'createdAt';
+  modalSortDir = 'desc';
+  modalLoading = false;
+
+  // Distribution tables state variables
+  departmentSearch = '';
+  departmentSortBy = 'departmentName';
+  departmentSortDir = 'asc';
+  deptPage = 1;
+  deptPageSize = 10;
+  deptTotal = 0;
+
+  subDepartmentSearch = '';
+  subDepartmentSortBy = 'subDepartmentName';
+  subDepartmentSortDir = 'asc';
+  subDeptPage = 1;
+  subDeptPageSize = 10;
+  subDeptTotal = 0;
+
+  subjectSearch = '';
+  subjectSortBy = 'subjectName';
+  subjectSortDir = 'asc';
+  subjectPage = 1;
+  subjectPageSize = 10;
+  subjectTotal = 0;
+
+  modalStatusTabs = [
+    { label: 'All', value: 'ALL' },
+    { label: 'Pending', value: 'PENDING' },
+    { label: 'In Progress', value: 'IN_PROGRESS' },
+    { label: 'Completed', value: 'COMPLETED' },
+    { label: 'Delayed', value: 'DELAYED' },
+    { label: 'Upcoming', value: 'UPCOMING' },
+    { label: 'Extended', value: 'EXTENDED' },
+    { label: 'Closure Requests', value: 'REQUEST_FOR_CLOSURE' },
+    { label: 'Extension Requests', value: 'REQUEST_FOR_EXTENSION' },
+    { label: 'Recurring Parent', value: 'RECURRING_PARENT' }
+  ];
+
   /**
    * Keyword → icon/CSS mapping.
    * Matched by doing a case-insensitive substring check on templateTitle.
@@ -105,12 +166,59 @@ export class ViewUserComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.checkScreenSize();
     this.userId = Number(this.route.snapshot.paramMap.get('id'));
     if (!this.userId) {
       this.errorMessage = 'Invalid User ID';
       this.isLoading = false;
       return;
     }
+
+    this.route.queryParams.subscribe(params => {
+      // Restore modal states
+      if (params['modalType'] && params['modalId']) {
+        this.modalTargetType = params['modalType'] as any;
+        this.modalTargetId = Number(params['modalId']) || params['modalId'];
+        this.modalTargetName = params['modalName'] || '';
+        this.modalStatus = params['modalStatus'] || 'ALL';
+        this.modalSearch = params['modalSearch'] || '';
+        this.modalPage = params['modalPage'] ? Number(params['modalPage']) : 1;
+        this.modalSortBy = params['modalSortBy'] || 'createdAt';
+        this.modalSortDir = params['modalSortDir'] || 'desc';
+        this.isTaskModalOpen = true;
+      } else {
+        this.isTaskModalOpen = false;
+      }
+
+      // Restore distribution table states
+      this.selectedDistributionStatus = params['distStatus'] || 'ALL';
+      
+      this.departmentSearch = params['deptSearch'] || '';
+      this.departmentSortBy = params['deptSortBy'] || 'departmentName';
+      this.departmentSortDir = params['deptSortDir'] || 'asc';
+      this.deptPage = params['deptPage'] ? Number(params['deptPage']) : 1;
+      this.deptPageSize = params['deptPageSize'] ? Number(params['deptPageSize']) : 10;
+
+      this.subDepartmentSearch = params['subDeptSearch'] || '';
+      this.subDepartmentSortBy = params['subDeptSortBy'] || 'subDepartmentName';
+      this.subDepartmentSortDir = params['subDeptSortDir'] || 'asc';
+      this.subDeptPage = params['subDeptPage'] ? Number(params['subDeptPage']) : 1;
+      this.subDeptPageSize = params['subDeptPageSize'] ? Number(params['subDeptPageSize']) : 10;
+
+      this.subjectSearch = params['subjectSearch'] || '';
+      this.subjectSortBy = params['subjectSortBy'] || 'subjectName';
+      this.subjectSortDir = params['subjectSortDir'] || 'asc';
+      this.subjectPage = params['subjectPage'] ? Number(params['subjectPage']) : 1;
+      this.subjectPageSize = params['subjectPageSize'] ? Number(params['subjectPageSize']) : 10;
+
+      if (this.user) {
+        this.loadTaskDistribution();
+        if (this.isTaskModalOpen) {
+          this.loadModalTasks();
+        }
+      }
+    });
+
     this.checkUserPermissions();
   }
 
@@ -195,6 +303,10 @@ export class ViewUserComponent implements OnInit {
         this.applyFilters();
         this.loadRecentActivity();
         this.loadTaskTypeSummary();
+        this.loadTaskDistribution();
+        if (this.isTaskModalOpen) {
+          this.loadModalTasks();
+        }
         this.isLoading = false;
       },
       error: (err) => {
@@ -592,5 +704,379 @@ formatTime(timestamp: string | Date): string {
       groups[key].subjects.push(sub);
     });
     return Object.values(groups);
+  }
+
+  loadTaskDistribution(): void {
+    this.loadingDistribution = true;
+    const params = {
+      departmentSearch: this.departmentSearch,
+      subDepartmentSearch: this.subDepartmentSearch,
+      subjectSearch: this.subjectSearch,
+      sortByDept: this.departmentSortBy,
+      sortDirDept: this.departmentSortDir,
+      sortBySubDept: this.subDepartmentSortBy,
+      sortDirSubDept: this.subDepartmentSortDir,
+      sortBySubject: this.subjectSortBy,
+      sortDirSubject: this.subjectSortDir,
+      deptPage: this.deptPage - 1,
+      deptSize: this.deptPageSize,
+      subDeptPage: this.subDeptPage - 1,
+      subDeptSize: this.subDeptPageSize,
+      subjectPage: this.subjectPage - 1,
+      subjectSize: this.subjectPageSize
+    };
+
+    this.userService.getUserTaskDistribution(this.userId, params).subscribe({
+      next: (res) => {
+        this.taskDistribution = res;
+        this.hasDistributionAccess = true;
+        this.loadingDistribution = false;
+        this.deptTotal = res.departmentTotalElements || 0;
+        this.subDeptTotal = res.subDepartmentTotalElements || 0;
+        this.subjectTotal = res.subjectTotalElements || 0;
+        this.updateDistributionStatsCards();
+      },
+      error: (err) => {
+        console.warn('Failed to load user task distribution:', err);
+        this.hasDistributionAccess = false;
+        this.loadingDistribution = false;
+      }
+    });
+  }
+
+  updateDistributionStatsCards(): void {
+    if (!this.taskDistribution || !this.taskDistribution.overview) return;
+    const overview = this.taskDistribution.overview;
+    this.distributionStatsCards = [
+      { key: 'ALL', label: 'Total Assigned', count: overview.totalTasks, icon: 'bi-grid-fill', color: 'primary' },
+      { key: 'PENDING', label: 'Pending', count: overview.pending, icon: 'bi-clock', color: 'warning' },
+      { key: 'IN_PROGRESS', label: 'In Progress', count: overview.inProgress, icon: 'bi-play-circle', color: 'info' },
+      { key: 'COMPLETED', label: 'Completed', count: overview.completed, icon: 'bi-check-circle', color: 'success' },
+      { key: 'DELAYED', label: 'Delayed', count: overview.delayed, icon: 'bi-exclamation-triangle', color: 'danger' },
+      { key: 'UPCOMING', label: 'Upcoming', count: overview.upcoming, icon: 'bi-calendar-event', color: 'secondary' },
+      { key: 'EXTENDED', label: 'Extended', count: overview.extended, icon: 'bi-arrow-right-circle', color: 'primary' },
+      { key: 'REQUEST_FOR_EXTENSION', label: 'Request For Extension', count: overview.requestForExtension, icon: 'bi-question-circle', color: 'warning' },
+      { key: 'REQUEST_FOR_CLOSURE', label: 'Request For Closure', count: overview.requestForClosure, icon: 'bi-x-circle', color: 'danger' },
+      { key: 'RECURRING_PARENT', label: 'Recurring Parent', count: overview.recurringParent, icon: 'bi-arrow-repeat', color: 'info' }
+    ];
+  }
+
+  selectDistributionStatus(statusKey: string): void {
+    if (this.selectedDistributionStatus === statusKey) {
+      this.selectedDistributionStatus = 'ALL';
+    } else {
+      this.selectedDistributionStatus = statusKey;
+    }
+    this.updateQueryParams();
+  }
+
+  getFilteredDepartments() {
+    return this.taskDistribution ? this.taskDistribution.departmentDistribution || [] : [];
+  }
+
+  getFilteredSubDepartments() {
+    return this.taskDistribution ? this.taskDistribution.subDepartmentDistribution || [] : [];
+  }
+
+  getFilteredSubjects() {
+    return this.taskDistribution ? this.taskDistribution.subjectDistribution || [] : [];
+  }
+
+  getStatusCountKey(status: string): string {
+    switch (status) {
+      case 'PENDING': return 'pending';
+      case 'IN_PROGRESS': return 'inProgress';
+      case 'COMPLETED': return 'completed';
+      case 'DELAYED': return 'delayed';
+      case 'UPCOMING': return 'upcoming';
+      case 'EXTENDED': return 'extended';
+      case 'REQUEST_FOR_EXTENSION': return 'requestForExtension';
+      case 'REQUEST_FOR_CLOSURE': return 'requestForClosure';
+      case 'RECURRING_PARENT': return 'recurringParent';
+      default: return 'totalTasks';
+    }
+  }
+
+  openUserTasks(statusFilter: string = 'ALL'): void {
+    this.modalTargetType = 'all';
+    this.modalTargetId = this.userId;
+    this.modalTargetName = 'All Assigned Tasks';
+    this.modalStatus = statusFilter;
+    this.modalPage = 1;
+    this.modalSearch = '';
+    this.modalPriority = '';
+    this.modalTaskType = '';
+    this.isTaskModalOpen = true;
+    this.updateQueryParams();
+  }
+
+  openDepartmentTasks(dept: any, statusFilter: string = 'ALL'): void {
+    this.modalTargetType = 'department';
+    this.modalTargetId = dept.departmentId;
+    this.modalTargetName = dept.departmentName;
+    this.modalStatus = statusFilter;
+    this.modalPage = 1;
+    this.modalSearch = '';
+    this.modalPriority = '';
+    this.modalTaskType = '';
+    this.isTaskModalOpen = true;
+    this.updateQueryParams();
+  }
+
+  openSubDepartmentTasks(subDept: any, statusFilter: string = 'ALL'): void {
+    this.modalTargetType = 'subdepartment';
+    this.modalTargetId = subDept.subDepartmentId;
+    this.modalTargetName = subDept.subDepartmentName;
+    this.modalStatus = statusFilter;
+    this.modalPage = 1;
+    this.modalSearch = '';
+    this.modalPriority = '';
+    this.modalTaskType = '';
+    this.isTaskModalOpen = true;
+    this.updateQueryParams();
+  }
+
+  loadModalTasks(): void {
+    if (!this.modalTargetType || !this.modalTargetId) return;
+    this.modalLoading = true;
+    const params = {
+      page: this.modalPage - 1,
+      size: this.modalPageSize,
+      sortBy: this.modalSortBy,
+      sortDirection: this.modalSortDir,
+      search: this.modalSearch,
+      status: this.modalStatus !== 'ALL' ? this.modalStatus : '',
+      priority: this.modalPriority,
+      taskType: this.modalTaskType
+    };
+
+    const request = this.modalTargetType === 'department'
+      ? this.userService.getUserDepartmentTasks(this.userId, this.modalTargetId, params)
+      : this.modalTargetType === 'subdepartment'
+        ? this.userService.getUserSubDepartmentTasks(this.userId, this.modalTargetId, params)
+        : this.userService.getUserTasks(this.userId, params);
+
+    request.subscribe({
+      next: (res: any) => {
+        this.modalTasks = res.content || [];
+        this.modalTotalTasks = res.totalElements || 0;
+        this.modalLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading modal tasks', err);
+        this.modalLoading = false;
+      }
+    });
+  }
+
+  onModalSearchChange(): void {
+    this.modalPage = 1;
+    this.updateQueryParams();
+  }
+
+  onModalStatusChange(status: string): void {
+    this.modalStatus = status;
+    this.modalPage = 1;
+    this.updateQueryParams();
+  }
+
+  changeModalPage(page: number): void {
+    this.modalPage = page;
+    this.updateQueryParams();
+  }
+
+  closeTaskModal(): void {
+    this.isTaskModalOpen = false;
+    this.modalTasks = [];
+    this.updateQueryParams();
+  }
+
+  sortModalBy(column: string): void {
+    if (this.modalSortBy === column) {
+      this.modalSortDir = this.modalSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.modalSortBy = column;
+      this.modalSortDir = 'desc';
+    }
+    this.modalPage = 1;
+    this.updateQueryParams();
+  }
+
+  exportModalTasks(format: string): void {
+    if (!this.modalTargetType || !this.modalTargetId) return;
+    const params = {
+      format: format,
+      search: this.modalSearch,
+      status: this.modalStatus !== 'ALL' ? this.modalStatus : '',
+      priority: this.modalPriority,
+      taskType: this.modalTaskType
+    };
+
+    const url = this.modalTargetType === 'department'
+      ? this.userService.getExportUserDepartmentTasksUrl(this.userId, this.modalTargetId, params)
+      : this.modalTargetType === 'subdepartment'
+        ? this.userService.getExportUserSubDepartmentTasksUrl(this.userId, this.modalTargetId, params)
+        : this.userService.getExportUserTasksUrl(this.userId, params);
+
+    window.open(url, '_blank');
+  }
+
+  getModalTotalPages(): number {
+    return Math.ceil(this.modalTotalTasks / this.modalPageSize) || 1;
+  }
+
+  updateQueryParams(): void {
+    const queryParams: any = {
+      modalType: this.isTaskModalOpen ? this.modalTargetType : null,
+      modalId: this.isTaskModalOpen ? this.modalTargetId : null,
+      modalName: this.isTaskModalOpen ? this.modalTargetName : null,
+      modalStatus: this.isTaskModalOpen ? this.modalStatus : null,
+      modalSearch: this.isTaskModalOpen ? this.modalSearch : null,
+      modalPage: this.isTaskModalOpen ? this.modalPage : null,
+      modalSortBy: this.isTaskModalOpen ? this.modalSortBy : null,
+      modalSortDir: this.isTaskModalOpen ? this.modalSortDir : null,
+      distStatus: this.selectedDistributionStatus !== 'ALL' ? this.selectedDistributionStatus : null,
+      deptSearch: this.departmentSearch || null,
+      deptSortBy: this.departmentSortBy !== 'departmentName' ? this.departmentSortBy : null,
+      deptSortDir: this.departmentSortDir !== 'asc' ? this.departmentSortDir : null,
+      deptPage: this.deptPage > 1 ? this.deptPage : null,
+      deptPageSize: this.deptPageSize !== 10 ? this.deptPageSize : null,
+      subDeptSearch: this.subDepartmentSearch || null,
+      subDeptSortBy: this.subDepartmentSortBy !== 'subDepartmentName' ? this.subDepartmentSortBy : null,
+      subDeptSortDir: this.subDepartmentSortDir !== 'asc' ? this.subDepartmentSortDir : null,
+      subDeptPage: this.subDeptPage > 1 ? this.subDeptPage : null,
+      subDeptPageSize: this.subDeptPageSize !== 10 ? this.subDeptPageSize : null,
+      subjectSearch: this.subjectSearch || null,
+      subjectSortBy: this.subjectSortBy !== 'subjectName' ? this.subjectSortBy : null,
+      subjectSortDir: this.subjectSortDir !== 'asc' ? this.subjectSortDir : null,
+      subjectPage: this.subjectPage > 1 ? this.subjectPage : null,
+      subjectPageSize: this.subjectPageSize !== 10 ? this.subjectPageSize : null
+    };
+
+    Object.keys(queryParams).forEach(key => {
+      if (queryParams[key] === null || queryParams[key] === undefined || queryParams[key] === '') {
+        delete queryParams[key];
+      }
+    });
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  onDepartmentSearch(): void {
+    this.deptPage = 1;
+    this.updateQueryParams();
+  }
+
+  sortDepartment(column: string): void {
+    if (this.departmentSortBy === column) {
+      this.departmentSortDir = this.departmentSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.departmentSortBy = column;
+      this.departmentSortDir = 'asc';
+    }
+    this.deptPage = 1;
+    this.updateQueryParams();
+  }
+
+  changeDeptPage(page: number): void {
+    this.deptPage = page;
+    this.updateQueryParams();
+  }
+
+  onSubDepartmentSearch(): void {
+    this.subDeptPage = 1;
+    this.updateQueryParams();
+  }
+
+  sortSubDepartment(column: string): void {
+    if (this.subDepartmentSortBy === column) {
+      this.subDepartmentSortDir = this.subDepartmentSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.subDepartmentSortBy = column;
+      this.subDepartmentSortDir = 'asc';
+    }
+    this.subDeptPage = 1;
+    this.updateQueryParams();
+  }
+
+  changeSubDeptPage(page: number): void {
+    this.subDeptPage = page;
+    this.updateQueryParams();
+  }
+
+  onSubjectSearch(): void {
+    this.subjectPage = 1;
+    this.updateQueryParams();
+  }
+
+  sortSubject(column: string): void {
+    if (this.subjectSortBy === column) {
+      this.subjectSortDir = this.subjectSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.subjectSortBy = column;
+      this.subjectSortDir = 'asc';
+    }
+    this.subjectPage = 1;
+    this.updateQueryParams();
+  }
+
+  changeSubjectPage(page: number): void {
+    this.subjectPage = page;
+    this.updateQueryParams();
+  }
+
+  exportTaskDistribution(type: string, format: string): void {
+    const params = {
+      type,
+      format,
+      search: type === 'DEPARTMENT' ? this.departmentSearch : type === 'SUB_DEPARTMENT' ? this.subDepartmentSearch : this.subjectSearch,
+      sortBy: type === 'DEPARTMENT' ? this.departmentSortBy : type === 'SUB_DEPARTMENT' ? this.subDepartmentSortBy : this.subjectSortBy,
+      sortDir: type === 'DEPARTMENT' ? this.departmentSortDir : type === 'SUB_DEPARTMENT' ? this.subDepartmentSortDir : this.subjectSortDir
+    };
+    const url = this.userService.getExportTaskDistributionUrl(this.userId, params);
+    window.open(url, '_blank');
+  }
+
+  getModalTotalPagesArray(): number[] {
+    const total = this.getModalTotalPages();
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  getDeptTotalPages(): number {
+    return Math.ceil(this.deptTotal / this.deptPageSize) || 1;
+  }
+
+  getDeptTotalPagesArray(): number[] {
+    return Array.from({ length: this.getDeptTotalPages() }, (_, i) => i + 1);
+  }
+
+  getSubDeptTotalPages(): number {
+    return Math.ceil(this.subDeptTotal / this.subDeptPageSize) || 1;
+  }
+
+  getSubDeptTotalPagesArray(): number[] {
+    return Array.from({ length: this.getSubDeptTotalPages() }, (_, i) => i + 1);
+  }
+
+  getSubjectTotalPages(): number {
+    return Math.ceil(this.subjectTotal / this.subjectPageSize) || 1;
+  }
+
+  getSubjectTotalPagesArray(): number[] {
+    return Array.from({ length: this.getSubjectTotalPages() }, (_, i) => i + 1);
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any): void {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize(): void {
+    this.isMobile = window.innerWidth < 768;
   }
 }

@@ -45,6 +45,23 @@
       <button class="btn btn-outline-secondary" (click)="downloadTemplate()">
         <i class="bi bi-download me-1"></i>Download Template
       </button>
+      <div class="dropdown d-inline-block">
+        <button class="btn btn-outline-success dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-file-earmark-arrow-down-fill me-1"></i>Export
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="exportDropdown">
+          <li>
+            <a class="dropdown-item py-2" (click)="exportUsers('EXCEL')" style="cursor: pointer;">
+              <i class="bi bi-file-earmark-excel text-success me-2"></i>Export Excel
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item py-2" (click)="exportUsers('CSV')" style="cursor: pointer;">
+              <i class="bi bi-file-earmark-spreadsheet text-info me-2"></i>Export CSV
+            </a>
+          </li>
+        </ul>
+      </div>
       <button class="btn btn-primary" (click)="openAddUserModal()" *ngIf="hasPermission('USER_CREATE')">
         <i class="bi bi-person-plus-fill me-1"></i>Add User
       </button>
@@ -285,22 +302,35 @@
           <thead>
             <tr>
               <th style="width: 60px;">S.No</th>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Department</th>
+              <th class="sortable-header" (click)="onSort('fullName')" style="cursor: pointer;">
+                Name
+                <i class="bi ms-1" [ngClass]="sortBy === 'fullName' ? (sortDirection === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+              </th>
+              <th class="sortable-header" (click)="onSort('email')" style="cursor: pointer;">
+                Email
+                <i class="bi ms-1" [ngClass]="sortBy === 'email' ? (sortDirection === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+              </th>
+              <th class="sortable-header" (click)="onSort('role')" style="cursor: pointer;">
+                Role
+                <i class="bi ms-1" [ngClass]="sortBy === 'role' ? (sortDirection === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+              </th>
+              <th class="sortable-header" (click)="onSort('status')" style="cursor: pointer;">
+                Status
+                <i class="bi ms-1" [ngClass]="sortBy === 'status' ? (sortDirection === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+              </th>
+              <th class="sortable-header" (click)="onSort('department')" style="cursor: pointer;">
+                Department
+                <i class="bi ms-1" [ngClass]="sortBy === 'department' ? (sortDirection === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up text-muted'"></i>
+              </th>
               <th class="text-end">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let user of paginatedUsers; let i = index; trackBy: trackByUserId" (click)="goToUser(user.userId)"
-              style="cursor:pointer;">
+            <tr *ngFor="let user of paginatedUsers; let i = index; trackBy: trackByUserId"
+              (click)="goToUser(user.userId)" style="cursor:pointer;">
               <td>
                 <span class="fw-semibold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
               </td>
-              <td class="fw-semibold">#{{ user.userId }}</td>
               <td>
                 <div class="fw-bold" style="color: var(--text-main);">{{ user.fullName }}</div>
               </td>
@@ -390,11 +420,12 @@
         <div class="stitch-pag-left">
           <span>Rows per page:</span>
           <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="currentPage = 1; applyFilters()">
-            <option [value]="5">5</option>
-            <option [value]="8">8</option>
             <option [value]="10">10</option>
-            <option [value]="12">12</option>
-            <option [value]="20">20</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+            <option [value]="250">250</option>
+            <option [value]="500">500</option>
           </select>
           <span class="stitch-pag-label">
             {{ (currentPage - 1) * pageSize + 1 }}-{{ pageUpperBound() }} of {{ totalElements }} results
