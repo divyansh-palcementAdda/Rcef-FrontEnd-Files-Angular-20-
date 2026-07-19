@@ -14,11 +14,12 @@ import {
 } from '../../Services/all-work-api.service';
 import { JwtService } from '../../Services/jwt-service';
 import { ModalWrapperComponent } from '../Shared/modal-wrapper/modal-wrapper';
+import { AllWorkModalContentComponent, type AllWorkModalView } from '../Shared/all-work-modal-content/all-work-modal-content.component';
 
 @Component({
   selector: 'app-all-work',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalWrapperComponent],
+  imports: [CommonModule, FormsModule, ModalWrapperComponent, AllWorkModalContentComponent],
   templateUrl: './all-work.component.html',
   styleUrls: ['./all-work.component.css']
 })
@@ -50,7 +51,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   subDeptSortDir: 'asc' | 'desc' = 'asc';
 
   // Modal Overlays views stack
-  modalStack: string[] = [];
+  modalStack: AllWorkModalView[] = [];
   selectedSubDept: SubDepartmentRowDTO | null = null;
   selectedUser: UserRowDTO | null = null;
 
