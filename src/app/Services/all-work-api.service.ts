@@ -110,19 +110,25 @@ export class AllWorkApiService {
   }
 
   getSubDepartments(
-    deptId: number,
+    deptId: number | null,
     search: string = '',
+    filters: string = '',
     page: number = 0,
     size: number = 10,
     sort: string = 'name,asc'
   ): Observable<any> {
     let params = new HttpParams()
       .set('search', search)
+      .set('filters', filters)
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sort', sort);
 
-    return this.http.get<any>(`${this.apiUrl}/departments/${deptId}/subdepartments`, { params });
+    if (deptId !== null && deptId !== undefined && deptId !== 0) {
+      params = params.set('departmentId', deptId.toString());
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/subdepartments`, { params });
   }
 
   getSubDepartmentUsers(
@@ -186,8 +192,12 @@ export class AllWorkApiService {
   }
 
   // Export URL builders
-  getExportSubDepartmentsUrl(departmentId: number, search: string = '', format: string = 'EXCEL'): string {
-    return `${this.apiUrl}/export/subdepartments?departmentId=${departmentId}&search=${encodeURIComponent(search)}&format=${format}`;
+  getExportSubDepartmentsUrl(departmentId: number | null, search: string = '', filters: string = '', format: string = 'EXCEL'): string {
+    let url = `${this.apiUrl}/export/subdepartments?search=${encodeURIComponent(search)}&filters=${encodeURIComponent(filters)}&format=${format}`;
+    if (departmentId !== null && departmentId !== undefined && departmentId !== 0) {
+      url += `&departmentId=${departmentId}`;
+    }
+    return url;
   }
 
   getExportUsersUrl(subDepartmentId: string, search: string = '', format: string = 'EXCEL'): string {

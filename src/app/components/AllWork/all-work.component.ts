@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { Subscription, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize } from 'rxjs/operators';
 import { 
   AllWorkApiService, 
   WorkDashboardResponse, 
@@ -49,6 +49,23 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   // Sort tracking for UI indicators
   subDeptSortField = 'name';
   subDeptSortDir: 'asc' | 'desc' = 'asc';
+  showFilters = false;
+
+  // Search debouncing subject
+  private subDeptSearchSubject = new Subject<string>();
+
+  // Backend filters for Sub Departments
+  filterTaskStatus = '';
+  filterUserCountMin: number | null = null;
+  filterUserCountMax: number | null = null;
+  filterSubjectCountMin: number | null = null;
+  filterSubjectCountMax: number | null = null;
+  filterCreatedDateStart = '';
+  filterCreatedDateEnd = '';
+  filterLastActivityStart = '';
+  filterLastActivityEnd = '';
+  filterDeptStatus = '';
+  filterCreatedBy = '';
 
   // Modal Overlays views stack
   modalStack: AllWorkModalView[] = [];
@@ -107,6 +124,19 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     const token = this.jwtService.getAccessToken();
     this.currentUserId = token ? this.jwtService.getUserIdFromToken(token) : null;
     
+    // Subscribe to search input changes with debounce
+    this.subscriptions.add(
+      this.subDeptSearchSubject.pipe(
+        debounceTime(300),
+        distinctUntilChanged()
+      ).subscribe(value => {
+        this.subDeptSearch = value;
+        this.subDeptPage = 0;
+        this.updateQueryParams();
+        this.loadSubDepartments();
+      })
+    );
+
     this.subscriptions.add(
       this.route.queryParams.subscribe(params => {
         // Restore state from query parameters (handles browser back navigation)
@@ -120,6 +150,20 @@ export class AllWorkComponent implements OnInit, OnDestroy {
           this.subDeptSortField = parts[0] || 'name';
           this.subDeptSortDir = (parts[1] === 'desc' ? 'desc' : 'asc') as 'asc' | 'desc';
         }
+
+        // Restore filters from query params
+        this.filterTaskStatus = params['filterTaskStatus'] || '';
+        this.filterUserCountMin = params['filterUserCountMin'] ? parseInt(params['filterUserCountMin'], 10) : null;
+        this.filterUserCountMax = params['filterUserCountMax'] ? parseInt(params['filterUserCountMax'], 10) : null;
+        this.filterSubjectCountMin = params['filterSubjectCountMin'] ? parseInt(params['filterSubjectCountMin'], 10) : null;
+        this.filterSubjectCountMax = params['filterSubjectCountMax'] ? parseInt(params['filterSubjectCountMax'], 10) : null;
+        this.filterCreatedDateStart = params['filterCreatedDateStart'] || '';
+        this.filterCreatedDateEnd = params['filterCreatedDateEnd'] || '';
+        this.filterLastActivityStart = params['filterLastActivityStart'] || '';
+        this.filterLastActivityEnd = params['filterLastActivityEnd'] || '';
+        this.filterDeptStatus = params['filterDeptStatus'] || '';
+        this.filterCreatedBy = params['filterCreatedBy'] || '';
+
         if (params['userSearch'] !== undefined) this.userSearch = params['userSearch'] || '';
         if (params['userPage'] !== undefined) this.userPage = parseInt(params['userPage'], 10) || 0;
         if (params['userSize'] !== undefined) this.userSize = parseInt(params['userSize'], 10) || 10;
@@ -237,6 +281,19 @@ export class AllWorkComponent implements OnInit, OnDestroy {
       subDeptPage: this.subDeptPage || null,
       subDeptSize: this.subDeptSize || null,
       subDeptSort: this.subDeptSort || null,
+
+      filterTaskStatus: this.filterTaskStatus || null,
+      filterUserCountMin: this.filterUserCountMin || null,
+      filterUserCountMax: this.filterUserCountMax || null,
+      filterSubjectCountMin: this.filterSubjectCountMin || null,
+      filterSubjectCountMax: this.filterSubjectCountMax || null,
+      filterCreatedDateStart: this.filterCreatedDateStart || null,
+      filterCreatedDateEnd: this.filterCreatedDateEnd || null,
+      filterLastActivityStart: this.filterLastActivityStart || null,
+      filterLastActivityEnd: this.filterLastActivityEnd || null,
+      filterDeptStatus: this.filterDeptStatus || null,
+      filterCreatedBy: this.filterCreatedBy || null,
+
       userSearch: this.userSearch || null,
       userPage: this.userPage || null,
       userSize: this.userSize || null,
@@ -252,7 +309,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     };
 
     Object.keys(queryParams).forEach(key => {
-      if (queryParams[key] === null || queryParams[key] === undefined) {
+      if (queryParams[key] === null || queryParams[key] === undefined || queryParams[key] === '') {
         delete queryParams[key];
       }
     });
@@ -311,17 +368,55 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     this.loadSubDepartments();
   }
 
+  getSerializedFilters(): string {
+    const activeFilters: any = {};
+    if (this.filterTaskStatus && this.filterTaskStatus !== 'ALL') {
+      activeFilters.taskStatus = this.filterTaskStatus;
+    }
+    if (this.filterUserCountMin !== null && this.filterUserCountMin !== undefined && (this.filterUserCountMin as any) !== '') {
+      activeFilters.userCountMin = this.filterUserCountMin;
+    }
+    if (this.filterUserCountMax !== null && this.filterUserCountMax !== undefined && (this.filterUserCountMax as any) !== '') {
+      activeFilters.userCountMax = this.filterUserCountMax;
+    }
+    if (this.filterSubjectCountMin !== null && this.filterSubjectCountMin !== undefined && (this.filterSubjectCountMin as any) !== '') {
+      activeFilters.subjectCountMin = this.filterSubjectCountMin;
+    }
+    if (this.filterSubjectCountMax !== null && this.filterSubjectCountMax !== undefined && (this.filterSubjectCountMax as any) !== '') {
+      activeFilters.subjectCountMax = this.filterSubjectCountMax;
+    }
+    if (this.filterCreatedDateStart) {
+      activeFilters.createdDateStart = this.filterCreatedDateStart;
+    }
+    if (this.filterCreatedDateEnd) {
+      activeFilters.createdDateEnd = this.filterCreatedDateEnd;
+    }
+    if (this.filterLastActivityStart) {
+      activeFilters.lastActivityStart = this.filterLastActivityStart;
+    }
+    if (this.filterLastActivityEnd) {
+      activeFilters.lastActivityEnd = this.filterLastActivityEnd;
+    }
+    if (this.filterDeptStatus && this.filterDeptStatus !== 'ALL') {
+      activeFilters.deptStatus = this.filterDeptStatus;
+    }
+    if (this.filterCreatedBy) {
+      activeFilters.createdBy = this.filterCreatedBy;
+    }
+    
+    return Object.keys(activeFilters).length > 0 ? JSON.stringify(activeFilters) : '';
+  }
+
   loadSubDepartments(): void {
     if (this.role !== 'HOD' && this.selectedDeptId === null) return;
     this.loadingSubDepts = true;
     this.subDeptError = false;
     this.cdr.markForCheck();
     
-    // Passing selectedDeptId or 0 if HOD (backend visibility filters will handle HOD subdepartments automatically)
-    const deptId = this.selectedDeptId || 0;
+    const serializedFilters = this.getSerializedFilters();
 
     this.subscriptions.add(
-      this.apiService.getSubDepartments(deptId, this.subDeptSearch, this.subDeptPage, this.subDeptSize, this.subDeptSort)
+      this.apiService.getSubDepartments(this.selectedDeptId, this.subDeptSearch, serializedFilters, this.subDeptPage, this.subDeptSize, this.subDeptSort)
         .pipe(finalize(() => {
           this.loadingSubDepts = false;
           this.cdr.markForCheck();
@@ -329,7 +424,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (res) => {
             this.subDepartments = res.content || [];
-            this.totalSubDepts = res.totalElements || 0;
+            this.totalSubDepts = res.page?.totalElements !== undefined ? res.page.totalElements : (res.totalElements || 0);
             this.cdr.markForCheck();
           },
           error: (err) => {
@@ -341,7 +436,35 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     );
   }
 
-  onSubDeptSearchChange(): void {
+  onSubDeptSearchChange(value: string): void {
+    this.subDeptSearchSubject.next(value);
+  }
+
+  applyFilters(): void {
+    this.subDeptPage = 0;
+    this.updateQueryParams();
+    this.loadSubDepartments();
+  }
+
+  resetFilters(): void {
+    this.filterTaskStatus = '';
+    this.filterUserCountMin = null;
+    this.filterUserCountMax = null;
+    this.filterSubjectCountMin = null;
+    this.filterSubjectCountMax = null;
+    this.filterCreatedDateStart = '';
+    this.filterCreatedDateEnd = '';
+    this.filterLastActivityStart = '';
+    this.filterLastActivityEnd = '';
+    this.filterDeptStatus = '';
+    this.filterCreatedBy = '';
+    this.subDeptPage = 0;
+    this.updateQueryParams();
+    this.loadSubDepartments();
+  }
+
+  onSubDeptSizeChange(newSize: number): void {
+    this.subDeptSize = newSize;
     this.subDeptPage = 0;
     this.updateQueryParams();
     this.loadSubDepartments();
@@ -397,7 +520,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (res) => {
             this.users = res.content || [];
-            this.totalUsers = res.totalElements || 0;
+            this.totalUsers = res.page?.totalElements !== undefined ? res.page.totalElements : (res.totalElements || 0);
             this.cdr.markForCheck();
           },
           error: (err) => {
@@ -493,7 +616,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (res) => {
             this.tasks = res.content || [];
-            this.totalTasks = res.totalElements || 0;
+            this.totalTasks = res.page?.totalElements !== undefined ? res.page.totalElements : (res.totalElements || 0);
             this.cdr.markForCheck();
           },
           error: (err) => {
@@ -682,8 +805,9 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   // =========================================================================
 
   exportSubDepartments(format: string): void {
-    if (this.selectedDeptId === null) return;
-    const url = this.apiService.getExportSubDepartmentsUrl(this.selectedDeptId, this.subDeptSearch, format);
+    if (this.role !== 'HOD' && this.selectedDeptId === null) return;
+    const serializedFilters = this.getSerializedFilters();
+    const url = this.apiService.getExportSubDepartmentsUrl(this.selectedDeptId, this.subDeptSearch, serializedFilters, format);
     window.open(url, '_blank');
   }
 

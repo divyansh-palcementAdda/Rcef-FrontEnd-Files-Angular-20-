@@ -116,6 +116,67 @@ export class DepartmentApiService {
     );
   }
 
+  getSubDepartmentAnalytics(id: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/${id}/analytics`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department analytics'))
+    );
+  }
+
+  getSubDepartmentUsers(id: string, search?: string, page = 0, size = 10): Observable<any> {
+    let queryParams = `?page=${page}&size=${size}`;
+    if (search) queryParams += `&search=${encodeURIComponent(search)}`;
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/${id}/users${queryParams}`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department users'))
+    );
+  }
+
+  getSubDepartmentUserBreakdowns(id: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/${id}/user-breakdowns`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department user breakdowns'))
+    );
+  }
+
+  getSubDepartmentSubjects(id: string, search?: string, page = 0, size = 10, sortBy = 'name', sortDir = 'asc'): Observable<any> {
+    let queryParams = `?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`;
+    if (search) queryParams += `&search=${encodeURIComponent(search)}`;
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/${id}/subjects${queryParams}`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department subjects'))
+    );
+  }
+
+  getSubDepartmentTemplates(id: string, page = 0, size = 10, sortBy = 'title', sortDir = 'asc'): Observable<any> {
+    let queryParams = `?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`;
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/${id}/templates${queryParams}`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department templates'))
+    );
+  }
+
+  getSubDepartmentActivity(id: string, page = 0, size = 10): Observable<any> {
+    let queryParams = `?page=${page}&size=${size}`;
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/${id}/activity${queryParams}`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department activity'))
+    );
+  }
+
+  getSubDepartmentTasks(id: string, params: any): Observable<any> {
+    let queryParams = `?page=${params.page || 0}&size=${params.size || 20}`;
+    if (params.search) queryParams += `&search=${encodeURIComponent(params.search)}`;
+    if (params.status) queryParams += `&status=${encodeURIComponent(params.status)}`;
+    if (params.priority) queryParams += `&priority=${encodeURIComponent(params.priority)}`;
+    if (params.taskType) queryParams += `&taskType=${encodeURIComponent(params.taskType)}`;
+    if (params.sortBy) queryParams += `&sortBy=${encodeURIComponent(params.sortBy)}`;
+    if (params.sortDir) queryParams += `&sortDir=${encodeURIComponent(params.sortDir)}`;
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/${id}/tasks${queryParams}`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department tasks'))
+    );
+  }
+
+  getSubDepartmentCharts(id: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/${id}/charts`).pipe(
+      catchError(err => this.handleError(err, 'fetch sub-department charts'))
+    );
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);
