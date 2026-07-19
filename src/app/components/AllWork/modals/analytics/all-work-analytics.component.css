@@ -1,0 +1,249 @@
+/* ============================================================
+   ALL WORK – ANALYTICS MODAL STYLES
+   ============================================================ */
+
+/* ── Loading ── */
+.aw-analytics-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  gap: 1rem;
+}
+.aw-loading-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.aw-loading-text { font-size: 0.85rem; color: #94a3b8; }
+
+/* ── Section title ── */
+.aw-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+}
+
+/* ── KPI cards ── */
+.aw-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.aw-kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  background: #f8fafc;
+}
+
+.aw-kpi-card--tasks   { background: #eff6ff; border-color: #bfdbfe; }
+.aw-kpi-card--users   { background: #f5f3ff; border-color: #ddd6fe; }
+.aw-kpi-card--subjects{ background: #dcfce7; border-color: #bbf7d0; }
+.aw-kpi-card--requests{ background: #fff7ed; border-color: #fed7aa; }
+
+.aw-kpi-icon {
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+.aw-kpi-card--tasks    .aw-kpi-icon { color: #2563eb; }
+.aw-kpi-card--users    .aw-kpi-icon { color: #5b21b6; }
+.aw-kpi-card--subjects .aw-kpi-icon { color: #15803d; }
+.aw-kpi-card--requests .aw-kpi-icon { color: #c2410c; }
+
+.aw-kpi-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+.aw-kpi-label {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* ── Performance rates ── */
+.aw-rates-section { margin-bottom: 1.5rem; }
+
+.aw-rates-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.aw-rate-card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.aw-rate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.aw-rate-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.aw-rate-pct {
+  font-size: 0.85rem;
+  font-weight: 800;
+  font-family: monospace;
+}
+.aw-rate-pct--success { color: #15803d; }
+.aw-rate-pct--danger  { color: #dc2626; }
+.aw-rate-pct--info    { color: #0369a1; }
+
+.aw-rate-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.aw-rate-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.5s ease;
+}
+.aw-rate-fill--success { background: linear-gradient(90deg, #22c55e, #86efac); }
+.aw-rate-fill--danger  { background: linear-gradient(90deg, #ef4444, #fca5a5); }
+.aw-rate-fill--info    { background: linear-gradient(90deg, #0ea5e9, #7dd3fc); }
+
+/* ── Status distribution ── */
+.aw-dist-section { margin-bottom: 0.5rem; }
+
+.aw-dist-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.aw-dist-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.aw-dist-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.aw-dist-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.aw-dot--pending    { background: #f59e0b; }
+.aw-dot--inprogress { background: #0ea5e9; }
+.aw-dot--closed     { background: #22c55e; }
+.aw-dot--delayed    { background: #ef4444; }
+.aw-dot--upcoming   { background: #3b82f6; }
+.aw-dot--extended   { background: #a855f7; }
+.aw-dot--rfc        { background: #f97316; }
+.aw-dot--rfe        { background: #eab308; }
+.aw-dot--default    { background: #94a3b8; }
+
+.aw-dist-label {
+  font-size: 0.78rem;
+  color: #374151;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aw-dist-bar-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aw-dist-bar {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.aw-dist-fill {
+  height: 100%;
+  border-radius: 9999px;
+  min-width: 3px;
+  transition: width 0.4s ease;
+}
+.aw-fill--pending    { background: #f59e0b; }
+.aw-fill--inprogress { background: #0ea5e9; }
+.aw-fill--closed     { background: #22c55e; }
+.aw-fill--delayed    { background: #ef4444; }
+.aw-fill--upcoming   { background: #3b82f6; }
+.aw-fill--extended   { background: #a855f7; }
+.aw-fill--rfc        { background: #f97316; }
+.aw-fill--rfe        { background: #eab308; }
+.aw-fill--default    { background: #94a3b8; }
+
+.aw-dist-count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #374151;
+  min-width: 28px;
+  text-align: right;
+  font-family: monospace;
+}
+
+.aw-dist-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  padding: 1rem 0;
+}
+
+/* ── Empty analytics ── */
+.aw-analytics-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1rem;
+  gap: 0.5rem;
+}
+.aw-empty-icon  { font-size: 2.5rem; color: #cbd5e1; }
+.aw-empty-title { font-size: 0.95rem; font-weight: 700; color: #374151; }
+.aw-empty-sub   { font-size: 0.8rem; color: #9ca3af; }
+
+@media (max-width: 599px) {
+  .aw-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .aw-dist-label-wrap {
+    width: 100px;
+  }
+}

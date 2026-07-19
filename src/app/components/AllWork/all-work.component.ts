@@ -14,12 +14,22 @@ import {
 } from '../../Services/all-work-api.service';
 import { JwtService } from '../../Services/jwt-service';
 import { ModalWrapperComponent } from '../Shared/modal-wrapper/modal-wrapper';
-import { AllWorkModalContentComponent, type AllWorkModalView } from '../Shared/all-work-modal-content/all-work-modal-content.component';
+import { ModalWrapperService } from '../../Services/modal-wrapper.service';
+import { AllWorkUsersComponent } from './modals/users/all-work-users.component';
+import { AllWorkTasksComponent } from './modals/tasks/all-work-tasks.component';
+import { AllWorkAnalyticsComponent } from './modals/analytics/all-work-analytics.component';
 
 @Component({
   selector: 'app-all-work',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalWrapperComponent, AllWorkModalContentComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ModalWrapperComponent, 
+    AllWorkUsersComponent, 
+    AllWorkTasksComponent, 
+    AllWorkAnalyticsComponent
+  ],
   templateUrl: './all-work.component.html',
   styleUrls: ['./all-work.component.css']
 })
@@ -46,6 +56,17 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   loadingSubDepts = false;
   subDeptError = false;
 
+  // Modal-specific grid state tracking
+  userSearch = '';
+  userPage = 0;
+  userSize = 10;
+  userSort = 'fullName,asc';
+  taskSearch = '';
+  taskStatus = 'ALL';
+  taskPage = 0;
+  taskSize = 10;
+  taskSort = 'createdAt,desc';
+
   // Sort tracking for UI indicators
   subDeptSortField = 'name';
   subDeptSortDir: 'asc' | 'desc' = 'asc';
@@ -67,48 +88,6 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   filterDeptStatus = '';
   filterCreatedBy = '';
 
-  // Modal Overlays views stack
-  modalStack: AllWorkModalView[] = [];
-  selectedSubDept: SubDepartmentRowDTO | null = null;
-  selectedUser: UserRowDTO | null = null;
-
-  // Users Modal Table
-  users: UserRowDTO[] = [];
-  totalUsers = 0;
-  userSearch = '';
-  userPage = 0;
-  userSize = 10;
-  userSort = 'fullName,asc';
-  loadingUsers = false;
-
-  // Tasks Modal Table
-  tasks: any[] = [];
-  totalTasks = 0;
-  taskSearch = '';
-  taskStatus = 'ALL';
-  taskPage = 0;
-  taskSize = 10;
-  taskSort = 'createdAt,desc';
-  loadingTasks = false;
-
-  // Analytics Modal
-  analytics: WorkAnalyticsResponse | null = null;
-  loadingAnalytics = false;
-
-  // Status Tabs for Tasks
-  statusTabs = [
-    { label: 'All', value: 'ALL' },
-    { label: 'Pending', value: 'PENDING' },
-    { label: 'In Progress', value: 'IN_PROGRESS' },
-    { label: 'Completed', value: 'COMPLETED' },
-    { label: 'Delayed', value: 'DELAYED' },
-    { label: 'Upcoming', value: 'UPCOMING' },
-    { label: 'Extended', value: 'EXTENDED' },
-    { label: 'Closure Requests', value: 'CLOSURE_REQUESTS' },
-    { label: 'Extension Requests', value: 'EXTENSION_REQUESTS' },
-    { label: 'Recurring Parent', value: 'RECURRING_PARENT' }
-  ];
-
   isInitialLoad = true;
   private subscriptions = new Subscription();
 
@@ -117,7 +96,8 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     private jwtService: JwtService,
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public modalWrapperService: ModalWrapperService
   ) {}
 
   ngOnInit(): void {
@@ -179,35 +159,107 @@ export class AllWorkComponent implements OnInit, OnDestroy {
         const userId = params['userId'] ? parseInt(params['userId'], 10) : null;
         const modal = params['modal'];
 
-        if (modal && subDeptId) {
-          this.selectedSubDept = { id: subDeptId } as SubDepartmentRowDTO;
-          if (modal === 'users') {
-            this.modalStack = ['users'];
-            this.loadUsers();
+        if (modal) {
+          const subDept = subDeptId ? ({ id: subDeptId } as SubDepartmentRowDTO) : null;
+          const user = userId ? ({ userId } as UserRowDTO) : null;
+
+          if (modal === 'users' && subDept) {
+            this.modalWrapperService.setStack([
+              {
+                component: AllWorkUsersComponent,
+                config: {
+                  title: `Users in ${subDept.name || ''}`,
+                  subtitle: 'Manage, search, and monitor user workloads.',
+                  sizeClass: 'modal-xl',
+                  data: {
+                    subDept: subDept,
+                    dashboardData: this.dashboardData,
+                    onOpenUserTasks: (u: UserRowDTO) => this.openUserTasks(u),
+                    onOpenUserAnalytics: (u: UserRowDTO) => this.openUserAnalytics(u),
+                    onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
+                  }
+                }
+              }
+            ]);
           } else if (modal === 'tasks') {
-            if (userId) {
-              this.selectedUser = { userId } as UserRowDTO;
-              this.modalStack = ['users', 'tasks'];
-              this.loadUsers();
+            const tasksTitle = user ? `Tasks assigned to ${user.fullName || ''}` : `Tasks in ${subDept?.name || ''}`;
+            const tasksConfig = {
+              title: tasksTitle,
+              subtitle: 'Centralized task lifecycle oversight, priority tracking, and export.',
+              sizeClass: 'modal-xl',
+              data: {
+                subDept: subDept,
+                user: user,
+                dashboardData: this.dashboardData,
+                onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
+              }
+            };
+
+            if (user && subDept) {
+              this.modalWrapperService.setStack([
+                {
+                  component: AllWorkUsersComponent,
+                  config: {
+                    title: `Users in ${subDept.name || ''}`,
+                    subtitle: 'Manage, search, and monitor user workloads.',
+                    sizeClass: 'modal-xl',
+                    data: {
+                      subDept: subDept,
+                      dashboardData: this.dashboardData,
+                      onOpenUserTasks: (u: UserRowDTO) => this.openUserTasks(u),
+                      onOpenUserAnalytics: (u: UserRowDTO) => this.openUserAnalytics(u),
+                      onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
+                    }
+                  }
+                },
+                {
+                  component: AllWorkTasksComponent,
+                  config: tasksConfig
+                }
+              ]);
             } else {
-              this.selectedUser = null;
-              this.modalStack = ['tasks'];
+              this.modalWrapperService.setStack([{ component: AllWorkTasksComponent, config: tasksConfig }]);
             }
-            this.loadTasks();
           } else if (modal === 'analytics') {
-            if (userId) {
-              this.selectedUser = { userId } as UserRowDTO;
-              this.modalStack = ['users', 'analytics'];
-              this.loadUsers();
+            const analyticsTitle = user ? `Analytics Overview for ${user.fullName || ''}` : `Analytics Overview for ${subDept?.name || ''}`;
+            const analyticsConfig = {
+              title: analyticsTitle,
+              subtitle: 'Granular work distribution, task states, and performance metrics.',
+              sizeClass: 'modal-lg',
+              data: {
+                subDept: subDept,
+                user: user
+              }
+            };
+
+            if (user && subDept) {
+              this.modalWrapperService.setStack([
+                {
+                  component: AllWorkUsersComponent,
+                  config: {
+                    title: `Users in ${subDept.name || ''}`,
+                    subtitle: 'Manage, search, and monitor user workloads.',
+                    sizeClass: 'modal-xl',
+                    data: {
+                      subDept: subDept,
+                      dashboardData: this.dashboardData,
+                      onOpenUserTasks: (u: UserRowDTO) => this.openUserTasks(u),
+                      onOpenUserAnalytics: (u: UserRowDTO) => this.openUserAnalytics(u),
+                      onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
+                    }
+                  }
+                },
+                {
+                  component: AllWorkAnalyticsComponent,
+                  config: analyticsConfig
+                }
+              ]);
             } else {
-              this.selectedUser = null;
-              this.modalStack = ['analytics'];
+              this.modalWrapperService.setStack([{ component: AllWorkAnalyticsComponent, config: analyticsConfig }]);
             }
-            this.loadAnalytics();
           }
-        } else if (!modal) {
-          // No modal in params, close all modals
-          this.closeAllModals();
+        } else {
+          this.modalWrapperService.clear();
         }
 
         // Load dashboard data on initial load or when department changes
@@ -275,6 +327,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   }
 
   updateQueryParams(): void {
+    const currentModal = this.modalWrapperService.getCurrentModal();
     const queryParams: any = {
       dept: this.selectedDeptId,
       subDeptSearch: this.subDeptSearch || null,
@@ -294,18 +347,9 @@ export class AllWorkComponent implements OnInit, OnDestroy {
       filterDeptStatus: this.filterDeptStatus || null,
       filterCreatedBy: this.filterCreatedBy || null,
 
-      userSearch: this.userSearch || null,
-      userPage: this.userPage || null,
-      userSize: this.userSize || null,
-      userSort: this.userSort || null,
-      taskSearch: this.taskSearch || null,
-      taskStatus: this.taskStatus || null,
-      taskPage: this.taskPage || null,
-      taskSize: this.taskSize || null,
-      taskSort: this.taskSort || null,
-      modal: this.modalStack.length > 0 ? this.modalStack[this.modalStack.length - 1] : null,
-      subDeptId: this.selectedSubDept ? this.selectedSubDept.id : null,
-      userId: this.selectedUser ? this.selectedUser.userId : null
+      modal: currentModal ? (currentModal.component === AllWorkUsersComponent ? 'users' : currentModal.component === AllWorkTasksComponent ? 'tasks' : 'analytics') : null,
+      subDeptId: currentModal?.config.data?.subDept?.id || null,
+      userId: currentModal?.config.data?.user?.userId || null
     };
 
     Object.keys(queryParams).forEach(key => {
@@ -322,7 +366,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     });
   }
 
-  navigateToEntity(type: 'task' | 'user' | 'sub-department' | 'department', id: any, event?: Event): void {
+  navigateToEntity(type: string, id: any, event?: Event): void {
     if (event) {
       const target = event.target as HTMLElement;
       if (target.closest('button') || target.closest('a') || target.closest('input') || target.closest('select') || target.closest('.btn-group') || target.closest('ul')) {
@@ -499,52 +543,19 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   // =========================================================================
 
   openUsers(subDept: SubDepartmentRowDTO): void {
-    this.selectedSubDept = subDept;
-    this.userPage = 0;
-    this.userSearch = '';
-    this.modalStack = ['users'];
+    this.modalWrapperService.open(AllWorkUsersComponent, {
+      title: 'Users in ' + subDept.name,
+      subtitle: 'Manage, search, and monitor user workloads.',
+      sizeClass: 'modal-xl',
+      data: {
+        subDept: subDept,
+        dashboardData: this.dashboardData,
+        onOpenUserTasks: (u: UserRowDTO) => this.openUserTasks(u),
+        onOpenUserAnalytics: (u: UserRowDTO) => this.openUserAnalytics(u),
+        onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
+      }
+    });
     this.updateQueryParams();
-    this.loadUsers();
-  }
-
-  loadUsers(): void {
-    if (!this.selectedSubDept) return;
-    this.loadingUsers = true;
-    this.cdr.markForCheck();
-    this.subscriptions.add(
-      this.apiService.getSubDepartmentUsers(this.selectedSubDept.id, this.userSearch, this.userPage, this.userSize, this.userSort)
-        .pipe(finalize(() => {
-          this.loadingUsers = false;
-          this.cdr.markForCheck();
-        }))
-        .subscribe({
-          next: (res) => {
-            this.users = res.content || [];
-            this.totalUsers = res.page?.totalElements !== undefined ? res.page.totalElements : (res.totalElements || 0);
-            this.cdr.markForCheck();
-          },
-          error: (err) => {
-            console.error('Failed to load subdepartment users', err);
-            this.cdr.markForCheck();
-          }
-        })
-    );
-  }
-
-  onUserSearchChange(): void {
-    this.userPage = 0;
-    this.updateQueryParams();
-    this.loadUsers();
-  }
-
-  changeUserPage(delta: number): void {
-    this.userPage += delta;
-    this.updateQueryParams();
-    this.loadUsers();
-  }
-
-  closeUsersModal(): void {
-    this.closeAllModals();
   }
 
   // =========================================================================
@@ -552,102 +563,51 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   // =========================================================================
 
   openTasks(subDept: SubDepartmentRowDTO): void {
-    this.selectedSubDept = subDept;
-    this.selectedUser = null;
-    this.taskPage = 0;
-    this.taskSearch = '';
-    this.taskStatus = 'ALL';
-    this.modalStack = ['tasks'];
+    this.modalWrapperService.open(AllWorkTasksComponent, {
+      title: `Tasks in ${subDept.name}`,
+      subtitle: 'Centralized task lifecycle oversight, priority tracking, and export.',
+      sizeClass: 'modal-xl',
+      data: {
+        subDept: subDept,
+        user: null,
+        dashboardData: this.dashboardData,
+        onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
+      }
+    });
     this.updateQueryParams();
-    this.cdr.detectChanges(); // Force immediate rendering
-    this.loadTasks();
   }
 
   openUserTasks(user: UserRowDTO): void {
-    this.selectedUser = user;
-    if (!this.modalStack.includes('users')) {
-      this.selectedSubDept = null;
-    }
-    this.taskPage = 0;
-    this.taskSearch = '';
-    this.taskStatus = 'ALL';
-    if (this.modalStack.includes('users')) {
-      this.modalStack.push('tasks');
-    } else {
-      this.modalStack = ['tasks'];
-    }
+    const currentModal = this.modalWrapperService.getCurrentModal();
+    const subDept = currentModal?.config.data?.subDept || null;
+
+    this.modalWrapperService.push(AllWorkTasksComponent, {
+      title: `Tasks assigned to ${user.fullName}`,
+      subtitle: 'Centralized task lifecycle oversight, priority tracking, and export.',
+      sizeClass: 'modal-xl',
+      data: {
+        subDept: subDept,
+        user: user,
+        dashboardData: this.dashboardData,
+        onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
+      }
+    });
     this.updateQueryParams();
-    this.cdr.detectChanges(); // Force immediate rendering
-    this.loadTasks();
   }
 
   openUserTasksDirectly(userId: number): void {
-    this.selectedUser = { userId } as UserRowDTO;
-    this.selectedSubDept = null;
-    this.taskPage = 0;
-    this.taskSearch = '';
-    this.taskStatus = 'ALL';
-    this.modalStack = ['tasks'];
+    this.modalWrapperService.open(AllWorkTasksComponent, {
+      title: `Tasks`,
+      subtitle: 'Centralized task lifecycle oversight, priority tracking, and export.',
+      sizeClass: 'modal-xl',
+      data: {
+        subDept: null,
+        user: { userId } as UserRowDTO,
+        dashboardData: this.dashboardData,
+        onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
+      }
+    });
     this.updateQueryParams();
-    this.cdr.detectChanges(); // Force immediate rendering
-    this.loadTasks();
-  }
-
-  loadTasks(): void {
-    this.loadingTasks = true;
-    this.cdr.markForCheck();
-    let obs$;
-    
-    if (this.selectedUser) {
-      obs$ = this.apiService.getUserTasks(this.selectedUser.userId, this.taskSearch, this.taskStatus, this.taskPage, this.taskSize, this.taskSort);
-    } else if (this.selectedSubDept) {
-      obs$ = this.apiService.getSubDepartmentTasks(this.selectedSubDept.id, this.taskSearch, this.taskStatus, this.taskPage, this.taskSize, this.taskSort);
-    } else {
-      this.loadingTasks = false;
-      this.cdr.markForCheck();
-      return;
-    }
-
-    this.subscriptions.add(
-      obs$.pipe(finalize(() => {
-        this.loadingTasks = false;
-        this.cdr.markForCheck();
-      }))
-        .subscribe({
-          next: (res) => {
-            this.tasks = res.content || [];
-            this.totalTasks = res.page?.totalElements !== undefined ? res.page.totalElements : (res.totalElements || 0);
-            this.cdr.markForCheck();
-          },
-          error: (err) => {
-            console.error('Failed to load tasks', err);
-            this.cdr.markForCheck();
-          }
-        })
-    );
-  }
-
-  selectStatusTab(status: string): void {
-    this.taskStatus = status;
-    this.taskPage = 0;
-    this.updateQueryParams();
-    this.loadTasks();
-  }
-
-  onTaskSearchChange(): void {
-    this.taskPage = 0;
-    this.updateQueryParams();
-    this.loadTasks();
-  }
-
-  changeTaskPage(delta: number): void {
-    this.taskPage += delta;
-    this.updateQueryParams();
-    this.loadTasks();
-  }
-
-  closeTasksModal(): void {
-    this.goBackModal();
   }
 
   // =========================================================================
@@ -655,149 +615,42 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   // =========================================================================
 
   openSubDeptAnalytics(subDept: SubDepartmentRowDTO): void {
-    this.selectedSubDept = subDept;
-    this.selectedUser = null;
-    this.modalStack = ['analytics'];
+    this.modalWrapperService.open(AllWorkAnalyticsComponent, {
+      title: `Analytics Overview for ${subDept.name}`,
+      subtitle: 'Granular work distribution, task states, and performance metrics.',
+      sizeClass: 'modal-lg',
+      data: {
+        subDept: subDept,
+        user: null
+      }
+    });
     this.updateQueryParams();
-    this.cdr.detectChanges(); // Force immediate rendering
-    this.loadAnalytics();
   }
 
   openUserAnalytics(user: UserRowDTO): void {
-    this.selectedUser = user;
-    if (!this.modalStack.includes('users')) {
-      this.selectedSubDept = null;
-    }
-    if (this.modalStack.includes('users')) {
-      this.modalStack.push('analytics');
-    } else {
-      this.modalStack = ['analytics'];
-    }
+    const currentModal = this.modalWrapperService.getCurrentModal();
+    const subDept = currentModal?.config.data?.subDept || null;
+
+    this.modalWrapperService.push(AllWorkAnalyticsComponent, {
+      title: `Analytics Overview for ${user.fullName}`,
+      subtitle: 'Granular work distribution, task states, and performance metrics.',
+      sizeClass: 'modal-lg',
+      data: {
+        subDept: subDept,
+        user: user
+      }
+    });
     this.updateQueryParams();
-    this.cdr.detectChanges(); // Force immediate rendering
-    this.loadAnalytics();
-  }
-
-  loadAnalytics(): void {
-    this.loadingAnalytics = true;
-    this.cdr.markForCheck();
-    let obs$;
-    
-    if (this.selectedUser) {
-      obs$ = this.apiService.getUserAnalytics(this.selectedUser.userId);
-    } else if (this.selectedSubDept) {
-      obs$ = this.apiService.getSubDepartmentAnalytics(this.selectedSubDept.id);
-    } else {
-      this.loadingAnalytics = false;
-      this.cdr.markForCheck();
-      return;
-    }
-
-    this.subscriptions.add(
-      obs$.pipe(finalize(() => {
-        this.loadingAnalytics = false;
-        this.cdr.markForCheck();
-      }))
-        .subscribe({
-          next: (res) => {
-            this.analytics = res;
-            this.cdr.markForCheck();
-          },
-          error: (err) => {
-            console.error('Failed to load analytics data', err);
-            this.cdr.markForCheck();
-          }
-        })
-    );
-  }
-
-  closeAnalyticsModal(): void {
-    this.goBackModal();
   }
 
   closeAllModals(): void {
-    this.modalStack = [];
-    this.selectedSubDept = null;
-    this.selectedUser = null;
-    this.tasks = [];
-    this.users = [];
-    this.analytics = null;
+    this.modalWrapperService.clear();
     this.updateQueryParams();
   }
 
   goBackModal(): void {
-    if (this.modalStack.length > 1) {
-      this.modalStack.pop();
-      const top = this.modalStack[this.modalStack.length - 1];
-      if (top === 'users') {
-        this.selectedUser = null;
-        this.tasks = [];
-        this.analytics = null;
-      }
-      this.updateQueryParams();
-      this.cdr.detectChanges(); // Force immediate rendering for nested modal
-    } else {
-      this.closeAllModals();
-    }
-  }
-
-  getCurrentModalTitle(): string {
-    const top = this.modalStack[this.modalStack.length - 1];
-    if (top === 'users') {
-      return 'Users in ' + (this.selectedSubDept?.name || '');
-    }
-    if (top === 'tasks') {
-      return this.tasksModalTitle;
-    }
-    if (top === 'analytics') {
-      return this.analyticsModalTitle;
-    }
-    return '';
-  }
-
-  getCurrentModalSubtitle(): string {
-    const top = this.modalStack[this.modalStack.length - 1];
-    if (top === 'users') {
-      return 'Manage, search, and monitor user workloads.';
-    }
-    if (top === 'tasks') {
-      return 'Centralized task lifecycle oversight, priority tracking, and export.';
-    }
-    if (top === 'analytics') {
-      return 'Granular work distribution, task states, and performance metrics.';
-    }
-    return '';
-  }
-
-  getCurrentModalSizeClass(): string {
-    const top = this.modalStack[this.modalStack.length - 1];
-    if (top === 'users' || top === 'tasks') {
-      return 'modal-xl';
-    }
-    if (top === 'analytics') {
-      return 'modal-lg';
-    }
-    return 'modal-md';
-  }
-
-  get tasksModalTitle(): string {
-    if (this.selectedSubDept) {
-      return `Tasks in ${this.selectedSubDept.name}`;
-    }
-    if (this.selectedUser) {
-      return `Tasks assigned to ${this.selectedUser.fullName}`;
-    }
-    return 'Tasks';
-  }
-
-  get analyticsModalTitle(): string {
-    if (this.selectedSubDept) {
-      return `Analytics Overview for ${this.selectedSubDept.name}`;
-    }
-    if (this.selectedUser) {
-      return `Analytics Overview for ${this.selectedUser.fullName}`;
-    }
-    return 'Analytics Overview';
+    this.modalWrapperService.pop();
+    this.updateQueryParams();
   }
 
   // =========================================================================
@@ -808,19 +661,6 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     if (this.role !== 'HOD' && this.selectedDeptId === null) return;
     const serializedFilters = this.getSerializedFilters();
     const url = this.apiService.getExportSubDepartmentsUrl(this.selectedDeptId, this.subDeptSearch, serializedFilters, format);
-    window.open(url, '_blank');
-  }
-
-  exportUsers(format: string): void {
-    if (!this.selectedSubDept) return;
-    const url = this.apiService.getExportUsersUrl(this.selectedSubDept.id, this.userSearch, format);
-    window.open(url, '_blank');
-  }
-
-  exportTasks(format: string): void {
-    const subDeptId = this.selectedSubDept ? this.selectedSubDept.id : null;
-    const userId = this.selectedUser ? this.selectedUser.userId : null;
-    const url = this.apiService.getExportTasksUrl(subDeptId, userId, this.taskSearch, this.taskStatus, format);
     window.open(url, '_blank');
   }
 }

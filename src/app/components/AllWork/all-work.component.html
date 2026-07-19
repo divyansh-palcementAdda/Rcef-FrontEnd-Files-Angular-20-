@@ -451,37 +451,14 @@
        CENTRALIZED MODAL OVERLAY (Views Stack - Option A)
        ========================================================================= -->
   <app-modal-wrapper 
-    *ngIf="modalStack.length > 0" 
-    [title]="getCurrentModalTitle()" 
-    [subtitle]="getCurrentModalSubtitle()" 
-    [sizeClass]="getCurrentModalSizeClass()" 
-    [showBackButton]="modalStack.length > 1"
+    *ngFor="let modal of modalWrapperService.activeModals$ | async" 
+    [title]="modal.config.title || ''" 
+    [subtitle]="modal.config.subtitle || ''" 
+    [sizeClass]="modal.config.sizeClass || 'modal-md'" 
+    [showBackButton]="modalWrapperService.hasHistory()"
     (close)="closeAllModals()"
     (back)="goBackModal()">
 
-    <app-all-work-modal-content
-      [modalView]="modalStack[modalStack.length - 1]"
-      [users]="users"
-      [loadingUsers]="loadingUsers"
-      [userSearch]="userSearch"
-      [dashboardData]="dashboardData"
-      [selectedSubDept]="selectedSubDept"
-      [selectedUser]="selectedUser"
-      [tasks]="tasks"
-      [loadingTasks]="loadingTasks"
-      [taskSearch]="taskSearch"
-      [taskStatus]="taskStatus"
-      [statusTabs]="statusTabs"
-      [loadingAnalytics]="loadingAnalytics"
-      [analytics]="analytics"
-      (userSearchChange)="userSearch = $event; onUserSearchChange()"
-      (taskSearchChange)="taskSearch = $event; onTaskSearchChange()"
-      (statusTabSelect)="selectStatusTab($event)"
-      (exportUsers)="exportUsers($event)"
-      (exportTasks)="exportTasks($event)"
-      (openUserTasks)="openUserTasks($event)"
-      (openUserAnalytics)="openUserAnalytics($event)"
-      (navigateEntity)="navigateToEntity($event.type, $event.id, $event.event)">
-    </app-all-work-modal-content>
+    <ng-container *ngComponentOutlet="modal.component; inputs: modal.config.data"></ng-container>
   </app-modal-wrapper>
 </div>
