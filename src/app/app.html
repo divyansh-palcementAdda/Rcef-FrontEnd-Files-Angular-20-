@@ -1,5 +1,6 @@
 <ng-container *ngIf="(isLoggedIn$ | async) && !isHomeActive; else publicLayout">
-  <div class="app-layout" [class.mobile-sidebar-open]="sidebarService.isMobileOpen$ | async" [class.tablet-sidebar-collapsed]="sidebarService.isCollapsed$ | async">
+  <div class="app-layout" [class.mobile-sidebar-open]="sidebarService.isMobileOpen$ | async"
+    [class.tablet-sidebar-collapsed]="sidebarService.isCollapsed$ | async">
     <app-sidebar></app-sidebar>
     <div class="app-main">
       <app-topbar></app-topbar>
@@ -54,17 +55,22 @@
 </div>
 
 <!-- Premium Global Modals Overlay -->
-<div  *ngIf="activeModal" (click)="closeActiveModal(false)">
-  <div  [ngClass]="{
+<div *ngIf="activeModal" (click)="closeActiveModal(false)">
+  <div [ngClass]="{
     'modal-size-large': activeModal === 'add-user' || activeModal === 'edit-user',
     'modal-size-medium': activeModal === 'add-department',
     'modal-size-xlarge': activeModal === 'add-task' || activeModal === 'edit-task'
   }" (click)="$event.stopPropagation()">
-    <app-add-user *ngIf="activeModal === 'add-user'" [isModal]="true" (closed)="closeActiveModal($event)"></app-add-user>
-    <app-add-department *ngIf="activeModal === 'add-department'" [departmentId]="editDepartmentId!" [isModal]="true" (closed)="closeActiveModal($event)"></app-add-department>
-    <app-add-task *ngIf="activeModal === 'add-task'" [isModal]="true" (closed)="closeActiveModal($event)"></app-add-task>
-    
-    <app-edit-user *ngIf="activeModal === 'edit-user'" [userId]="editUserId!" [isModal]="true" (closed)="closeActiveModal($event)"></app-edit-user>
-    <app-update-task *ngIf="activeModal === 'edit-task'" [isModal]="true" (closed)="closeActiveModal($event)"></app-update-task>
+    <app-add-user *ngIf="activeModal === 'add-user'" [isModal]="true"
+      (closed)="closeActiveModal($event)"></app-add-user>
+    <app-add-department *ngIf="activeModal === 'add-department'" [departmentId]="editDepartmentId!" [isModal]="true"
+      (closed)="closeActiveModal($event)"></app-add-department>
+    <app-add-task *ngIf="activeModal === 'add-task'" [isModal]="true"
+      (closed)="closeActiveModal($event)"></app-add-task>
+
+    <app-edit-user *ngIf="activeModal === 'edit-user'" [userId]="editUserId!" [isModal]="true"
+      (closed)="closeActiveModal($event)"></app-edit-user>
+    <app-update-task *ngIf="activeModal === 'edit-task'" [isModal]="true"
+      (closed)="closeActiveModal($event)"></app-update-task>
   </div>
 </div>

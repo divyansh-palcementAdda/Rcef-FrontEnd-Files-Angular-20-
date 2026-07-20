@@ -1,6 +1,7 @@
-<div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
-  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" [class.task-form-card]="!isModal"
-    [class.modal-form-card]="isModal" novalidate>
+<div [class.modal-backdrop-wrapper]="isModal" (click)="isModal ? cancel() : null">
+  <div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal" (click)="isModal ? $event.stopPropagation() : null">
+    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" [class.task-form-card]="!isModal"
+      [class.modal-form-card]="isModal" novalidate>
 
     <!-- Form Header -->
     <div [class.task-form-header]="!isModal" [class.modal-form-header]="isModal">
@@ -471,4 +472,5 @@
     </div>
 
   </form>
+  </div>
 </div>
