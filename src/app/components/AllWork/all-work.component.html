@@ -100,7 +100,7 @@
             <span class="badge bg-primary ms-1" *ngIf="filterTaskStatus || filterUserCountMin !== null || filterUserCountMax !== null || filterSubjectCountMin !== null || filterSubjectCountMax !== null || filterCreatedDateStart || filterCreatedDateEnd || filterLastActivityStart || filterLastActivityEnd || filterDeptStatus || filterCreatedBy">Active</span>
           </button>
 
-          <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
+          <!-- <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
             <button class="btn btn-outline-primary" type="button" (click)="toggleExportDropdown()" [attr.aria-expanded]="exportDropdownOpen">
               <i class="bi bi-download me-1"></i> Export Data
             </button>
@@ -112,7 +112,7 @@
                 <i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV
               </button>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -203,9 +203,11 @@
 
       <!-- Sub Departments Grid Table -->
       <div class="table-container shadow-sm rounded-3 bg-white mt-3">
+        <div class="table-scroll">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-head-sticky">
             <tr>
+              <th class="sno-th">S.No</th>
               <th class="sortable-th" (click)="sortSubDeptBy('name')">
                 <div class="th-inner">
                   Sub Department
@@ -255,6 +257,7 @@
             <!-- Skeleton loader rows -->
             <ng-container *ngIf="loadingSubDepts">
               <tr *ngFor="let _ of [1,2,3,4,5]" class="skeleton-row">
+                <td><div class="skeleton-line w-20"></div></td>
                 <td><div class="skeleton-line w-60"></div><div class="skeleton-line w-40 mt-1"></div></td>
                 <td><div class="skeleton-chip"></div></td>
                 <td><div class="skeleton-chip"></div></td>
@@ -274,6 +277,7 @@
               (keydown.space)="navigateToEntity('sub-department', sd.id, $event); $event.preventDefault()"
               tabindex="0"
               class="clickable-row">
+              <td class="sno-cell" [attr.data-label]="'S.No'">{{ subDeptPage * subDeptSize + i + 1 }}</td>
               <td [attr.data-label]="'Sub Department'">
                 <div class="sd-name-cell">
                   <div class="sd-avatar">{{ sd.name.charAt(0).toUpperCase() }}</div>
@@ -384,7 +388,7 @@
 
             <!-- Empty state -->
             <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role !== 'HOD'">
-              <td colspan="8" class="empty-state-row">
+              <td colspan="9" class="empty-state-row">
                 <div class="empty-inline">
                   <div class="empty-inline-icon"><i class="bi bi-building"></i></div>
                   <div class="empty-inline-title">No Sub Departments Found</div>
@@ -393,7 +397,7 @@
               </td>
             </tr>
             <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role === 'HOD'">
-              <td colspan="8" class="empty-state-row">
+              <td colspan="9" class="empty-state-row">
                 <div class="empty-inline">
                   <div class="empty-inline-icon"><i class="bi bi-person-x"></i></div>
                   <div class="empty-inline-title">No Sub Departments Assigned</div>
@@ -402,7 +406,7 @@
               </td>
             </tr>
             <tr *ngIf="subDeptError">
-              <td colspan="8" class="empty-state-row">
+              <td colspan="9" class="empty-state-row">
                 <div class="empty-inline">
                   <div class="empty-inline-icon text-danger"><i class="bi bi-exclamation-triangle"></i></div>
                   <div class="empty-inline-title">Failed to Load</div>
@@ -415,6 +419,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <!-- Pagination -->

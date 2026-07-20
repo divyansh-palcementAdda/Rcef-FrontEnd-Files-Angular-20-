@@ -200,6 +200,11 @@ export class AllWorkApiService {
     return url;
   }
 
+  exportSubDepartmentsBlob(departmentId: number | null, search: string = '', filters: string = '', format: string = 'EXCEL') {
+    const url = this.getExportSubDepartmentsUrl(departmentId, search, filters, format);
+    return this.http.get(url, { observe: 'response', responseType: 'blob' as 'json' });
+  }
+
   getExportUsersUrl(subDepartmentId: string, search: string = '', format: string = 'EXCEL'): string {
     return `${this.apiUrl}/export/users?subDepartmentId=${subDepartmentId}&search=${encodeURIComponent(search)}&format=${format}`;
   }

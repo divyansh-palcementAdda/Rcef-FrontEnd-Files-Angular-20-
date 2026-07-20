@@ -705,8 +705,28 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   exportSubDepartments(format: string): void {
     if (this.role !== 'HOD' && this.selectedDeptId === null) return;
     const serializedFilters = this.getSerializedFilters();
-    const url = this.apiService.getExportSubDepartmentsUrl(this.selectedDeptId, this.subDeptSearch, serializedFilters, format);
-    window.open(url, '_blank');
+    this.apiService.exportSubDepartmentsBlob(this.selectedDeptId, this.subDeptSearch, serializedFilters, format)
+      .subscribe({
+        next: (res: any) => {
+          const blob = res.body as Blob;
+          const contentDisposition = res.headers?.get?.('content-disposition') || '';
+          let filename = 'export.' + (format === 'CSV' ? 'csv' : 'xlsx');
+          const match = /filename\*=UTF-8''([^;\n]+)/i.exec(contentDisposition) || /filename="?([^";\n]+)"?/i.exec(contentDisposition);
+          if (match && match[1]) filename = decodeURIComponent(match[1]);
+
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          console.error('Export failed', err);
+        }
+      });
     this.exportDropdownOpen = false;
   }
 }
