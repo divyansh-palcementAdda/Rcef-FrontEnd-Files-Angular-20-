@@ -1,0 +1,179 @@
+<!-- ═══════════════════════════════════════════════════════════
+     ALL WORK — TASKS MODAL
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Status tabs -->
+<div class="aw-status-tabs">
+  <button
+    class="aw-status-tab"
+    *ngFor="let tab of statusTabs"
+    [class.active]="tab.value === taskStatus"
+    (click)="selectStatusTab(tab.value)">
+    {{ tab.label }}
+  </button>
+</div>
+
+<!-- Toolbar -->
+<div class="aw-modal-toolbar">
+  <div class="aw-search-wrap">
+    <i class="bi bi-search aw-search-icon"></i>
+    <input
+      type="text"
+      class="aw-search-input"
+      placeholder="Search tasks by title or keyword…"
+      [(ngModel)]="taskSearch"
+      (input)="onTaskSearchChange()" />
+    <button *ngIf="taskSearch" class="aw-search-clear" (click)="taskSearch=''; onTaskSearchChange()">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+
+  <div class="aw-toolbar-actions">
+    <div class="dropdown" *ngIf="dashboardData?.canExport">
+      <button class="aw-btn aw-btn--outline" data-bs-toggle="dropdown">
+        <i class="bi bi-download"></i>
+        <span>Export</span>
+        <i class="bi bi-chevron-down ms-1" style="font-size:.65rem;"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+          <a class="dropdown-item" (click)="exportTasks('EXCEL')">
+            <i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Export Excel
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" (click)="exportTasks('CSV')">
+            <i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Skeleton ─── -->
+<ng-container *ngIf="loadingTasks">
+  <div class="aw-table-wrap">
+    <table class="aw-table">
+      <thead>
+        <tr>
+          <th>Task</th><th>Status</th><th>Priority</th>
+          <th>Due Date</th><th>Assigned To</th><th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let _ of [1,2,3,4,5]">
+          <td><div class="skeleton-line w-60 mb-1"></div><div class="skeleton-line w-35"></div></td>
+          <td><div class="skeleton-chip"></div></td>
+          <td><div class="skeleton-chip"></div></td>
+          <td><div class="skeleton-line w-50"></div></td>
+          <td><div class="skeleton-line w-45"></div></td>
+          <td><div class="skeleton-chip" style="margin-left:auto;"></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</ng-container>
+
+<!-- ─── Table ─── -->
+<div class="aw-table-wrap" *ngIf="!loadingTasks">
+  <table class="aw-table">
+    <thead>
+      <tr>
+        <th>Task</th>
+        <th>Status</th>
+        <th>Priority</th>
+        <th>Due Date</th>
+        <th>Assigned To</th>
+        <th class="text-end">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr *ngFor="let t of tasks" class="aw-row">
+        <!-- Task title -->
+        <td>
+          <div class="aw-task-title">{{ t.title }}</div>
+          <div class="aw-task-meta" *ngIf="t.templateTitle">
+            <i class="bi bi-layers-fill me-1"></i>{{ t.templateTitle }}
+          </div>
+          <div class="aw-task-meta" *ngIf="t.subDepartmentName">
+            <i class="bi bi-diagram-2 me-1"></i>{{ t.subDepartmentName }}
+          </div>
+        </td>
+
+        <!-- Status -->
+        <td>
+          <span class="aw-status-pill" [ngClass]="getStatusClass(t.status)">
+            <span class="aw-status-dot"></span>
+            {{ getStatusLabel(t.status) }}
+          </span>
+        </td>
+
+        <!-- Priority -->
+        <td>
+          <span class="aw-priority-badge" [ngClass]="getPriorityClass(t.priority)">
+            {{ t.priority || 'LOW' }}
+          </span>
+        </td>
+
+        <!-- Due date -->
+        <td>
+          <div class="aw-date" [ngClass]="getDueDateClass(t.dueDate, t.status)">
+            <i class="bi bi-calendar3 me-1" style="font-size:.7rem;"></i>
+            {{ t.dueDate | date:'d MMM y' }}
+          </div>
+        </td>
+
+        <!-- Assigned to -->
+        <td>
+          <div class="aw-assignee" *ngIf="t.assignedToName">
+            <div class="aw-assignee-avatar">{{ t.assignedToName.charAt(0).toUpperCase() }}</div>
+            <span class="aw-assignee-name">{{ t.assignedToName }}</span>
+          </div>
+          <span class="aw-empty" *ngIf="!t.assignedToName">—</span>
+        </td>
+
+        <!-- Action -->
+        <td class="text-end">
+          <button
+            class="aw-action-btn aw-action-btn--task-detail"
+            title="View Task Details"
+            (click)="onNavigateEntity('task', t.taskId, $event); $event.stopPropagation()">
+            <i class="bi bi-box-arrow-up-right"></i>
+            <span>View</span>
+          </button>
+        </td>
+      </tr>
+
+      <!-- Empty -->
+      <tr *ngIf="tasks.length === 0">
+        <td colspan="6" class="aw-empty-state">
+          <div class="aw-empty-inner">
+            <i class="bi bi-clipboard-x aw-empty-icon"></i>
+            <div class="aw-empty-title">No tasks found</div>
+            <div class="aw-empty-sub">Try changing filters or status tab.</div>
+          </div>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<!-- ─── Pagination ─── -->
+<div class="aw-pagination" *ngIf="!loadingTasks && totalTasks > 0">
+  <span class="aw-pagination__info">
+    Showing <strong>{{ taskPage * taskSize + 1 }}–{{ Math.min((taskPage + 1) * taskSize, totalTasks) }}</strong>
+    of <strong>{{ totalTasks }}</strong> tasks
+  </span>
+  <div class="aw-pagination__controls">
+    <button class="aw-pag-btn" [disabled]="taskPage === 0" (click)="changeTaskPage(-1)">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <span class="aw-pag-current">{{ taskPage + 1 }} / {{ Math.ceil(totalTasks / taskSize) }}</span>
+    <button class="aw-pag-btn" [disabled]="(taskPage + 1) * taskSize >= totalTasks" (click)="changeTaskPage(1)">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+</div>

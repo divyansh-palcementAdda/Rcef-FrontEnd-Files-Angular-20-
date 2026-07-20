@@ -1,0 +1,191 @@
+<!-- ═══════════════════════════════════════════════════════════
+     ALL WORK — USERS MODAL
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Toolbar -->
+<div class="aw-modal-toolbar">
+  <div class="aw-search-wrap">
+    <i class="bi bi-search aw-search-icon"></i>
+    <input
+      type="text"
+      class="aw-search-input"
+      placeholder="Search users by name or username…"
+      [(ngModel)]="userSearch"
+      (input)="onUserSearchChange()" />
+    <button *ngIf="userSearch" class="aw-search-clear" (click)="userSearch=''; onUserSearchChange()">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+
+  <div class="aw-toolbar-actions">
+    <div class="dropdown" *ngIf="dashboardData?.canExport">
+      <button class="aw-btn aw-btn--outline" data-bs-toggle="dropdown">
+        <i class="bi bi-download"></i>
+        <span>Export</span>
+        <i class="bi bi-chevron-down ms-1" style="font-size:.65rem;"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+          <a class="dropdown-item" (click)="exportUsers('EXCEL')">
+            <i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Export Excel
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" (click)="exportUsers('CSV')">
+            <i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Skeleton loader ─── -->
+<ng-container *ngIf="loadingUsers">
+  <div class="aw-user-card skeleton-card" *ngFor="let _ of [1,2,3,4,5]">
+    <div class="aw-user-card__avatar skeleton-circle"></div>
+    <div class="aw-user-card__body">
+      <div class="skeleton-line w-40 mb-1"></div>
+      <div class="skeleton-line w-25"></div>
+    </div>
+    <div class="aw-user-card__meta">
+      <div class="skeleton-line w-60"></div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- ─── Table ─── -->
+<div class="aw-table-wrap" *ngIf="!loadingUsers">
+  <table class="aw-table">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Role</th>
+        <th>Tasks</th>
+        <th>Completion</th>
+        <th>Last Active</th>
+        <th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- Data rows -->
+      <tr *ngFor="let u of users" class="aw-row">
+        <!-- User info -->
+        <td>
+          <div class="aw-user-cell">
+            <div class="aw-avatar" [ngClass]="getAvatarClass(u.role)">
+              {{ u.fullName.charAt(0).toUpperCase() }}
+            </div>
+            <div>
+              <div class="aw-name">{{ u.fullName }}</div>
+              <div class="aw-sub">&#64;{{ u.username }}</div>
+            </div>
+          </div>
+        </td>
+
+        <!-- Role -->
+        <td>
+          <span class="aw-role-badge" [ngClass]="getRoleBadgeClass(u.role)">
+            {{ u.role }}
+          </span>
+        </td>
+
+        <!-- Tasks count -->
+        <td>
+          <span class="aw-count-pill">{{ u.totalAssignedTasks }}</span>
+        </td>
+
+        <!-- Completion -->
+        <td>
+          <div class="aw-progress-cell">
+            <div class="aw-progress-bar">
+              <div class="aw-progress-fill"
+                [style.width.%]="u.completionPercentage > 100 ? 100 : u.completionPercentage"
+                [ngClass]="{
+                  'aw-progress-fill--low':  u.completionPercentage < 30,
+                  'aw-progress-fill--mid':  u.completionPercentage >= 30 && u.completionPercentage < 70,
+                  'aw-progress-fill--high': u.completionPercentage >= 70
+                }">
+              </div>
+            </div>
+            <span class="aw-progress-pct"
+              [ngClass]="{
+                'text-danger':  u.completionPercentage < 30,
+                'text-warning': u.completionPercentage >= 30 && u.completionPercentage < 70,
+                'text-success': u.completionPercentage >= 70
+              }">
+              {{ u.completionPercentage | number:'1.0-1' }}%
+            </span>
+          </div>
+        </td>
+
+        <!-- Last activity -->
+        <td>
+          <div class="aw-date" *ngIf="u.lastActivity">
+            {{ u.lastActivity | date:'d MMM y' }}
+          </div>
+          <span class="aw-empty" *ngIf="!u.lastActivity">—</span>
+        </td>
+
+        <!-- Actions -->
+        <td class="text-end">
+          <div class="aw-actions">
+            <button
+              class="aw-action-btn aw-action-btn--user"
+              title="View User Profile"
+              (click)="onNavigateEntity('user', u.userId, $event); $event.stopPropagation()">
+              <i class="bi bi-person-lines-fill"></i>
+              <span>Profile</span>
+            </button>
+            <button
+              class="aw-action-btn aw-action-btn--task"
+              *ngIf="dashboardData?.canViewTasks"
+              title="View Tasks"
+              (click)="onOpenUserTasks(u); $event.stopPropagation()">
+              <i class="bi bi-list-check"></i>
+              <span>Tasks</span>
+            </button>
+            <button
+              class="aw-action-btn aw-action-btn--analytics"
+              *ngIf="dashboardData?.canOpenAnalytics"
+              title="View Metrics"
+              (click)="onOpenUserAnalytics(u); $event.stopPropagation()">
+              <i class="bi bi-graph-up-arrow"></i>
+              <span>Metrics</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Empty state -->
+      <tr *ngIf="users.length === 0">
+        <td colspan="6" class="aw-empty-state">
+          <div class="aw-empty-inner">
+            <i class="bi bi-people aw-empty-icon"></i>
+            <div class="aw-empty-title">No users found</div>
+            <div class="aw-empty-sub">Try adjusting your search.</div>
+          </div>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<!-- ─── Pagination ─── -->
+<div class="aw-pagination" *ngIf="!loadingUsers && totalUsers > 0">
+  <span class="aw-pagination__info">
+    Showing <strong>{{ userPage * userSize + 1 }}–{{ Math.min((userPage + 1) * userSize, totalUsers) }}</strong>
+    of <strong>{{ totalUsers }}</strong> users
+  </span>
+  <div class="aw-pagination__controls">
+    <button class="aw-pag-btn" [disabled]="userPage === 0" (click)="changeUserPage(-1)">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <span class="aw-pag-current">{{ userPage + 1 }} / {{ Math.ceil(totalUsers / userSize) }}</span>
+    <button class="aw-pag-btn" [disabled]="(userPage + 1) * userSize >= totalUsers" (click)="changeUserPage(1)">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+</div>

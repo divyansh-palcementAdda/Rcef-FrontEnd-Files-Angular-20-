@@ -1,6 +1,8 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { ModalManagerService } from '../../../Services/modal-manager.service';
+import { AuthorizationService } from '../../../Services/authorization.service';
 
 @Component({
   selector: 'app-modal-wrapper',
@@ -21,7 +23,63 @@ export class ModalWrapperComponent implements OnInit, OnDestroy {
 
   private previousActiveElement: HTMLElement | null = null;
 
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthorizationService);
+
   constructor(private modalService: ModalManagerService) {}
+
+  @HostListener('click', ['$event'])
+  onModalClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+
+    // 1. Avoid triggering row navigation when clicking buttons, anchors, inputs, dropdowns, etc.
+    if (target.closest('button, a, input, select, textarea, [role="button"], .btn, .dropdown-item, .dropdown-toggle')) {
+      return;
+    }
+
+    // 2. Find closest clickable row annotated with data-row-type and class 'clickable-row'
+    const clickableRow = target.closest('.clickable-row[data-row-type]');
+    if (clickableRow) {
+      const rowType = clickableRow.getAttribute('data-row-type');
+      const rowId = clickableRow.getAttribute('data-row-id');
+
+      if (rowType && rowId) {
+        this.handleRowNavigation(rowType, rowId, event);
+      }
+    }
+  }
+
+  private handleRowNavigation(type: string, id: any, event: MouseEvent): void {
+    const isCtrlClick = event.ctrlKey || event.metaKey || event.button === 1;
+
+    // RBAC Permission Check
+    if (type === 'user') {
+      const currentRole = this.authService.getCurrentUser()?.role || '';
+      const hasPermission = this.authService.hasPermission('USER_VIEW') && currentRole !== 'TEACHER';
+      if (!hasPermission) return;
+    } else if (type === 'task') {
+      const hasPermission = this.authService.hasPermission('TASK_VIEW');
+      if (!hasPermission) return;
+    }
+
+    // Navigate to the appropriate detail route
+    const numericId = parseInt(id, 10);
+    const resolvedId = isNaN(numericId) ? id : numericId;
+
+    if (type === 'user') {
+      if (isCtrlClick) {
+        window.open(`/user/${resolvedId}`, '_blank');
+      } else {
+        this.router.navigate(['/user', resolvedId]);
+      }
+    } else if (type === 'task') {
+      if (isCtrlClick) {
+        window.open(`/task/${resolvedId}`, '_blank');
+      } else {
+        this.router.navigate(['/task', resolvedId]);
+      }
+    }
+  }
 
   ngOnInit(): void {
     this.previousActiveElement = document.activeElement as HTMLElement;
@@ -56,15 +114,18 @@ export class ModalWrapperComponent implements OnInit, OnDestroy {
 
   onBackdropClick(event: MouseEvent): void {
     if (event.target === event.currentTarget) {
-      this.onCloseClick();
+      event.stopPropagation();
+      this.onCloseClick(event);
     }
   }
 
-  onCloseClick(): void {
+  onCloseClick(event?: MouseEvent): void {
+    event?.stopPropagation();
     this.close.emit();
   }
 
-  onBackClick(): void {
+  onBackClick(event?: MouseEvent): void {
+    event?.stopPropagation();
     this.back.emit();
   }
 

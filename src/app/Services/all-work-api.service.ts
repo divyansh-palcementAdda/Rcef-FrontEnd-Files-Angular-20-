@@ -37,6 +37,9 @@ export interface SubDepartmentRowDTO {
   name: string;
   departmentName: string;
   totalUsers: number;
+  /** Number of users with zero tasks (some APIs may name this differently) */
+  usersWithZeroTask?: number;
+  usersWithZeroTasks?: number;
   totalSubjects: number;
   totalAssignedTasks: number;
   pending: number;
@@ -198,6 +201,11 @@ export class AllWorkApiService {
       url += `&departmentId=${departmentId}`;
     }
     return url;
+  }
+
+  exportSubDepartmentsBlob(departmentId: number | null, search: string = '', filters: string = '', format: string = 'EXCEL') {
+    const url = this.getExportSubDepartmentsUrl(departmentId, search, filters, format);
+    return this.http.get(url, { observe: 'response', responseType: 'blob' as 'json' });
   }
 
   getExportUsersUrl(subDepartmentId: string, search: string = '', format: string = 'EXCEL'): string {

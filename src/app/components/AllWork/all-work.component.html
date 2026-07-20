@@ -100,15 +100,19 @@
             <span class="badge bg-primary ms-1" *ngIf="filterTaskStatus || filterUserCountMin !== null || filterUserCountMax !== null || filterSubjectCountMin !== null || filterSubjectCountMax !== null || filterCreatedDateStart || filterCreatedDateEnd || filterLastActivityStart || filterLastActivityEnd || filterDeptStatus || filterCreatedBy">Active</span>
           </button>
 
-          <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
-            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <!-- <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
+            <button class="btn btn-outline-primary" type="button" (click)="toggleExportDropdown()" [attr.aria-expanded]="exportDropdownOpen">
               <i class="bi bi-download me-1"></i> Export Data
             </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-              <li><a class="dropdown-item" (click)="exportSubDepartments('EXCEL')"><i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Export Excel</a></li>
-              <li><a class="dropdown-item" (click)="exportSubDepartments('CSV')"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV</a></li>
-            </ul>
-          </div>
+            <div class="export-dropdown-menu" *ngIf="exportDropdownOpen">
+              <button type="button" class="export-dropdown-item" (click)="exportSubDepartments('EXCEL')">
+                <i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Export Excel
+              </button>
+              <button type="button" class="export-dropdown-item" (click)="exportSubDepartments('CSV')">
+                <i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV
+              </button>
+            </div>
+          </div> -->
         </div>
       </div>
 
@@ -199,9 +203,11 @@
 
       <!-- Sub Departments Grid Table -->
       <div class="table-container shadow-sm rounded-3 bg-white mt-3">
+        <div class="table-scroll">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-head-sticky">
             <tr>
+              <th class="sno-th">S.No</th>
               <th class="sortable-th" (click)="sortSubDeptBy('name')">
                 <div class="th-inner">
                   Sub Department
@@ -214,6 +220,7 @@
                   <i class="bi ms-1" [ngClass]="getSortIcon('totalUsers')"></i>
                 </div>
               </th>
+              <th class="sortable-th">User With Zero Task</th>
               <th class="sortable-th" (click)="sortSubDeptBy('totalSubjects')">
                 <div class="th-inner">
                   Subjects
@@ -251,6 +258,7 @@
             <!-- Skeleton loader rows -->
             <ng-container *ngIf="loadingSubDepts">
               <tr *ngFor="let _ of [1,2,3,4,5]" class="skeleton-row">
+                <td><div class="skeleton-line w-20"></div></td>
                 <td><div class="skeleton-line w-60"></div><div class="skeleton-line w-40 mt-1"></div></td>
                 <td><div class="skeleton-chip"></div></td>
                 <td><div class="skeleton-chip"></div></td>
@@ -270,6 +278,7 @@
               (keydown.space)="navigateToEntity('sub-department', sd.id, $event); $event.preventDefault()"
               tabindex="0"
               class="clickable-row">
+              <td class="sno-cell" [attr.data-label]="'S.No'">{{ subDeptPage * subDeptSize + i + 1 }}</td>
               <td [attr.data-label]="'Sub Department'">
                 <div class="sd-name-cell">
                   <div class="sd-avatar">{{ sd.name.charAt(0).toUpperCase() }}</div>
@@ -285,6 +294,13 @@
                   {{ sd.totalUsers }}
                 </div>
               </td>
+
+              <td [attr.data-label]="'User With Zero Task'">
+                <div class="metric-chip metric-chip--orange">
+                  <!-- <i class="bi bi-person-x-fill"></i> -->
+                  {{ $any(sd).usersWithZeroTask ?? "-" }}
+                </div>
+                
               <td [attr.data-label]="'Subjects'">
                 <div class="metric-chip metric-chip--violet">
                   <i class="bi bi-book-fill"></i>
@@ -349,7 +365,7 @@
                   <button 
                     class="action-btn action-btn--users" 
                     *ngIf="dashboardData?.canViewUsers" 
-                    (click)="openUsers(sd)" 
+                    (click)="openUsers(sd); $event.stopPropagation()" 
                     title="View Users"
                     data-testid="btn-users">
                     <i class="bi bi-people-fill"></i>
@@ -358,7 +374,7 @@
                   <button 
                     class="action-btn action-btn--tasks" 
                     *ngIf="dashboardData?.canViewTasks" 
-                    (click)="openTasks(sd)" 
+                    (click)="openTasks(sd); $event.stopPropagation()" 
                     title="View Tasks"
                     data-testid="btn-tasks">
                     <i class="bi bi-list-check"></i>
@@ -367,7 +383,7 @@
                   <button 
                     class="action-btn action-btn--metrics" 
                     *ngIf="dashboardData?.canOpenAnalytics" 
-                    (click)="openSubDeptAnalytics(sd)" 
+                    (click)="openSubDeptAnalytics(sd); $event.stopPropagation()" 
                     title="Analytics"
                     data-testid="btn-analytics">
                     <i class="bi bi-graph-up"></i>
@@ -380,7 +396,7 @@
 
             <!-- Empty state -->
             <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role !== 'HOD'">
-              <td colspan="8" class="empty-state-row">
+              <td colspan="9" class="empty-state-row">
                 <div class="empty-inline">
                   <div class="empty-inline-icon"><i class="bi bi-building"></i></div>
                   <div class="empty-inline-title">No Sub Departments Found</div>
@@ -389,7 +405,7 @@
               </td>
             </tr>
             <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role === 'HOD'">
-              <td colspan="8" class="empty-state-row">
+              <td colspan="9" class="empty-state-row">
                 <div class="empty-inline">
                   <div class="empty-inline-icon"><i class="bi bi-person-x"></i></div>
                   <div class="empty-inline-title">No Sub Departments Assigned</div>
@@ -398,7 +414,7 @@
               </td>
             </tr>
             <tr *ngIf="subDeptError">
-              <td colspan="8" class="empty-state-row">
+              <td colspan="9" class="empty-state-row">
                 <div class="empty-inline">
                   <div class="empty-inline-icon text-danger"><i class="bi bi-exclamation-triangle"></i></div>
                   <div class="empty-inline-title">Failed to Load</div>
@@ -411,34 +427,43 @@
             </tr>
           </tbody>
         </table>
+        </div>
+      </div>
 
-        <!-- Pagination -->
-        <div class="table-pagination" *ngIf="totalSubDepts > 0">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="pagination-info">
-              Showing <strong>{{ subDeptPage * subDeptSize + 1 }}–{{ Math.min((subDeptPage + 1) * subDeptSize, totalSubDepts) }}</strong> of <strong>{{ totalSubDepts }}</strong>
-            </span>
-            <div class="d-flex align-items-center gap-1 ms-sm-3">
-              <span class="small text-muted" style="font-size: 13px;">Page Size:</span>
-              <select class="form-select form-select-sm" style="width: auto; height: 32px; padding: 2px 28px 2px 8px; font-size: 13px; border-radius: 6px;" [ngModel]="subDeptSize" (ngModelChange)="onSubDeptSizeChange($event)">
-                <option [value]="10">10</option>
-                <option [value]="25">25</option>
-                <option [value]="50">50</option>
-                <option [value]="100">100</option>
-                <option [value]="250">250</option>
-                <option [value]="500">500</option>
-              </select>
-            </div>
-          </div>
-          <div class="pagination-controls">
-            <button class="pag-btn" [disabled]="subDeptPage === 0" (click)="changeSubDeptPage(-1)">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <span class="pag-current">{{ subDeptPage + 1 }} / {{ Math.ceil(totalSubDepts / subDeptSize) }}</span>
-            <button class="pag-btn" [disabled]="(subDeptPage + 1) * subDeptSize >= totalSubDepts" (click)="changeSubDeptPage(1)">
-              <i class="bi bi-chevron-right"></i>
-            </button>
-          </div>
+      <!-- Pagination -->
+      <div class="stitch-pagination" *ngIf="totalSubDepts > 0">
+        <div class="stitch-pag-left">
+          <span>Rows per page:</span>
+          <select class="stitch-pag-size-selector" [ngModel]="subDeptSize" (ngModelChange)="onSubDeptSizeChange($event)">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+            <option [value]="250">250</option>
+            <option [value]="500">500</option>
+          </select>
+          <span class="stitch-pag-label">
+            Showing {{ subDeptPage * subDeptSize + 1 }}–{{ Math.min((subDeptPage + 1) * subDeptSize, totalSubDepts) }} of {{ totalSubDepts }}
+          </span>
+        </div>
+        <div class="stitch-pag-controls">
+          <button class="stitch-pag-btn" [disabled]="subDeptPage === 0" (click)="changeSubDeptPage(-1)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button
+            class="stitch-pag-btn"
+            *ngFor="let page of getSubDeptPageNumbers()"
+            [class.active]="page === subDeptPage + 1"
+            [disabled]="page === -1"
+            (click)="page !== -1 && changeSubDeptPage(page - (subDeptPage + 1))">
+            <ng-container *ngIf="page !== -1; else ellipsis">{{ page }}</ng-container>
+          </button>
+          <ng-template #ellipsis>
+            <span class="stitch-pag-label">&hellip;</span>
+          </ng-template>
+          <button class="stitch-pag-btn" [disabled]="(subDeptPage + 1) * subDeptSize >= totalSubDepts" (click)="changeSubDeptPage(1)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
         </div>
       </div>
     </ng-container>
@@ -451,37 +476,14 @@
        CENTRALIZED MODAL OVERLAY (Views Stack - Option A)
        ========================================================================= -->
   <app-modal-wrapper 
-    *ngIf="modalStack.length > 0" 
-    [title]="getCurrentModalTitle()" 
-    [subtitle]="getCurrentModalSubtitle()" 
-    [sizeClass]="getCurrentModalSizeClass()" 
-    [showBackButton]="modalStack.length > 1"
+    *ngFor="let modal of (modalWrapperService.activeModals$ | async) | slice:-1" 
+    [title]="modal.config.title || ''" 
+    [subtitle]="modal.config.subtitle || ''" 
+    [sizeClass]="modal.config.sizeClass || 'modal-md'" 
+    [showBackButton]="modalWrapperService.hasHistory()"
     (close)="closeAllModals()"
     (back)="goBackModal()">
 
-    <app-all-work-modal-content
-      [modalView]="modalStack[modalStack.length - 1]"
-      [users]="users"
-      [loadingUsers]="loadingUsers"
-      [userSearch]="userSearch"
-      [dashboardData]="dashboardData"
-      [selectedSubDept]="selectedSubDept"
-      [selectedUser]="selectedUser"
-      [tasks]="tasks"
-      [loadingTasks]="loadingTasks"
-      [taskSearch]="taskSearch"
-      [taskStatus]="taskStatus"
-      [statusTabs]="statusTabs"
-      [loadingAnalytics]="loadingAnalytics"
-      [analytics]="analytics"
-      (userSearchChange)="userSearch = $event; onUserSearchChange()"
-      (taskSearchChange)="taskSearch = $event; onTaskSearchChange()"
-      (statusTabSelect)="selectStatusTab($event)"
-      (exportUsers)="exportUsers($event)"
-      (exportTasks)="exportTasks($event)"
-      (openUserTasks)="openUserTasks($event)"
-      (openUserAnalytics)="openUserAnalytics($event)"
-      (navigateEntity)="navigateToEntity($event.type, $event.id, $event.event)">
-    </app-all-work-modal-content>
+    <ng-container *ngComponentOutlet="modal.component; inputs: modal.config.data"></ng-container>
   </app-modal-wrapper>
 </div>

@@ -1,157 +1,429 @@
 <ng-container *ngIf="dashboardData; else loading">
-  <!-- Header Section -->
-  <div class="welcome-banner mb-4 p-4 rounded-4 shadow-sm border bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-      <div>
-        <span class="text-white opacity-85 text-xs text-uppercase tracking-wider fw-semibold">{{ getGreetingTime() }}</span>
-        <h2 class="h2 fw-extrabold mb-1" style="color: white !important;">Welcome, {{ dashboardData.userName }}</h2>
-        <p class="mb-0 opacity-90 text-sm" style="color: rgba(255, 255, 255, 0.9) !important;">
-          <i class="bi bi-person-workspace me-2"></i> Faculty Dashboard 
-          <span class="mx-2">•</span>
-          <i class="bi bi-building me-2"></i> {{ dashboardData.departmentName }}
-          <span class="mx-2">•</span>
-          <i class="bi bi-calendar-event me-2"></i> {{ currentDate | date: 'fullDate' }}
-        </p>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  HERO BANNER                                            ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="fd-hero">
+  <div class="fd-hero__bg-circles">
+    <div class="fd-hero__circle fd-hero__circle--1"></div>
+    <div class="fd-hero__circle fd-hero__circle--2"></div>
+    <div class="fd-hero__circle fd-hero__circle--3"></div>
+  </div>
+
+  <div class="fd-hero__body">
+    <!-- Identity -->
+    <div class="fd-hero__identity">
+      <div class="fd-hero__avatar">
+        {{ (dashboardData.userName || 'F').charAt(0).toUpperCase() }}
       </div>
-      
-      <div class="d-flex flex-column align-items-md-end gap-2">
-        <span class="dashboard-role-badge">Faculty Member</span>
-        <div class="small text-white opacity-85">
-          Active Tasks: <strong>{{ dashboardData.activeTask || 0 }}</strong> | Self Tasks: <strong>{{ dashboardData.selfTask || 0 }}</strong>
+      <div>
+        <div class="fd-hero__greeting">{{ getGreetingTime() }}</div>
+        <h1 class="fd-hero__name">{{ dashboardData.userName }}</h1>
+        <div class="fd-hero__meta">
+          <span class="fd-hero__tag"><i class="bi bi-person-workspace"></i> Faculty Member</span>
+          <span class="fd-hero__tag"><i class="bi bi-building"></i> {{ dashboardData.departmentName || '—' }}</span>
+          <span class="fd-hero__tag fd-hero__tag--date"><i class="bi bi-calendar3"></i> {{ currentDate | date:'EEE, d MMM y' }}</span>
         </div>
       </div>
     </div>
-    
-    <!-- Performance Indicator -->
-    <div class="progress-indicator mt-4 bg-white bg-opacity-10 p-3 rounded-3 border border-white border-opacity-10">
-      <div class="d-flex justify-content-between align-items-center mb-1 text-sm">
-        <span class="text-white fw-semibold">Your Performance ({{ getPerformanceStatus() }})</span>
-        <span class="text-white fw-bold">{{ calculatePerformance() }}%</span>
+
+    <!-- Hero KPI trio -->
+    <div class="fd-hero__kpis">
+      <div class="fd-hero__kpi">
+        <span class="fd-hero__kpi-val">{{ dashboardData.totalTask || 0 }}</span>
+        <span class="fd-hero__kpi-lbl">Total Tasks</span>
       </div>
-      <div class="progress" style="height: 6px; background-color: rgba(255, 255, 255, 0.2) !important;">
-        <div class="progress-bar" role="progressbar" [style.width.%]="calculatePerformance()" [class]="'bg-' + getPerformanceColor()"></div>
+      <div class="fd-hero__kpi-divider"></div>
+      <div class="fd-hero__kpi">
+        <span class="fd-hero__kpi-val fd-hero__kpi-val--green">{{ dashboardData.completedTask || 0 }}</span>
+        <span class="fd-hero__kpi-lbl">Completed</span>
+      </div>
+      <div class="fd-hero__kpi-divider"></div>
+      <div class="fd-hero__kpi">
+        <span class="fd-hero__kpi-val" [ngClass]="(dashboardData.delayedTask || 0) > 0 ? 'fd-hero__kpi-val--red' : ''">
+          {{ dashboardData.delayedTask || 0 }}
+        </span>
+        <span class="fd-hero__kpi-lbl">Delayed</span>
+      </div>
+    </div>
+
+    <!-- Performance ring -->
+    <div class="fd-hero__ring-wrap">
+      <div class="fd-perf-ring">
+        <svg viewBox="0 0 110 110" class="fd-perf-ring__svg">
+          <circle class="fd-perf-ring__track" cx="55" cy="55" r="46"/>
+          <circle class="fd-perf-ring__arc"
+            cx="55" cy="55" r="46"
+            [ngClass]="'fd-perf-ring__arc--' + getPerformanceColor()"
+            [style.stroke-dasharray]="'289 289'"
+            [style.stroke-dashoffset]="289 - (289 * calculatePerformance() / 100)"/>
+        </svg>
+        <div class="fd-perf-ring__inner">
+          <span class="fd-perf-ring__pct">{{ calculatePerformance() }}%</span>
+          <span class="fd-perf-ring__sub">Score</span>
+        </div>
+      </div>
+      <div class="fd-perf-label" [ngClass]="'fd-perf-label--' + getPerformanceColor()">
+        {{ getPerformanceStatus() }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bulletin -->
+<app-bulletin-banner class="d-block" style="margin-bottom:1.5rem;"></app-bulletin-banner>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  STAT CARDS                                             ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="fd-stats" @fadeInUpStagger>
+
+  <div class="fd-stat fd-stat--indigo" (click)="goToPage({route:'/view-tasks'})" role="button" tabindex="0">
+    <div class="fd-stat__glow"></div>
+    <div class="fd-stat__top">
+      <div class="fd-stat__icon"><i class="bi bi-clipboard2-check-fill"></i></div>
+      <span class="fd-stat__badge fd-stat__badge--indigo">All</span>
+    </div>
+    <div class="fd-stat__num">{{ dashboardData.totalTask || 0 }}</div>
+    <div class="fd-stat__lbl">Total Tasks</div>
+    <div class="fd-stat__bar"><div class="fd-stat__bar-fill fd-stat__bar-fill--indigo" style="width:100%"></div></div>
+  </div>
+
+  <div class="fd-stat fd-stat--blue" (click)="goToPage({route:'/view-tasks', queryParams:{status:'IN_PROGRESS'}})" role="button" tabindex="0">
+    <div class="fd-stat__glow"></div>
+    <div class="fd-stat__top">
+      <div class="fd-stat__icon"><i class="bi bi-play-circle-fill"></i></div>
+      <span class="fd-stat__badge fd-stat__badge--blue">Live</span>
+    </div>
+    <div class="fd-stat__num">{{ dashboardData.activeTask || 0 }}</div>
+    <div class="fd-stat__lbl">In Progress</div>
+    <div class="fd-stat__bar">
+      <div class="fd-stat__bar-fill fd-stat__bar-fill--blue"
+        [style.width.%]="(dashboardData.totalTask||0)>0 ? ((dashboardData.activeTask||0)/dashboardData.totalTask*100) : 0">
       </div>
     </div>
   </div>
 
-  <!-- Bulletin Alert -->
-  <app-bulletin-banner class="mb-4 d-block"></app-bulletin-banner>
+  <div class="fd-stat fd-stat--amber" (click)="goToPage({route:'/view-tasks', queryParams:{status:'PENDING'}})" role="button" tabindex="0">
+    <div class="fd-stat__glow"></div>
+    <div class="fd-stat__top">
+      <div class="fd-stat__icon"><i class="bi bi-hourglass-split"></i></div>
+    </div>
+    <div class="fd-stat__num">{{ dashboardData.pendingTask || 0 }}</div>
+    <div class="fd-stat__lbl">Pending</div>
+    <div class="fd-stat__bar">
+      <div class="fd-stat__bar-fill fd-stat__bar-fill--amber"
+        [style.width.%]="(dashboardData.totalTask||0)>0 ? ((dashboardData.pendingTask||0)/dashboardData.totalTask*100) : 0">
+      </div>
+    </div>
+  </div>
 
-  <!-- Stats Grid -->
-  <section class="stats-section mb-4" @fadeInUpStagger>
-    <div class="row g-3 g-md-4">
-      <div class="col-xl-3 col-lg-4 col-md-6" *ngFor="let card of statCards(dashboardData); let i = index">
-        <div class="card h-100 border rounded-4 hover-lift position-relative" (click)="goToPage(card)" style="cursor: pointer;">
-          <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <div>
-                <p class="text-muted small fw-semibold text-uppercase tracking-wider mb-1" style="font-size: 0.75rem;">
-                  {{ card.title }}
-                </p>
-                <h3 class="fw-bold mb-0 text-main">{{ card.value }}</h3>
-                <p class="small text-muted mt-1 mb-0">{{ card.description }}</p>
-              </div>
-              <div class="icon-circle bg-{{card.color}}-subtle text-{{card.color}} d-flex align-items-center justify-content-center rounded-3" style="width: 44px; height: 44px; background-color: var(--primary-subtle); color: var(--primary-color);">
-                <i class="bi {{ card.icon }} fs-4"></i>
-              </div>
+  <div class="fd-stat fd-stat--green" (click)="goToPage({route:'/view-tasks', queryParams:{status:'CLOSED'}})" role="button" tabindex="0">
+    <div class="fd-stat__glow"></div>
+    <div class="fd-stat__top">
+      <div class="fd-stat__icon"><i class="bi bi-check2-circle"></i></div>
+      <span class="fd-stat__badge fd-stat__badge--green">Done</span>
+    </div>
+    <div class="fd-stat__num">{{ dashboardData.completedTask || 0 }}</div>
+    <div class="fd-stat__lbl">Completed</div>
+    <div class="fd-stat__bar">
+      <div class="fd-stat__bar-fill fd-stat__bar-fill--green"
+        [style.width.%]="(dashboardData.totalTask||0)>0 ? ((dashboardData.completedTask||0)/dashboardData.totalTask*100) : 0">
+      </div>
+    </div>
+  </div>
+
+  <div class="fd-stat" [class.fd-stat--red]="(dashboardData.delayedTask||0)===0"
+    [class.fd-stat--red-alert]="(dashboardData.delayedTask||0)>0"
+    (click)="goToPage({route:'/view-tasks', queryParams:{status:'DELAYED'}})" role="button" tabindex="0">
+    <div class="fd-stat__glow"></div>
+    <div class="fd-stat__top">
+      <div class="fd-stat__icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <span class="fd-stat__badge fd-stat__badge--red" *ngIf="(dashboardData.delayedTask||0)>0">!</span>
+    </div>
+    <div class="fd-stat__num">{{ dashboardData.delayedTask || 0 }}</div>
+    <div class="fd-stat__lbl">Delayed</div>
+    <div class="fd-stat__bar">
+      <div class="fd-stat__bar-fill fd-stat__bar-fill--red"
+        [style.width.%]="(dashboardData.totalTask||0)>0 ? ((dashboardData.delayedTask||0)/dashboardData.totalTask*100) : 0">
+      </div>
+    </div>
+  </div>
+
+  <div class="fd-stat fd-stat--cyan" (click)="goToPage({route:'/view-tasks', queryParams:{status:'UPCOMING'}})" role="button" tabindex="0">
+    <div class="fd-stat__glow"></div>
+    <div class="fd-stat__top">
+      <div class="fd-stat__icon"><i class="bi bi-calendar-event-fill"></i></div>
+    </div>
+    <div class="fd-stat__num">{{ dashboardData.upcomingTask || 0 }}</div>
+    <div class="fd-stat__lbl">Upcoming</div>
+    <div class="fd-stat__bar">
+      <div class="fd-stat__bar-fill fd-stat__bar-fill--cyan"
+        [style.width.%]="(dashboardData.totalTask||0)>0 ? ((dashboardData.upcomingTask||0)/dashboardData.totalTask*100) : 0">
+      </div>
+    </div>
+  </div>
+
+  <div class="fd-stat fd-stat--violet" (click)="goToPage({route:'/view-tasks', queryParams:{status:'EXTENDED'}})" role="button" tabindex="0">
+    <div class="fd-stat__glow"></div>
+    <div class="fd-stat__top">
+      <div class="fd-stat__icon"><i class="bi bi-arrow-repeat"></i></div>
+    </div>
+    <div class="fd-stat__num">{{ dashboardData.extendedTask || 0 }}</div>
+    <div class="fd-stat__lbl">Extended</div>
+    <div class="fd-stat__bar">
+      <div class="fd-stat__bar-fill fd-stat__bar-fill--violet"
+        [style.width.%]="(dashboardData.totalTask||0)>0 ? ((dashboardData.extendedTask||0)/dashboardData.totalTask*100) : 0">
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  CHARTS + SIDE PANEL                                    ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="fd-main-grid">
+
+  <!-- ── CHART 1: Task Distribution (redesigned donut) ── -->
+  <div class="fd-card fd-card--chart">
+    <div class="fd-card__hdr">
+      <div class="fd-card__title">
+        <i class="bi bi-pie-chart-fill"></i> Task Distribution
+      </div>
+      <span class="fd-chip">{{ dashboardData.totalTask || 0 }} total</span>
+    </div>
+
+    <div class="fd-donut-wrap">
+
+      <!-- Left: SVG donut -->
+      <div class="fd-donut-chart">
+        <svg viewBox="0 0 200 200" class="fd-donut-svg">
+          <!-- Shadow filter -->
+          <defs>
+            <filter id="seg-shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+            </filter>
+          </defs>
+
+          <!-- Background track -->
+          <circle cx="100" cy="100" r="78" fill="none" stroke="#f1f5f9" stroke-width="22"/>
+
+          <!-- Segments — rotated group so 0° = 12-o'clock -->
+          <g transform="rotate(-90, 100, 100)">
+            <circle *ngFor="let seg of segments; let i = index"
+              cx="100" cy="100" r="78"
+              fill="none"
+              [attr.stroke]="seg.value > 0 ? seg.color : 'none'"
+              stroke-width="22"
+              stroke-linecap="butt"
+              [attr.stroke-dasharray]="seg.dashArray + ' ' + seg.circumference"
+              [attr.stroke-dashoffset]="seg.dashOffset"
+              class="fd-donut-seg"
+              [style.animation-delay]="(i * 120) + 'ms'">
+            </circle>
+          </g>
+
+          <!-- Inner white circle for donut hole -->
+          <circle cx="100" cy="100" r="67" fill="white"/>
+
+          <!-- Center text -->
+          <text x="100" y="90" text-anchor="middle" class="fd-donut-num">{{ dashboardData.totalTask || 0 }}</text>
+          <text x="100" y="106" text-anchor="middle" class="fd-donut-lbl">TASKS</text>
+          <text x="100" y="120" text-anchor="middle" class="fd-donut-sub">{{ calculatePerformance() }}% done</text>
+        </svg>
+      </div>
+
+      <!-- Right: redesigned legend with mini bars -->
+      <div class="fd-donut-legend">
+        <div class="fd-dl-item"
+          *ngFor="let seg of segments"
+          (click)="goToPage({route:'/view-tasks', queryParams:{status: getLegendStatus(seg.label)}})"
+          role="button" tabindex="0">
+
+          <div class="fd-dl-top">
+            <span class="fd-dl-dot" [style.background]="seg.color"></span>
+            <span class="fd-dl-name">{{ seg.label }}</span>
+            <span class="fd-dl-count" [style.color]="seg.value > 0 ? seg.color : 'var(--text-muted)'">{{ seg.value }}</span>
+            <span class="fd-dl-pct">{{ seg.pct }}%</span>
+          </div>
+
+          <div class="fd-dl-bar-track">
+            <div class="fd-dl-bar-fill"
+              [style.width.%]="seg.pct"
+              [style.background]="seg.color"
+              [style.opacity]="seg.value > 0 ? 1 : 0.15">
             </div>
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center small" *ngIf="card.delta !== undefined">
-                <span [class]="'text-' + (card.delta > 0 ? 'success' : card.delta < 0 ? 'danger' : 'muted') + ' fw-semibold'">
-                  <i class="bi me-1" [class.bi-arrow-up-right]="card.delta > 0"
-                    [class.bi-arrow-down-right]="card.delta < 0" [class.bi-dash]="card.delta === 0"></i>
-                  {{ card.delta > 0 ? '+' : '' }}{{ card.delta }}%
-                </span>
-                <span class="text-muted ms-2">vs last week</span>
-              </div>
-              <span class="badge bg-danger text-white rounded-pill px-2 py-1 small" *ngIf="card.badge">{{ card.badge }}</span>
-            </div>
           </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── CHART 2: Bubble Grid ── -->
+  <div class="fd-card fd-card--chart">
+    <div class="fd-card__hdr">
+      <div class="fd-card__title"><i class="bi bi-grid-3x2-gap-fill"></i> Task Bubble View</div>
+      <span class="fd-chip">by count</span>
+    </div>
+    <div class="fd-bubble-wrap">
+      <div class="fd-bubble-grid">
+        <div class="fd-bubble-cell" *ngFor="let b of bubbles; let i = index"
+          (click)="goToPage({route: b.route, queryParams:{status: b.status}})"
+          role="button" tabindex="0"
+          [style.animation-delay]="(i * 80) + 'ms'">
+          <div class="fd-bubble"
+            [style.width.px]="b.size"
+            [style.height.px]="b.size"
+            [style.background]="b.bg"
+            [style.border-color]="b.color + '55'"
+            [style.box-shadow]="'0 4px 20px ' + b.color + '28'">
+            <i class="bi" [ngClass]="b.icon" [style.color]="b.color"
+              [style.font-size]="(b.size * 0.3) + 'px'"></i>
+            <span class="fd-bubble__num" [style.color]="b.color"
+              [style.font-size]="(b.size * 0.22) + 'px'">{{ b.value }}</span>
+          </div>
+          <span class="fd-bubble__lbl">{{ b.label }}</span>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Analytics Section -->
-  <section class="analytics-section mb-4" @fadeInUpStagger>
-    <div class="row g-4">
-      <!-- Task Distribution -->
-      <div class="col-lg-6">
-        <div class="card h-100 rounded-4">
-          <div class="card-header border-bottom py-3 bg-transparent d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-main"><i class="bi bi-pie-chart-fill me-2 text-primary"></i> Task Distribution</h5>
-            <span class="badge bg-light text-dark fw-bold">{{ dashboardData.totalTask || 0 }} Total</span>
-          </div>
-          <div class="card-body p-4" style="position: relative; height: 320px;">
-            <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie"></canvas>
+  <!-- Status Breakdown -->
+  <div class="fd-card">
+    <div class="fd-card__hdr">
+      <div class="fd-card__title"><i class="bi bi-layers-fill"></i> Status Breakdown</div>
+    </div>
+    <div class="fd-slist">
+      <div class="fd-srow" *ngFor="let s of [
+        {lbl:'In Progress', n: dashboardData.activeTask    || 0, c:'blue',   st:'IN_PROGRESS'},
+        {lbl:'Pending',     n: dashboardData.pendingTask   || 0, c:'amber',  st:'PENDING'},
+        {lbl:'Completed',   n: dashboardData.completedTask || 0, c:'green',  st:'CLOSED'},
+        {lbl:'Upcoming',    n: dashboardData.upcomingTask  || 0, c:'cyan',   st:'UPCOMING'},
+        {lbl:'Delayed',     n: dashboardData.delayedTask   || 0, c:'red',    st:'DELAYED'},
+        {lbl:'Extended',    n: dashboardData.extendedTask  || 0, c:'violet', st:'EXTENDED'}
+      ]" (click)="goToPage({route:'/view-tasks', queryParams:{status:s.st}})" role="button" tabindex="0">
+        <div class="fd-srow__left">
+          <span class="fd-dot" [ngClass]="'fd-dot--' + s.c"></span>
+          <span class="fd-srow__name">{{ s.lbl }}</span>
+        </div>
+        <div class="fd-srow__track">
+          <div class="fd-srow__fill" [ngClass]="'fd-srow__fill--' + s.c"
+            [style.width.%]="(dashboardData.totalTask||0)>0 ? (s.n/dashboardData.totalTask*100) : 0">
           </div>
         </div>
-      </div>
-
-      <!-- Task Workload Overview -->
-      <div class="col-lg-6">
-        <div class="card h-100 rounded-4">
-          <div class="card-header border-bottom py-3 bg-transparent d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-main"><i class="bi bi-bar-chart-fill me-2 text-primary"></i> Workload Overview</h5>
-          </div>
-          <div class="card-body p-4" style="position: relative; height: 320px;">
-            <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar"></canvas>
-          </div>
-        </div>
+        <span class="fd-srow__count">{{ s.n }}</span>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Quick Actions Section -->
-  <section class="quick-actions-section mb-4">
-    <h5 class="fw-bold text-main mb-3"><i class="bi bi-lightning-charge-fill me-2 text-primary"></i> Quick Actions</h5>
-    <div class="row g-3">
-      <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 text-center p-4 hover-lift h-100" (click)="goToPage({route: '/view-tasks', queryParams: {status: 'Self'}})" style="cursor: pointer;">
-          <div class="quick-action-icon-wrap mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 56px; height: 56px; background-color: rgba(99, 102, 241, 0.12);">
-            <i class="bi bi-person-check fs-4" style="color: #6366f1;"></i>
-          </div>
-          <h6 class="fw-semibold text-main mb-1">My Tasks</h6>
-          <p class="text-muted small mb-0">{{ dashboardData.selfTask || 0 }} tasks</p>
-        </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  REQUESTS + QUICK ACTIONS                               ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="fd-bottom-grid">
+
+  <!-- Requests -->
+  <div class="fd-card fd-card--requests">
+    <div class="fd-card__hdr">
+      <div class="fd-card__title"><i class="bi bi-clock-history"></i> My Requests</div>
+      <button class="fd-link-btn" (click)="goToPage({route:'/task-requests'})">
+        View All <i class="bi bi-arrow-right"></i>
+      </button>
+    </div>
+    <div class="fd-req-grid">
+      <div class="fd-req-tile fd-req-tile--amber" (click)="goToPage({route:'/task-requests', queryParams:{status:'PENDING'}})" role="button" tabindex="0">
+        <i class="bi bi-hourglass-split fd-req-tile__icon"></i>
+        <span class="fd-req-tile__num">{{ dashboardData.pendingRequests || 0 }}</span>
+        <span class="fd-req-tile__lbl">Pending</span>
       </div>
-
-      <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 text-center p-4 hover-lift h-100" (click)="goToPage({route: '/task-requests'})" style="cursor: pointer;">
-          <div class="quick-action-icon-wrap mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 56px; height: 56px; background-color: rgba(245, 158, 11, 0.12);">
-            <i class="bi bi-clock-history fs-4" style="color: #f59e0b;"></i>
-          </div>
-          <h6 class="fw-semibold text-main mb-1">Task Requests</h6>
-          <p class="text-muted small mb-0">Manage extension/closure</p>
-        </div>
+      <div class="fd-req-tile fd-req-tile--green" (click)="goToPage({route:'/task-requests', queryParams:{status:'APPROVED'}})" role="button" tabindex="0">
+        <i class="bi bi-check-circle-fill fd-req-tile__icon"></i>
+        <span class="fd-req-tile__num">{{ dashboardData.approvedRequests || 0 }}</span>
+        <span class="fd-req-tile__lbl">Approved</span>
       </div>
-
-      <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 text-center p-4 hover-lift h-100" (click)="goToPage({route: '/view-tasks', queryParams: {status: 'DELAYED'}})" style="cursor: pointer;">
-          <div class="quick-action-icon-wrap mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 56px; height: 56px; background-color: rgba(239, 68, 68, 0.12);">
-            <i class="bi bi-exclamation-triangle fs-4" style="color: #ef4444;"></i>
-          </div>
-          <h6 class="fw-semibold text-main mb-1">Urgent Tasks</h6>
-          <p class="text-muted small mb-0">{{ dashboardData.delayedTask || 0 }} delayed</p>
-        </div>
+      <div class="fd-req-tile fd-req-tile--red" (click)="goToPage({route:'/task-requests', queryParams:{status:'REJECTED'}})" role="button" tabindex="0">
+        <i class="bi bi-x-circle-fill fd-req-tile__icon"></i>
+        <span class="fd-req-tile__num">{{ dashboardData.rejectedRequests || 0 }}</span>
+        <span class="fd-req-tile__lbl">Rejected</span>
       </div>
-
-      <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 text-center p-4 hover-lift h-100" (click)="goToPage({route: '/view-tasks', queryParams: {status: 'PENDING'}})" style="cursor: pointer;">
-          <div class="quick-action-icon-wrap mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 56px; height: 56px; background-color: rgba(16, 185, 129, 0.12);">
-            <i class="bi bi-hourglass-split fs-4" style="color: #10b981;"></i>
-          </div>
-          <h6 class="fw-semibold text-main mb-1">Pending Tasks</h6>
-          <p class="text-muted small mb-0">{{ dashboardData.pendingTask || 0 }} pending</p>
-        </div>
+      <div class="fd-req-tile fd-req-tile--blue" (click)="goToPage({route:'/view-tasks', queryParams:{status:'REQUEST_FOR_EXTENSION'}})" role="button" tabindex="0">
+        <i class="bi bi-calendar-plus-fill fd-req-tile__icon"></i>
+        <span class="fd-req-tile__num">{{ dashboardData.requestForExtension || 0 }}</span>
+        <span class="fd-req-tile__lbl">Ext. Req</span>
+      </div>
+      <div class="fd-req-tile fd-req-tile--violet" (click)="goToPage({route:'/view-tasks', queryParams:{status:'REQUEST_FOR_CLOSURE'}})" role="button" tabindex="0">
+        <i class="bi bi-lock-fill fd-req-tile__icon"></i>
+        <span class="fd-req-tile__num">{{ dashboardData.requestForClosure || 0 }}</span>
+        <span class="fd-req-tile__lbl">Close Req</span>
+      </div>
+      <div class="fd-req-tile fd-req-tile--cyan" (click)="goToPage({route:'/view-tasks', queryParams:{status:'EXTENDED'}})" role="button" tabindex="0">
+        <i class="bi bi-arrow-repeat fd-req-tile__icon"></i>
+        <span class="fd-req-tile__num">{{ dashboardData.extendedTask || 0 }}</span>
+        <span class="fd-req-tile__lbl">Extended</span>
       </div>
     </div>
-  </section>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="fd-card fd-card--actions">
+    <div class="fd-card__hdr">
+      <div class="fd-card__title"><i class="bi bi-lightning-charge-fill"></i> Quick Actions</div>
+    </div>
+    <div class="fd-actions">
+      <button class="fd-action fd-action--indigo" (click)="goToPage({route:'/view-tasks'})">
+        <div class="fd-action__icon"><i class="bi bi-list-task"></i></div>
+        <div class="fd-action__body">
+          <span class="fd-action__title">All My Tasks</span>
+          <span class="fd-action__sub">{{ dashboardData.totalTask || 0 }} assigned</span>
+        </div>
+        <i class="bi bi-chevron-right fd-action__arrow"></i>
+      </button>
+      <button class="fd-action fd-action--amber" (click)="goToPage({route:'/task-requests'})">
+        <div class="fd-action__icon"><i class="bi bi-clock-history"></i></div>
+        <div class="fd-action__body">
+          <span class="fd-action__title">Task Requests</span>
+          <span class="fd-action__sub">{{ dashboardData.pendingRequests || 0 }} pending</span>
+        </div>
+        <i class="bi bi-chevron-right fd-action__arrow"></i>
+      </button>
+      <button class="fd-action fd-action--red" (click)="goToPage({route:'/view-tasks', queryParams:{status:'DELAYED'}})">
+        <div class="fd-action__icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <div class="fd-action__body">
+          <span class="fd-action__title">Delayed Tasks</span>
+          <span class="fd-action__sub">{{ dashboardData.delayedTask || 0 }} need attention</span>
+        </div>
+        <i class="bi bi-chevron-right fd-action__arrow"></i>
+      </button>
+      <button class="fd-action fd-action--cyan" (click)="goToPage({route:'/view-tasks', queryParams:{status:'UPCOMING'}})">
+        <div class="fd-action__icon"><i class="bi bi-calendar-event-fill"></i></div>
+        <div class="fd-action__body">
+          <span class="fd-action__title">Upcoming Tasks</span>
+          <span class="fd-action__sub">{{ dashboardData.upcomingTask || 0 }} scheduled</span>
+        </div>
+        <i class="bi bi-chevron-right fd-action__arrow"></i>
+      </button>
+      <button class="fd-action fd-action--green" (click)="goToPage({route:'/view-tasks', queryParams:{status:'CLOSED'}})">
+        <div class="fd-action__icon"><i class="bi bi-check2-all"></i></div>
+        <div class="fd-action__body">
+          <span class="fd-action__title">Completed Tasks</span>
+          <span class="fd-action__sub">{{ dashboardData.completedTask || 0 }} done</span>
+        </div>
+        <i class="bi bi-chevron-right fd-action__arrow"></i>
+      </button>
+    </div>
+  </div>
+
+</div>
+
 </ng-container>
 
 <ng-template #loading>
-  <div class="d-flex flex-column align-items-center justify-content-center py-5 my-5">
-    <div class="spinner-border text-primary mb-4" role="status"></div>
-    <h5 class="text-muted fw-medium animate__animated animate__pulse animate__infinite">Loading dashboard...</h5>
+  <div class="fd-loading">
+    <div class="fd-loading__ring"></div>
+    <p>Loading your dashboard…</p>
   </div>
 </ng-template>
