@@ -208,7 +208,7 @@
 .dept-cards-container {
   display: flex;
   flex-wrap: wrap;
-  justify-content: stretch;
+  justify-content: space-between;
   align-items: stretch;
   gap: 0.75rem;
   overflow: hidden;
@@ -226,9 +226,10 @@
 }
 
 .dept-card {
-  flex: 1 1 calc(33.333% - 0.75rem);
-  max-width: calc(33.333% - 0.75rem);
-  min-width: 260px;
+  flex: 0 0 calc((100% - 1.5rem) / 3);
+  width: calc((100% - 1.5rem) / 3);
+  max-width: calc((100% - 1.5rem) / 3);
+  min-width: 0;
   background-color: #ffffff;
   border: 1.5px solid #e5e7eb;
   border-radius: 14px;
@@ -243,8 +244,9 @@
 
 @media (max-width: 1200px) {
   .dept-card {
-    flex: 1 1 calc(50% - 0.75rem);
-    max-width: calc(50% - 0.75rem);
+    flex: 0 0 calc((100% - 0.75rem) / 2);
+    width: calc((100% - 0.75rem) / 2);
+    max-width: calc((100% - 0.75rem) / 2);
   }
 }
 
@@ -333,19 +335,14 @@
 .text-success .metric-value { color: #059669; }
 
 /* Responsive Department Cards */
-@media (min-width: 1400px) {
-  .dept-card {
-    flex: 0 0 300px; /* Larger cards on extra-large screens */
-  }
-}
-
 @media (max-width: 768px) {
   .dept-cards-container {
     gap: 1rem;
   }
   
   .dept-card {
-    flex: 0 0 260px;
+    flex: 0 0 100%;
+    width: 100%;
     padding: 1rem;
   }
   
@@ -377,28 +374,18 @@
 
 .search-icon {
   position: absolute;
-  left: 0.85rem;
+  left: 0.9rem;
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af;
   font-size: 1rem;
+  pointer-events: none;
 }
 
 .search-input {
-  padding-left: 2.35rem;
-  height: 42px;
-  border-radius: 10px;
-  border: 1.5px solid #e5e7eb;
-  font-size: 0.88rem;
-  transition: border-color 0.2s ease;
-}
-
-.search-input:focus {
-  border-color: #4f46e5;
-  box-shadow: none;
-}
-
-.table-container {
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 3.2rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border: 1.5px solid #e5e7eb;
@@ -460,6 +447,40 @@
   .export-actions-wrapper {
     align-self: flex-end;
   }
+}
+
+.export-actions-wrapper {
+  position: relative;
+}
+
+.export-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  min-width: 220px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  padding: 0.5rem 0;
+  z-index: 50;
+}
+
+.export-dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: #111827;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.export-dropdown-item:hover {
+  background-color: #f8fafc;
 }
 
 @media (max-width: 768px) {

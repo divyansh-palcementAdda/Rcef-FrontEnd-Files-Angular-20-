@@ -101,13 +101,17 @@
           </button>
 
           <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
-            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-outline-primary" type="button" (click)="toggleExportDropdown()" [attr.aria-expanded]="exportDropdownOpen">
               <i class="bi bi-download me-1"></i> Export Data
             </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-              <li><a class="dropdown-item" (click)="exportSubDepartments('EXCEL')"><i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Export Excel</a></li>
-              <li><a class="dropdown-item" (click)="exportSubDepartments('CSV')"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV</a></li>
-            </ul>
+            <div class="export-dropdown-menu" *ngIf="exportDropdownOpen">
+              <button type="button" class="export-dropdown-item" (click)="exportSubDepartments('EXCEL')">
+                <i class="bi bi-file-earmark-excel-fill text-success me-2"></i> Export Excel
+              </button>
+              <button type="button" class="export-dropdown-item" (click)="exportSubDepartments('CSV')">
+                <i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Export CSV
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -459,7 +463,7 @@
        CENTRALIZED MODAL OVERLAY (Views Stack - Option A)
        ========================================================================= -->
   <app-modal-wrapper 
-    *ngFor="let modal of modalWrapperService.activeModals$ | async" 
+    *ngFor="let modal of (modalWrapperService.activeModals$ | async) | slice:-1" 
     [title]="modal.config.title || ''" 
     [subtitle]="modal.config.subtitle || ''" 
     [sizeClass]="modal.config.sizeClass || 'modal-md'" 

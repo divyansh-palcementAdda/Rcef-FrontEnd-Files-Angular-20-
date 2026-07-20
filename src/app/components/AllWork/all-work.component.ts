@@ -71,6 +71,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   subDeptSortField = 'name';
   subDeptSortDir: 'asc' | 'desc' = 'asc';
   showFilters = false;
+  exportDropdownOpen = false;
 
   // Search debouncing subject
   private subDeptSearchSubject = new Subject<string>();
@@ -369,22 +370,26 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   navigateToEntity(type: string, id: any, event?: Event): void {
     if (event) {
       const target = event.target as HTMLElement;
-      if (target.closest('button') || target.closest('a') || target.closest('input') || target.closest('select') || target.closest('.btn-group') || target.closest('ul')) {
+      const currentTarget = event.currentTarget as HTMLElement | null;
+      const isInteractiveElement = !!target?.closest('button, a, input, select, textarea, [role="button"], .btn, .dropdown-item, .dropdown-toggle');
+      const isDirectButtonAction = currentTarget?.tagName === 'BUTTON' || currentTarget?.getAttribute('role') === 'button';
+
+      if (isInteractiveElement && !isDirectButtonAction) {
         return;
       }
-      
+
       const mouseEvent = event as MouseEvent;
       const keyboardEvent = event as KeyboardEvent;
-      const isCtrlClick = (mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey || mouseEvent.button === 1)) || 
+      const isCtrlClick = (mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey || mouseEvent.button === 1)) ||
                           (keyboardEvent && (keyboardEvent.ctrlKey || keyboardEvent.metaKey));
-      
+
       if (isCtrlClick) {
         let url = '';
         if (type === 'task') url = `/task/${id}`;
         else if (type === 'user') url = `/user/${id}`;
         else if (type === 'sub-department') url = `/sub-department-details/${id}`;
         else if (type === 'department') url = `/department/${id}`;
-        
+
         if (url) {
           window.open(url, '_blank');
           return;
@@ -689,10 +694,19 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   // EXPORT TRIGGERS
   // =========================================================================
 
+  toggleExportDropdown(): void {
+    this.exportDropdownOpen = !this.exportDropdownOpen;
+  }
+
+  closeExportDropdown(): void {
+    this.exportDropdownOpen = false;
+  }
+
   exportSubDepartments(format: string): void {
     if (this.role !== 'HOD' && this.selectedDeptId === null) return;
     const serializedFilters = this.getSerializedFilters();
     const url = this.apiService.getExportSubDepartmentsUrl(this.selectedDeptId, this.subDeptSearch, serializedFilters, format);
     window.open(url, '_blank');
+    this.exportDropdownOpen = false;
   }
 }
