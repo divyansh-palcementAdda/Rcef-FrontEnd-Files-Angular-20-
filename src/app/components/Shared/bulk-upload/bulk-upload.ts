@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UserApiService } from '../../../Services/UserApiService';
 import { TaskApiService } from '../../../Services/task-api-Service';
@@ -29,8 +29,10 @@ interface BulkImportResponse {
 export class BulkUploadComponent implements OnInit {
   @Input() importType: 'USER' | 'TASK' = 'USER';
   @Input() title = 'Bulk Upload';
+  @Output() importCompleted = new EventEmitter<void>();
 
   selectedFile: File | null = null;
+
   dragOver = false;
   uploading = false;
   uploadProgress = 'Uploading...';
@@ -146,7 +148,9 @@ export class BulkUploadComponent implements OnInit {
             this.errorReportJobId = parts[parts.length - 1];
           }
           this.snackBar.open('Import completed successfully.', 'Close', { duration: 4000 });
+          this.importCompleted.emit();
           this.loadHistory();
+
         } else {
           this.showError(res.message || 'Import failed.');
         }
