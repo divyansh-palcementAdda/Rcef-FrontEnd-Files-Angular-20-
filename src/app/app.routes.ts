@@ -40,7 +40,10 @@ import { AccessDeniedComponent } from './components/Shared/access-denied/access-
 import { AllWorkComponent } from './components/AllWork/all-work.component';
 
 
+import { UserTaskAnalyticsComponent } from './components/UserTaskAnalytics/user-task-analytics.component';
+
 export const routes: Routes = [
+
 
   { path: '', component: Home },
   { path: 'test', component: Test }, //veiw tasks page on test route
@@ -137,6 +140,12 @@ export const routes: Routes = [
     component: AllWorkComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { permissions: ['WORK_VIEW'] }
+  },
+  {
+    path: 'user-task-analytics',
+    component: UserTaskAnalyticsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { permissions: ['WORK_ANALYTICS_VIEW', 'WORK_VIEW', 'USER_VIEW'] }
   },
 
   { path: 'access-denied', component: AccessDeniedComponent },
