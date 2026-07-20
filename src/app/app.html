@@ -54,8 +54,8 @@
 </div>
 
 <!-- Premium Global Modals Overlay -->
-<div class="modal-backdrop-overlay" *ngIf="activeModal" (click)="closeActiveModal(false)">
-  <div class="modal-window-wrapper" [ngClass]="{
+<div  *ngIf="activeModal" (click)="closeActiveModal(false)">
+  <div  [ngClass]="{
     'modal-size-large': activeModal === 'add-user' || activeModal === 'edit-user',
     'modal-size-medium': activeModal === 'add-department',
     'modal-size-xlarge': activeModal === 'add-task' || activeModal === 'edit-task'

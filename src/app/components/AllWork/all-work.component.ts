@@ -520,6 +520,38 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     this.loadSubDepartments();
   }
 
+  get subDeptTotalPages(): number {
+    return Math.max(1, Math.ceil(this.totalSubDepts / this.subDeptSize));
+  }
+
+  getSubDeptPageNumbers(): number[] {
+    const total = this.subDeptTotalPages;
+    const current = this.subDeptPage + 1;
+
+    if (total <= 9) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const pages: number[] = [1, 2];
+    const start = Math.max(3, current - 1);
+    const end = Math.min(total - 2, current + 1);
+
+    if (start > 3) {
+      pages.push(-1);
+    }
+
+    for (let page = start; page <= end; page += 1) {
+      pages.push(page);
+    }
+
+    if (end < total - 2) {
+      pages.push(-1);
+    }
+
+    pages.push(total - 1, total);
+    return pages;
+  }
+
   sortSubDeptBy(field: string): void {
     if (this.subDeptSortField === field) {
       this.subDeptSortDir = this.subDeptSortDir === 'asc' ? 'desc' : 'asc';

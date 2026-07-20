@@ -207,17 +207,17 @@
 
 .dept-cards-container {
   display: flex;
-  gap: 1.25rem;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  justify-content: stretch;
+  align-items: stretch;
+  gap: 0.75rem;
+  overflow: hidden;
   padding-bottom: 1rem;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-  /* Desktop: 4-5 cards visible */
-  scroll-snap-type: x mandatory;
+  width: 100%;
 }
 
 .dept-cards-container::-webkit-scrollbar {
-  height: 6px;
+  display: none;
 }
 
 .dept-cards-container::-webkit-scrollbar-thumb {
@@ -226,7 +226,9 @@
 }
 
 .dept-card {
-  flex: 0 0 280px;
+  flex: 1 1 calc(33.333% - 0.75rem);
+  max-width: calc(33.333% - 0.75rem);
+  min-width: 260px;
   background-color: #ffffff;
   border: 1.5px solid #e5e7eb;
   border-radius: 14px;
@@ -234,10 +236,23 @@
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  scroll-snap-align: start;
   min-height: 180px;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 1200px) {
+  .dept-card {
+    flex: 1 1 calc(50% - 0.75rem);
+    max-width: calc(50% - 0.75rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .dept-card {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
 }
 
 .dept-card:hover {
@@ -384,12 +399,14 @@
 }
 
 .table-container {
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1.5px solid #e5e7eb;
 }
 
 .table {
   margin-bottom: 0;
+  min-width: 1200px;
 }
 
 .table thead {
