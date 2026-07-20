@@ -49,7 +49,10 @@ export const RoleGuard: CanActivateFn = (
 
   // Permission-based check (used for feature routes)
   if (requiredPermissions.length > 0) {
-    const hasPermission = requiredPermissions.every(p => authSrv.hasPermission(p));
+    const requireAll = (route.data['requireAllPermissions'] as boolean) ?? false;
+    const hasPermission = requireAll
+      ? requiredPermissions.every(p => authSrv.hasPermission(p))
+      : requiredPermissions.some(p => authSrv.hasPermission(p));
     if (hasPermission) {
       return true;
     }

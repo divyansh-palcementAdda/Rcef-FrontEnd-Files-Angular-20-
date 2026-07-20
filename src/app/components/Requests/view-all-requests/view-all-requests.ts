@@ -76,7 +76,7 @@ export class ViewAllRequests implements OnInit, OnDestroy {
   // Active Modals state
   activeRequestDetail: any = null;
   loadingDetail = false;
-  
+
   approveDialog: {
     isOpen: boolean;
     requestId: number | null;
@@ -84,22 +84,22 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     remarks: string;
     newDueDate: string;
   } = {
-    isOpen: false,
-    requestId: null,
-    requestType: null,
-    remarks: '',
-    newDueDate: ''
-  };
+      isOpen: false,
+      requestId: null,
+      requestType: null,
+      remarks: '',
+      newDueDate: ''
+    };
 
   rejectDialog: {
     isOpen: boolean;
     requestId: number | null;
     reason: string;
   } = {
-    isOpen: false,
-    requestId: null,
-    reason: ''
-  };
+      isOpen: false,
+      requestId: null,
+      reason: ''
+    };
 
   constructor(
     private requestService: RequestApiService,
@@ -107,7 +107,7 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private jwtService: JwtService,
     private authApiService: AuthApiService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadCurrentUser();
@@ -123,7 +123,7 @@ export class ViewAllRequests implements OnInit, OnDestroy {
           this.statusFilter = '';
           this.selectedCard = 'total';
         }
-        
+
         const typeParam = params['type']?.toUpperCase();
         if (typeParam && ['CLOSURE', 'EXTENSION'].includes(typeParam)) {
           this.requestTypeFilter = typeParam;
@@ -305,7 +305,7 @@ export class ViewAllRequests implements OnInit, OnDestroy {
             this.requests = data.content || [];
             this.totalElements = data.totalElements || 0;
             this.totalPages = data.totalPages || 1;
-            
+
             if (data.stats) {
               this.stats = data.stats;
             }
@@ -356,7 +356,7 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     else if (key === 'subDepartmentIdFilter') this.subDepartmentIdFilter = '';
     else if (key === 'onlyActionableRequestsFilter') this.onlyActionableRequestsFilter = '';
     else if (key === 'onlyMyRequestsFilter') this.onlyMyRequestsFilter = '';
-    
+
     this.currentPage = 1;
     this.loadRequestsFromServer();
   }
@@ -486,7 +486,7 @@ export class ViewAllRequests implements OnInit, OnDestroy {
   viewRequestDetails(request: any): void {
     this.loadingDetail = true;
     this.activeRequestDetail = { ...request, proofs: [] };
-    
+
     this.requestService.getRequestById(request.requestId).subscribe({
       next: (res) => {
         this.loadingDetail = false;

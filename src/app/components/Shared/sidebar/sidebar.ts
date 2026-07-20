@@ -288,11 +288,18 @@ export class SidebarComponent implements OnInit, OnDestroy {
     // 6. All Work (Task Requests & Analytics)
     if (this.hasPermission('TASK_APPROVE')) {
       localLinks.push({ label: 'Pending Approval', route: '/task-requests', queryParams: { status: 'PENDING' }, icon: 'bi-hourglass-split' });
+    } else if (this.hasPermission('TASK_REQUEST_VIEW_SELF') || currentRole === 'TEACHER') {
+      localLinks.push({ label: 'My Requests', route: '/task-requests', icon: 'bi-file-earmark-text' });
     }
+
     if (this.hasPermission('WORK_VIEW')) {
       localLinks.push({ label: 'All Work', route: '/all-work', icon: 'bi-briefcase-fill' });
     } else if (this.hasPermission('REPORT_VIEW')) {
       localLinks.push({ label: 'All Work', route: '/task-requests', icon: 'bi-briefcase-fill' });
+    }
+
+    if (this.hasPermission('WORK_ANALYTICS_VIEW') || this.hasPermission('WORK_VIEW') || this.hasPermission('USER_VIEW')) {
+      localLinks.push({ label: 'User Task Analytics', route: '/user-task-analytics', icon: 'bi-bar-chart-line-fill' });
     }
 
     // 7. User Hierarchy (User Heriky)
