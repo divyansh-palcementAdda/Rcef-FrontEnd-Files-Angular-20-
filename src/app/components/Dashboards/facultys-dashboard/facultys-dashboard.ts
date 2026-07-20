@@ -1,10 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { ChartConfiguration } from 'chart.js';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { trigger, transition, useAnimation, query, stagger } from '@angular/animations';
-import { BaseChartDirective } from 'ng2-charts';
 import { BulletinBannerComponent } from '../../Shared/bulletin-banner/bulletin-banner';
 import { ApiService } from '../../../Services/api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
@@ -12,23 +10,43 @@ import { JwtService } from '../../../Services/jwt-service';
 import { DashboardDto } from '../../../Model/DashboardDto';
 import { fadeInUp } from '../../../Animations/fade-in-up.animation';
 
+export interface TaskSegment {
+  label: string;
+  value: number;
+  pct: number;
+  color: string;
+  glow: string;
+  arcPath: string;
+  /** stroke-dashoffset to position this segment — classic donut technique */
+  dashOffset: number;
+  /** arc length to draw for this segment (the visible portion) */
+  dashArray: number;
+  /** full circumference, used as the second dasharray value */
+  circumference: number;
+  /** rotation so SVG starts at 12-o'clock (applied via transform on the SVG element) */
+  rotateDeg: number;
+}
+
+export interface BubbleItem {
+  label: string;
+  value: number;
+  size: number;       // px diameter 32–90
+  color: string;
+  bg: string;
+  icon: string;
+  route: string;
+  status: string;
+}
+
 @Component({
   selector: 'app-facultys-dashboard',
   standalone: true,
-  imports: [
-    CommonModule,
-    BaseChartDirective,
-    DatePipe, BulletinBannerComponent
-  ],
+  imports: [CommonModule, DatePipe, BulletinBannerComponent],
   animations: [
     trigger('fadeInUpStagger', [
       transition(':enter', [
         query(':enter', [
-          stagger(80, [
-            useAnimation(fadeInUp, {
-              params: { time: '300ms' }
-            })
-          ])
+          stagger(80, [useAnimation(fadeInUp, { params: { time: '300ms' } })])
         ], { optional: true })
       ])
     ])
@@ -40,390 +58,173 @@ export class FacultysDashboard implements OnInit, OnDestroy {
   private dataSub?: Subscription;
   dashboardData?: DashboardDto;
 
-  // Chart data
-  pieChartData!: ChartConfiguration<'pie'>['data'];
-  barChartData!: ChartConfiguration<'bar'>['data'];
-
-  // Chart options
-  pieChartOptions: ChartConfiguration<'pie'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          padding: 20,
-          font: {
-            family: "'Inter', sans-serif",
-            size: 11
-          }
-        }
-      },
-      tooltip: {
-        enabled: true,
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563'
-      }
-    },
-    animation: {
-      duration: 2000,
-      easing: 'easeInOutQuart' as const
-    }
-  };
-
-  barChartOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        enabled: true,
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563'
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: { color: 'rgba(99, 102, 241, 0.08)' },
-        ticks: { color: '#6b7280' }
-      },
-      x: {
-        grid: { color: 'rgba(99, 102, 241, 0.05)' },
-        ticks: { color: '#6b7280' }
-      }
-    },
-    animation: {
-      duration: 2000,
-      easing: 'easeInOutQuart' as const
-    }
-  };
-
-  // Sidebar navigation for faculty
-  sidebarLinks = [
-    {
-      label: 'Dashboard',
-      route: '/teacher',
-      icon: 'bi-speedometer2',
-      color: 'primary'
-    },
-    {
-      label: 'My Tasks',
-      route: '/view-tasks',
-      queryParams: { view: 'Self' },
-      icon: 'bi-list-task',
-      color: 'success',
-      tooltip: 'View all your assigned tasks'
-    },
-    // {
-    //   label: 'My Department',
-    //   route: '/departments',
-    //   icon: 'bi-building',
-    //   color: 'info',
-    //   tooltip: 'View department details and members'
-    // },
-    {
-      label: 'Task Requests',
-      route: '/task-requests',
-      icon: 'bi-clock-history',
-      color: 'warning',
-      tooltip: 'View and manage your task requests'
-    },
-  ];
+  /** Segmented arc chart data */
+  segments: TaskSegment[] = [];
+  /** Bubble grid chart data */
+  bubbles: BubbleItem[] = [];
 
   currentDate = new Date();
+
+  // palette — project theme colors aligned with CSS variables
+  private palette = [
+    { color: '#4f46e5', glow: 'rgba(79,70,229,0.30)'   }, // Completed  → primary indigo
+    { color: '#06b6d4', glow: 'rgba(6,182,212,0.30)'   }, // In Progress → info cyan
+    { color: '#f59e0b', glow: 'rgba(245,158,11,0.30)'  }, // Pending    → warning amber
+    { color: '#10b981', glow: 'rgba(16,185,129,0.30)'  }, // Upcoming   → success green
+    { color: '#f43f5e', glow: 'rgba(244,63,94,0.30)'   }, // Delayed    → danger red
+    { color: '#8b5cf6', glow: 'rgba(139,92,246,0.30)'  }, // Extended   → violet
+  ];
 
   constructor(
     private router: Router,
     private apiService: ApiService,
     private authService: AuthApiService,
     private jwtService: JwtService
-  ) { }
+  ) {}
 
-  ngOnInit(): void {
-    this.loadDashboardData();
-  }
-
-  ngOnDestroy(): void {
-    this.dataSub?.unsubscribe();
-  }
+  ngOnInit(): void { this.loadDashboardData(); }
+  ngOnDestroy(): void { this.dataSub?.unsubscribe(); }
 
   loadDashboardData(): void {
     this.dataSub = this.apiService.getDashboardData().subscribe({
       next: (data) => {
         if (data) {
           this.dashboardData = data;
-          console.log('Faculty Dashboard data loaded:', this.dashboardData);
-          this.updateCharts(data);
+          this.buildSegments(data);
+          this.buildBubbles(data);
         }
       },
-      error: (err) => console.error('Error fetching dashboard data:', err)
+      error: (err) => console.error('Faculty dashboard error:', err)
     });
   }
 
-  logout(): void {
-    const refreshToken = this.authService.getRefreshToken() ?? undefined;
-    this.authService.logout(refreshToken).subscribe({
-      next: () => this.router.navigate(['/login']),
-      error: () => this.router.navigate(['/login'])
+  // ─── Segmented arc chart ─────────────────────────────────────────
+  // Classic donut technique:
+  //   - All circles share cx/cy/r; the <g> wrapper is rotated -90° so arc 0 = 12-o'clock
+  //   - stroke-dasharray = [segmentLen, circumference] — draws only this segment's arc
+  //   - stroke-dashoffset = -cumulativeArc — shifts the drawn portion to its start position
+  //     (negative offset moves the dash forward along the path)
+  private buildSegments(d: DashboardDto): void {
+    const raw = [
+      { label: 'Completed',   value: d.completedTask || 0 },
+      { label: 'In Progress', value: d.activeTask    || 0 },
+      { label: 'Pending',     value: d.pendingTask   || 0 },
+      { label: 'Upcoming',    value: d.upcomingTask  || 0 },
+      { label: 'Delayed',     value: d.delayedTask   || 0 },
+      { label: 'Extended',    value: d.extendedTask  || 0 },
+    ];
+    const total = raw.reduce((s, x) => s + x.value, 0) || 1;
+
+    const r = 78;
+    const circumference = +(2 * Math.PI * r).toFixed(4); // ≈ 490.09
+
+    // Gap between segments: 2° in arc-length units
+    const GAP = (2 / 360) * circumference;
+
+    let cumulativeArc = 0;
+
+    this.segments = raw.map((item, i) => {
+      const pct    = item.value / total;
+      const arcLen = pct * circumference;
+
+      // Visual length: subtract gap only if this segment has content
+      // Use a half-gap on each side so gaps are centered between segments
+      const drawLen = item.value > 0 ? Math.max(0, arcLen - GAP) : 0;
+
+      // Negative dashoffset advances the start of the dash forward along the path.
+      // cumulativeArc is how far around the circle we've already placed segments.
+      const dashOffset = -cumulativeArc;
+
+      cumulativeArc += arcLen;
+
+      return {
+        label:        item.label,
+        value:        item.value,
+        pct:          Math.round(pct * 100),
+        color:        this.palette[i % this.palette.length].color,
+        glow:         this.palette[i % this.palette.length].glow,
+        arcPath:      '',
+        dashArray:    +drawLen.toFixed(4),
+        dashOffset:   +dashOffset.toFixed(4),
+        circumference,
+        rotateDeg:    -90,
+      };
     });
+  }
+
+  // ─── Bubble grid chart ───────────────────────────────────────────
+  private buildBubbles(d: DashboardDto): void {
+    const items = [
+      { label: 'Completed',   value: d.completedTask || 0, color: '#10b981', bg: '#ecfdf5', icon: 'bi-check2-circle',            route: '/view-tasks', status: 'CLOSED'      },
+      { label: 'In Progress', value: d.activeTask    || 0, color: '#6366f1', bg: '#eeebff', icon: 'bi-play-circle-fill',          route: '/view-tasks', status: 'IN_PROGRESS' },
+      { label: 'Pending',     value: d.pendingTask   || 0, color: '#f59e0b', bg: '#fffbeb', icon: 'bi-hourglass-split',           route: '/view-tasks', status: 'PENDING'     },
+      { label: 'Delayed',     value: d.delayedTask   || 0, color: '#f43f5e', bg: '#fff1f2', icon: 'bi-exclamation-triangle-fill', route: '/view-tasks', status: 'DELAYED'     },
+      { label: 'Upcoming',    value: d.upcomingTask  || 0, color: '#06b6d4', bg: '#ecfeff', icon: 'bi-calendar-event-fill',       route: '/view-tasks', status: 'UPCOMING'    },
+      { label: 'Extended',    value: d.extendedTask  || 0, color: '#8b5cf6', bg: '#f5f3ff', icon: 'bi-arrow-repeat',              route: '/view-tasks', status: 'EXTENDED'    },
+    ];
+    const max = Math.max(...items.map(x => x.value));
+    // If all zero, show uniform medium bubbles
+    const effectiveMax = max > 0 ? max : 1;
+    const allZero = max === 0;
+
+    this.bubbles = items.map(item => ({
+      ...item,
+      // allZero → uniform 60px; otherwise 44–100px based on ratio
+      size: allZero ? 60 : Math.round(44 + (item.value / effectiveMax) * 56),
+    }));
   }
 
   getGreetingTime(): string {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    const h = new Date().getHours();
+    if (h < 12) return 'Good Morning ☀️';
+    if (h < 17) return 'Good Afternoon 👋';
+    return 'Good Evening 🌙';
   }
 
   calculatePerformance(): number {
     if (!this.dashboardData) return 0;
-
-    const completed = this.dashboardData.completedTask || 0;
-    const total = this.dashboardData.totalTask || 0;
-    const delayed = this.dashboardData.delayedTask || 0;
-
-    if (total === 0) return 0;
-
-    let performance = Math.round((completed / total) * 100);
-
-    // Add bonus for on-time completion
-    const penalty = Math.min(delayed * 5, 30);
-    performance = Math.max(0, Math.min(100, performance - penalty));
-
-    // Bonus for having self-assigned tasks
-    const selfTasks = this.dashboardData.selfTask || 0;
-    if (selfTasks > 0) {
-      performance = Math.min(100, performance + (selfTasks * 2));
-    }
-
-    return performance;
-  }
-
-  statCards(d: DashboardDto): any[] {
-    return [
-      // Core Metrics
-      {
-        title: 'Total Tasks',
-        value: d.totalTask || 0,
-        color: 'secondary',
-        icon: 'bi-clipboard-check',
-        route: '/view-tasks',
-        delta: d.totalTask > 0 ? 5 : 0,
-        description: 'All assigned tasks'
-      },
-      {
-        title: 'Active Tasks',
-        value: d.activeTask || 0,
-        color: 'primary',
-        icon: 'bi-play-circle',
-        route: '/view-tasks',
-        queryParams: { status: 'IN_PROGRESS' },
-        delta: (d.activeTask ?? 0) > 0 ? 3 : 0,
-        description: 'Tasks in progress'
-      },
-      {
-        title: 'Pending Tasks',
-        value: d.pendingTask || 0,
-        color: 'warning',
-        icon: 'bi-hourglass-split',
-        route: '/view-tasks',
-        queryParams: { status: 'PENDING' },
-        delta: d.pendingTask > 0 ? -2 : 0,
-        badge: d.pendingTask > 0 ? 'attention' : undefined,
-        description: 'Awaiting action'
-      },
-      {
-        title: 'Completed Tasks',
-        value: d.completedTask || 0,
-        color: 'success',
-        icon: 'bi-check2-circle',
-        route: '/view-tasks',
-        queryParams: { status: 'CLOSED' },
-        delta: d.completedTask > 0 ? 8 : 0,
-        description: 'Successfully completed'
-      },
-
-      // Self Management
-      {
-        title: 'Extended Tasks',
-        value: d.extendedTask || 0,
-        color: 'info',
-        icon: 'bi-person-badge',
-        route: '/view-tasks',
-        queryParams: { status: 'EXTENDED' },
-        delta: (d.selfTask ?? 0) > 0 ? 4 : 0,
-        description: 'Extended Tasks'
-      },
-      {
-        title: 'Delayed Tasks',
-        value: d.delayedTask || 0,
-        color: 'danger',
-        icon: 'bi-exclamation-triangle',
-        route: '/view-tasks',
-        queryParams: { status: 'DELAYED' },
-        delta: d.delayedTask > 0 ? -5 : 0,
-        badge: d.delayedTask > 0 ? 'urgent' : undefined,
-        description: 'Require immediate attention'
-      },
-
-      // Request Management
-      {
-        title: 'Extension Requests',
-        value: d.requestForExtension || 0,
-        color: 'secondary',
-        icon: 'bi-clock',
-        route: '/view-tasks',
-        queryParams: { status: 'REQUEST_FOR_EXTENSION' },
-        delta: d.requestForExtension > 0 ? 2 : 0,
-        description: 'Pending extensions'
-      },
-      {
-        title: 'Closure Requests',
-        value: d.requestForClosure || 0,
-        color: 'secondary',
-        icon: 'bi-lock',
-        route: '/view-tasks',
-        queryParams: { status: 'REQUEST_FOR_CLOSURE' },
-        delta: d.requestForClosure > 0 ? 1 : 0,
-        description: 'Awaiting closure'
-      },
-
-      // Performance
-      {
-        title: 'Upcoming Tasks',
-        value: d.upcomingTask || 0,
-        color: 'info',
-        icon: 'bi-calendar3',
-        route: '/view-tasks',
-        queryParams: { status: 'UPCOMING' },
-        delta: d.upcomingTask > 0 ? 4 : 0,
-        description: 'Tasks starting soon'
-      },
-
-      {
-        title: 'Pending Requests',
-        value: d.pendingRequests ?? 0,
-        color: 'primary',
-        icon: 'bi-hourglass-split',
-        route: '/task-requests',
-        queryParams: { status: 'PENDING' },
-        delta: d.pendingRequests > 0 ? 1 : 0,
-        description: 'Requests awaiting review'
-      },
-      {
-        title: 'Approved Requests',
-        value: d.approvedRequests || 0,
-        color: 'success',
-        icon: 'bi-check-circle',
-        route: '/task-requests',
-        queryParams: { status: 'APPROVED' },
-        delta: d.approvedRequests > 0 ? 2 : 0,
-        description: 'Requests approved'
-      },
-      {
-        title: 'Rejected Requests',
-        value: d.rejectedRequests || 0,
-        color: 'danger',
-        icon: 'bi-x-circle',
-        route: '/task-requests',
-        queryParams: { status: 'REJECTED' },
-        delta: d.rejectedRequests > 0 ? -1 : 0,
-        description: 'Requests rejected'
-      }
-    ];
-  }
-
-  goToPage(card: any): void {
-    if (card.route) {
-      this.router.navigate([card.route], { queryParams: card.queryParams || {} });
-    }
-  }
-
-  private updateCharts(data: DashboardDto): void {
-    // Pie Chart - Task Distribution
-    this.pieChartData = {
-      labels: ['Active', 'Pending', 'Completed', 'Delayed', 'Self-Assigned', 'Upcoming'],
-      datasets: [{
-        data: [
-          data.activeTask || 0,
-          data.pendingTask || 0,
-          data.completedTask || 0,
-          data.delayedTask || 0,
-          data.selfTask || 0,
-          data.upcomingTask || 0
-        ],
-        backgroundColor: [
-          '#6366f1', // Primary
-          '#f59e0b', // Warning
-          '#10b981', // Success
-          '#ef4444', // Danger
-          '#3b82f6', // Blue
-          '#06b6d4'  // Cyan
-        ],
-        borderColor: 'rgba(255, 255, 255, 0.9)',
-        borderWidth: 2,
-        hoverBorderWidth: 3,
-        hoverOffset: 10,
-        borderRadius: 6
-      }]
-    };
-
-    // Bar Chart - Task Overview
-    this.barChartData = {
-      labels: ['Total Tasks', 'Active', 'Completed', 'Self-Assigned'],
-      datasets: [{
-        label: 'Task Count',
-        data: [
-          data.totalTask || 0,
-          data.activeTask || 0,
-          data.completedTask || 0,
-          data.selfTask || 0
-        ],
-        backgroundColor: [
-          'rgba(99, 102, 241, 0.8)',
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(16, 185, 129, 0.8)',
-          'rgba(139, 92, 246, 0.8)'
-        ],
-        borderColor: [
-          '#6366f1',
-          '#3b82f6',
-          '#10b981',
-          '#8b5cf6'
-        ],
-        borderWidth: 1,
-        borderRadius: 8,
-        borderSkipped: false,
-        barPercentage: 0.6
-      }]
-    };
-  }
-
-  getBadgeClass(badgeType: string): string {
-    switch (badgeType) {
-      case 'urgent': return 'badge-urgent';
-      case 'attention': return 'badge-attention';
-      case 'new': return 'badge-new';
-      default: return 'badge-default';
-    }
+    const { completedTask = 0, totalTask = 0, delayedTask = 0, selfTask = 0 } = this.dashboardData;
+    if (totalTask === 0) return 0;
+    let p = Math.round((completedTask / totalTask) * 100);
+    p = Math.max(0, Math.min(100, p - Math.min(delayedTask * 5, 30)));
+    if (selfTask > 0) p = Math.min(100, p + selfTask * 2);
+    return p;
   }
 
   getPerformanceStatus(): string {
-    const performance = this.calculatePerformance();
-    if (performance >= 80) return 'Excellent';
-    if (performance >= 60) return 'Good';
-    if (performance >= 40) return 'Average';
+    const p = this.calculatePerformance();
+    if (p >= 80) return 'Excellent';
+    if (p >= 60) return 'Good';
+    if (p >= 40) return 'Average';
     return 'Needs Improvement';
   }
 
   getPerformanceColor(): string {
-    const performance = this.calculatePerformance();
-    if (performance >= 80) return 'success';
-    if (performance >= 60) return 'primary';
-    if (performance >= 40) return 'warning';
-    return 'danger';
+    const p = this.calculatePerformance();
+    if (p >= 80) return 'great';
+    if (p >= 60) return 'good';
+    if (p >= 40) return 'avg';
+    return 'low';
+  }
+
+  getRingOffset(): number {
+    const circ = 2 * Math.PI * 46;
+    return circ - (this.calculatePerformance() / 100) * circ;
+  }
+
+  goToPage(card: { route: string; queryParams?: Record<string, string> }): void {
+    this.router.navigate([card.route], { queryParams: card.queryParams || {} });
+  }
+
+  getLegendStatus(label: string): string {
+    const map: Record<string, string> = {
+      'Completed':   'CLOSED',
+      'In Progress': 'IN_PROGRESS',
+      'Pending':     'PENDING',
+      'Upcoming':    'UPCOMING',
+      'Delayed':     'DELAYED',
+      'Extended':    'EXTENDED',
+    };
+    return map[label] || '';
   }
 }
