@@ -91,6 +91,8 @@ export class AllWorkComponent implements OnInit, OnDestroy {
 
   isInitialLoad = true;
   private subscriptions = new Subscription();
+  // Guard to ignore fast clicks immediately after modal close
+  private ignoreClicksUntil = 0;
 
   constructor(
     private apiService: AllWorkApiService,
@@ -353,7 +355,18 @@ export class AllWorkComponent implements OnInit, OnDestroy {
       userId: currentModal?.config.data?.user?.userId || null
     };
 
+    // When there is no active modal we must explicitly include the modal-related keys
+    // (set to null) so that `queryParamsHandling: 'merge'` will remove any stale modal
+    // flags from the URL. For other keys, remove empty/null values to keep the URL clean.
+    const modalKeys = ['modal', 'subDeptId', 'userId'];
+    if (!currentModal) {
+      queryParams.modal = null;
+      queryParams.subDeptId = null;
+      queryParams.userId = null;
+    }
+
     Object.keys(queryParams).forEach(key => {
+      if (modalKeys.includes(key)) return; // keep modal keys even if null
       if (queryParams[key] === null || queryParams[key] === undefined || queryParams[key] === '') {
         delete queryParams[key];
       }
@@ -411,6 +424,9 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   }
 
   selectDepartment(deptId: number): void {
+    // ignore clicks immediately after modal close to prevent accidental modal open
+    if (Date.now() < this.ignoreClicksUntil) return;
+
     this.selectedDeptId = deptId;
     this.subDeptPage = 0;
     this.updateQueryParams();
@@ -682,11 +698,15 @@ export class AllWorkComponent implements OnInit, OnDestroy {
 
   closeAllModals(): void {
     this.modalWrapperService.clear();
+    // ignore quick clicks after closing modal to avoid accidental re-open
+    this.ignoreClicksUntil = Date.now() + 300;
     this.updateQueryParams();
   }
 
   goBackModal(): void {
     this.modalWrapperService.pop();
+    // ignore quick clicks after navigating back in modal stack
+    this.ignoreClicksUntil = Date.now() + 300;
     this.updateQueryParams();
   }
 

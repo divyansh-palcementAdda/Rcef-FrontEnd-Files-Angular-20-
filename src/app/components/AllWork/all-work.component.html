@@ -220,6 +220,7 @@
                   <i class="bi ms-1" [ngClass]="getSortIcon('totalUsers')"></i>
                 </div>
               </th>
+              <th class="sortable-th">User With Zero Task</th>
               <th class="sortable-th" (click)="sortSubDeptBy('totalSubjects')">
                 <div class="th-inner">
                   Subjects
@@ -293,6 +294,13 @@
                   {{ sd.totalUsers }}
                 </div>
               </td>
+
+              <td [attr.data-label]="'User With Zero Task'">
+                <div class="metric-chip metric-chip--orange">
+                  <!-- <i class="bi bi-person-x-fill"></i> -->
+                  {{ $any(sd).usersWithZeroTask ?? "-" }}
+                </div>
+                
               <td [attr.data-label]="'Subjects'">
                 <div class="metric-chip metric-chip--violet">
                   <i class="bi bi-book-fill"></i>
@@ -357,7 +365,7 @@
                   <button 
                     class="action-btn action-btn--users" 
                     *ngIf="dashboardData?.canViewUsers" 
-                    (click)="openUsers(sd)" 
+                    (click)="openUsers(sd); $event.stopPropagation()" 
                     title="View Users"
                     data-testid="btn-users">
                     <i class="bi bi-people-fill"></i>
@@ -366,7 +374,7 @@
                   <button 
                     class="action-btn action-btn--tasks" 
                     *ngIf="dashboardData?.canViewTasks" 
-                    (click)="openTasks(sd)" 
+                    (click)="openTasks(sd); $event.stopPropagation()" 
                     title="View Tasks"
                     data-testid="btn-tasks">
                     <i class="bi bi-list-check"></i>
@@ -375,7 +383,7 @@
                   <button 
                     class="action-btn action-btn--metrics" 
                     *ngIf="dashboardData?.canOpenAnalytics" 
-                    (click)="openSubDeptAnalytics(sd)" 
+                    (click)="openSubDeptAnalytics(sd); $event.stopPropagation()" 
                     title="Analytics"
                     data-testid="btn-analytics">
                     <i class="bi bi-graph-up"></i>

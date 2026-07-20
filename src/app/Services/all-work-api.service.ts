@@ -37,6 +37,9 @@ export interface SubDepartmentRowDTO {
   name: string;
   departmentName: string;
   totalUsers: number;
+  /** Number of users with zero tasks (some APIs may name this differently) */
+  usersWithZeroTask?: number;
+  usersWithZeroTasks?: number;
   totalSubjects: number;
   totalAssignedTasks: number;
   pending: number;

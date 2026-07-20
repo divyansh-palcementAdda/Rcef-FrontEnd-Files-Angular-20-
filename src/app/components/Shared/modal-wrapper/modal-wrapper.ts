@@ -114,15 +114,18 @@ export class ModalWrapperComponent implements OnInit, OnDestroy {
 
   onBackdropClick(event: MouseEvent): void {
     if (event.target === event.currentTarget) {
-      this.onCloseClick();
+      event.stopPropagation();
+      this.onCloseClick(event);
     }
   }
 
-  onCloseClick(): void {
+  onCloseClick(event?: MouseEvent): void {
+    event?.stopPropagation();
     this.close.emit();
   }
 
-  onBackClick(): void {
+  onBackClick(event?: MouseEvent): void {
+    event?.stopPropagation();
     this.back.emit();
   }
 
