@@ -53,62 +53,63 @@
       </div>
     </div>
 
-    <!-- Profile Overview Card -->
-    <div class="card p-4 border-0 mb-4">
-      <div class="d-flex flex-wrap align-items-center gap-4">
+    <!-- Profile Hero Card -->
+    <div class="profile-hero-card mb-4">
 
-        <div class="avatar-wrapper">
-          <div class="profile-avatar-circle">
-            {{ user.fullName.charAt(0) }}
-          </div>
-          <div class="status-indicator" [ngClass]="user.status === 'ACTIVE' ? 'status-active' : 'status-inactive'">
-          </div>
-        </div>
+      <!-- Gradient banner -->
+      <div class="profile-hero-banner">
+        <div class="profile-hero-inner">
 
-        <div class="flex-grow-1">
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-            <h2 class="fw-bold mb-0" style="color: var(--text-main);">{{ user.fullName }}</h2>
-            <span class="badge-role">
-              <i class="bi bi-person-badge me-1"></i>
-              {{ user.role.replace('_', ' ') | titlecase }}
-            </span>
-            <span class="badge-status" [ngClass]="user.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'">
-              {{ user.status }}
-            </span>
+          <!-- Avatar -->
+          <div class="avatar-wrapper">
+            <div class="profile-avatar-circle">{{ user.fullName.charAt(0) }}</div>
+            <div class="status-indicator" [ngClass]="user.status === 'ACTIVE' ? 'status-active' : 'status-inactive'"></div>
           </div>
 
-          <!-- User Metadata fields -->
-          <div class="row g-3 mt-1">
-            <div class="col-sm-4">
-              <div class="text-muted small">Username</div>
-              <strong style="color: var(--text-main);">@{{ user.username }}</strong>
-            </div>
-            <div class="col-sm-4">
-              <div class="text-muted small">Email Address</div>
-              <strong style="color: var(--text-main);">{{ user.email }}</strong>
-            </div>
-            <div class="col-sm-4">
-              <div class="text-muted small">Verification</div>
-              <span [ngClass]="user.emailVerified ? 'text-success fw-bold' : 'text-danger fw-bold'">
-                {{ user.emailVerified ? 'Verified' : 'Pending Verification' }}
-              </span>
+          <!-- Name + badges -->
+          <div class="flex-grow-1">
+            <h2 class="profile-hero-name">{{ user.fullName }}</h2>
+            <div class="profile-hero-meta">
+              <span class="badge-role"><i class="bi bi-person-badge me-1"></i>{{ user.role.replace('_',' ') | titlecase }}</span>
+              <span class="badge-status" [ngClass]="user.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'">{{ user.status }}</span>
             </div>
           </div>
-        </div>
 
-        <!-- Action tools for profile -->
-        <div class="d-flex flex-wrap gap-2 align-self-start ms-auto">
-          <button class="btn btn-outline-primary" (click)="editUser()" *ngIf="canEditDelete()">
-            <i class="bi bi-pencil me-1"></i> Edit Profile
-          </button>
-          <button class="btn" [ngClass]="user.status === 'ACTIVE' ? 'btn-outline-danger' : 'btn-outline-success'"
-            (click)="toggleUserStatus()" *ngIf="canEditDelete()">
-            <i class="bi me-1" [ngClass]="user.status === 'ACTIVE' ? 'bi-person-dash' : 'bi-person-check'"></i>
-            {{ user.status === 'ACTIVE' ? 'Deactivate' : 'Activate' }}
-          </button>
-        </div>
+          <!-- Action buttons (translucent in banner) -->
+          <div class="hero-actions" *ngIf="canEditDelete()">
+            <button class="btn-hero" (click)="editUser()">
+              <i class="bi bi-pencil"></i> Edit Profile
+            </button>
+            <button class="btn-hero danger" (click)="toggleUserStatus()">
+              <i class="bi" [ngClass]="user.status === 'ACTIVE' ? 'bi-person-dash' : 'bi-person-check'"></i>
+              {{ user.status === 'ACTIVE' ? 'Deactivate' : 'Activate' }}
+            </button>
+          </div>
 
+        </div>
       </div>
+
+      <!-- White info bar below banner -->
+      <div class="profile-info-card">
+        <div class="profile-meta-grid">
+          <div class="profile-meta-item">
+            <div class="meta-key">Username</div>
+            <div class="meta-val">@{{ user.username }}</div>
+          </div>
+          <div class="profile-meta-item">
+            <div class="meta-key">Email Address</div>
+            <div class="meta-val">{{ user.email }}</div>
+          </div>
+          <div class="profile-meta-item">
+            <div class="meta-key">Verification</div>
+            <div class="meta-val" [ngClass]="user.emailVerified ? 'text-success' : 'text-danger'">
+              <i class="bi me-1" [ngClass]="user.emailVerified ? 'bi-patch-check-fill' : 'bi-exclamation-circle-fill'"></i>
+              {{ user.emailVerified ? 'Email Verified' : 'Pending Verification' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
     <!-- 
      Performance Stats Overview Section 
@@ -407,13 +408,23 @@
                       (click)="openDepartmentTasks(dept, 'RECURRING_PARENT')">{{ dept.recurringParent }}</span>
                     <span *ngIf="dept.recurringParent === 0" class="text-muted small">-</span>
                   </td>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="progress flex-grow-1" style="height: 6px; background-color: var(--bg-color);">
-                        <div class="progress-bar bg-success" role="progressbar"
-                          [style.width.%]="dept.completionPercentage"></div>
+                  <td class="vu-completion-td">
+                    <div class="vu-completion-wrap">
+                      <div class="vu-progress-track">
+                        <div class="vu-progress-fill"
+                          [style.width.%]="dept.completionPercentage"
+                          [ngClass]="{
+                            'vu-progress-fill--high': dept.completionPercentage >= 75,
+                            'vu-progress-fill--mid':  dept.completionPercentage >= 40 && dept.completionPercentage < 75,
+                            'vu-progress-fill--low':  dept.completionPercentage < 40
+                          }"></div>
                       </div>
-                      <span class="small fw-semibold">{{ dept.completionPercentage | number:'1.0-1' }}%</span>
+                      <span class="vu-pct-label"
+                        [ngClass]="{
+                          'text-success': dept.completionPercentage >= 75,
+                          'text-warning': dept.completionPercentage >= 40 && dept.completionPercentage < 75,
+                          'text-danger':  dept.completionPercentage < 40
+                        }">{{ dept.completionPercentage | number:'1.0-1' }}%</span>
                     </div>
                   </td>
                   <td class="text-center text-muted small">
@@ -701,13 +712,23 @@
                       (click)="openSubDepartmentTasks(sd, 'RECURRING_PARENT')">{{ sd.recurringParent }}</span>
                     <span *ngIf="sd.recurringParent === 0" class="text-muted small">-</span>
                   </td>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="progress flex-grow-1" style="height: 6px; background-color: var(--bg-color);">
-                        <div class="progress-bar bg-success" role="progressbar" [style.width.%]="sd.completionPercentage">
-                        </div>
+                  <td class="vu-completion-td">
+                    <div class="vu-completion-wrap">
+                      <div class="vu-progress-track">
+                        <div class="vu-progress-fill"
+                          [style.width.%]="sd.completionPercentage"
+                          [ngClass]="{
+                            'vu-progress-fill--high': sd.completionPercentage >= 75,
+                            'vu-progress-fill--mid':  sd.completionPercentage >= 40 && sd.completionPercentage < 75,
+                            'vu-progress-fill--low':  sd.completionPercentage < 40
+                          }"></div>
                       </div>
-                      <span class="small fw-semibold">{{ sd.completionPercentage | number:'1.0-1' }}%</span>
+                      <span class="vu-pct-label"
+                        [ngClass]="{
+                          'text-success': sd.completionPercentage >= 75,
+                          'text-warning': sd.completionPercentage >= 40 && sd.completionPercentage < 75,
+                          'text-danger':  sd.completionPercentage < 40
+                        }">{{ sd.completionPercentage | number:'1.0-1' }}%</span>
                     </div>
                   </td>
                   <td class="text-center text-muted small">
@@ -945,13 +966,23 @@
                     <span *ngIf="sb.delayed > 0" class="badge bg-danger-subtle text-danger border">{{ sb.delayed }}</span>
                     <span *ngIf="sb.delayed === 0" class="text-muted small">-</span>
                   </td>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="progress flex-grow-1" style="height: 6px; background-color: var(--bg-color);">
-                        <div class="progress-bar bg-success" role="progressbar" [style.width.%]="sb.completionPercentage">
-                        </div>
+                  <td class="vu-completion-td">
+                    <div class="vu-completion-wrap">
+                      <div class="vu-progress-track">
+                        <div class="vu-progress-fill"
+                          [style.width.%]="sb.completionPercentage"
+                          [ngClass]="{
+                            'vu-progress-fill--high': sb.completionPercentage >= 75,
+                            'vu-progress-fill--mid':  sb.completionPercentage >= 40 && sb.completionPercentage < 75,
+                            'vu-progress-fill--low':  sb.completionPercentage < 40
+                          }"></div>
                       </div>
-                      <span class="small fw-semibold">{{ sb.completionPercentage | number:'1.0-1' }}%</span>
+                      <span class="vu-pct-label"
+                        [ngClass]="{
+                          'text-success': sb.completionPercentage >= 75,
+                          'text-warning': sb.completionPercentage >= 40 && sb.completionPercentage < 75,
+                          'text-danger':  sb.completionPercentage < 40
+                        }">{{ sb.completionPercentage | number:'1.0-1' }}%</span>
                     </div>
                   </td>
                   <td class="text-center text-muted small">
@@ -1406,184 +1437,196 @@
       </button> -->
     </div>
 
-    <!-- ==================== Task Drill-down Modal ==================== -->
-    <div class="modal fade show" *ngIf="isTaskModalOpen"
-      style="display: block; background: rgba(0,0,0,0.5); z-index: 1055;" tabindex="-1" role="dialog">
-      <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--card-bg);">
+    <!-- ==================== Task Drill-down Modal (Redesigned) ==================== -->
+    <div class="view-user-modal-overlay" *ngIf="isTaskModalOpen" (click)="closeTaskModal()" role="dialog"
+      aria-modal="true" aria-labelledby="modalTitleMain">
+      <div class="view-user-modal-card" (click)="$event.stopPropagation()">
 
-          <!-- Modal Header -->
-          <div class="modal-header border-bottom p-4" style="background: var(--bg-color);">
-            <div>
-              <h5 class="modal-title fw-bold text-main" style="color: var(--text-main); margin-bottom: 0;">
-                <i class="bi bi-list-task text-primary me-2"></i>Tasks in {{ modalTargetName }}
-              </h5>
-              <p class="text-muted small mb-0 mt-1">
-                Active drill-down view for user: <strong>{{ user.fullName }}</strong>. Filtered by selected category
-                and status.
-              </p>
+        <!-- ── Modal Header ── -->
+        <div class="modal-header-custom">
+          <div class="modal-header-info">
+            <div class="modal-title-main" id="modalTitleMain">
+              <i class="bi bi-list-task" style="color: var(--primary-color);"></i>
+              Tasks in <strong>{{ modalTargetName }}</strong>
             </div>
-            <button type="button" class="btn-close" (click)="closeTaskModal()" aria-label="Close"></button>
+            <div class="modal-subtitle">
+              Drill-down for <strong>{{ user.fullName }}</strong> &mdash; filtered by category &amp; status
+            </div>
+          </div>
+          <button class="modal-close-btn" (click)="closeTaskModal()" aria-label="Close modal" title="Close">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <!-- ── Modal Scrollable Body ── -->
+        <div class="modal-body-custom">
+
+          <!-- Status filter pills (scrollable horizontal row) -->
+          <div class="modal-status-tabs scrollbar-none">
+            <button *ngFor="let tab of modalStatusTabs"
+              class="modal-tab-pill"
+              [class.active]="modalStatus === tab.value"
+              (click)="onModalStatusChange(tab.value)">
+              {{ tab.label }}
+            </button>
           </div>
 
-          <!-- Modal Body -->
-          <div class="modal-body p-4">
-
-            <!-- Filters & Actions Toolbar -->
-            <div class="row g-3 align-items-center mb-4">
-
-              <!-- Search field -->
-              <div class="col-12 col-md-4">
-                <div class="input-group">
-                  <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
-                  <input type="text" class="form-control border-start-0 ps-0" placeholder="Search tasks..."
-                    [(ngModel)]="modalSearch" (ngModelChange)="onModalSearchChange()">
-                </div>
-              </div>
-
-              <!-- Priority selector -->
-              <div class="col-6 col-md-2">
-                <select class="form-select" [(ngModel)]="modalPriority" (change)="loadModalTasks()">
-                  <option value="">All Priorities</option>
-                  <option value="HIGH">High Priority</option>
-                  <option value="MEDIUM">Medium Priority</option>
-                  <option value="LOW">Low Priority</option>
-                </select>
-              </div>
-
-              <!-- Task Type selector -->
-              <div class="col-6 col-md-2">
-                <select class="form-select" [(ngModel)]="modalTaskType" (change)="loadModalTasks()">
-                  <option value="">All Types</option>
-                  <option value="GENERAL">General Tasks</option>
-                  <option value="TEMPLATE">Template Tasks</option>
-                </select>
-              </div>
-
-              <!-- Export Buttons -->
-              <div class="col-12 col-md-4 text-md-end d-flex gap-2 justify-content-md-end">
-                <button class="btn btn-outline-success d-flex align-items-center gap-1"
-                  (click)="exportModalTasks('EXCEL')">
-                  <i class="bi bi-file-earmark-excel"></i> Export Excel
-                </button>
-                <button class="btn btn-outline-primary d-flex align-items-center gap-1"
-                  (click)="exportModalTasks('CSV')">
-                  <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
-                </button>
-              </div>
+          <!-- Filters & Export row -->
+          <div class="modal-filters-row mb-4">
+            <!-- Search -->
+            <div class="search-col input-group">
+              <span class="input-group-text bg-transparent border-end-0">
+                <i class="bi bi-search text-muted"></i>
+              </span>
+              <input type="text" class="form-control border-start-0"
+                placeholder="Search tasks by title…"
+                [(ngModel)]="modalSearch" (ngModelChange)="onModalSearchChange()">
             </div>
 
-            <!-- Status Tabs -->
-            <div class="border-bottom mb-4">
-              <ul class="nav nav-tabs border-0 flex-nowrap overflow-auto scrollbar-none" style="gap: 0.5rem;">
-                <li class="nav-item" *ngFor="let tab of modalStatusTabs">
-                  <a class="nav-link border-0 text-muted px-3 py-2 fw-semibold cursor-pointer"
-                    [class.active]="modalStatus === tab.value"
-                    [style.color]="modalStatus === tab.value ? 'var(--primary-color)' : ''"
-                    [style.border-bottom]="modalStatus === tab.value ? '2px solid var(--primary-color)' : ''"
-                    (click)="onModalStatusChange(tab.value)">
-                    {{ tab.label }}
-                  </a>
-                </li>
-              </ul>
+            <!-- Priority -->
+            <select class="form-select" [(ngModel)]="modalPriority" (change)="loadModalTasks()">
+              <option value="">All Priorities</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
+
+            <!-- Task Type -->
+            <select class="form-select" [(ngModel)]="modalTaskType" (change)="loadModalTasks()">
+              <option value="">All Types</option>
+              <option value="GENERAL">General</option>
+              <option value="TEMPLATE">Template</option>
+            </select>
+
+            <!-- Export buttons -->
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
+                (click)="exportModalTasks('EXCEL')" title="Export Excel">
+                <i class="bi bi-file-earmark-excel"></i><span class="d-none d-sm-inline">Excel</span>
+              </button>
+              <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                (click)="exportModalTasks('CSV')" title="Export CSV">
+                <i class="bi bi-file-earmark-spreadsheet"></i><span class="d-none d-sm-inline">CSV</span>
+              </button>
             </div>
-
-            <!-- Loading skeleton / Spinner -->
-            <div *ngIf="modalLoading" class="text-center py-5">
-              <div class="spinner-border text-primary spinner mb-2" role="status"></div>
-              <p class="text-muted small">Loading tasks list...</p>
-            </div>
-
-            <!-- Tasks Table -->
-            <div *ngIf="!modalLoading" class="table-responsive rounded-3 border">
-              <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
-                <thead class="table-light">
-                  <tr>
-                    <th scope="col" class="ps-3 cursor-pointer" (click)="sortModalBy('title')">
-                      Task <i class="bi"
-                        [ngClass]="modalSortBy === 'title' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
-                    </th>
-                    <!-- <th scope="col" class="text-center cursor-pointer" (click)="sortModalBy('priority')">
-                      Priority <i class="bi"
-                        [ngClass]="modalSortBy === 'priority' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
-                    </th> -->
-                    <th scope="col" class="text-center cursor-pointer" (click)="sortModalBy('status')">
-                      Status <i class="bi"
-                        [ngClass]="modalSortBy === 'status' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
-                    </th>
-                    <th scope="col" class="text-center cursor-pointer" (click)="sortModalBy('dueDate')">
-                      Due Date <i class="bi"
-                        [ngClass]="modalSortBy === 'dueDate' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
-                    </th>
-                    <th scope="col" class="text-center">Subject</th>
-                    <th scope="col" class="text-center">Recurring</th>
-                    <th scope="col" class="text-center">Created By</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let task of modalTasks">
-                    <td class="ps-3 fw-semibold text-main" style="color: var(--text-main);">
-                      <div>{{ task.title }}</div>
-                      <div class="text-muted small fw-normal text-truncate" style="max-width: 300px;">{{
-                        task.description }}</div>
-                    </td>
-                    <td class="text-center">
-                      <span class="badge {{ getTaskStatusClass(task.status) }}">
-                        {{ task.status.replace('_', ' ') }}
-                      </span>
-                    </td>
-                    <td class="text-center text-muted">
-                      {{ task.dueDate ? formatDate(task.dueDate) : '-' }}
-                    </td>
-                    <td class="text-center text-muted">
-                      {{ task.subjectName || '-' }}
-                    </td>
-                    <td class="text-center">
-                      <span *ngIf="task.isRecurring" class="badge bg-info-subtle text-info border">Yes</span>
-                      <span *ngIf="!task.isRecurring" class="text-muted">-</span>
-                    </td>
-                    <td class="text-center text-muted">
-                      {{ task.createdByName || '-' }}
-                    </td>
-                  </tr>
-                  <tr *ngIf="modalTasks.length === 0">
-                    <td colspan="7" class="text-center py-5 text-muted">
-                      <i class="bi bi-info-circle me-1 fs-4 d-block mb-2"></i>No tasks found matching current filters.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Modal Pagination -->
-            <div *ngIf="!modalLoading && modalTotalTasks > 0"
-              class="d-flex justify-content-between align-items-center mt-4">
-              <span class="small text-muted">Showing {{ (modalPage - 1) * modalPageSize + 1 }} to {{ Math.min(modalPage
-                * modalPageSize, modalTotalTasks) }} of {{ modalTotalTasks }} tasks</span>
-
-              <nav aria-label="Modal pagination">
-                <ul class="pagination mb-0">
-                  <li class="page-item" [class.disabled]="modalPage === 1">
-                    <a class="page-link cursor-pointer" (click)="changeModalPage(modalPage - 1)">Previous</a>
-                  </li>
-                  <li class="page-item" *ngFor="let p of getModalTotalPagesArray()" [class.active]="modalPage === p">
-                    <a class="page-link cursor-pointer" (click)="changeModalPage(p)">{{ p }}</a>
-                  </li>
-                  <li class="page-item" [class.disabled]="modalPage === getModalTotalPages()">
-                    <a class="page-link cursor-pointer" (click)="changeModalPage(modalPage + 1)">Next</a>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-
           </div>
 
-          <!-- Modal Footer -->
-          <div class="modal-footer border-top p-3" style="background: var(--bg-color);">
-            <button type="button" class="btn btn-secondary" (click)="closeTaskModal()">Close</button>
+          <!-- Loading state -->
+          <div *ngIf="modalLoading" class="text-center py-5">
+            <div class="loading-spinner mx-auto"></div>
+            <p class="text-muted small mt-2">Loading tasks…</p>
+          </div>
+
+          <!-- Tasks table -->
+          <div *ngIf="!modalLoading" class="responsive-table-wrapper mb-0">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th scope="col" class="ps-3 sortable-header" (click)="sortModalBy('title')" style="cursor: pointer;">
+                    Task
+                    <i class="bi ms-1"
+                      [ngClass]="modalSortBy === 'title' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header" (click)="sortModalBy('status')" style="cursor: pointer;">
+                    Status
+                    <i class="bi ms-1"
+                      [ngClass]="modalSortBy === 'status' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                  </th>
+                  <th scope="col" class="text-center sortable-header" (click)="sortModalBy('dueDate')" style="cursor: pointer;">
+                    Due Date
+                    <i class="bi ms-1"
+                      [ngClass]="modalSortBy === 'dueDate' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                  </th>
+                  <th scope="col" class="text-center">Subject</th>
+                  <th scope="col" class="text-center">Recurring</th>
+                  <th scope="col" class="text-center">Created By</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let task of modalTasks">
+                  <td class="ps-3">
+                    <div class="fw-semibold" style="color: var(--text-main);">{{ task.title }}</div>
+                    <div class="text-muted small text-truncate" style="max-width: 300px;">{{ task.description }}</div>
+                  </td>
+                  <td class="text-center">
+                    <span [ngClass]="getTaskStatusClass(task.status)">
+                      {{ task.status.replace('_', ' ') }}
+                    </span>
+                  </td>
+                  <td class="text-center text-muted small">
+                    {{ task.dueDate ? formatDate(task.dueDate) : '—' }}
+                  </td>
+                  <td class="text-center text-muted small">{{ task.subjectName || '—' }}</td>
+                  <td class="text-center">
+                    <span *ngIf="task.isRecurring" class="task-status-in-progress">Yes</span>
+                    <span *ngIf="!task.isRecurring" class="text-muted small">—</span>
+                  </td>
+                  <td class="text-center text-muted small">{{ task.createdByName || '—' }}</td>
+                </tr>
+
+                <tr *ngIf="modalTasks.length === 0">
+                  <td colspan="6">
+                    <div class="responsive-empty-state border-0 py-4">
+                      <i class="bi bi-clipboard-x responsive-empty-icon"></i>
+                      <div class="responsive-empty-text">No tasks found</div>
+                      <div class="responsive-empty-subtext">Try adjusting the filters or status tab.</div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
         </div>
+
+        <!-- ── Modal Footer (pagination) ── -->
+        <div class="modal-footer-custom" *ngIf="!modalLoading && modalTotalTasks > 0">
+          <span class="modal-footer-info">
+            Showing {{ (modalPage - 1) * modalPageSize + 1 }}–{{ Math.min(modalPage * modalPageSize, modalTotalTasks) }}
+            of {{ modalTotalTasks }} tasks
+          </span>
+
+          <nav aria-label="Modal task pagination">
+            <ul class="pagination mb-0 gap-1">
+              <li class="page-item" [class.disabled]="modalPage === 1">
+                <a class="page-link cursor-pointer" (click)="changeModalPage(1)" title="First">
+                  <i class="bi bi-chevron-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="modalPage === 1">
+                <a class="page-link cursor-pointer" (click)="changeModalPage(modalPage - 1)" title="Previous">
+                  <i class="bi bi-chevron-left"></i>
+                </a>
+              </li>
+              <li class="page-item" *ngFor="let p of getModalTotalPagesArray()" [class.active]="modalPage === p">
+                <a class="page-link cursor-pointer" (click)="changeModalPage(p)">{{ p }}</a>
+              </li>
+              <li class="page-item" [class.disabled]="modalPage === getModalTotalPages()">
+                <a class="page-link cursor-pointer" (click)="changeModalPage(modalPage + 1)" title="Next">
+                  <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="modalPage === getModalTotalPages()">
+                <a class="page-link cursor-pointer" (click)="changeModalPage(getModalTotalPages())" title="Last">
+                  <i class="bi bi-chevron-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          <button type="button" class="btn btn-secondary btn-sm" (click)="closeTaskModal()">
+            <i class="bi bi-x me-1"></i>Close
+          </button>
+        </div>
+
+        <!-- footer when no tasks / still shows close button -->
+        <div class="modal-footer-custom" *ngIf="!modalLoading && modalTotalTasks === 0">
+          <span></span>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="closeTaskModal()">
+            <i class="bi bi-x me-1"></i>Close
+          </button>
+        </div>
+
       </div>
     </div>
 
