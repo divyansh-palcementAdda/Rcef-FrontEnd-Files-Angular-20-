@@ -20,7 +20,8 @@
 .app-content {
   flex: 1;
   padding: 0.2rem 1rem;
-  overflow-y: auto;
+  /* overflow-y removed — .app-main handles scrolling; 
+     keeping overflow visible lets position:fixed children (modals) escape to viewport */
   max-width: 2560px;
   width: 100%;
   margin: 0 auto;
