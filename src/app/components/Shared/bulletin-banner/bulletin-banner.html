@@ -1,6 +1,87 @@
-<div class="bulletin-container" [class.loading]="isLoading">
-  <div class="bulletin-ticker">
-    <span class="icon">Announcement</span>
-    <span class="message" [innerText]="headlineText"></span>
+<ng-container *ngIf="!isLoading">
+
+  <!-- ══ ALERT STATE ══ -->
+  <div class="bb-banner bb-banner--alert" *ngIf="totalDelayed > 0" role="alert" aria-live="assertive">
+
+    <!-- Left: icon + count -->
+    <div class="bb-left">
+      <div class="bb-pulse-wrap">
+        <div class="bb-pulse-ring"></div>
+        <div class="bb-alert-icon">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+      </div>
+      <div class="bb-badge">
+        <span class="bb-badge__num">{{ totalDelayed }}</span>
+        <span class="bb-badge__lbl">Delayed</span>
+      </div>
+    </div>
+
+    <!-- Center: seamless scroll — pauses when cursor is anywhere on banner -->
+    <div class="bb-ticker-wrap">
+      <div class="bb-ticker">
+
+        <!-- Copy 1 -->
+        <span class="bb-ticker__msg">
+          <strong>⚠ Action Required</strong>
+          &nbsp;—&nbsp;
+          {{ totalDelayed }} delayed {{ totalDelayed === 1 ? 'task' : 'tasks' }} across
+          {{ delayedSubDepartments.length }} {{ delayedSubDepartments.length === 1 ? 'sub-department' : 'sub-departments' }}:
+          &nbsp;
+          <ng-container *ngFor="let d of delayedSubDepartments; let last = last">
+            <span class="bb-dept-chip">
+              {{ d.subDepartmentName }}&nbsp;<strong>×{{ d.delayedCount }}</strong>
+            </span>
+            <span *ngIf="!last">&ensp;</span>
+          </ng-container>
+          &emsp;Please review and take immediate action.
+        </span>
+
+        <!-- Separator dot -->
+        <span class="bb-ticker__sep" aria-hidden="true"></span>
+
+        <!-- Copy 2 (seamless loop) -->
+        <span class="bb-ticker__msg" aria-hidden="true">
+          <strong>⚠ Action Required</strong>
+          &nbsp;—&nbsp;
+          {{ totalDelayed }} delayed {{ totalDelayed === 1 ? 'task' : 'tasks' }} across
+          {{ delayedSubDepartments.length }} {{ delayedSubDepartments.length === 1 ? 'sub-department' : 'sub-departments' }}:
+          &nbsp;
+          <ng-container *ngFor="let d of delayedSubDepartments; let last = last">
+            <span class="bb-dept-chip">
+              {{ d.subDepartmentName }}&nbsp;<strong>×{{ d.delayedCount }}</strong>
+            </span>
+            <span *ngIf="!last">&ensp;</span>
+          </ng-container>
+          &emsp;Please review and take immediate action.
+        </span>
+
+        <span class="bb-ticker__sep" aria-hidden="true"></span>
+
+      </div>
+    </div>
+
+    <!-- Right: urgent pill (shows "paused" text on hover via CSS) -->
+    <div class="bb-right">
+      <span class="bb-urgency-pill">
+        <i class="bi bi-clock-fill"></i>&nbsp;Urgent
+      </span>
+    </div>
+
   </div>
+
+  <!-- ══ ALL CLEAR STATE ══ -->
+  <div class="bb-banner bb-banner--ok" *ngIf="totalDelayed === 0" role="status">
+    <div class="bb-ok-icon"><i class="bi bi-check-circle-fill"></i></div>
+    <span class="bb-ok-text">All tasks are on schedule across all sub-departments — great work keeping everything on track!</span>
+    <span class="bb-ok-badge"><i class="bi bi-shield-check"></i>&nbsp;On Track</span>
+  </div>
+
+</ng-container>
+
+<!-- Loading skeleton -->
+<div class="bb-skeleton" *ngIf="isLoading" aria-hidden="true">
+  <div class="bb-sk-icon"></div>
+  <div class="bb-sk-line bb-sk-line--wide"></div>
+  <div class="bb-sk-line bb-sk-line--narrow"></div>
 </div>
