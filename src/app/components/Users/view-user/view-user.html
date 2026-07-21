@@ -282,9 +282,18 @@
 
         <!-- Desktop View (Table) -->
         <ng-container *ngIf="!isMobile">
-          <div class="responsive-table-wrapper">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-light">
+          <!-- Horizontal scroll hint -->
+          <div class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-2 mb-3 py-2 px-3" 
+            role="alert" style="font-size: 0.8rem; border-left: 4px solid var(--primary-color);">
+            <i class="bi bi-arrow-left-right"></i>
+            <span><strong>Tip:</strong> Scroll horizontally to view all columns in the table below</span>
+            <button type="button" class="btn-close py-0" data-bs-dismiss="alert" aria-label="Close" 
+              style="font-size: 0.7rem; padding: 0.25rem;"></button>
+          </div>
+
+          <div class="responsive-table-wrapper" style="max-height: 600px; overflow-x: auto; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0" style="min-width: 1400px;">
+              <thead class="table-light" style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 10;">
                 <tr>
                   <th scope="col" class="ps-3 sortable-header col-width-name" (click)="sortDepartment('departmentName')" style="cursor: pointer;">
                     Department Name
@@ -580,9 +589,18 @@
 
         <!-- Desktop View (Table) -->
         <ng-container *ngIf="!isMobile">
-          <div class="responsive-table-wrapper">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-light">
+          <!-- Horizontal scroll hint -->
+          <div class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-2 mb-3 py-2 px-3" 
+            role="alert" style="font-size: 0.8rem; border-left: 4px solid var(--primary-color);">
+            <i class="bi bi-arrow-left-right"></i>
+            <span><strong>Tip:</strong> Scroll horizontally to view all columns in the table below</span>
+            <button type="button" class="btn-close py-0" data-bs-dismiss="alert" aria-label="Close" 
+              style="font-size: 0.7rem; padding: 0.25rem;"></button>
+          </div>
+
+          <div class="responsive-table-wrapper" style="max-height: 600px; overflow-x: auto; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0" style="min-width: 1500px;">
+              <thead class="table-light" style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 10;">
                 <tr>
                   <th scope="col" class="ps-3 sortable-header col-width-name" (click)="sortSubDepartment('subDepartmentName')" style="cursor: pointer;">
                     Sub Department
@@ -1328,6 +1346,7 @@
                   (click)="changePageLogs(currentPageLogs + 1)" title="Next Page">
                   <i class="bi bi-chevron-right"></i>
                 </button>
+                
                 <button class="stitch-pag-btn" [disabled]="currentPageLogs === totalPagesLogs"
                   (click)="changePageLogs(totalPagesLogs)" title="Last Page">
                   <i class="bi bi-chevron-double-right"></i>
@@ -1437,6 +1456,18 @@
       </button> -->
     </div>
 
+    <!-- ==================== Edit User Modal ==================== -->
+    <div class="edit-user-modal-overlay" *ngIf="isEditModalOpen" (click)="closeEditModal(false)" role="dialog"
+      aria-modal="true" aria-labelledby="editUserModalTitle">
+      <div class="edit-user-modal-card" (click)="$event.stopPropagation()">
+        <app-edit-user
+          [userId]="userId"
+          [isModal]="true"
+          (closed)="closeEditModal($event)">
+        </app-edit-user>
+      </div>
+    </div>
+
     <!-- ==================== Task Drill-down Modal (Redesigned) ==================== -->
     <div class="view-user-modal-overlay" *ngIf="isTaskModalOpen" (click)="closeTaskModal()" role="dialog"
       aria-modal="true" aria-labelledby="modalTitleMain">
@@ -1518,105 +1549,174 @@
           </div>
 
           <!-- Tasks table -->
-          <div *ngIf="!modalLoading" class="responsive-table-wrapper mb-0">
-            <table class="table table-hover align-middle mb-0">
-              <thead>
-                <tr>
-                  <th scope="col" class="ps-3 sortable-header" (click)="sortModalBy('title')" style="cursor: pointer;">
-                    Task
-                    <i class="bi ms-1"
-                      [ngClass]="modalSortBy === 'title' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
-                  </th>
-                  <th scope="col" class="text-center sortable-header" (click)="sortModalBy('status')" style="cursor: pointer;">
-                    Status
-                    <i class="bi ms-1"
-                      [ngClass]="modalSortBy === 'status' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
-                  </th>
-                  <th scope="col" class="text-center sortable-header" (click)="sortModalBy('dueDate')" style="cursor: pointer;">
-                    Due Date
-                    <i class="bi ms-1"
-                      [ngClass]="modalSortBy === 'dueDate' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
-                  </th>
-                  <th scope="col" class="text-center">Subject</th>
-                  <th scope="col" class="text-center">Recurring</th>
-                  <th scope="col" class="text-center">Created By</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let task of modalTasks">
-                  <td class="ps-3">
-                    <div class="fw-semibold" style="color: var(--text-main);">{{ task.title }}</div>
-                    <div class="text-muted small text-truncate" style="max-width: 300px;">{{ task.description }}</div>
-                  </td>
-                  <td class="text-center">
-                    <span [ngClass]="getTaskStatusClass(task.status)">
-                      {{ task.status.replace('_', ' ') }}
-                    </span>
-                  </td>
-                  <td class="text-center text-muted small">
-                    {{ task.dueDate ? formatDate(task.dueDate) : '—' }}
-                  </td>
-                  <td class="text-center text-muted small">{{ task.subjectName || '—' }}</td>
-                  <td class="text-center">
-                    <span *ngIf="task.isRecurring" class="task-status-in-progress">Yes</span>
-                    <span *ngIf="!task.isRecurring" class="text-muted small">—</span>
-                  </td>
-                  <td class="text-center text-muted small">{{ task.createdByName || '—' }}</td>
-                </tr>
+          <div *ngIf="!modalLoading" class="position-relative">
+            <!-- Scroll hint for wide tables -->
+            <div class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-2 mb-3 py-2 px-3" 
+              role="alert" style="font-size: 0.8rem; border-left: 4px solid var(--primary-color);">
+              <i class="bi bi-arrow-left-right"></i>
+              <span><strong>Tip:</strong> Scroll horizontally to view all columns</span>
+              <button type="button" class="btn-close py-0" data-bs-dismiss="alert" aria-label="Close" 
+                style="font-size: 0.7rem; padding: 0.25rem;"></button>
+            </div>
 
-                <tr *ngIf="modalTasks.length === 0">
-                  <td colspan="6">
-                    <div class="responsive-empty-state border-0 py-4">
-                      <i class="bi bi-clipboard-x responsive-empty-icon"></i>
-                      <div class="responsive-empty-text">No tasks found</div>
-                      <div class="responsive-empty-subtext">Try adjusting the filters or status tab.</div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="responsive-table-wrapper mb-0" style="max-height: 500px; overflow-x: auto; overflow-y: auto;">
+              <table class="table table-hover align-middle mb-0" style="min-width: 1200px;">
+                <thead style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 10;">
+                  <tr>
+                    <th scope="col" class="ps-3 sortable-header" (click)="sortModalBy('title')" style="cursor: pointer; min-width: 300px;">
+                      Task
+                      <i class="bi ms-1"
+                        [ngClass]="modalSortBy === 'title' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                    </th>
+                    <th scope="col" class="text-center sortable-header" (click)="sortModalBy('status')" style="cursor: pointer; min-width: 150px;">
+                      Status
+                      <i class="bi ms-1"
+                        [ngClass]="modalSortBy === 'status' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                    </th>
+                    <th scope="col" class="text-center sortable-header" (click)="sortModalBy('dueDate')" style="cursor: pointer; min-width: 120px;">
+                      Due Date
+                      <i class="bi ms-1"
+                        [ngClass]="modalSortBy === 'dueDate' ? (modalSortDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') : 'bi-arrow-down-up'"></i>
+                    </th>
+                    <th scope="col" class="text-center" style="min-width: 150px;">Subject</th>
+                    <th scope="col" class="text-center" style="min-width: 100px;">Recurring</th>
+                    <th scope="col" class="text-center" style="min-width: 150px;">Created By</th>
+                    <th scope="col" class="text-center pe-3" style="min-width: 120px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let task of modalTasks">
+                    <td class="ps-3">
+                      <div class="fw-semibold" style="color: var(--text-main);">{{ task.title }}</div>
+                      <div class="text-muted small text-truncate" style="max-width: 280px;">{{ task.description }}</div>
+                    </td>
+                    <td class="text-center">
+                      <span [ngClass]="getTaskStatusClass(task.status)">
+                        {{ task.status.replace('_', ' ') }}
+                      </span>
+                    </td>
+                    <td class="text-center text-muted small">
+                      {{ task.dueDate ? formatDate(task.dueDate) : '—' }}
+                    </td>
+                    <td class="text-center text-muted small">{{ task.subjectName || '—' }}</td>
+                    <td class="text-center">
+                      <span *ngIf="task.isRecurring" class="task-status-in-progress">Yes</span>
+                      <span *ngIf="!task.isRecurring" class="text-muted small">—</span>
+                    </td>
+                    <td class="text-center text-muted small">{{ task.createdByName || '—' }}</td>
+                    <td class="text-center pe-3">
+                      <button class="btn btn-sm btn-outline-primary" (click)="viewTask(task.taskId)" title="View Task Details">
+                        <i class="bi bi-eye me-1"></i>View
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr *ngIf="modalTasks.length === 0">
+                    <td colspan="7">
+                      <div class="responsive-empty-state border-0 py-4">
+                        <i class="bi bi-clipboard-x responsive-empty-icon"></i>
+                        <div class="responsive-empty-text">No tasks found</div>
+                        <div class="responsive-empty-subtext">Try adjusting the filters or status tab.</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
         </div>
 
         <!-- ── Modal Footer (pagination) ── -->
         <div class="modal-footer-custom" *ngIf="!modalLoading && modalTotalTasks > 0">
-          <span class="modal-footer-info">
-            Showing {{ (modalPage - 1) * modalPageSize + 1 }}–{{ Math.min(modalPage * modalPageSize, modalTotalTasks) }}
-            of {{ modalTotalTasks }} tasks
-          </span>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="modal-footer-info me-2 small">
+              Showing {{ (modalPage - 1) * modalPageSize + 1 }}–{{ Math.min(modalPage * modalPageSize, modalTotalTasks) }}
+              of {{ modalTotalTasks }} tasks
+            </span>
+            <div class="d-flex align-items-center gap-1">
+              <span class="text-muted small">Rows:</span>
+              <select class="form-select form-select-sm" style="width: auto; min-width: 70px;"
+                [(ngModel)]="modalPageSize" (change)="modalPage = 1; loadModalTasks()">
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="20">20</option>
+                <option [value]="50">50</option>
+                <option [value]="100">100</option>
+              </select>
+            </div>
+          </div>
 
-          <nav aria-label="Modal task pagination">
+          <nav aria-label="Modal task pagination" class="d-flex align-items-center gap-2 flex-wrap">
             <ul class="pagination mb-0 gap-1">
               <li class="page-item" [class.disabled]="modalPage === 1">
-                <a class="page-link cursor-pointer" (click)="changeModalPage(1)" title="First">
+                <a class="page-link cursor-pointer" (click)="modalPage > 1 ? changeModalPage(1) : null" 
+                   [style.pointer-events]="modalPage === 1 ? 'none' : 'auto'" title="First Page">
                   <i class="bi bi-chevron-double-left"></i>
                 </a>
               </li>
               <li class="page-item" [class.disabled]="modalPage === 1">
-                <a class="page-link cursor-pointer" (click)="changeModalPage(modalPage - 1)" title="Previous">
+                <a class="page-link cursor-pointer" (click)="modalPage > 1 ? changeModalPage(modalPage - 1) : null" 
+                   [style.pointer-events]="modalPage === 1 ? 'none' : 'auto'" title="Previous Page">
                   <i class="bi bi-chevron-left"></i>
                 </a>
               </li>
-              <li class="page-item" *ngFor="let p of getModalTotalPagesArray()" [class.active]="modalPage === p">
-                <a class="page-link cursor-pointer" (click)="changeModalPage(p)">{{ p }}</a>
-              </li>
+              
+              <!-- Smart pagination: show max 5 pages at a time -->
+              <ng-container *ngIf="getModalTotalPages() <= 7">
+                <li class="page-item" *ngFor="let p of getModalTotalPagesArray()" [class.active]="modalPage === p">
+                  <a class="page-link cursor-pointer" (click)="changeModalPage(p)">{{ p }}</a>
+                </li>
+              </ng-container>
+              
+              <ng-container *ngIf="getModalTotalPages() > 7">
+                <!-- First page -->
+                <li class="page-item" [class.active]="modalPage === 1">
+                  <a class="page-link cursor-pointer" (click)="changeModalPage(1)">1</a>
+                </li>
+                
+                <!-- Ellipsis if needed -->
+                <li class="page-item disabled" *ngIf="modalPage > 3">
+                  <span class="page-link">...</span>
+                </li>
+                
+                <!-- Pages around current -->
+                <ng-container *ngFor="let p of getModalTotalPagesArray()">
+                  <li class="page-item" *ngIf="p > 1 && p < getModalTotalPages() && Math.abs(p - modalPage) <= 1" 
+                      [class.active]="modalPage === p">
+                    <a class="page-link cursor-pointer" (click)="changeModalPage(p)">{{ p }}</a>
+                  </li>
+                </ng-container>
+                
+                <!-- Ellipsis if needed -->
+                <li class="page-item disabled" *ngIf="modalPage < getModalTotalPages() - 2">
+                  <span class="page-link">...</span>
+                </li>
+                
+                <!-- Last page -->
+                <li class="page-item" [class.active]="modalPage === getModalTotalPages()">
+                  <a class="page-link cursor-pointer" (click)="changeModalPage(getModalTotalPages())">{{ getModalTotalPages() }}</a>
+                </li>
+              </ng-container>
+              
               <li class="page-item" [class.disabled]="modalPage === getModalTotalPages()">
-                <a class="page-link cursor-pointer" (click)="changeModalPage(modalPage + 1)" title="Next">
+                <a class="page-link cursor-pointer" (click)="modalPage < getModalTotalPages() ? changeModalPage(modalPage + 1) : null" 
+                   [style.pointer-events]="modalPage === getModalTotalPages() ? 'none' : 'auto'" title="Next Page">
                   <i class="bi bi-chevron-right"></i>
                 </a>
               </li>
               <li class="page-item" [class.disabled]="modalPage === getModalTotalPages()">
-                <a class="page-link cursor-pointer" (click)="changeModalPage(getModalTotalPages())" title="Last">
+                <a class="page-link cursor-pointer" (click)="modalPage < getModalTotalPages() ? changeModalPage(getModalTotalPages()) : null" 
+                   [style.pointer-events]="modalPage === getModalTotalPages() ? 'none' : 'auto'" title="Last Page">
                   <i class="bi bi-chevron-double-right"></i>
                 </a>
               </li>
             </ul>
+            
+            <button type="button" class="btn btn-secondary btn-sm" (click)="closeTaskModal()">
+              <i class="bi bi-x me-1"></i>Close
+            </button>
           </nav>
-
-          <button type="button" class="btn btn-secondary btn-sm" (click)="closeTaskModal()">
-            <i class="bi bi-x me-1"></i>Close
-          </button>
         </div>
 
         <!-- footer when no tasks / still shows close button -->
