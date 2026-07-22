@@ -24,6 +24,7 @@ import { FilterDrawerComponent, FilterFieldConfig } from '../../Shared/filter-dr
 import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.component';
 import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
 import { TasksImportComponent } from '../tasks-import/tasks-import';
+import { AddTaskComponent } from '../add-task/add-task';
 
 
 interface ApiResponse<T> {
@@ -35,7 +36,7 @@ interface ApiResponse<T> {
 @Component({
   selector: 'app-view-tasks',
   standalone: true,
-  imports: [CommonModule, FormsModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent, TasksImportComponent],
+  imports: [CommonModule, FormsModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent, TasksImportComponent, AddTaskComponent],
 
   templateUrl: './view-tasks.html',
   styleUrls: ['./view-tasks.css']
@@ -59,6 +60,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   isForbidden = false;
   isEmpty = false;
   showBulkUploadModal = false;
+  showAddTaskModal = false;
 
   // Filters
   searchTerm = '';
