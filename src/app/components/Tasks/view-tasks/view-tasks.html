@@ -55,7 +55,31 @@
   <div *ngIf="!isInitialLoad && !errorMessage && !isForbidden"
     class="main-content-flow animate__animated animate__fadeIn">
 
-
+    <!-- Page Header: Title Left + Action Buttons Right -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+      <div>
+        <nav aria-label="breadcrumb" class="mb-1">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+              <a (click)="goBackToDashboard()" style="cursor:pointer" class="text-decoration-none">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Tasks</li>
+          </ol>
+        </nav>
+        <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Task Management</h1>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-success" (click)="exportTasks()">
+          <i class="bi bi-download me-1"></i>Export
+        </button>
+        <button *ngIf="hasPermission('TASK_CREATE')" class="btn btn-outline-primary" (click)="goToBulkImport()">
+          <i class="bi bi-upload me-1"></i>Upload Tasks
+        </button>
+        <button *ngIf="hasPermission('TASK_CREATE')" class="btn btn-primary" (click)="openAddTaskModal()">
+          <i class="bi bi-plus-circle-fill me-1"></i>Add Task
+        </button>
+      </div>
+    </div>
 
     <!-- 1. Hero Header -->
     <div class="stitch-hero">
@@ -76,6 +100,7 @@
             <span>{{ analyticsData.overview.completed }} Done</span>
           </div>
         </div>
+
       </div>
       <div class="stitch-hero-illustration">
         <div class="stitch-hero-illustration-card">
@@ -324,12 +349,10 @@
        3. REUSABLE MODERN ACTION TOOLBAR
        ========================================== -->
     <app-page-toolbar [searchPlaceholder]="'Search by Task Name, ID, Assignee...'" [searchValue]="searchTerm"
-      [activeChips]="activeChips" [refreshLoading]="loading && !isInitialLoad" [showExport]="true"
-      [showUpload]="hasPermission('TASK_CREATE')" [showAdd]="hasPermission('TASK_CREATE')" [exportLabel]="'Export'"
-      [uploadLabel]="'Upload Tasks'" [addLabel]="'Add Task'" (searchChange)="onToolbarSearch($event)"
+      [activeChips]="activeChips" [refreshLoading]="loading && !isInitialLoad" [showExport]="false"
+      [showUpload]="false" [showAdd]="false" (searchChange)="onToolbarSearch($event)"
       (searchClear)="onToolbarSearchClear()" (filterClick)="isDrawerOpen = true" (clearFilters)="resetFilters()"
-      (removeChip)="removeChip($event)" (refreshClick)="loadCurrentUserAndTasks()" (exportClick)="exportTasks()"
-      (uploadClick)="goToBulkImport()" (addClick)="openAddTaskModal()">
+      (removeChip)="removeChip($event)" (refreshClick)="loadCurrentUserAndTasks()">
     </app-page-toolbar>
 
     <!-- Filter Drawer Component -->
@@ -569,4 +592,4 @@
       </div>
     </div>
   </div>
-</div>
+</div>

@@ -381,11 +381,39 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     this.successMessage = null;
     this.errorMessage = null;
 
-    // Mark all fields as touched to trigger validation messages
+    // Mark all fields touched to show inline validation errors
     this.editForm.markAllAsTouched();
+    this.editForm.markAsDirty();
 
     if (this.editForm.invalid) {
-      this.errorMessage = 'Please correct the errors in the form before submitting.';
+      // Build specific validation messages
+      const errors: string[] = [];
+
+      if (this.f['fullName'].errors?.['required']) errors.push('Full name is required.');
+      else if (this.f['fullName'].errors?.['pattern']) errors.push('Full name must contain only letters and spaces (min 3 characters).');
+
+      if (this.f['username'].errors?.['required']) errors.push('Username is required.');
+      else if (this.f['username'].errors?.['pattern']) errors.push('Username must start with a letter, 4–20 alphanumeric characters or underscores.');
+
+      if (this.f['password'].value && this.f['password'].errors?.['pattern'])
+        errors.push('Password must include uppercase, lowercase, number, special character and be at least 8 characters.');
+
+      if (this.f['role'].errors?.['required']) errors.push('System role must be selected.');
+
+      if (this.editForm.get('reportingManagerIds')?.errors?.['required'] ||
+          this.editForm.get('reportingManagerIds')?.errors?.['minlength'])
+        errors.push('At least one reporting manager must be selected.');
+
+      if (this.f['departmentIds'].errors?.['required']) errors.push('At least one department must be selected.');
+
+      if (this.f['subDepartmentIds']?.errors?.['required']) errors.push('Sub-department is required for HOD and Teacher roles.');
+
+      if (errors.length > 0) {
+        this.errorMessage = errors.join(' • ');
+      } else {
+        this.errorMessage = 'Please correct the highlighted fields before submitting.';
+      }
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }

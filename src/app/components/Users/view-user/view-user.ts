@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
@@ -15,19 +15,23 @@ import { TaskStatus } from '../../../Model/TaskStatus';
 import { JwtService } from '../../../Services/jwt-service';
 import { DatePipe } from '@angular/common';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
+import { EditUser } from '../edit-user/edit-user';
 
 @Component({
   selector: 'app-view-user',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EditUser],
   templateUrl: './view-user.html',
   styleUrls: ['./view-user.css'],
 })
-export class ViewUserComponent implements OnInit {
+export class ViewUserComponent implements OnInit, OnDestroy {
   Math = Math;
   userId!: number;
   user?: userDto;
   isLoading = true;
+
+  /** Injected <style> tag to suppress sidebar z-index while modal is open */
+  private _modalStyleEl: HTMLStyleElement | null = null;
   errorMessage = '';
   isForbidden = false;
   isMobile = false;
@@ -86,6 +90,7 @@ export class ViewUserComponent implements OnInit {
 
   // Modal State
   isTaskModalOpen = false;
+  isEditModalOpen = false;
   modalTargetType: 'department' | 'subdepartment' | 'all' | null = null;
   modalTargetId: any = null;
   modalTargetName = '';
@@ -164,6 +169,71 @@ export class ViewUserComponent implements OnInit {
     private auditLogService: AuditLogApiService,
     private confirmDialog: ConfirmDialogService
   ) {}
+
+  /** Inject a global <style> to push sidebar behind the modal overlay */
+  private suppressSidebarZIndex(): void {
+    document.body.classList.add('modal-open');
+    if (this._modalStyleEl) return;
+    const style = document.createElement('style');
+    style.id = 'vu-modal-sidebar-fix';
+    style.textContent = `
+      /* Suppress sidebar */
+      .sidebar-wrapper {
+        z-index: 1 !important;
+        pointer-events: none !important;
+        filter: blur(2px) !important;
+        -webkit-filter: blur(2px) !important;
+        opacity: 0.4 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      app-sidebar { 
+        z-index: 1 !important; 
+      }
+      
+      /* Suppress topbar */
+      app-topbar,
+      .topbar,
+      [class*="topbar"] {
+        z-index: 1 !important;
+        pointer-events: none !important;
+        filter: blur(2px) !important;
+        -webkit-filter: blur(2px) !important;
+        opacity: 0.4 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      
+      .app-layout { 
+        position: relative !important; 
+      }
+      
+      /* Ensure modals are on top */
+      .view-user-modal-overlay,
+      .edit-user-modal-overlay { 
+        z-index: 100001 !important; 
+      }
+      
+      .view-user-modal-card,
+      .edit-user-modal-card {
+        z-index: 100002 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    this._modalStyleEl = style;
+  }
+
+  /** Remove the injected style to restore sidebar */
+  private restoreSidebarZIndex(): void {
+    if (this._modalStyleEl) {
+      this._modalStyleEl.remove();
+      this._modalStyleEl = null;
+    }
+    document.body.classList.remove('modal-open');
+  }
+
+  ngOnDestroy(): void {
+    this.restoreSidebarZIndex();
+    document.body.style.overflow = '';
+  }
 
   ngOnInit(): void {
     this.checkScreenSize();
@@ -627,7 +697,18 @@ formatTime(timestamp: string | Date): string {
 
   editUser(): void {
     if (this.canEditDelete()) {
-      this.router.navigate(['/edit-user', this.userId]);
+      this.isEditModalOpen = true;
+      document.body.style.overflow = 'hidden';
+      this.suppressSidebarZIndex();
+    }
+  }
+
+  closeEditModal(saved: boolean): void {
+    this.isEditModalOpen = false;
+    document.body.style.overflow = '';
+    this.restoreSidebarZIndex();
+    if (saved) {
+      this.loadUserDetails();
     }
   }
 
@@ -807,6 +888,9 @@ formatTime(timestamp: string | Date): string {
     this.modalPriority = '';
     this.modalTaskType = '';
     this.isTaskModalOpen = true;
+    // Add modal-open class to body to trigger global app.css rules
+    document.body.classList.add('modal-open');
+    this.suppressSidebarZIndex();
     this.updateQueryParams();
   }
 
@@ -820,6 +904,8 @@ formatTime(timestamp: string | Date): string {
     this.modalPriority = '';
     this.modalTaskType = '';
     this.isTaskModalOpen = true;
+    document.body.classList.add('modal-open');
+    this.suppressSidebarZIndex();
     this.updateQueryParams();
   }
 
@@ -833,6 +919,8 @@ formatTime(timestamp: string | Date): string {
     this.modalPriority = '';
     this.modalTaskType = '';
     this.isTaskModalOpen = true;
+    document.body.classList.add('modal-open');
+    this.suppressSidebarZIndex();
     this.updateQueryParams();
   }
 
@@ -888,6 +976,7 @@ formatTime(timestamp: string | Date): string {
   closeTaskModal(): void {
     this.isTaskModalOpen = false;
     this.modalTasks = [];
+    this.restoreSidebarZIndex();
     this.updateQueryParams();
   }
 

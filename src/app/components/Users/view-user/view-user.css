@@ -157,11 +157,60 @@
 
 /* ── 7. RESPONSIVE TABLE WRAPPER ── */
 .responsive-table-wrapper {
-  overflow-x: auto; position: relative; border-radius: 12px;
-  border: 1px solid var(--border-color); background: var(--card-bg);
-  box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;
+  overflow-x: auto; 
+  position: relative; 
+  border-radius: 12px;
+  border: 1px solid var(--border-color); 
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm); 
+  margin-bottom: 1.5rem;
+  /* Enhanced horizontal scrolling */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 var(--bg-color);
 }
-.responsive-table-wrapper table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.875rem; }
+
+/* Scroll indicator shadow */
+.responsive-table-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 30px;
+  background: linear-gradient(to left, rgba(0,0,0,0.05), transparent);
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+
+.responsive-table-wrapper:hover::after {
+  opacity: 1;
+}
+
+/* Custom scrollbar for table */
+.responsive-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+.responsive-table-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  border-radius: 4px;
+}
+.responsive-table-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.responsive-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.responsive-table-wrapper table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  white-space: nowrap; 
+  font-size: 0.875rem;
+  min-width: 800px; /* Ensure horizontal scroll on small screens */
+}
 .responsive-table-wrapper th {
   position: sticky; top: 0; background: var(--bg-color) !important; z-index: 5;
   font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.055em;
@@ -358,15 +407,17 @@
   position: fixed; inset: 0;
   background: rgba(15,23,42,0.55);
   backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-  z-index: 1055; display: flex; align-items: center;
+  z-index: 100001 !important; display: flex; align-items: center;
   justify-content: center; padding: 1rem;
 }
 .view-user-modal-card {
   background: var(--card-bg); border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.18);
-  width: 100%; max-width: 960px; max-height: 88vh;
+  width: 100%; max-width: 1200px; max-height: 88vh;
   display: flex; flex-direction: column; overflow: hidden;
   border: 1px solid var(--border-color);
+  z-index: 100002 !important;
+  position: relative;
 }
 .view-user-modal-card::before {
   content: ''; display: block; height: 4px;
@@ -389,7 +440,29 @@
   color: var(--text-muted); cursor: pointer; font-size: 1rem; transition: all 0.15s; flex-shrink: 0;
 }
 .modal-close-btn:hover { background: var(--danger-subtle); color: var(--danger-color); border-color: var(--danger-color); }
-.modal-body-custom { overflow-y: auto; flex: 1; padding: 1.25rem 1.5rem; }
+.modal-body-custom { 
+  overflow-y: auto; 
+  overflow-x: hidden;
+  flex: 1; 
+  padding: 1.25rem 1.5rem; 
+}
+
+/* Custom scrollbar for modal body */
+.modal-body-custom::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.modal-body-custom::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  border-radius: 4px;
+}
+.modal-body-custom::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.modal-body-custom::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
 .modal-status-tabs {
   display: flex; gap: 0.35rem; overflow-x: auto;
   scrollbar-width: none; -ms-overflow-style: none;
@@ -438,6 +511,9 @@
   .profile-info-card { padding: 1rem 1.25rem; }
   .hero-actions { width: 100%; justify-content: flex-start; }
   .profile-hero-inner { gap: 1rem; }
+  .view-user-modal-card { max-width: 95vw; }
+  .modal-footer-custom { flex-direction: column; align-items: stretch; }
+  .modal-footer-custom > * { width: 100%; justify-content: center; }
 }
 @media (max-width:576px) {
   .profile-meta-grid { grid-template-columns: 1fr; gap: 0.75rem; }
@@ -448,7 +524,9 @@
   .modal-filters-row { grid-template-columns: 1fr; }
   .view-user-modal-card { border-radius: 12px; max-height: 94vh; }
   .modal-header-custom, .modal-body-custom, .modal-footer-custom { padding-left: 1rem; padding-right: 1rem; }
-  .hero-actions { flex-direction: column; }
+  .pagination { font-size: 0.75rem; flex-wrap: wrap; }
+  .pagination .page-link { min-width: 26px; height: 26px; }
+}  .hero-actions { flex-direction: column; }
   .btn-hero { width: 100%; justify-content: center; }
 }
 
@@ -494,4 +572,200 @@
   white-space: nowrap;
   min-width: 36px;
   text-align: right;
+}
+
+/* ── 24. SUPPRESS SIDEBAR WHEN TASK MODAL IS OPEN ── */
+/* Using ::ng-deep to pierce Angular's view encapsulation and affect global sidebar */
+::ng-deep body.vu-modal-open .sidebar-wrapper {
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+::ng-deep body.vu-modal-open app-sidebar {
+  z-index: 1 !important;
+}
+
+/* ── 25. ENHANCED MODAL TABLE HORIZONTAL SCROLLING ── */
+/* Ensure modal table has proper horizontal scrolling */
+.modal-body-custom .responsive-table-wrapper {
+  max-height: 500px;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+}
+
+/* Sticky table header inside modal */
+.modal-body-custom .responsive-table-wrapper thead {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 10;
+}
+
+.modal-body-custom .responsive-table-wrapper thead th {
+  background-color: #f8f9fa !important;
+  border-bottom: 2px solid var(--border-color) !important;
+}
+
+/* Set minimum widths for modal table columns */
+.modal-body-custom .responsive-table-wrapper table {
+  min-width: 1200px;
+}
+
+/* Horizontal scroll shadow indicators for modal */
+.modal-body-custom .responsive-table-wrapper::before,
+.modal-body-custom .responsive-table-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.3s;
+}
+
+.modal-body-custom .responsive-table-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.08), transparent);
+  opacity: 0;
+}
+
+.modal-body-custom .responsive-table-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0,0,0,0.08), transparent);
+  opacity: 1;
+}
+
+/* Show/hide scroll shadows based on scroll position */
+.modal-body-custom .responsive-table-wrapper:not(.scrolled-left)::before {
+  opacity: 0;
+}
+
+.modal-body-custom .responsive-table-wrapper.scrolled-left::before {
+  opacity: 1;
+}
+
+.modal-body-custom .responsive-table-wrapper:not(.scrolled-right)::after {
+  opacity: 0;
+}
+
+/* Enhanced scrollbar for modal table */
+.modal-body-custom .responsive-table-wrapper::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+.modal-body-custom .responsive-table-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 5px;
+}
+
+.modal-body-custom .responsive-table-wrapper::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 5px;
+  border: 2px solid #f1f5f9;
+}
+
+.modal-body-custom .responsive-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Firefox scrollbar */
+.modal-body-custom .responsive-table-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
+}
+
+/* Improved pagination for smaller screens */
+@media (max-width: 992px) {
+  .modal-footer-custom {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .modal-footer-custom nav {
+    width: 100%;
+  }
+  
+  .modal-footer-custom .pagination {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* Better button spacing on mobile */
+@media (max-width: 576px) {
+  .modal-filters-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .modal-filters-row .d-flex.gap-2 {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  
+  .modal-filters-row .d-flex.gap-2 button {
+    flex: 1;
+  }
+  
+  .modal-tab-pill {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.7rem;
+  }
+  
+  .modal-body-custom .responsive-table-wrapper {
+    max-height: 400px;
+  }
+}
+
+/* ── 26. EDIT USER MODAL OVERLAY ── */
+.edit-user-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100001 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.edit-user-modal-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+  width: 100%;
+  max-width: 860px;
+  max-height: 92vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 100002 !important;
+  border: 1px solid var(--border-color);
+  animation: editModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes editModalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Scrollbar for edit modal */
+.edit-user-modal-card::-webkit-scrollbar { width: 6px; }
+.edit-user-modal-card::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 4px; }
+.edit-user-modal-card::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.edit-user-modal-card::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+@media (max-width: 768px) {
+  .edit-user-modal-card {
+    max-width: 98vw;
+    max-height: 96vh;
+    border-radius: 12px;
+  }
 }

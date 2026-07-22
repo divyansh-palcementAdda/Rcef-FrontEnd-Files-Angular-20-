@@ -500,3 +500,35 @@ button, input, select, textarea {
     margin-top: 1rem;
   }
 }
+
+/* ============================================================
+   MODAL OVERLAY FIX: Blur and hide sidebar when modal opens
+   ============================================================ */
+
+/* When task modal or any modal opens, sidebar should slide out to left and be blurred */
+body.modal-open app-sidebar,
+body.modal-open .sidebar,
+body.modal-open .sidebar-wrapper,
+body.modal-open [class*="sidebar"] {
+  transform: translateX(-100%) !important;
+  filter: blur(4px) !important;
+  -webkit-filter: blur(4px) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s ease !important;
+}
+
+/* Ensure modal overlay is above everything */
+.view-user-modal-overlay,
+.modal-overlay,
+[class*="modal-overlay"] {
+  z-index: 9999 !important;
+}
+
+/* Modal card should be above overlay */
+.view-user-modal-card,
+.modal-card,
+[class*="modal-card"] {
+  z-index: 10000 !important;
+  position: relative;
+}

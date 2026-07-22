@@ -31,6 +31,37 @@
         <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
 
+      <!-- Validation Summary Banner -->
+      <div *ngIf="editForm.invalid && editForm.dirty" class="alert alert-warning d-flex flex-column gap-1 mb-4 py-3 animate__animated animate__fadeIn" role="alert">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <i class="bi bi-exclamation-circle-fill text-warning fs-5"></i>
+          <strong style="font-size:0.9rem;">Please fix the following before saving:</strong>
+        </div>
+        <ul class="mb-0 ps-4" style="font-size:0.85rem;">
+          <li *ngIf="f['fullName'].invalid && f['fullName'].dirty">
+            <span *ngIf="f['fullName'].errors?.['required']">Full name is required.</span>
+            <span *ngIf="f['fullName'].errors?.['pattern']">Full name must contain only letters and spaces (min 3 characters).</span>
+          </li>
+          <li *ngIf="f['username'].invalid && f['username'].dirty">
+            <span *ngIf="f['username'].errors?.['required']">Username is required.</span>
+            <span *ngIf="f['username'].errors?.['pattern']">Username must start with a letter and be 4–20 alphanumeric characters or underscores.</span>
+          </li>
+          <li *ngIf="f['password'].invalid && f['password'].dirty && f['password'].value">
+            Password must have uppercase, lowercase, a number, a special character (@$!%*#?&amp;), and be at least 8 characters.
+          </li>
+          <li *ngIf="f['role'].invalid && f['role'].dirty">System role must be selected.</li>
+          <li *ngIf="editForm.get('reportingManagerIds')?.invalid && editForm.get('reportingManagerIds')?.dirty">
+            At least one reporting manager must be selected.
+          </li>
+          <li *ngIf="f['departmentIds'].invalid && f['departmentIds'].dirty">
+            At least one department must be selected.
+          </li>
+          <li *ngIf="f['subDepartmentIds']?.invalid && f['subDepartmentIds']?.dirty">
+            Sub-department is required for HOD and Teacher roles.
+          </li>
+        </ul>
+      </div>
+
       <!-- Loading State -->
       <div *ngIf="isLoading" class="text-center my-5 py-4">
         <div class="spinner-border text-primary mb-2" role="status"></div>
@@ -413,8 +444,8 @@
         Cancel
       </button>
       <button type="submit" class="btn btn-primary px-5 d-flex align-items-center gap-2"
-        [disabled]="isSubmitting || editForm.invalid || isLoading">
-        <span *ngIf="!isSubmitting">Update User</span>
+        [disabled]="isSubmitting || isLoading">
+        <span *ngIf="!isSubmitting"><i class="bi bi-check2-circle me-1"></i>Update User</span>
         <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
       </button>
     </div>
