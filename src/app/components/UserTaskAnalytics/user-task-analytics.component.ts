@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -17,7 +19,7 @@ import {
   templateUrl: './user-task-analytics.component.html',
   styleUrls: ['./user-task-analytics.component.css']
 })
-export class UserTaskAnalyticsComponent implements OnInit {
+export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   // Department cards
   departmentCards: UserTaskDepartmentCardDTO[] = [];
   loadingCards: boolean = false;
@@ -47,6 +49,10 @@ export class UserTaskAnalyticsComponent implements OnInit {
   isRecurring: boolean | null = null;
   activeUsersOnly: boolean = true;
   search: string = '';
+
+  // RxJS subjects: searchSubject debounces keystrokes; destroy$ signals teardown on ngOnDestroy
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   // Options
   rolesList: string[] = ['SUPER_ADMIN', 'ADMIN', 'SUB_ADMIN', 'HOD', 'TEACHER'];
@@ -85,6 +91,15 @@ export class UserTaskAnalyticsComponent implements OnInit {
   ngOnInit(): void {
     this.loadDepartmentCards();
     this.loadAnalyticsTable();
+    // Debounced search: waits 500ms after last keystroke before calling the backend
+    this.searchSubject.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.currentPage = 0;
+      this.loadAnalyticsTable();
+    });
   }
 
   loadDepartmentCards(): void {
@@ -123,8 +138,13 @@ export class UserTaskAnalyticsComponent implements OnInit {
     ).subscribe({
       next: (response) => {
         this.tableData = response.content || [];
-        this.totalRecords = response.totalElements || 0;
-        this.totalPages = response.totalPages || 0;
+        // Spring Data 3.x serialises pagination metadata under a nested `page` object:
+        //   { content: [...], page: { number, size, totalElements, totalPages } }
+        // Spring Data 2.x used a flat structure on the root. We support both.
+        const meta = response.page ?? response;
+        this.totalRecords = meta.totalElements ?? 0;
+        this.totalPages   = meta.totalPages   ?? 0;
+        this.currentPage  = meta.number       ?? this.currentPage;
         this.loadingTable = false;
       },
       error: (err) => {
@@ -186,6 +206,16 @@ export class UserTaskAnalyticsComponent implements OnInit {
   onPageSizeChange(): void {
     this.currentPage = 0;
     this.loadAnalyticsTable();
+  }
+
+  /** Feeds the search field value into the debounced subject. Bound to (input) on the search field. */
+  onSearchInput(value: string): void {
+    this.searchSubject.next(value);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // Request History Modal
