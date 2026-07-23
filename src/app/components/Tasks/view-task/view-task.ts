@@ -864,7 +864,9 @@ export class ViewTask implements OnInit, OnDestroy {
 
     // Append legacy general proofs if any
     this.selectedProofs.forEach(file => {
-      formData.append('proofs', file, file.name);
+      if (file && file.size > 0) {
+        formData.append('proofs', file, file.name);
+      }
     });
 
     // Append template-specific proofs
@@ -876,7 +878,9 @@ export class ViewTask implements OnInit, OnDestroy {
       // Append dynamic proof files
       for (const key of Object.keys(this.dynamicProofFiles)) {
         const file = this.dynamicProofFiles[key];
-        formData.append('proofs', file, file.name);
+        if (file && file.size > 0) {
+          formData.append('proofs', file, file.name);
+        }
       }
 
       if (this.hasProofRequirement('STUDENT_ENTRIES')) {
@@ -889,7 +893,7 @@ export class ViewTask implements OnInit, OnDestroy {
         }
       }
 
-      if (this.hasProofRequirement('ATTENDANCE_UPLOAD') && this.attendanceFile) {
+      if (this.hasProofRequirement('ATTENDANCE_UPLOAD') && this.attendanceFile && this.attendanceFile.size > 0) {
         formData.append('attendanceFile', this.attendanceFile, this.attendanceFile.name);
       }
 
@@ -913,7 +917,7 @@ export class ViewTask implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Server error. Please try again.';
+        this.errorMessage = err.error?.message || err.message || 'Server error. Please try again.';
         console.error('Error adding request:', err);
       }
     });

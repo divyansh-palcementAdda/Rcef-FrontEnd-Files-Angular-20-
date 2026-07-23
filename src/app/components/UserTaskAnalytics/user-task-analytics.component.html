@@ -110,7 +110,7 @@
         <div class="uta-search-wrap">
           <i class="bi bi-search uta-search-icon"></i>
           <input type="text" class="uta-search-input" placeholder="Name, role, employee ID…"
-            [(ngModel)]="search" (keyup.enter)="onFilterChange()" aria-label="Search users" />
+            [(ngModel)]="search" (input)="onSearchInput(search)" (keyup.enter)="onFilterChange()" aria-label="Search users" />
           <button class="uta-search-clear" *ngIf="search" (click)="search=''; onFilterChange()" aria-label="Clear search">
             <i class="bi bi-x"></i>
           </button>
@@ -144,6 +144,27 @@
       <div class="uta-filter-field">
         <label class="uta-filter-label">To</label>
         <input type="date" class="uta-select" [(ngModel)]="endDate" (change)="onFilterChange()" aria-label="End date" />
+      </div>
+
+      <!-- Active Users Only toggle -->
+      <div class="uta-filter-field">
+        <label class="uta-filter-label">&nbsp;</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.82rem;color:#475569;margin:0;white-space:nowrap;">
+          <input type="checkbox" id="activeUsersToggle" style="width:15px;height:15px;cursor:pointer;accent-color:#4f46e5;"
+            [(ngModel)]="activeUsersOnly" (change)="onFilterChange()" />
+          Active Users Only
+        </label>
+      </div>
+
+      <!-- Recurring Tasks toggle -->
+      <div class="uta-filter-field">
+        <label class="uta-filter-label">&nbsp;</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.82rem;color:#475569;margin:0;white-space:nowrap;">
+          <input type="checkbox" id="recurringToggle" style="width:15px;height:15px;cursor:pointer;accent-color:#4f46e5;"
+            [checked]="isRecurring === true"
+            (change)="isRecurring = $any($event.target).checked ? true : null; onFilterChange()" />
+          Recurring Only
+        </label>
       </div>
 
       <!-- Clear -->
@@ -316,7 +337,7 @@
     </div>
 
     <!-- Pagination -->
-    <div class="uta-pagination" *ngIf="!loadingTable && totalPages > 1">
+    <div class="uta-pagination" *ngIf="!loadingTable && totalPages > 0">
       <div class="uta-pagination__left">
         <label class="uta-filter-label me-2">Rows per page</label>
         <select class="uta-select uta-select--sm" [(ngModel)]="pageSize" (change)="onPageSizeChange()" aria-label="Rows per page">

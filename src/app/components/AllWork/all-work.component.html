@@ -3,7 +3,8 @@
   <div class="stitch-hero">
     <div class="stitch-hero-content">
       <h1 class="stitch-hero-title">All Work Operational Hub</h1>
-      <p class="stitch-hero-subtitle">centralized analytics, task metrics, and cross-department performance tracking.</p>
+      <p class="stitch-hero-subtitle">centralized analytics, task metrics, and cross-department performance tracking.
+      </p>
       <div class="stitch-hero-pills">
         <span class="stitch-hero-pill">
           <span class="stitch-hero-dot"></span>
@@ -25,10 +26,7 @@
   <div class="dept-cards-wrapper" *ngIf="role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'SUB_ADMIN'">
     <h3 class="section-title">Departments</h3>
     <div class="dept-cards-container">
-      <div 
-        class="dept-card" 
-        *ngFor="let dept of departments"
-        [class.active]="dept.departmentId === selectedDeptId"
+      <div class="dept-card" *ngFor="let dept of departments" [class.active]="dept.departmentId === selectedDeptId"
         (click)="selectDepartment(dept.departmentId)">
         <div class="dept-card-header">
           <h4 class="dept-name">{{ dept.name }}</h4>
@@ -36,7 +34,7 @@
             {{ dept.totalSubDepartments }} Sub-Depts
           </span>
         </div>
-        
+
         <div class="dept-metrics-grid">
           <div class="metric-item">
             <span class="metric-value">{{ dept.totalTasks }}</span>
@@ -69,7 +67,8 @@
         </div>
         <h3 class="empty-state-title">No Sub-Departments Assigned</h3>
         <p class="empty-state-description">
-          You are not currently mapped to any sub-departments. Please contact your administrator to assign sub-departments to your profile.
+          You are not currently mapped to any sub-departments. Please contact your administrator to assign
+          sub-departments to your profile.
         </p>
         <div class="empty-state-actions">
           <button class="btn btn-primary" (click)="loadSubDepartments()">
@@ -84,20 +83,18 @@
       <div class="table-header-actions">
         <div class="search-box-wrapper">
           <i class="bi bi-search search-icon"></i>
-          <input 
-            type="text" 
-            placeholder="Search sub departments by name, code, department..." 
-            [ngModel]="subDeptSearch"
-            (ngModelChange)="onSubDeptSearchChange($event)"
-            class="form-control search-input" />
+          <input type="text" placeholder="Search sub departments by name, code, department..." [ngModel]="subDeptSearch"
+            (ngModelChange)="onSubDeptSearchChange($event)" class="form-control search-input" />
         </div>
 
         <div class="d-flex gap-2">
           <!-- Collapsible Filters Toggle -->
-          <button class="btn btn-outline-secondary d-flex align-items-center gap-2" (click)="showFilters = !showFilters">
+          <button class="btn btn-outline-secondary d-flex align-items-center gap-2"
+            (click)="showFilters = !showFilters">
             <i class="bi bi-funnel-fill"></i>
             <span>Filters</span>
-            <span class="badge bg-primary ms-1" *ngIf="filterTaskStatus || filterUserCountMin !== null || filterUserCountMax !== null || filterSubjectCountMin !== null || filterSubjectCountMax !== null || filterCreatedDateStart || filterCreatedDateEnd || filterLastActivityStart || filterLastActivityEnd || filterDeptStatus || filterCreatedBy">Active</span>
+            <span class="badge bg-primary ms-1"
+              *ngIf="filterTaskStatus || filterUserCountMin !== null || filterUserCountMax !== null || filterSubjectCountMin !== null || filterSubjectCountMax !== null || filterCreatedDateStart || filterCreatedDateEnd || filterLastActivityStart || filterLastActivityEnd || filterDeptStatus || filterCreatedBy">Active</span>
           </button>
 
           <!-- <div class="export-actions-wrapper" *ngIf="dashboardData?.canExport">
@@ -151,8 +148,10 @@
             <div class="col-md-3">
               <label class="form-label small text-muted mb-1 d-block">User Count (Min / Max)</label>
               <div class="input-group input-group-sm">
-                <input type="number" class="form-control" placeholder="Min" [(ngModel)]="filterUserCountMin" (change)="applyFilters()" />
-                <input type="number" class="form-control" placeholder="Max" [(ngModel)]="filterUserCountMax" (change)="applyFilters()" />
+                <input type="number" class="form-control" placeholder="Min" [(ngModel)]="filterUserCountMin"
+                  (change)="applyFilters()" />
+                <input type="number" class="form-control" placeholder="Max" [(ngModel)]="filterUserCountMax"
+                  (change)="applyFilters()" />
               </div>
             </div>
 
@@ -160,22 +159,26 @@
             <div class="col-md-3">
               <label class="form-label small text-muted mb-1 d-block">Subject Count (Min / Max)</label>
               <div class="input-group input-group-sm">
-                <input type="number" class="form-control" placeholder="Min" [(ngModel)]="filterSubjectCountMin" (change)="applyFilters()" />
-                <input type="number" class="form-control" placeholder="Max" [(ngModel)]="filterSubjectCountMax" (change)="applyFilters()" />
+                <input type="number" class="form-control" placeholder="Min" [(ngModel)]="filterSubjectCountMin"
+                  (change)="applyFilters()" />
+                <input type="number" class="form-control" placeholder="Max" [(ngModel)]="filterSubjectCountMax"
+                  (change)="applyFilters()" />
               </div>
             </div>
 
             <!-- Created By -->
             <div class="col-md-3">
               <label class="form-label small text-muted mb-1 d-block">Created By (Task Creator)</label>
-              <input type="text" class="form-control form-control-sm" placeholder="Name or username..." [(ngModel)]="filterCreatedBy" (change)="applyFilters()" />
+              <input type="text" class="form-control form-control-sm" placeholder="Name or username..."
+                [(ngModel)]="filterCreatedBy" (change)="applyFilters()" />
             </div>
 
             <!-- Created Date Range -->
             <div class="col-md-3">
               <label class="form-label small text-muted mb-1 d-block">Created Date (From / To)</label>
               <div class="input-group input-group-sm">
-                <input type="date" class="form-control" [(ngModel)]="filterCreatedDateStart" (change)="applyFilters()" />
+                <input type="date" class="form-control" [(ngModel)]="filterCreatedDateStart"
+                  (change)="applyFilters()" />
                 <input type="date" class="form-control" [(ngModel)]="filterCreatedDateEnd" (change)="applyFilters()" />
               </div>
             </div>
@@ -184,7 +187,8 @@
             <div class="col-md-6">
               <label class="form-label small text-muted mb-1 d-block">Last Activity Date (From / To)</label>
               <div class="input-group input-group-sm">
-                <input type="date" class="form-control" [(ngModel)]="filterLastActivityStart" (change)="applyFilters()" />
+                <input type="date" class="form-control" [(ngModel)]="filterLastActivityStart"
+                  (change)="applyFilters()" />
                 <input type="date" class="form-control" [(ngModel)]="filterLastActivityEnd" (change)="applyFilters()" />
               </div>
             </div>
@@ -204,229 +208,234 @@
       <!-- Sub Departments Grid Table -->
       <div class="table-container shadow-sm rounded-3 bg-white mt-3">
         <div class="table-scroll">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-head-sticky">
-            <tr>
-              <th class="sno-th">S.No</th>
-              <th class="sortable-th" (click)="sortSubDeptBy('name')">
-                <div class="th-inner">
-                  Sub Department
-                  <i class="bi ms-1" [ngClass]="getSortIcon('name')"></i>
-                </div>
-              </th>
-              <th class="sortable-th" (click)="sortSubDeptBy('totalUsers')">
-                <div class="th-inner">
-                  Total Users
-                  <i class="bi ms-1" [ngClass]="getSortIcon('totalUsers')"></i>
-                </div>
-              </th>
-              <th class="sortable-th">User With Zero Task</th>
-              <th class="sortable-th" (click)="sortSubDeptBy('totalSubjects')">
-                <div class="th-inner">
-                  Subjects
-                  <i class="bi ms-1" [ngClass]="getSortIcon('totalSubjects')"></i>
-                </div>
-              </th>
-              <th class="sortable-th" (click)="sortSubDeptBy('totalAssignedTasks')">
-                <div class="th-inner">
-                  Assigned Tasks
-                  <i class="bi ms-1" [ngClass]="getSortIcon('totalAssignedTasks')"></i>
-                </div>
-              </th>
-              <th class="text-center">
-                <div class="th-inner justify-content-center">
-                  Task Statuses
-                  <span class="th-hint ms-1">(P / I / C / D)</span>
-                </div>
-              </th>
-              <th class="sortable-th" (click)="sortSubDeptBy('completionPercentage')">
-                <div class="th-inner">
-                  Completion Rate
-                  <i class="bi ms-1" [ngClass]="getSortIcon('completionPercentage')"></i>
-                </div>
-              </th>
-              <th class="sortable-th" (click)="sortSubDeptBy('lastActivity')">
-                <div class="th-inner">
-                  Last Activity
-                  <i class="bi ms-1" [ngClass]="getSortIcon('lastActivity')"></i>
-                </div>
-              </th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Skeleton loader rows -->
-            <ng-container *ngIf="loadingSubDepts">
-              <tr *ngFor="let _ of [1,2,3,4,5]" class="skeleton-row">
-                <td><div class="skeleton-line w-20"></div></td>
-                <td><div class="skeleton-line w-60"></div><div class="skeleton-line w-40 mt-1"></div></td>
-                <td><div class="skeleton-chip"></div></td>
-                <td><div class="skeleton-chip"></div></td>
-                <td><div class="skeleton-line w-40"></div></td>
-                <td><div class="skeleton-badges"></div></td>
-                <td><div class="skeleton-progress"></div></td>
-                <td><div class="skeleton-line w-50"></div></td>
-                <td><div class="skeleton-actions"></div></td>
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-head-sticky">
+              <tr>
+                <th class="sno-th">S.No</th>
+                <th class="sortable-th" (click)="sortSubDeptBy('name')">
+                  <div class="th-inner">
+                    Sub Department
+                    <i class="bi ms-1" [ngClass]="getSortIcon('name')"></i>
+                  </div>
+                </th>
+                <th class="sortable-th" (click)="sortSubDeptBy('totalUsers')">
+                  <div class="th-inner">
+                    Total Users
+                    <i class="bi ms-1" [ngClass]="getSortIcon('totalUsers')"></i>
+                  </div>
+                </th>
+                <th class="sortable-th">User With Zero Task</th>
+                <th class="sortable-th" (click)="sortSubDeptBy('totalSubjects')">
+                  <div class="th-inner">
+                    Subjects
+                    <i class="bi ms-1" [ngClass]="getSortIcon('totalSubjects')"></i>
+                  </div>
+                </th>
+                <th class="sortable-th" (click)="sortSubDeptBy('totalAssignedTasks')">
+                  <div class="th-inner">
+                    Assigned Tasks
+                    <i class="bi ms-1" [ngClass]="getSortIcon('totalAssignedTasks')"></i>
+                  </div>
+                </th>
+                <th class="text-center">
+                  <div class="th-inner justify-content-center">
+                    Task Statuses
+                    <span class="th-hint ms-1">(P / I / C / D)</span>
+                  </div>
+                </th>
+                <th class="sortable-th" (click)="sortSubDeptBy('completionPercentage')">
+                  <div class="th-inner">
+                    Completion Rate
+                    <i class="bi ms-1" [ngClass]="getSortIcon('completionPercentage')"></i>
+                  </div>
+                </th>
+                <th class="sortable-th" (click)="sortSubDeptBy('lastActivity')">
+                  <div class="th-inner">
+                    Last Activity
+                    <i class="bi ms-1" [ngClass]="getSortIcon('lastActivity')"></i>
+                  </div>
+                </th>
+                <th class="text-end">Actions</th>
               </tr>
-            </ng-container>
+            </thead>
+            <tbody>
+              <!-- Skeleton loader rows -->
+              <ng-container *ngIf="loadingSubDepts">
+                <tr *ngFor="let _ of [1,2,3,4,5]" class="skeleton-row">
+                  <td>
+                    <div class="skeleton-line w-20"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-line w-60"></div>
+                    <div class="skeleton-line w-40 mt-1"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-chip"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-chip"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-line w-40"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-badges"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-progress"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-line w-50"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-actions"></div>
+                  </td>
+                </tr>
+              </ng-container>
 
-            <ng-container *ngIf="!loadingSubDepts">
-            <tr 
-              *ngFor="let sd of subDepartments; let i = index"
-              (click)="navigateToEntity('sub-department', sd.id, $event)"
-              (keydown.enter)="navigateToEntity('sub-department', sd.id, $event)"
-              (keydown.space)="navigateToEntity('sub-department', sd.id, $event); $event.preventDefault()"
-              tabindex="0"
-              class="clickable-row">
-              <td class="sno-cell" [attr.data-label]="'S.No'">{{ subDeptPage * subDeptSize + i + 1 }}</td>
-              <td [attr.data-label]="'Sub Department'">
-                <div class="sd-name-cell">
-                  <div class="sd-avatar">{{ sd.name.charAt(0).toUpperCase() }}</div>
-                  <div>
-                    <div class="fw-semibold text-dark lh-sm">{{ sd.name }}</div>
-                    <small class="text-muted">{{ sd.departmentName }}</small>
-                  </div>
-                </div>
-              </td>
-              <td [attr.data-label]="'Total Users'">
-                <div class="metric-chip metric-chip--blue">
-                  <i class="bi bi-people-fill"></i>
-                  {{ sd.totalUsers }}
-                </div>
-              </td>
-
-              <td [attr.data-label]="'User With Zero Task'">
-                <div class="metric-chip metric-chip--orange">
-                  <!-- <i class="bi bi-person-x-fill"></i> -->
-                  {{ $any(sd).usersWithZeroTask ?? "-" }}
-                </div>
-                
-              <td [attr.data-label]="'Subjects'">
-                <div class="metric-chip metric-chip--violet">
-                  <i class="bi bi-book-fill"></i>
-                  {{ sd.totalSubjects }}
-                </div>
-              </td>
-              <td [attr.data-label]="'Assigned Tasks'">
-                <span class="fw-bold text-dark">{{ sd.totalAssignedTasks }}</span>
-                <small class="text-muted d-block">tasks</small>
-              </td>
-              <td class="text-center" [attr.data-label]="'Task Statuses'">
-                <div class="status-pills">
-                  <span class="status-pill status-pill--pending" title="Pending">
-                    <span class="status-dot"></span>{{ sd.pending }}
-                  </span>
-                  <span class="status-pill status-pill--inprogress" title="In Progress">
-                    <span class="status-dot"></span>{{ sd.inProgress }}
-                  </span>
-                  <span class="status-pill status-pill--completed" title="Completed">
-                    <span class="status-dot"></span>{{ sd.completed }}
-                  </span>
-                  <span class="status-pill status-pill--delayed" title="Delayed">
-                    <span class="status-dot"></span>{{ sd.delayed }}
-                  </span>
-                </div>
-              </td>
-              <td [attr.data-label]="'Completion Rate'">
-                <div class="completion-cell">
-                  <div class="completion-bar-track">
-                    <div 
-                      class="completion-bar-fill" 
-                      [style.width.%]="sd.completionPercentage > 100 ? 100 : sd.completionPercentage"
-                      [class.completion-bar-fill--low]="sd.completionPercentage < 30"
-                      [class.completion-bar-fill--mid]="sd.completionPercentage >= 30 && sd.completionPercentage < 70"
-                      [class.completion-bar-fill--high]="sd.completionPercentage >= 70">
+              <ng-container *ngIf="!loadingSubDepts">
+                <tr *ngFor="let sd of subDepartments; let i = index"
+                  (click)="navigateToEntity('sub-department', sd.id, $event)"
+                  (keydown.enter)="navigateToEntity('sub-department', sd.id, $event)"
+                  (keydown.space)="navigateToEntity('sub-department', sd.id, $event); $event.preventDefault()"
+                  tabindex="0" class="clickable-row">
+                  <td class="sno-cell" [attr.data-label]="'S.No'">{{ subDeptPage * subDeptSize + i + 1 }}</td>
+                  <td [attr.data-label]="'Sub Department'">
+                    <div class="sd-name-cell">
+                      <div class="sd-avatar">{{ sd.name.charAt(0).toUpperCase() }}</div>
+                      <div>
+                        <div class="fw-semibold text-dark lh-sm">{{ sd.name }}</div>
+                        <small class="text-muted">{{ sd.departmentName }}</small>
+                      </div>
                     </div>
-                  </div>
-                  <span class="completion-pct" 
-                    [class.text-danger]="sd.completionPercentage < 30"
-                    [class.text-warning]="sd.completionPercentage >= 30 && sd.completionPercentage < 70"
-                    [class.text-success]="sd.completionPercentage >= 70">
-                    {{ sd.completionPercentage | number:'1.0-1' }}%
-                  </span>
-                </div>
-              </td>
-              <td [attr.data-label]="'Last Activity'">
-                <ng-container *ngIf="sd.lastActivity; else noActivity">
-                  <div class="activity-cell">
-                    <i class="bi bi-clock text-muted me-1" style="font-size:0.75rem;"></i>
-                    <div>
-                      <div class="small fw-semibold text-dark">{{ sd.lastActivity | date:'d MMM y' }}</div>
-                      <small class="text-muted">{{ sd.lastActivity | date:'shortTime' }}</small>
+                  </td>
+                  <td [attr.data-label]="'Total Users'">
+                    <div class="metric-chip metric-chip--blue">
+                      <i class="bi bi-people-fill"></i>
+                      {{ sd.totalUsers }}
                     </div>
-                  </div>
-                </ng-container>
-                <ng-template #noActivity>
-                  <span class="text-muted small">—</span>
-                </ng-template>
-              </td>
-              <td class="text-end" [attr.data-label]="'Actions'">
-                <div class="row-actions">
-                  <button 
-                    class="action-btn action-btn--users" 
-                    *ngIf="dashboardData?.canViewUsers" 
-                    (click)="openUsers(sd); $event.stopPropagation()" 
-                    title="View Users"
-                    data-testid="btn-users">
-                    <i class="bi bi-people-fill"></i>
-                    <span>Users</span>
-                  </button>
-                  <button 
-                    class="action-btn action-btn--tasks" 
-                    *ngIf="dashboardData?.canViewTasks" 
-                    (click)="openTasks(sd); $event.stopPropagation()" 
-                    title="View Tasks"
-                    data-testid="btn-tasks">
-                    <i class="bi bi-list-check"></i>
-                    <span>Tasks</span>
-                  </button>
-                  <button 
-                    class="action-btn action-btn--metrics" 
-                    *ngIf="dashboardData?.canOpenAnalytics" 
-                    (click)="openSubDeptAnalytics(sd); $event.stopPropagation()" 
-                    title="Analytics"
-                    data-testid="btn-analytics">
-                    <i class="bi bi-graph-up"></i>
-                    <span>Metrics</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            </ng-container>
+                  </td>
 
-            <!-- Empty state -->
-            <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role !== 'HOD'">
-              <td colspan="9" class="empty-state-row">
-                <div class="empty-inline">
-                  <div class="empty-inline-icon"><i class="bi bi-building"></i></div>
-                  <div class="empty-inline-title">No Sub Departments Found</div>
-                  <div class="empty-inline-sub">Try adjusting your search or select a different department.</div>
-                </div>
-              </td>
-            </tr>
-            <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role === 'HOD'">
-              <td colspan="9" class="empty-state-row">
-                <div class="empty-inline">
-                  <div class="empty-inline-icon"><i class="bi bi-person-x"></i></div>
-                  <div class="empty-inline-title">No Sub Departments Assigned</div>
-                  <div class="empty-inline-sub">You have not been assigned to any Sub Departments yet. Please contact your administrator.</div>
-                </div>
-              </td>
-            </tr>
-            <tr *ngIf="subDeptError">
-              <td colspan="9" class="empty-state-row">
-                <div class="empty-inline">
-                  <div class="empty-inline-icon text-danger"><i class="bi bi-exclamation-triangle"></i></div>
-                  <div class="empty-inline-title">Failed to Load</div>
-                  <div class="empty-inline-sub">Something went wrong while fetching sub departments.</div>
-                  <button class="btn btn-sm btn-outline-primary mt-2" (click)="loadSubDepartments()">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Retry
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                  <td [attr.data-label]="'User With Zero Task'">
+                    <div class="metric-chip metric-chip--orange">
+                      <!-- <i class="bi bi-person-x-fill"></i> -->
+                      {{ $any(sd).usersWithZeroTask ?? "-" }}
+                    </div>
+
+                  <td [attr.data-label]="'Subjects'">
+                    <div class="metric-chip metric-chip--violet">
+                      <i class="bi bi-book-fill"></i>
+                      {{ sd.totalSubjects }}
+                    </div>
+                  </td>
+                  <td [attr.data-label]="'Assigned Tasks'">
+                    <span class="fw-bold text-dark">{{ sd.totalAssignedTasks }}</span>
+                    <small class="text-muted d-block">tasks</small>
+                  </td>
+                  <td class="text-center" [attr.data-label]="'Task Statuses'">
+                    <div class="status-pills">
+                      <span class="status-pill status-pill--pending" title="Pending">
+                        <span class="status-dot"></span>{{ sd.pending }}
+                      </span>
+                      <span class="status-pill status-pill--inprogress" title="In Progress">
+                        <span class="status-dot"></span>{{ sd.inProgress }}
+                      </span>
+                      <span class="status-pill status-pill--completed" title="Completed">
+                        <span class="status-dot"></span>{{ sd.completed }}
+                      </span>
+                      <span class="status-pill status-pill--delayed" title="Delayed">
+                        <span class="status-dot"></span>{{ sd.delayed }}
+                      </span>
+                    </div>
+                  </td>
+                  <td [attr.data-label]="'Completion Rate'">
+                    <div class="completion-cell">
+                      <div class="completion-bar-track">
+                        <div class="completion-bar-fill"
+                          [style.width.%]="sd.completionPercentage > 100 ? 100 : sd.completionPercentage"
+                          [class.completion-bar-fill--low]="sd.completionPercentage < 30"
+                          [class.completion-bar-fill--mid]="sd.completionPercentage >= 30 && sd.completionPercentage < 70"
+                          [class.completion-bar-fill--high]="sd.completionPercentage >= 70">
+                        </div>
+                      </div>
+                      <span class="completion-pct" [class.text-danger]="sd.completionPercentage < 30"
+                        [class.text-warning]="sd.completionPercentage >= 30 && sd.completionPercentage < 70"
+                        [class.text-success]="sd.completionPercentage >= 70">
+                        {{ sd.completionPercentage | number:'1.0-1' }}%
+                      </span>
+                    </div>
+                  </td>
+                  <td [attr.data-label]="'Last Activity'">
+                    <ng-container *ngIf="sd.lastActivity; else noActivity">
+                      <div class="activity-cell">
+                        <i class="bi bi-clock text-muted me-1" style="font-size:0.75rem;"></i>
+                        <div>
+                          <div class="small fw-semibold text-dark">{{ sd.lastActivity | date:'d MMM y' }}</div>
+                          <small class="text-muted">{{ sd.lastActivity | date:'shortTime' }}</small>
+                        </div>
+                      </div>
+                    </ng-container>
+                    <ng-template #noActivity>
+                      <span class="text-muted small">—</span>
+                    </ng-template>
+                  </td>
+                  <td class="text-end" [attr.data-label]="'Actions'">
+                    <div class="row-actions">
+                      <button class="action-btn action-btn--users" *ngIf="dashboardData?.canViewUsers"
+                        (click)="openUsers(sd); $event.stopPropagation()" title="View Users" data-testid="btn-users">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Users</span>
+                      </button>
+                      <button class="action-btn action-btn--tasks" *ngIf="dashboardData?.canViewTasks"
+                        (click)="openTasks(sd); $event.stopPropagation()" title="View Tasks" data-testid="btn-tasks">
+                        <i class="bi bi-list-check"></i>
+                        <span>Tasks</span>
+                      </button>
+                      <button class="action-btn action-btn--metrics" *ngIf="dashboardData?.canOpenAnalytics"
+                        (click)="openSubDeptAnalytics(sd); $event.stopPropagation()" title="Analytics"
+                        data-testid="btn-analytics">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Metrics</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+
+              <!-- Empty state -->
+              <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role !== 'HOD'">
+                <td colspan="9" class="empty-state-row">
+                  <div class="empty-inline">
+                    <div class="empty-inline-icon"><i class="bi bi-building"></i></div>
+                    <div class="empty-inline-title">No Sub Departments Found</div>
+                    <div class="empty-inline-sub">Try adjusting your search or select a different department.</div>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role === 'HOD'">
+                <td colspan="9" class="empty-state-row">
+                  <div class="empty-inline">
+                    <div class="empty-inline-icon"><i class="bi bi-person-x"></i></div>
+                    <div class="empty-inline-title">No Sub Departments Assigned</div>
+                    <div class="empty-inline-sub">You have not been assigned to any Sub Departments yet. Please contact
+                      your administrator.</div>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="subDeptError">
+                <td colspan="9" class="empty-state-row">
+                  <div class="empty-inline">
+                    <div class="empty-inline-icon text-danger"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div class="empty-inline-title">Failed to Load</div>
+                    <div class="empty-inline-sub">Something went wrong while fetching sub departments.</div>
+                    <button class="btn btn-sm btn-outline-primary mt-2" (click)="loadSubDepartments()">
+                      <i class="bi bi-arrow-clockwise me-1"></i>Retry
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -434,7 +443,8 @@
       <div class="stitch-pagination" *ngIf="totalSubDepts > 0">
         <div class="stitch-pag-left">
           <span>Rows per page:</span>
-          <select class="stitch-pag-size-selector" [ngModel]="subDeptSize" (ngModelChange)="onSubDeptSizeChange($event)">
+          <select class="stitch-pag-size-selector" [ngModel]="subDeptSize"
+            (ngModelChange)="onSubDeptSizeChange($event)">
             <option [value]="10">10</option>
             <option [value]="25">25</option>
             <option [value]="50">50</option>
@@ -443,25 +453,24 @@
             <option [value]="500">500</option>
           </select>
           <span class="stitch-pag-label">
-            Showing {{ subDeptPage * subDeptSize + 1 }}–{{ Math.min((subDeptPage + 1) * subDeptSize, totalSubDepts) }} of {{ totalSubDepts }}
+            Showing {{ subDeptPage * subDeptSize + 1 }}–{{ Math.min((subDeptPage + 1) * subDeptSize, totalSubDepts) }}
+            of {{ totalSubDepts }}
           </span>
         </div>
         <div class="stitch-pag-controls">
           <button class="stitch-pag-btn" [disabled]="subDeptPage === 0" (click)="changeSubDeptPage(-1)">
             <i class="bi bi-chevron-left"></i>
           </button>
-          <button
-            class="stitch-pag-btn"
-            *ngFor="let page of getSubDeptPageNumbers()"
-            [class.active]="page === subDeptPage + 1"
-            [disabled]="page === -1"
+          <button class="stitch-pag-btn" *ngFor="let page of getSubDeptPageNumbers()"
+            [class.active]="page === subDeptPage + 1" [disabled]="page === -1"
             (click)="page !== -1 && changeSubDeptPage(page - (subDeptPage + 1))">
             <ng-container *ngIf="page !== -1; else ellipsis">{{ page }}</ng-container>
           </button>
           <ng-template #ellipsis>
             <span class="stitch-pag-label">&hellip;</span>
           </ng-template>
-          <button class="stitch-pag-btn" [disabled]="(subDeptPage + 1) * subDeptSize >= totalSubDepts" (click)="changeSubDeptPage(1)">
+          <button class="stitch-pag-btn" [disabled]="(subDeptPage + 1) * subDeptSize >= totalSubDepts"
+            (click)="changeSubDeptPage(1)">
             <i class="bi bi-chevron-right"></i>
           </button>
         </div>
@@ -475,14 +484,10 @@
   <!-- =========================================================================
        CENTRALIZED MODAL OVERLAY (Views Stack - Option A)
        ========================================================================= -->
-  <app-modal-wrapper 
-    *ngFor="let modal of (modalWrapperService.activeModals$ | async) | slice:-1" 
-    [title]="modal.config.title || ''" 
-    [subtitle]="modal.config.subtitle || ''" 
-    [sizeClass]="modal.config.sizeClass || 'modal-md'" 
-    [showBackButton]="modalWrapperService.hasHistory()"
-    (close)="closeAllModals()"
-    (back)="goBackModal()">
+  <app-modal-wrapper *ngFor="let modal of (modalWrapperService.activeModals$ | async) | slice:-1"
+    [title]="modal.config.title || ''" [subtitle]="modal.config.subtitle || ''"
+    [sizeClass]="modal.config.sizeClass || 'modal-md'" [showBackButton]="modalWrapperService.hasHistory()"
+    (close)="closeAllModals()" (back)="goBackModal()">
 
     <ng-container *ngComponentOutlet="modal.component; inputs: modal.config.data"></ng-container>
   </app-modal-wrapper>

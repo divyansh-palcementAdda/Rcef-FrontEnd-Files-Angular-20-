@@ -51,4 +51,14 @@ export class SidebarService {
   setCollapsed(collapsed: boolean): void {
     this.isCollapsedSubject.next(collapsed);
   }
+
+  /** Get current mobile open state */
+  getIsMobileOpen(): boolean {
+    return this.isMobileOpenSubject.value;
+  }
+
+  /** Get current collapsed state */
+  getIsCollapsed(): boolean {
+    return this.isCollapsedSubject.value;
+  }
 }
