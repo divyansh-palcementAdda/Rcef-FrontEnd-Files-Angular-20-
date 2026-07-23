@@ -93,12 +93,25 @@ export class ViewAllUserss implements OnInit {
 
   openEditUserModal(event: Event, userId: number): void {
     event.stopPropagation();
-    this.editUserId = userId;
-    this.showEditUserModal = true;
-    document.body.style.overflow = 'hidden';
+    this.router.navigate([], {
+      queryParams: { modal: 'edit-user', id: userId },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  // ── Add User Modal ──────────────────────────────────────────
+  openAddUserModal(): void {
+    this.router.navigate([], {
+      queryParams: { modal: 'add-user' },
+      queryParamsHandling: 'merge'
+    });
   }
 
   closeEditUserModal(saved: boolean): void {
+    this.router.navigate([], {
+      queryParams: { modal: undefined, id: undefined },
+      queryParamsHandling: 'merge'
+    });
     this.showEditUserModal = false;
     this.editUserId = null;
     document.body.style.overflow = '';
@@ -765,7 +778,7 @@ export class ViewAllUserss implements OnInit {
 
   // ── Add User Modal Methods ───────────────────────────────────
 
-  openAddUserModal(): void {
+  _deprecated_openAddUserModal(): void {
     this.addUserPayload = {
       fullName: '', username: '', email: '', password: '', roleName: '',
       departmentIds: [], subDepartmentIds: [], subDepartmentId: null,

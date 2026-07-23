@@ -68,12 +68,15 @@ export class App {
 
     // Listen to query parameters to open modals
     this.route.queryParams.subscribe(params => {
-      this.activeModal = params['modal'] || null;
+      const modalParam = params['modal'];
+      this.activeModal = (modalParam && modalParam !== 'null' && modalParam !== 'undefined' && modalParam !== '') ? modalParam : null;
       this.editUserId = params['id'] && this.activeModal === 'edit-user' ? +params['id'] : null;
       this.editDepartmentId = params['id'] && this.activeModal === 'add-department' ? +params['id'] : null;
 
       if (this.activeModal) {
         document.body.classList.add('modal-open');
+        // Auto-close mobile sidebar when modal opens for better UX
+        this.sidebarService.setMobileSidebarOpen(false);
       } else {
         document.body.classList.remove('modal-open');
       }

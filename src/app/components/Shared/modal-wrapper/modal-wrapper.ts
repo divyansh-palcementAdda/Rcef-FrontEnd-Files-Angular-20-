@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ModalManagerService } from '../../../Services/modal-manager.service';
 import { AuthorizationService } from '../../../Services/authorization.service';
+import { SidebarService } from '../../../Services/sidebar-service';
 
 @Component({
   selector: 'app-modal-wrapper',
@@ -25,6 +26,7 @@ export class ModalWrapperComponent implements OnInit, OnDestroy {
 
   private readonly router = inject(Router);
   private readonly authService = inject(AuthorizationService);
+  private readonly sidebarService = inject(SidebarService);
 
   constructor(private modalService: ModalManagerService) {}
 
@@ -84,6 +86,9 @@ export class ModalWrapperComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.previousActiveElement = document.activeElement as HTMLElement;
     this.modalService.register(this);
+    
+    // Auto-close mobile sidebar when modal opens for better UX
+    this.sidebarService.setMobileSidebarOpen(false);
     
     // Set focus to the modal dialog for keyboard interaction & focus trap
     requestAnimationFrame(() => {

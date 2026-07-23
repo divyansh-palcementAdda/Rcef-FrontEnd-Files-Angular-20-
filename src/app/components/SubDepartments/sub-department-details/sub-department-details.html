@@ -292,6 +292,7 @@
                 <col class="col-targets">
                 <col class="col-duedate">
                 <col class="col-created">
+                <col class="col-action">
               </colgroup>
               <thead>
                 <tr>
@@ -314,6 +315,7 @@
                   <th (click)="toggleSort('createdAt')">
                     Created&nbsp;<i class="bi bi-arrow-down-up"></i>
                   </th>
+                  <th class="action-th">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -362,6 +364,12 @@
                   </td>
                   <td class="col-duedate cell-muted">{{ formatDate(task.dueDate) }}</td>
                   <td class="col-created cell-muted">{{ formatDate(task.createdAt) }}</td>
+                  <td class="col-action">
+                    <button class="action-icon-btn view-task-btn" (click)="viewTaskDetails(task.taskId)"
+                      title="View Task Details">
+                      <i class="bi bi-eye me-1"></i>View
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -373,7 +381,7 @@
           </div>
 
           <!-- Pagination -->
-          <div class="stitch-pagination" *ngIf="totalPages > 1">
+          <div class="stitch-pagination">
             <div class="stitch-pag-left">
               <span>Rows per page:</span>
               <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="setPage(1)">
@@ -440,10 +448,10 @@
                 <span>Total Tasks</span>
                 <strong>{{ u.totalTasks }}</strong>
               </div>
-              <div class="stat-line">
+              <!-- <div class="stat-line">
                 <span>Target Weight</span>
                 <strong>{{ u.target }}</strong>
-              </div>
+              </div> -->
               <div class="stat-line">
                 <span>Completed Target</span>
                 <strong class="text-success">{{ u.achievement }}</strong>
