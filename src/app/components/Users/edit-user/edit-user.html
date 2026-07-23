@@ -1,5 +1,6 @@
 <div [class.container]="!isModal" [class.py-4]="!isModal" [class.modal-form-layout]="isModal">
-  <form [formGroup]="editForm" (ngSubmit)="onSubmit()" [class.edit-user-card]="!isModal" [class.modal-form-card]="isModal" novalidate>
+  <form [formGroup]="editForm" (ngSubmit)="onSubmit()" [class.edit-user-card]="!isModal"
+    [class.modal-form-card]="isModal" novalidate>
 
     <!-- Form Header -->
     <div [class.edit-user-header]="!isModal" [class.modal-form-header]="isModal">
@@ -7,32 +8,37 @@
         <h3 class="mb-1 fw-bold">Edit User</h3>
         <p class="mb-0 text-muted small">Update user profile attributes and accesses</p>
       </div>
-      <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
+      <!-- <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
         <i class="bi bi-x-lg fs-5"></i>
-      </button>
+      </button> -->
     </div>
 
     <!-- Form Body -->
     <div [class.edit-user-body]="!isModal" [class.modal-form-body]="isModal">
 
       <!-- Admin Mode Indicator Banner -->
-      <div class="alert alert-success d-flex align-items-center mb-4 py-2 animate__animated animate__fadeIn" *ngIf="isCurrentUserAdmin">
+      <div class="alert alert-success d-flex align-items-center mb-4 py-2 animate__animated animate__fadeIn"
+        *ngIf="isCurrentUserAdmin">
         <i class="bi bi-shield-check-fill me-2 fs-5 text-success"></i>
-        <span style="font-size: 0.875rem;"><strong>Administrator Privilege:</strong> You are authorized to modify all parameters including directory roles.</span>
+        <span style="font-size: 0.875rem;"><strong>Administrator Privilege:</strong> You are authorized to modify all
+          parameters including directory roles.</span>
       </div>
 
       <!-- Success & Failure Alerts -->
-      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+      <div *ngIf="successMessage"
+        class="alert alert-success alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
         <span><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}</span>
         <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
       </div>
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
+      <div *ngIf="errorMessage"
+        class="alert alert-danger alert-dismissible fade show mb-4 animate__animated animate__fadeIn">
         <span><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}</span>
         <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
       </div>
 
       <!-- Validation Summary Banner -->
-      <div *ngIf="editForm.invalid && editForm.dirty" class="alert alert-warning d-flex flex-column gap-1 mb-4 py-3 animate__animated animate__fadeIn" role="alert">
+      <div *ngIf="editForm.invalid && editForm.dirty"
+        class="alert alert-warning d-flex flex-column gap-1 mb-4 py-3 animate__animated animate__fadeIn" role="alert">
         <div class="d-flex align-items-center gap-2 mb-1">
           <i class="bi bi-exclamation-circle-fill text-warning fs-5"></i>
           <strong style="font-size:0.9rem;">Please fix the following before saving:</strong>
@@ -40,14 +46,17 @@
         <ul class="mb-0 ps-4" style="font-size:0.85rem;">
           <li *ngIf="f['fullName'].invalid && f['fullName'].dirty">
             <span *ngIf="f['fullName'].errors?.['required']">Full name is required.</span>
-            <span *ngIf="f['fullName'].errors?.['pattern']">Full name must contain only letters and spaces (min 3 characters).</span>
+            <span *ngIf="f['fullName'].errors?.['pattern']">Full name must contain only letters and spaces (min 3
+              characters).</span>
           </li>
           <li *ngIf="f['username'].invalid && f['username'].dirty">
             <span *ngIf="f['username'].errors?.['required']">Username is required.</span>
-            <span *ngIf="f['username'].errors?.['pattern']">Username must start with a letter and be 4–20 alphanumeric characters or underscores.</span>
+            <span *ngIf="f['username'].errors?.['pattern']">Username must start with a letter and be 4–20 alphanumeric
+              characters or underscores.</span>
           </li>
           <li *ngIf="f['password'].invalid && f['password'].dirty && f['password'].value">
-            Password must have uppercase, lowercase, a number, a special character (@$!%*#?&amp;), and be at least 8 characters.
+            Password must have uppercase, lowercase, a number, a special character (@$!%*#?&amp;), and be at least 8
+            characters.
           </li>
           <li *ngIf="f['role'].invalid && f['role'].dirty">System role must be selected.</li>
           <li *ngIf="editForm.get('reportingManagerIds')?.invalid && editForm.get('reportingManagerIds')?.dirty">
@@ -111,7 +120,8 @@
               </div>
               <div *ngIf="f['username'].touched && f['username'].invalid" class="text-danger small mt-1">
                 <small *ngIf="f['username'].errors?.['required']">Username is required.</small>
-                <small *ngIf="f['username'].errors?.['pattern']">Start with letter, 4–20 alphanumeric characters or underscores.</small>
+                <small *ngIf="f['username'].errors?.['pattern']">Start with letter, 4–20 alphanumeric characters or
+                  underscores.</small>
               </div>
             </div>
 
@@ -137,13 +147,13 @@
               </label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-key"></i></span>
-                <input [type]="showPassword ? 'text' : 'password'" class="form-control"
-                  formControlName="password" placeholder="Enter new strong password"
-                  [ngClass]="{
+                <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password"
+                  placeholder="Enter new strong password" [ngClass]="{
                     'is-invalid': f['password'].touched && f['password'].invalid && f['password'].value,
                     'is-valid':   f['password'].touched && f['password'].valid  && f['password'].value
                   }" />
-                <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()" tabindex="-1">
+                <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()"
+                  tabindex="-1">
                   <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
                 </button>
               </div>
@@ -164,7 +174,8 @@
                 </div>
               </div>
 
-              <div *ngIf="f['password'].touched && f['password'].invalid && f['password'].value" class="text-danger small mt-1">
+              <div *ngIf="f['password'].touched && f['password'].invalid && f['password'].value"
+                class="text-danger small mt-1">
                 <small>Must contain uppercase, lowercase, number, special symbol, and be at least 8 characters.</small>
               </div>
             </div>
@@ -188,8 +199,7 @@
               <label class="form-label">System Role <span class="text-danger">*</span></label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                <select class="form-select" formControlName="role"
-                  [ngClass]="{
+                <select class="form-select" formControlName="role" [ngClass]="{
                     'is-invalid': f['role'].touched && f['role'].invalid,
                     'is-valid':   f['role'].touched && f['role'].valid
                   }">
@@ -209,46 +219,41 @@
                 <span class="text-danger">*</span>
               </label>
               <div class="custom-multiselect-container position-relative">
-                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="showManagerDropdown = !showManagerDropdown">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3"
+                  (click)="showManagerDropdown = !showManagerDropdown">
                   <!-- Chips -->
-                  <span *ngFor="let id of getSelectedManagerIds()" class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
+                  <span *ngFor="let id of getSelectedManagerIds()"
+                    class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
                     <span>{{ getManagerName(id) }}</span>
-                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;" (click)="removeManager(id, $event)"></button>
+                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;"
+                      (click)="removeManager(id, $event)"></button>
                   </span>
                   <!-- Search input -->
-                  <input
-                    type="text"
-                    class="flex-grow-1 border-0 bg-transparent py-1 px-2"
-                    placeholder="🔍 Search Manager..."
-                    style="outline: none; min-width: 150px; height: 30px;"
-                    [(ngModel)]="managerSearchQuery"
-                    [ngModelOptions]="{standalone: true}"
-                    (focus)="showManagerDropdown = true"
-                    (click)="$event.stopPropagation()"
-                  />
+                  <input type="text" class="flex-grow-1 border-0 bg-transparent py-1 px-2"
+                    placeholder="🔍 Search Manager..." style="outline: none; min-width: 150px; height: 30px;"
+                    [(ngModel)]="managerSearchQuery" [ngModelOptions]="{standalone: true}"
+                    (focus)="showManagerDropdown = true" (click)="$event.stopPropagation()" />
                 </div>
                 <!-- Dropdown Panel -->
-                <div *ngIf="showManagerDropdown && filteredManagersList().length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
-                  <div
-                    *ngFor="let mgr of filteredManagersList()"
+                <div *ngIf="showManagerDropdown && filteredManagersList().length > 0"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white"
+                  style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+                  <div *ngFor="let mgr of filteredManagersList()"
                     class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
-                    (mousedown)="toggleManagerSelection(mgr.userId, $event)"
-                    style="cursor: pointer;"
-                  >
-                    <input
-                      type="checkbox"
-                      class="form-check-input custom-checkbox"
-                      style="pointer-events: none;"
-                      [checked]="isManagerSelected(mgr.userId)"
-                    />
+                    (mousedown)="toggleManagerSelection(mgr.userId, $event)" style="cursor: pointer;">
+                    <input type="checkbox" class="form-check-input custom-checkbox" style="pointer-events: none;"
+                      [checked]="isManagerSelected(mgr.userId)" />
                     <span>{{ mgr.fullName }} ({{ mgr.role }})</span>
                   </div>
                 </div>
-                <div *ngIf="showManagerDropdown && filteredManagersList().length === 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted" style="z-index: 1050;">
+                <div *ngIf="showManagerDropdown && filteredManagersList().length === 0"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted"
+                  style="z-index: 1050;">
                   No matching managers found.
                 </div>
               </div>
-              <div *ngIf="editForm.get('reportingManagerIds')?.touched && editForm.get('reportingManagerIds')?.invalid" class="text-danger small mt-1">
+              <div *ngIf="editForm.get('reportingManagerIds')?.touched && editForm.get('reportingManagerIds')?.invalid"
+                class="text-danger small mt-1">
                 <small>At least one reporting manager is required.</small>
               </div>
               <div class="field-hint">Teacher → HOD → SubAdmin → Admin → SuperAdmin.</div>
@@ -258,7 +263,8 @@
         </div>
 
         <!-- Department Access -->
-        <div class="form-section-card animate__animated animate__fadeIn" *ngIf="editForm.get('role')?.value !== 'SUPER_ADMIN'">
+        <div class="form-section-card animate__animated animate__fadeIn"
+          *ngIf="editForm.get('role')?.value !== 'SUPER_ADMIN'">
           <div class="form-section-header">
             <div class="form-section-icon"><i class="bi bi-diagram-3"></i></div>
             <div class="form-section-title-wrapper">
@@ -269,36 +275,37 @@
           <div class="row g-3">
 
             <!-- Sub-Department -->
-            <div class="col-md-6 mb-2" *ngIf="(editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER') && subDepartments.length > 0">
+            <div class="col-md-6 mb-2"
+              *ngIf="(editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER') && subDepartments.length > 0">
               <label class="form-label">Sub-Departments <span class="text-danger">*</span></label>
               <div class="custom-multiselect-container position-relative">
-                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="showSubDeptDropdown = !showSubDeptDropdown">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3"
+                  (click)="showSubDeptDropdown = !showSubDeptDropdown">
                   <!-- Chips -->
-                  <span *ngFor="let id of getSelectedSubDeptIds()" class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
+                  <span *ngFor="let id of getSelectedSubDeptIds()"
+                    class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
                     <span>{{ getSubDeptName(id) }}</span>
-                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;" (click)="removeSubDept(id, $event)"></button>
+                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;"
+                      (click)="removeSubDept(id, $event)"></button>
                   </span>
-                  <span *ngIf="getSelectedSubDeptIds().length === 0" class="text-muted small px-2">Select Sub-Departments...</span>
+                  <span *ngIf="getSelectedSubDeptIds().length === 0" class="text-muted small px-2">Select
+                    Sub-Departments...</span>
                 </div>
                 <!-- Dropdown Panel -->
-                <div *ngIf="showSubDeptDropdown" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
-                  <div
-                    *ngFor="let sub of subDepartments"
+                <div *ngIf="showSubDeptDropdown"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white"
+                  style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+                  <div *ngFor="let sub of subDepartments"
                     class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
-                    (mousedown)="toggleSubDeptSelection(sub.id, $event)"
-                    style="cursor: pointer;"
-                  >
-                    <input
-                      type="checkbox"
-                      class="form-check-input custom-checkbox"
-                      style="pointer-events: none;"
-                      [checked]="isSubDeptSelected(sub.id)"
-                    />
+                    (mousedown)="toggleSubDeptSelection(sub.id, $event)" style="cursor: pointer;">
+                    <input type="checkbox" class="form-check-input custom-checkbox" style="pointer-events: none;"
+                      [checked]="isSubDeptSelected(sub.id)" />
                     <span>{{ sub.name }} ({{ sub.code }})</span>
                   </div>
                 </div>
               </div>
-              <div *ngIf="f['subDepartmentIds']?.touched && f['subDepartmentIds']?.invalid" class="text-danger small mt-1">
+              <div *ngIf="f['subDepartmentIds']?.touched && f['subDepartmentIds']?.invalid"
+                class="text-danger small mt-1">
                 <small>Sub-department assignment is required.</small>
               </div>
             </div>
@@ -323,8 +330,7 @@
                 <div *ngFor="let dept of filteredDepartments()" class="form-check mb-2">
                   <input type="checkbox" class="form-check-input custom-checkbox" [id]="'dept-' + dept.departmentId"
                     [checked]="isDepartmentSelected(dept.departmentId)"
-                    (change)="updateDepartmentSelection($event, dept.departmentId)"
-                    [disabled]="isDeptDisabled(dept)"
+                    (change)="updateDepartmentSelection($event, dept.departmentId)" [disabled]="isDeptDisabled(dept)"
                     [ngClass]="{ 'border-success': isDepartmentSelected(dept.departmentId) }" />
                   <label class="form-check-label d-flex align-items-center" [for]="'dept-' + dept.departmentId"
                     [ngClass]="{
@@ -340,8 +346,11 @@
 
               <div class="field-hint mt-2">
                 <i class="bi bi-info-circle me-1"></i>
-                <span *ngIf="editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'SUB_ADMIN'">HODs/SubAdmins can only be assigned to a single department.</span>
-                <span *ngIf="editForm.get('role')?.value === 'TEACHER' || editForm.get('role')?.value === 'ADMIN'">Users in this role can have multiple department access privileges.</span>
+                <span
+                  *ngIf="editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'SUB_ADMIN'">HODs/SubAdmins
+                  can only be assigned to a single department.</span>
+                <span *ngIf="editForm.get('role')?.value === 'TEACHER' || editForm.get('role')?.value === 'ADMIN'">Users
+                  in this role can have multiple department access privileges.</span>
               </div>
 
               <div *ngIf="f['departmentIds'].touched && f['departmentIds'].invalid" class="text-danger small mt-1">
@@ -353,7 +362,8 @@
         </div>
 
         <!-- Subject Access Mapping (Only for HOD / Teacher and if sub-department selected) -->
-        <div class="form-section-card animate__animated animate__fadeIn" *ngIf="(editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER') && getSelectedSubDeptIds().length > 0">
+        <div class="form-section-card animate__animated animate__fadeIn"
+          *ngIf="(editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER') && getSelectedSubDeptIds().length > 0">
           <div class="form-section-header">
             <div class="form-section-icon"><i class="bi bi-book"></i></div>
             <div class="form-section-title-wrapper">
@@ -365,43 +375,37 @@
             <div class="col-12">
               <label class="form-label">Select Subjects</label>
               <div class="custom-multiselect-container position-relative" (keydown)="handleMultiselectKeydown($event)">
-                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="focusSearchInput($event)">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3"
+                  (click)="focusSearchInput($event)">
                   <!-- Chips -->
-                  <span *ngFor="let id of getSelectedSubjectIds()" class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
+                  <span *ngFor="let id of getSelectedSubjectIds()"
+                    class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
                     <span>{{ getSubjectName(id) }}</span>
-                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;" (click)="removeSubject(id, $event)"></button>
+                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;"
+                      (click)="removeSubject(id, $event)"></button>
                   </span>
                   <!-- Search input -->
-                  <input
-                    type="text"
-                    class="flex-grow-1 border-0 bg-transparent py-1 px-2"
-                    placeholder="🔍 Search Subject..."
-                    style="outline: none; min-width: 150px; height: 30px;"
-                    [(ngModel)]="subjectSearchQuery"
-                    [ngModelOptions]="{standalone: true}"
-                    (focus)="showSubjectDropdown = true"
-                    (blur)="onSearchBlur()"
-                  />
+                  <input type="text" class="flex-grow-1 border-0 bg-transparent py-1 px-2"
+                    placeholder="🔍 Search Subject..." style="outline: none; min-width: 150px; height: 30px;"
+                    [(ngModel)]="subjectSearchQuery" [ngModelOptions]="{standalone: true}"
+                    (focus)="showSubjectDropdown = true" (blur)="onSearchBlur()" />
                 </div>
                 <!-- Dropdown Panel -->
-                <div *ngIf="showSubjectDropdown && filteredSubjectsList().length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
-                  <div
-                    *ngFor="let sub of filteredSubjectsList(); let idx = index"
+                <div *ngIf="showSubjectDropdown && filteredSubjectsList().length > 0"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white"
+                  style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+                  <div *ngFor="let sub of filteredSubjectsList(); let idx = index"
                     class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
-                    [class.active-item]="idx === activeItemIndex"
-                    (mousedown)="toggleSubjectSelection(sub.id, $event)"
-                    style="cursor: pointer;"
-                  >
-                    <input
-                      type="checkbox"
-                      class="form-check-input custom-checkbox"
-                      style="pointer-events: none;"
-                      [checked]="isSubjectSelected(sub.id)"
-                    />
+                    [class.active-item]="idx === activeItemIndex" (mousedown)="toggleSubjectSelection(sub.id, $event)"
+                    style="cursor: pointer;">
+                    <input type="checkbox" class="form-check-input custom-checkbox" style="pointer-events: none;"
+                      [checked]="isSubjectSelected(sub.id)" />
                     <span>{{ sub.subjectName }} ({{ sub.subjectCode }})</span>
                   </div>
                 </div>
-                <div *ngIf="showSubjectDropdown && filteredSubjectsList().length === 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted" style="z-index: 1050;">
+                <div *ngIf="showSubjectDropdown && filteredSubjectsList().length === 0"
+                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted"
+                  style="z-index: 1050;">
                   No matching subjects found.
                 </div>
               </div>

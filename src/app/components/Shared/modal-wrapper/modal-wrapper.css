@@ -22,12 +22,13 @@
 }
 
 .modal-backdrop-custom.backdrop-nested {
-  background-color: rgba(15, 23, 42, 0.18);
+  background-color: transparent !important;
 }
 
 /* ── Dialog panel ── */
 .modal-dialog-custom {
-  position: relative; /* establishes its own stacking context, above overlay */
+  position: relative;
+  /* establishes its own stacking context, above overlay */
   width: 100%;
   max-height: 90vh;
   display: flex;
@@ -36,10 +37,21 @@
   z-index: 1;
 }
 
-.modal-dialog-custom.modal-sm  { max-width: 420px;  }
-.modal-dialog-custom.modal-md  { max-width: 640px;  }
-.modal-dialog-custom.modal-lg  { max-width: 920px;  }
-.modal-dialog-custom.modal-xl  { max-width: 1200px; }
+.modal-dialog-custom.modal-sm {
+  max-width: 420px;
+}
+
+.modal-dialog-custom.modal-md {
+  max-width: 640px;
+}
+
+.modal-dialog-custom.modal-lg {
+  max-width: 920px;
+}
+
+.modal-dialog-custom.modal-xl {
+  max-width: 1200px;
+}
 
 /* ── White panel ── */
 .modal-content-custom {
@@ -123,6 +135,7 @@
     opacity: 0;
     transform: scale(0.97) translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -158,6 +171,7 @@
       opacity: 0;
       transform: translateY(30px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);

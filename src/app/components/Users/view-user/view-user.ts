@@ -5,7 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService, TemplateTaskSummaryDto } from '../../../Services/UserApiService';
 import { DepartmentApiService } from '../../../Services/department-api-service';
-import { AuditLogApiService } from '../../../Services/audit-log-api-service'; 
+import { AuditLogApiService } from '../../../Services/audit-log-api-service';
+import { SidebarService } from '../../../Services/sidebar-service';
 import { userDto } from '../../../Model/userDto';
 import { TaskDto } from '../../../Model/TaskDto';
 import { Department } from '../../../Model/department';
@@ -32,14 +33,19 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
   /** Injected <style> tag to suppress sidebar z-index while modal is open */
   private _modalStyleEl: HTMLStyleElement | null = null;
+  
+  /** Store previous sidebar state to restore when modal closes */
+  private previousMobileOpen = false;
+  private previousCollapsedState = false;
+  
   errorMessage = '';
   isForbidden = false;
   isMobile = false;
-  
+
   currentUserRole = '';
   currentUserDepartments: number[] = [];
   isHOD = false;
-  
+
   userTasks: TaskDto[] = [];
   filteredTasks: TaskDto[] = [];
   searchTerm = '';
@@ -48,16 +54,16 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   pageSize = 6;
   totalPages = 1;
   TaskStatus = TaskStatus;
-  
+
   userLogs: AuditLog[] = [];
   filteredLogs: AuditLog[] = [];
   searchTermLogs = '';
   currentPageLogs = 1;
   pageSizeLogs = 6;
   totalPagesLogs = 1;
-  
+
   activeTab: 'tasks' | 'departments' | 'logs' = 'tasks';
-  
+
   taskStats = [
     { label: 'PENDING', count: 0, icon: 'bi-clock', color: '#F59E0B', gradient: 'from-amber-500 to-orange-500' },
     { label: 'UPCOMING', count: 0, icon: 'bi-calendar-event', color: '#0EA5E9', gradient: 'from-cyan-500 to-blue-500' },
@@ -65,18 +71,18 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     { label: 'CLOSED', count: 0, icon: 'bi-check-circle', color: '#10B981', gradient: 'from-emerald-500 to-green-500' },
     { label: 'IN_PROGRESS', count: 0, icon: 'bi-arrow-repeat', color: '#6366F1', gradient: 'from-indigo-500 to-purple-500' }
   ];
-  
+
   enrichedDepartments: any[] = [];
   recentActivity: any[] = [];
   loadingLogs = false;
 
   // ── Task Type Breakdown (from API) ──
   taskTypeSummary: TemplateTaskSummaryDto[] = [
-    { templateTitle: 'Meeting Task',      count: 0 },
-    { templateTitle: 'Consultancy Task',  count: 0 },
-    { templateTitle: 'Visits Task',       count: 0 },
-    { templateTitle: 'Fees Task',         count: 0 },
-    { templateTitle: 'Forms Task',        count: 0 },
+    { templateTitle: 'Meeting Task', count: 0 },
+    { templateTitle: 'Consultancy Task', count: 0 },
+    { templateTitle: 'Visits Task', count: 0 },
+    { templateTitle: 'Fees Task', count: 0 },
+    { templateTitle: 'Forms Task', count: 0 },
   ];
   taskTypeFilter = '';        // holds the selected templateTitle value
   loadingTypeSummary = false;
@@ -147,16 +153,16 @@ export class ViewUserComponent implements OnInit, OnDestroy {
    * Matched by doing a case-insensitive substring check on templateTitle.
    */
   private readonly typeKeywords: Array<{ keyword: string; icon: string; cssClass: string }> = [
-    { keyword: 'meeting',      icon: 'bi-people-fill',            cssClass: 'task-type-meeting' },
-    { keyword: 'consultancy',  icon: 'bi-chat-square-text-fill',  cssClass: 'task-type-consultancy' },
-    { keyword: 'visit',        icon: 'bi-geo-alt-fill',           cssClass: 'task-type-visits' },
-    { keyword: 'fee',          icon: 'bi-cash-coin',              cssClass: 'task-type-fees' },
-    { keyword: 'form',         icon: 'bi-file-earmark-text-fill', cssClass: 'task-type-forms' },
-    { keyword: 'field',        icon: 'bi-map-fill',               cssClass: 'task-type-visits' },
-    { keyword: 'document',     icon: 'bi-camera-video-fill',      cssClass: 'task-type-forms' },
-    { keyword: 'movie',        icon: 'bi-film',                   cssClass: 'task-type-forms' },
-    { keyword: 'syllabus',     icon: 'bi-journal-bookmark-fill',  cssClass: 'task-type-consultancy' },
-    { keyword: 'research',     icon: 'bi-search',                 cssClass: 'task-type-meeting' },
+    { keyword: 'meeting', icon: 'bi-people-fill', cssClass: 'task-type-meeting' },
+    { keyword: 'consultancy', icon: 'bi-chat-square-text-fill', cssClass: 'task-type-consultancy' },
+    { keyword: 'visit', icon: 'bi-geo-alt-fill', cssClass: 'task-type-visits' },
+    { keyword: 'fee', icon: 'bi-cash-coin', cssClass: 'task-type-fees' },
+    { keyword: 'form', icon: 'bi-file-earmark-text-fill', cssClass: 'task-type-forms' },
+    { keyword: 'field', icon: 'bi-map-fill', cssClass: 'task-type-visits' },
+    { keyword: 'document', icon: 'bi-camera-video-fill', cssClass: 'task-type-forms' },
+    { keyword: 'movie', icon: 'bi-film', cssClass: 'task-type-forms' },
+    { keyword: 'syllabus', icon: 'bi-journal-bookmark-fill', cssClass: 'task-type-consultancy' },
+    { keyword: 'research', icon: 'bi-search', cssClass: 'task-type-meeting' },
   ];
 
   constructor(
@@ -167,58 +173,99 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     private taskService: TaskApiService,
     private deptService: DepartmentApiService,
     private auditLogService: AuditLogApiService,
-    private confirmDialog: ConfirmDialogService
-  ) {}
+    private confirmDialog: ConfirmDialogService,
+    private sidebarService: SidebarService
+  ) { }
 
   /** Inject a global <style> to push sidebar behind the modal overlay */
-  private suppressSidebarZIndex(): void {
-    document.body.classList.add('modal-open');
-    if (this._modalStyleEl) return;
-    const style = document.createElement('style');
-    style.id = 'vu-modal-sidebar-fix';
-    style.textContent = `
-      /* Suppress sidebar */
-      .sidebar-wrapper {
-        z-index: 1 !important;
-        pointer-events: none !important;
-        filter: blur(2px) !important;
-        -webkit-filter: blur(2px) !important;
-        opacity: 0.4 !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      }
-      app-sidebar { 
-        z-index: 1 !important; 
-      }
-      
-      /* Suppress topbar */
-      app-topbar,
-      .topbar,
-      [class*="topbar"] {
-        z-index: 1 !important;
-        pointer-events: none !important;
-        filter: blur(2px) !important;
-        -webkit-filter: blur(2px) !important;
-        opacity: 0.4 !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      }
-      
-      .app-layout { 
-        position: relative !important; 
-      }
-      
-      /* Ensure modals are on top */
-      .view-user-modal-overlay,
-      .edit-user-modal-overlay { 
-        z-index: 100001 !important; 
-      }
-      
-      .view-user-modal-card,
-      .edit-user-modal-card {
-        z-index: 100002 !important;
-      }
-    `;
-    document.head.appendChild(style);
-    this._modalStyleEl = style;
+  // private suppressSidebarZIndex(): void {
+  //   document.body.classList.add('modal-open');
+  //   if (this._modalStyleEl) return;
+  //   const style = document.createElement('style');
+  //   style.id = 'vu-modal-sidebar-fix';
+  //   style.textContent = `
+  //     /* Suppress sidebar */
+  //     .sidebar-wrapper {
+  //       z-index: 1 !important;
+  //       pointer-events: none !important;
+  //       filter: blur(2px) !important;
+  //       -webkit-filter: blur(2px) !important;
+  //       opacity: 0.4 !important;
+  //       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  //     }
+  //     app-sidebar { 
+  //       z-index: 1 !important; 
+  //     }
+
+  //     /* Suppress topbar */
+  //     app-topbar,
+  //     .topbar,
+  //     [class*="topbar"] {
+  //       z-index: 1 !important;
+  //       pointer-events: none !important;
+  //       filter: blur(2px) !important;
+  //       -webkit-filter: blur(2px) !important;
+  //       opacity: 0.4 !important;
+  //       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  //     }
+
+  //     .app-layout { 
+  //       position: relative !important; 
+  //     }
+
+  //     /* Ensure modals are on top */
+  //     .view-user-modal-overlay,
+  //     .edit-user-modal-overlay { 
+  //       z-index: 100001 !important; 
+  //     }
+
+  //     .view-user-modal-card,
+  //     .edit-user-modal-card {
+  //       z-index: 100002 !important;
+  //     }
+  //   `;
+  //   document.head.appendChild(style);
+  //   this._modalStyleEl = style;
+  // }
+
+  /** Close/collapse sidebar when modal opens */
+  private closeSidebarForModal(): void {
+    // Store current sidebar state using public getters
+    this.previousMobileOpen = this.sidebarService.getIsMobileOpen();
+    this.previousCollapsedState = this.sidebarService.getIsCollapsed();
+    
+    console.log('Sidebar state before modal:', { 
+      previousMobileOpen: this.previousMobileOpen, 
+      previousCollapsedState: this.previousCollapsedState 
+    });
+    
+    // Close sidebar on mobile
+    this.sidebarService.setMobileSidebarOpen(false);
+    
+    // Collapse sidebar on desktop/tablet
+    if (!this.previousCollapsedState) {
+      this.sidebarService.toggleCollapsed();
+    }
+    
+    console.log('Sidebar closed for modal');
+  }
+
+  /** Restore sidebar to previous state when modal closes */
+  private restoreSidebar(): void {
+    console.log('Restoring sidebar to state:', { 
+      previousMobileOpen: this.previousMobileOpen, 
+      previousCollapsedState: this.previousCollapsedState 
+    });
+    
+    // Restore mobile sidebar state
+    this.sidebarService.setMobileSidebarOpen(this.previousMobileOpen);
+    
+    // Restore collapsed state - only toggle if it was expanded and is now collapsed
+    if (this.previousCollapsedState === false && this.sidebarService.getIsCollapsed() === true) {
+      this.sidebarService.toggleCollapsed();
+    }
+    
+    console.log('Sidebar restored');
   }
 
   /** Remove the injected style to restore sidebar */
@@ -228,6 +275,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
       this._modalStyleEl = null;
     }
     document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    this.restoreSidebar();
   }
 
   ngOnDestroy(): void {
@@ -262,7 +311,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
       // Restore distribution table states
       this.selectedDistributionStatus = params['distStatus'] || 'ALL';
-      
+
       this.departmentSearch = params['deptSearch'] || '';
       this.departmentSortBy = params['deptSortBy'] || 'departmentName';
       this.departmentSortDir = params['deptSortDir'] || 'asc';
@@ -346,7 +395,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     });
   }
 
-   loadUserDetails(): void {
+  loadUserDetails(): void {
     this.isLoading = true;
     this.userService.getUserById(this.userId).subscribe({
       next: (user) => {
@@ -388,11 +437,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
   /** The 5 default card definitions (always shown, count updated from API) */
   private readonly defaultTypeCards: TemplateTaskSummaryDto[] = [
-    { templateTitle: 'Meeting Task',      count: 0 },
-    { templateTitle: 'Consultancy Task',  count: 0 },
-    { templateTitle: 'Visits Task',       count: 0 },
-    { templateTitle: 'Fees Task',         count: 0 },
-    { templateTitle: 'Forms Task',        count: 0 },
+    { templateTitle: 'Meeting Task', count: 0 },
+    { templateTitle: 'Consultancy Task', count: 0 },
+    { templateTitle: 'Visits Task', count: 0 },
+    { templateTitle: 'Fees Task', count: 0 },
+    { templateTitle: 'Forms Task', count: 0 },
   ];
 
   /** Fetch template-task-summary; always show 5 cards (merge with defaults) */
@@ -490,10 +539,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
   getTaskStatusClass(status: string): string {
     const map: any = {
-      'PENDING':     'task-status-pending',
-      'UPCOMING':    'task-status-upcoming',
-      'DELAYED':     'task-status-delayed',
-      'CLOSED':      'task-status-closed',
+      'PENDING': 'task-status-pending',
+      'UPCOMING': 'task-status-upcoming',
+      'DELAYED': 'task-status-delayed',
+      'CLOSED': 'task-status-closed',
       'IN_PROGRESS': 'task-status-in-progress'
     };
     return map[status] || 'task-status-default';
@@ -530,20 +579,20 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   getPageNumbers(): number[] {
     const maxVisible = 5;
     const pages: number[] = [];
-    
+
     if (this.totalPages <= maxVisible) {
       for (let i = 1; i <= this.totalPages; i++) pages.push(i);
     } else {
       let start = Math.max(1, this.currentPage - 2);
       let end = Math.min(this.totalPages, start + maxVisible - 1);
-      
+
       if (end - start < maxVisible - 1) {
         start = Math.max(1, end - maxVisible + 1);
       }
-      
+
       for (let i = start; i <= end; i++) pages.push(i);
     }
-    
+
     return pages;
   }
 
@@ -578,20 +627,20 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   getPageNumbersLogs(): number[] {
     const maxVisible = 5;
     const pages: number[] = [];
-    
+
     if (this.totalPagesLogs <= maxVisible) {
       for (let i = 1; i <= this.totalPagesLogs; i++) pages.push(i);
     } else {
       let start = Math.max(1, this.currentPageLogs - 2);
       let end = Math.min(this.totalPagesLogs, start + maxVisible - 1);
-      
+
       if (end - start < maxVisible - 1) {
         start = Math.max(1, end - maxVisible + 1);
       }
-      
+
       for (let i = start; i <= end; i++) pages.push(i);
     }
-    
+
     return pages;
   }
 
@@ -623,28 +672,28 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     });
   }
   get startIndex(): number {
-  return this.filteredTasks.length
-    ? (this.currentPage - 1) * this.pageSize + 1
-    : 0;
-}
+    return this.filteredTasks.length
+      ? (this.currentPage - 1) * this.pageSize + 1
+      : 0;
+  }
 
-get endIndex(): number {
-  return Math.min(
-    this.currentPage * this.pageSize,
-    this.filteredTasks.length
-  );
-}
-formatTime(timestamp: string | Date): string {
-  if (!timestamp) return '';
+  get endIndex(): number {
+    return Math.min(
+      this.currentPage * this.pageSize,
+      this.filteredTasks.length
+    );
+  }
+  formatTime(timestamp: string | Date): string {
+    if (!timestamp) return '';
 
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
 
 
-   getActivityIcon(action: string): string {
+  getActivityIcon(action: string): string {
     const map: any = {
       'CREATE': 'bi-plus-circle',
       'UPDATE': 'bi-pencil-square',
@@ -656,7 +705,7 @@ formatTime(timestamp: string | Date): string {
     return map[action] || 'bi-activity';
   }
 
-   getActivityColor(action: string): string {
+  getActivityColor(action: string): string {
     const map: any = {
       'CREATE': 'text-emerald-600 bg-emerald-50',
       'UPDATE': 'text-blue-600 bg-blue-50',
@@ -697,16 +746,22 @@ formatTime(timestamp: string | Date): string {
 
   editUser(): void {
     if (this.canEditDelete()) {
+      (document.activeElement as HTMLElement | null)?.blur?.();
       this.isEditModalOpen = true;
+      this.closeSidebarForModal();
+      document.body.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
-      this.suppressSidebarZIndex();
+      // this.suppressSidebarZIndex();
     }
   }
 
   closeEditModal(saved: boolean): void {
+    (document.activeElement as HTMLElement | null)?.blur?.();
     this.isEditModalOpen = false;
+    document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
     this.restoreSidebarZIndex();
+    this.restoreSidebar();
     if (saved) {
       this.loadUserDetails();
     }
@@ -888,10 +943,11 @@ formatTime(timestamp: string | Date): string {
     this.modalPriority = '';
     this.modalTaskType = '';
     this.isTaskModalOpen = true;
-    // Add modal-open class to body to trigger global app.css rules
+    this.closeSidebarForModal();
     document.body.classList.add('modal-open');
-    this.suppressSidebarZIndex();
+    document.body.style.overflow = 'hidden';
     this.updateQueryParams();
+    this.loadModalTasks();
   }
 
   openDepartmentTasks(dept: any, statusFilter: string = 'ALL'): void {
@@ -904,9 +960,11 @@ formatTime(timestamp: string | Date): string {
     this.modalPriority = '';
     this.modalTaskType = '';
     this.isTaskModalOpen = true;
+    this.closeSidebarForModal();
     document.body.classList.add('modal-open');
-    this.suppressSidebarZIndex();
+    document.body.style.overflow = 'hidden';
     this.updateQueryParams();
+    this.loadModalTasks();
   }
 
   openSubDepartmentTasks(subDept: any, statusFilter: string = 'ALL'): void {
@@ -919,9 +977,11 @@ formatTime(timestamp: string | Date): string {
     this.modalPriority = '';
     this.modalTaskType = '';
     this.isTaskModalOpen = true;
+    this.closeSidebarForModal();
     document.body.classList.add('modal-open');
-    this.suppressSidebarZIndex();
+    document.body.style.overflow = 'hidden';
     this.updateQueryParams();
+    this.loadModalTasks();
   }
 
   loadModalTasks(): void {

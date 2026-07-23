@@ -106,7 +106,7 @@ body.modal-open .main-content {
 
 /* But keep the modal itself fully interactive */
 body.modal-open .modal-backdrop-overlay {
-  pointer-events: all;
+  pointer-events: auto !important;
 }
 
 /* Blurred dark transparent backdrop */
@@ -116,7 +116,7 @@ body.modal-open .modal-backdrop-overlay {
   left: 0;
   right: 0;
   bottom: 0;
-  /* background: rgba(15, 23, 42, 0.45); modern slate dark transparent */
+  background: transparent;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   z-index: 9999;
@@ -126,9 +126,8 @@ body.modal-open .modal-backdrop-overlay {
   padding: 1.5rem;
   animation: modalFadeIn 0.2s ease-out forwards;
   overflow: hidden;
-  /* prevents scroll events leaking to background */
   overscroll-behavior: contain;
-  /* stops scroll chaining to body */
+  pointer-events: none;
 }
 
 /* Modal window base */
@@ -136,12 +135,13 @@ body.modal-open .modal-backdrop-overlay {
   background: #ffffff;
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .12);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  /* border: 1px solid rgba(226, 232, 240, 0.8); */
   display: flex;
   flex-direction: column;
   overflow: hidden;
   width: 100%;
   animation: modalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: auto;
 }
 
 /* Modal Sizes */

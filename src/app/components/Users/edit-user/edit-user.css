@@ -48,20 +48,24 @@
 
 /* ===== Modal Scroll Layout ===== */
 .modal-form-layout {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  max-width: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin: 0;
 }
 
 .modal-form-card {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
   overflow: hidden;
   background: #ffffff;
+  width: min(860px, calc(100vw - 2rem));
+  border-radius: 28px;
 }
 
 .modal-form-header {
@@ -118,6 +122,11 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+:host {
+  display: block;
+  width: 100%;
 }
 
 .modal-close-btn-inline {

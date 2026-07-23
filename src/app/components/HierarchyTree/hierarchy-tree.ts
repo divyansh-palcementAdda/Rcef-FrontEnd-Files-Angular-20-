@@ -37,8 +37,8 @@ export class HierarchyViewerComponent implements OnInit {
     this.loading = true;
     this.userApiService.getAllUsers().subscribe({
       next: (usersList) => {
-        this.users = usersList;
-        this.treeRoots = this.constructTree(usersList);
+        this.users = Array.isArray(usersList) ? usersList : [];
+        this.treeRoots = this.constructTree(this.users);
         this.loading = false;
         
         // Auto-select logged-in user by default
@@ -61,10 +61,14 @@ export class HierarchyViewerComponent implements OnInit {
   }
 
   constructTree(users: userDto[]): TreeNode[] {
+    if (!Array.isArray(users) || users.length === 0) {
+      return [];
+    }
     const nodeMap = new Map<number, TreeNode>();
     
     // Create tree nodes for all users
     users.forEach(u => {
+      if (!u || typeof u.userId !== 'number') return;
       nodeMap.set(u.userId, { user: u, children: [] });
     });
 
@@ -72,6 +76,7 @@ export class HierarchyViewerComponent implements OnInit {
 
     // Link parents and children
     users.forEach(u => {
+      if (!u || typeof u.userId !== 'number') return;
       const node = nodeMap.get(u.userId)!;
       const managerIds = u.reportingManagerIds || (u.parentUserId ? [u.parentUserId] : []);
 
@@ -115,6 +120,7 @@ export class HierarchyViewerComponent implements OnInit {
   }
 
   selectUser(u: userDto): void {
+    if (!u || typeof u.userId !== 'number') return;
     // Eagerly fetch complete profile from backend to get calculated effective permissions list
     this.userApiService.getUserById(u.userId).subscribe({
       next: (detailedUser) => {
