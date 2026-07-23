@@ -272,7 +272,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     // 5. All Department / Sub Department
-    if (this.hasPermission('DEPARTMENT_VIEW')) {
+    if (this.hasPermission('DEPARTMENT_VIEW') && currentRole !== 'TEACHER') {
       localLinks.push({ label: 'All Department / Sub Department', route: '/departments', icon: 'bi-building' });
     }
     // Commented out: Sub Department as separate link (merged with All Department above)
