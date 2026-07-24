@@ -66,7 +66,8 @@
             <li class="breadcrumb-item active" aria-current="page">Tasks</li>
           </ol>
         </nav>
-        <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Task Management</h1>
+        <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Task Management
+        </h1>
       </div>
       <div class="d-flex gap-2">
         <button class="btn btn-outline-success" (click)="exportTasks()">
@@ -349,10 +350,10 @@
        3. REUSABLE MODERN ACTION TOOLBAR
        ========================================== -->
     <app-page-toolbar [searchPlaceholder]="'Search by Task Name, ID, Assignee...'" [searchValue]="searchTerm"
-      [activeChips]="activeChips" [refreshLoading]="loading && !isInitialLoad" [showExport]="false"
-      [showUpload]="false" [showAdd]="false" (searchChange)="onToolbarSearch($event)"
-      (searchClear)="onToolbarSearchClear()" (filterClick)="isDrawerOpen = true" (clearFilters)="resetFilters()"
-      (removeChip)="removeChip($event)" (refreshClick)="loadCurrentUserAndTasks()">
+      [activeChips]="activeChips" [refreshLoading]="loading && !isInitialLoad" [showExport]="false" [showUpload]="false"
+      [showAdd]="false" (searchChange)="onToolbarSearch($event)" (searchClear)="onToolbarSearchClear()"
+      (filterClick)="isDrawerOpen = true" (clearFilters)="resetFilters()" (removeChip)="removeChip($event)"
+      (refreshClick)="loadCurrentUserAndTasks()">
     </app-page-toolbar>
 
     <!-- Filter Drawer Component -->
@@ -427,8 +428,14 @@
               <td data-label="Task Details">
                 <div class="stitch-task-title-area">
                   <div class="stitch-task-title-row">
-                    <span class="stitch-task-title">{{ task.title }}</span>
-                    <span *ngIf="isOverdue(task)" class="stitch-tag-badge tag-priority-high">High</span>
+                    <span class="stitch-task-title">
+                      {{
+                      task.title +
+                      (task.targetCount != null ? ' || ' + task.targetCount + ' Count' : '') +
+                      (task.targetPercentage != null ? ' || ' + task.targetPercentage + '%' : '')
+                      }}
+                    </span>
+                    <!-- <span *ngIf="isOverdue(task)" class="stitch-tag-badge tag-priority-high">High</span> -->
                   </div>
                   <p class="stitch-task-desc" *ngIf="task.description">{{ task.description }}</p>
                 </div>

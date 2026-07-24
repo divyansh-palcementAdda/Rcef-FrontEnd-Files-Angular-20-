@@ -82,6 +82,14 @@ interface TemplateBreakdown {
   completedCount: number;
 }
 
+interface HodInfo {
+  userId: number;
+  fullName: string;
+  username: string;
+  email: string;
+  role: string;
+}
+
 interface SubDepartmentDetail {
   id: string;
   name: string;
@@ -100,6 +108,7 @@ interface SubDepartmentDetail {
   updatedAt?: string;
   createdByName?: string;
   updatedByName?: string;
+  hods?: HodInfo[];
 }
 
 @Component({
@@ -583,5 +592,16 @@ export class SubDepartmentDetailsComponent implements OnInit {
     } catch {
       return dateStr;
     }
+  }
+
+  getHodInitials(fullName: string): string {
+    if (!fullName) return '?';
+    return fullName
+      .trim()
+      .split(' ')
+      .slice(0, 2)
+      .map(part => part.charAt(0))
+      .join('')
+      .toUpperCase();
   }
 }

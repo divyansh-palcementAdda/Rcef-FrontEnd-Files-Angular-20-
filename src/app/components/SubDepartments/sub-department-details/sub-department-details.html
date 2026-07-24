@@ -22,6 +22,36 @@
       <span class="code-badge">{{ subDeptDetail.code }}</span>
     </div>
   </div>
+  <!-- ── HOD Banner – always visible, loaded with basic info ── -->
+  <div class="hod-banner" *ngIf="subDeptDetail && subDeptDetail.hods && subDeptDetail.hods.length > 0">
+    <div class="hod-banner-label">
+      <i class="bi bi-person-badge-fill"></i>
+      <span>Head{{ subDeptDetail.hods.length > 1 ? 's' : '' }} of Department</span>
+    </div>
+    <div class="hod-cards-row">
+      <div class="hod-card" *ngFor="let hod of subDeptDetail.hods" (click)="viewUserDetails(hod.userId)">
+        <!-- Initials avatar (profile image not yet on User entity) -->
+        <div class="hod-avatar hod-avatar-initials">
+          {{ getHodInitials(hod.fullName) }}
+        </div>
+        <div class="hod-card-info">
+          <div class="hod-name">{{ hod.fullName }}</div>
+          <div class="hod-meta">
+            <span class="hod-emp-id"><i class="bi bi-person-badge me-1"></i>{{ hod.username }}</span>
+            <span class="hod-email"><i class="bi bi-envelope me-1"></i>{{ hod.email }}</span>
+          </div>
+        </div>
+        <span class="hod-role-chip">HOD</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── No HOD notice – only show when detail loaded but no HODs assigned ── -->
+  <div class="hod-banner hod-banner--empty"
+    *ngIf="subDeptDetail && (!subDeptDetail.hods || subDeptDetail.hods.length === 0)">
+    <i class="bi bi-person-x me-2 text-muted"></i>
+    <span class="text-muted">No HOD assigned to this sub-department.</span>
+  </div>
 
   <!-- ── Loading State ── -->
   <div *ngIf="loading" class="loading-state">
