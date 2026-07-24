@@ -250,13 +250,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (this.hasPermission('TASK_VIEW')) {
       localLinks.push({ label: 'All Task', route: '/view-tasks', icon: 'bi-list-check' });
 
-      // 3. Self Task
-      if (this.hasPermission('AUDIT_LOG_VIEW')) {
-        localLinks.push({ label: 'Self Task', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
-      } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
-        localLinks.push({ label: 'Self Task', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
-      } else {
-        localLinks.push({ label: 'Self Task', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'bi-person-badge' });
+      // 3. Self Task (hidden for TEACHER role)
+      if (currentRole !== 'TEACHER') {
+        if (this.hasPermission('AUDIT_LOG_VIEW')) {
+          localLinks.push({ label: 'My Task', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
+        } else if (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW')) {
+          localLinks.push({ label: 'My Task', route: '/view-tasks', queryParams: { status: 'Self' }, icon: 'bi-person-badge' });
+        } else {
+          localLinks.push({ label: 'My Task', route: '/view-tasks', queryParams: { view: 'Self' }, icon: 'bi-person-badge' });
+        }
       }
 
       // Commented out: Pending Approvals
@@ -267,12 +269,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     // 4. All User (hidden for TEACHER role)
-    if (this.hasPermission('USER_VIEW') && currentRole !== 'TEACHER') {
+    if (this.hasPermission('USER_VIEW') && currentRole !== 'TEACHER' && currentRole !== 'HOD') {
       localLinks.push({ label: 'All User', route: '/viewAllUsers', icon: 'bi-people' });
     }
 
     // 5. All Department / Sub Department
-    if (this.hasPermission('DEPARTMENT_VIEW') && currentRole !== 'TEACHER') {
+    if (this.hasPermission('DEPARTMENT_VIEW') && currentRole !== 'TEACHER' && currentRole !== 'HOD') {
       localLinks.push({ label: 'All Department / Sub Department', route: '/departments', icon: 'bi-building' });
     }
     // Commented out: Sub Department as separate link (merged with All Department above)
@@ -303,12 +305,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     // 7. User Hierarchy (User Heriky)
-    if (this.hasPermission('USER_VIEW') && (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW') || this.hasPermission('AUDIT_LOG_VIEW'))) {
+    if (this.hasPermission('USER_VIEW') && (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW') || this.hasPermission('AUDIT_LOG_VIEW')) && currentRole !== 'TEACHER' && currentRole !== 'HOD') {
       localLinks.push({ label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' });
     }
 
     // 8. Recurring Task
-    if (this.hasPermission('TASK_CREATE') && this.hasPermission('AUDIT_LOG_VIEW')) {
+    if (this.hasPermission('TASK_CREATE') && this.hasPermission('AUDIT_LOG_VIEW') && currentRole !== 'TEACHER' && currentRole !== 'HOD') {
       localLinks.push({ label: 'Recurring Task', route: '/createRecurring', icon: 'bi-arrow-repeat' });
     }
 

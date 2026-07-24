@@ -4,8 +4,21 @@ import { Observable } from 'rxjs';
 import { environment } from '../environment/environment';
 
 export interface UserTaskDepartmentCardDTO {
-  departmentId: number;
-  departmentName: string;
+  /**
+   * "DEPARTMENT" for SUPER_ADMIN/ADMIN/SUB_ADMIN,
+   * "SUB_DEPARTMENT" for HOD/TEACHER.
+   */
+  cardType: 'DEPARTMENT' | 'SUB_DEPARTMENT';
+
+  // Department mode fields
+  departmentId?: number;
+  departmentName?: string;
+
+  // Sub-department mode fields (UUID as string from backend)
+  subDepartmentId?: string;
+  subDepartmentName?: string;
+
+  // Shared stats
   totalUsers: number;
   totalActiveTasks: number;
   taskCompletionPercentage: number;

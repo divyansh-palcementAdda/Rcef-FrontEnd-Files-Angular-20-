@@ -11,6 +11,7 @@ import {
   UserTaskRequestDetailDTO,
   TaskSummaryDTO
 } from '../../Services/user-task-analytics-api.service';
+import { AuthApiService } from '../../Services/auth-api-service';
 
 @Component({
   selector: 'app-user-task-analytics',
@@ -20,12 +21,24 @@ import {
   styleUrls: ['./user-task-analytics.component.css']
 })
 export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
-  // Department cards
+
+  // ── Role detection ──────────────────────────────────────────────────────
+  /** True when the logged-in user is HOD or TEACHER — switches card section to Sub-Department mode */
+  get isSubDeptMode(): boolean {
+    const role = this.authService.getCurrentRole();
+    return role === 'HOD' || role === 'TEACHER';
+  }
+
+  // ── Department/Sub-Department cards ────────────────────────────────────
   departmentCards: UserTaskDepartmentCardDTO[] = [];
   loadingCards: boolean = false;
-  selectedDepartmentId: number | null = null;
 
-  // Table Data & Pagination
+  /** Active department filter (DEPARTMENT mode) */
+  selectedDepartmentId: number | null = null;
+  /** Active sub-department filter (SUB_DEPARTMENT mode — tracks the card's subDepartmentId UUID string) */
+  selectedSubDepartmentCardId: string = '';
+
+  // ── Table Data & Pagination ─────────────────────────────────────────────
   tableData: UserTaskAnalyticsRowDTO[] = [];
   loadingTable: boolean = false;
   currentPage: number = 0;
@@ -34,11 +47,11 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   totalPages: number = 0;
   pageSizeOptions: number[] = [5, 10, 25, 50, 100];
 
-  // Sorting
+  // ── Sorting ─────────────────────────────────────────────────────────────
   sortField: string = 'fullName';
   sortDir: string = 'asc';
 
-  // Filters
+  // ── Filters ─────────────────────────────────────────────────────────────
   selectedSubDepartmentId: string = '';
   selectedRole: string = '';
   selectedUserId: number | null = null;
@@ -50,11 +63,11 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   activeUsersOnly: boolean = true;
   search: string = '';
 
-  // RxJS subjects: searchSubject debounces keystrokes; destroy$ signals teardown on ngOnDestroy
+  // ── RxJS subjects ────────────────────────────────────────────────────────
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
-  // Options
+  // ── Options ──────────────────────────────────────────────────────────────
   rolesList: string[] = ['SUPER_ADMIN', 'ADMIN', 'SUB_ADMIN', 'HOD', 'TEACHER'];
   statusList: string[] = [
     'ALL',
@@ -68,11 +81,11 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     'EXTENDED'
   ];
 
-  // Request History Modal
+  // ── Request History Modal ─────────────────────────────────────────────────
   showRequestsModal: boolean = false;
   requestsModalUser: UserTaskAnalyticsRowDTO | null = null;
 
-  // Drill Down Modal
+  // ── Drill Down Modal ─────────────────────────────────────────────────────
   showTaskModal: boolean = false;
   drillDownUser: UserTaskAnalyticsRowDTO | null = null;
   drillDownStatus: string = 'ALL';
@@ -85,13 +98,13 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
 
   constructor(
     private analyticsService: UserTaskAnalyticsApiService,
+    private authService: AuthApiService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadDepartmentCards();
-    this.loadAnalyticsTable();
-    // Debounced search: waits 500ms after last keystroke before calling the backend
+    // Debounced search
     this.searchSubject.pipe(
       debounceTime(500),
       distinctUntilChanged(),
@@ -108,12 +121,62 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
       next: (cards) => {
         this.departmentCards = cards || [];
         this.loadingCards = false;
+
+        // Auto-select the first card on initial load
+        if (this.departmentCards.length > 0) {
+          const first = this.departmentCards[0];
+          this.applyCardSelection(first);
+        } else {
+          // No cards returned — load table unfiltered so it doesn't stay empty
+          this.loadAnalyticsTable();
+        }
       },
       error: (err) => {
-        console.error('Error fetching department cards:', err);
+        console.error('Error fetching department/sub-department cards:', err);
         this.loadingCards = false;
+        this.loadAnalyticsTable();
       }
     });
+  }
+
+  /**
+   * Applies the filter state from a clicked card without mutating the table
+   * filter inputs that the user controls (role, status, dates, etc.).
+   */
+  private applyCardSelection(card: UserTaskDepartmentCardDTO | null): void {
+    if (!card) {
+      // "All" card — clear card-level selection
+      this.selectedDepartmentId = null;
+      this.selectedSubDepartmentCardId = '';
+      this.selectedSubDepartmentId = '';
+    } else if (card.cardType === 'DEPARTMENT') {
+      this.selectedDepartmentId = card.departmentId ?? null;
+      this.selectedSubDepartmentCardId = '';
+      this.selectedSubDepartmentId = '';
+    } else {
+      // SUB_DEPARTMENT mode
+      this.selectedDepartmentId = null;
+      this.selectedSubDepartmentCardId = card.subDepartmentId ?? '';
+      // Pass the sub-department selection into the shared filter field
+      // so the table endpoint receives ?subDepartmentId=<uuid>
+      this.selectedSubDepartmentId = card.subDepartmentId ?? '';
+    }
+    this.currentPage = 0;
+    this.loadAnalyticsTable();
+  }
+
+  /** Called when user clicks a card (department card or sub-department card). */
+  selectCard(card: UserTaskDepartmentCardDTO | null): void {
+    this.applyCardSelection(card);
+  }
+
+  /** Legacy method kept for any residual template references. */
+  selectDepartment(deptId: number | null): void {
+    this.selectedDepartmentId = deptId;
+    this.selectedSubDepartmentCardId = '';
+    this.selectedSubDepartmentId = '';
+    this.currentPage = 0;
+    this.loadAnalyticsTable();
   }
 
   loadAnalyticsTable(): void {
@@ -138,9 +201,6 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (response) => {
         this.tableData = response.content || [];
-        // Spring Data 3.x serialises pagination metadata under a nested `page` object:
-        //   { content: [...], page: { number, size, totalElements, totalPages } }
-        // Spring Data 2.x used a flat structure on the root. We support both.
         const meta = response.page ?? response;
         this.totalRecords = meta.totalElements ?? 0;
         this.totalPages   = meta.totalPages   ?? 0;
@@ -157,12 +217,6 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectDepartment(deptId: number | null): void {
-    this.selectedDepartmentId = deptId;
-    this.currentPage = 0;
-    this.loadAnalyticsTable();
-  }
-
   onFilterChange(): void {
     this.currentPage = 0;
     this.loadAnalyticsTable();
@@ -171,6 +225,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
 
   clearFilters(): void {
     this.selectedDepartmentId = null;
+    this.selectedSubDepartmentCardId = '';
     this.selectedSubDepartmentId = '';
     this.selectedRole = '';
     this.selectedUserId = null;
@@ -208,7 +263,6 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     this.loadAnalyticsTable();
   }
 
-  /** Feeds the search field value into the debounced subject. Bound to (input) on the search field. */
   onSearchInput(value: string): void {
     this.searchSubject.next(value);
   }
@@ -218,7 +272,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Request History Modal
+  // ── Request History Modal ─────────────────────────────────────────────────
   openRequestsModal(user: UserTaskAnalyticsRowDTO): void {
     this.requestsModalUser = user;
     this.showRequestsModal = true;
@@ -243,7 +297,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     return user.requests.filter(r => (r.status || '').toUpperCase() === status).length;
   }
 
-  // Drill Down Task Modal
+  // ── Drill Down Task Modal ─────────────────────────────────────────────────
   openTaskDrillDown(user: UserTaskAnalyticsRowDTO, status: string = 'ALL'): void {
     this.drillDownUser = user;
     this.drillDownStatus = status;

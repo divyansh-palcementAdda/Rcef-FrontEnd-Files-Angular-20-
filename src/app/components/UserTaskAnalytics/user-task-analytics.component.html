@@ -34,71 +34,143 @@
     </div>
   </div>
 
-  <!-- ════ DEPARTMENT OVERVIEW ════ -->
+  <!-- ════ DEPARTMENT / SUB-DEPARTMENT OVERVIEW ════ -->
   <section class="uta-section">
-    <div class="uta-section-header">
-      <span class="uta-section-title"><i class="bi bi-building me-1"></i> Department Overview</span>
-      <span class="uta-badge-count">{{ departmentCards.length }} departments</span>
-    </div>
 
-    <!-- Skeleton while loading -->
-    <div class="uta-cards-grid" *ngIf="loadingCards">
-      <div class="uta-dept-card uta-dept-card--skeleton" *ngFor="let _ of [1,2,3,4,5,6]">
-        <div class="skeleton-line w-30 mb-2"></div>
-        <div class="skeleton-line w-50 mb-2"></div>
-        <div class="skeleton-line w-30"></div>
-      </div>
-    </div>
-
-    <!-- Actual department cards -->
-    <div class="uta-cards-grid" *ngIf="!loadingCards">
-
-      <!-- All Departments card -->
-      <div class="uta-dept-card" [class.uta-dept-card--active]="selectedDepartmentId === null"
-        (click)="selectDepartment(null)" role="button" tabindex="0"
-        (keydown.enter)="selectDepartment(null)" aria-label="All Departments">
-        <div class="uta-dept-card__top">
-          <span class="uta-dept-card__badge--all">ALL</span>
-          <i class="bi bi-diagram-3-fill uta-dept-card__icon"></i>
-        </div>
-        <div class="uta-dept-card__name">All Departments</div>
-        <div class="uta-dept-card__meta">Global Scope</div>
+    <!-- ── DEPARTMENT MODE (SUPER_ADMIN / ADMIN / SUB_ADMIN) ── -->
+    <ng-container *ngIf="!isSubDeptMode">
+      <div class="uta-section-header">
+        <span class="uta-section-title"><i class="bi bi-building me-1"></i> Department Overview</span>
+        <span class="uta-badge-count">{{ departmentCards.length }} departments</span>
       </div>
 
-      <!-- Per-department -->
-      <div class="uta-dept-card"
-        *ngFor="let card of departmentCards"
-        [class.uta-dept-card--active]="selectedDepartmentId === card.departmentId"
-        (click)="selectDepartment(card.departmentId)"
-        role="button" tabindex="0"
-        (keydown.enter)="selectDepartment(card.departmentId)"
-        [attr.aria-label]="card.departmentName + ' — ' + card.taskCompletionPercentage + '% complete'">
-        <div class="uta-dept-card__top">
-          <span class="uta-dept-card__pct"
-            [ngClass]="{
-              'uta-dept-card__pct--high': card.taskCompletionPercentage >= 75,
-              'uta-dept-card__pct--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
-              'uta-dept-card__pct--low':  card.taskCompletionPercentage < 40
-            }">{{ card.taskCompletionPercentage }}%</span>
-          <i class="bi bi-building uta-dept-card__icon"></i>
-        </div>
-        <div class="uta-dept-card__name" [title]="card.departmentName">{{ card.departmentName }}</div>
-        <div class="uta-dept-card__stats">
-          <span>{{ card.totalUsers }} users</span>
-          <span class="uta-dot-sep">·</span>
-          <span>{{ card.totalActiveTasks }} tasks</span>
-        </div>
-        <div class="uta-dept-card__bar">
-          <div class="uta-dept-card__bar-fill" [style.width.%]="card.taskCompletionPercentage"
-            [ngClass]="{
-              'uta-dept-card__bar-fill--high': card.taskCompletionPercentage >= 75,
-              'uta-dept-card__bar-fill--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
-              'uta-dept-card__bar-fill--low':  card.taskCompletionPercentage < 40
-            }"></div>
+      <!-- Skeleton while loading -->
+      <div class="uta-cards-grid" *ngIf="loadingCards">
+        <div class="uta-dept-card uta-dept-card--skeleton" *ngFor="let _ of [1,2,3,4,5,6]">
+          <div class="skeleton-line w-30 mb-2"></div>
+          <div class="skeleton-line w-50 mb-2"></div>
+          <div class="skeleton-line w-30"></div>
         </div>
       </div>
-    </div>
+
+      <!-- Actual department cards -->
+      <div class="uta-cards-grid" *ngIf="!loadingCards">
+
+        <!-- All Departments card -->
+        <div class="uta-dept-card" [class.uta-dept-card--active]="selectedDepartmentId === null"
+          (click)="selectCard(null)" role="button" tabindex="0"
+          (keydown.enter)="selectCard(null)" aria-label="All Departments">
+          <div class="uta-dept-card__top">
+            <span class="uta-dept-card__badge--all">ALL</span>
+            <i class="bi bi-diagram-3-fill uta-dept-card__icon"></i>
+          </div>
+          <div class="uta-dept-card__name">All Departments</div>
+          <div class="uta-dept-card__meta">Global Scope</div>
+        </div>
+
+        <!-- Per-department -->
+        <div class="uta-dept-card"
+          *ngFor="let card of departmentCards"
+          [class.uta-dept-card--active]="selectedDepartmentId === card.departmentId"
+          (click)="selectCard(card)"
+          role="button" tabindex="0"
+          (keydown.enter)="selectCard(card)"
+          [attr.aria-label]="card.departmentName + ' — ' + card.taskCompletionPercentage + '% complete'">
+          <div class="uta-dept-card__top">
+            <span class="uta-dept-card__pct"
+              [ngClass]="{
+                'uta-dept-card__pct--high': card.taskCompletionPercentage >= 75,
+                'uta-dept-card__pct--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
+                'uta-dept-card__pct--low':  card.taskCompletionPercentage < 40
+              }">{{ card.taskCompletionPercentage }}%</span>
+            <i class="bi bi-building uta-dept-card__icon"></i>
+          </div>
+          <div class="uta-dept-card__name" [title]="card.departmentName">{{ card.departmentName }}</div>
+          <div class="uta-dept-card__stats">
+            <span>{{ card.totalUsers }} users</span>
+            <span class="uta-dot-sep">·</span>
+            <span>{{ card.totalActiveTasks }} tasks</span>
+          </div>
+          <div class="uta-dept-card__bar">
+            <div class="uta-dept-card__bar-fill" [style.width.%]="card.taskCompletionPercentage"
+              [ngClass]="{
+                'uta-dept-card__bar-fill--high': card.taskCompletionPercentage >= 75,
+                'uta-dept-card__bar-fill--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
+                'uta-dept-card__bar-fill--low':  card.taskCompletionPercentage < 40
+              }"></div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ── SUB-DEPARTMENT MODE (HOD / TEACHER) ── -->
+    <ng-container *ngIf="isSubDeptMode">
+      <div class="uta-section-header">
+        <span class="uta-section-title"><i class="bi bi-diagram-2 me-1"></i> My Sub Departments</span>
+        <span class="uta-badge-count">{{ departmentCards.length }} sub-departments</span>
+      </div>
+
+      <!-- Skeleton while loading -->
+      <div class="uta-cards-grid" *ngIf="loadingCards">
+        <div class="uta-dept-card uta-dept-card--skeleton" *ngFor="let _ of [1,2,3]">
+          <div class="skeleton-line w-30 mb-2"></div>
+          <div class="skeleton-line w-50 mb-2"></div>
+          <div class="skeleton-line w-30"></div>
+        </div>
+      </div>
+
+      <!-- Actual sub-department cards -->
+      <div class="uta-cards-grid" *ngIf="!loadingCards">
+
+        <!-- All My Sub Departments card -->
+        <div class="uta-dept-card" [class.uta-dept-card--active]="selectedSubDepartmentCardId === ''"
+          (click)="selectCard(null)" role="button" tabindex="0"
+          (keydown.enter)="selectCard(null)" aria-label="All My Sub Departments">
+          <div class="uta-dept-card__top">
+            <span class="uta-dept-card__badge--all">ALL</span>
+            <i class="bi bi-diagram-2-fill uta-dept-card__icon"></i>
+          </div>
+          <div class="uta-dept-card__name">All My Sub Departments</div>
+          <div class="uta-dept-card__meta">Combined Scope</div>
+        </div>
+
+        <!-- Per sub-department -->
+        <div class="uta-dept-card"
+          *ngFor="let card of departmentCards"
+          [class.uta-dept-card--active]="selectedSubDepartmentCardId === card.subDepartmentId"
+          (click)="selectCard(card)"
+          role="button" tabindex="0"
+          (keydown.enter)="selectCard(card)"
+          [attr.aria-label]="(card.subDepartmentName || '') + ' — ' + card.taskCompletionPercentage + '% complete'">
+          <div class="uta-dept-card__top">
+            <span class="uta-dept-card__pct"
+              [ngClass]="{
+                'uta-dept-card__pct--high': card.taskCompletionPercentage >= 75,
+                'uta-dept-card__pct--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
+                'uta-dept-card__pct--low':  card.taskCompletionPercentage < 40
+              }">{{ card.taskCompletionPercentage }}%</span>
+            <i class="bi bi-diagram-2 uta-dept-card__icon"></i>
+          </div>
+          <div class="uta-dept-card__name" [title]="card.subDepartmentName || ''">{{ card.subDepartmentName }}</div>
+          <div class="uta-dept-card__stats">
+            <span>{{ card.totalUsers }} users</span>
+            <span class="uta-dot-sep">·</span>
+            <span>{{ card.totalActiveTasks }} tasks</span>
+          </div>
+          <div class="uta-dept-card__bar">
+            <div class="uta-dept-card__bar-fill" [style.width.%]="card.taskCompletionPercentage"
+              [ngClass]="{
+                'uta-dept-card__bar-fill--high': card.taskCompletionPercentage >= 75,
+                'uta-dept-card__bar-fill--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
+                'uta-dept-card__bar-fill--low':  card.taskCompletionPercentage < 40
+              }"></div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
   </section>
+
 
   <!-- ════ FILTERS ════ -->
   <section class="uta-filter-card">
