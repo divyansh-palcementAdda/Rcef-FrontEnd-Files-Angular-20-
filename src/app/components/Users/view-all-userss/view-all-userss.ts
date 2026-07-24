@@ -210,31 +210,29 @@ export class ViewAllUserss implements OnInit {
         this.updateQueryParams();
       }
     });
+  }
 
-    ngOnInit(): void {
-      this.searchTerm = '';
-      // ── Debounced main search (prevents API call on every keystroke) ──
-      this._searchTerm$.pipe(
-        takeUntilDestroyed(),
-        debounceTime(400),
-        distinctUntilChanged()
-      ).subscribe(term => {
-        this.searchTerm = term;
-        this.currentPage = 1;
-        this.loadUsersForRole();
-      });
-    }
+  ngOnInit(): void {
+    this.searchTerm = '';
+    // ── Debounced main search (prevents API call on every keystroke) ──
+    this._searchTerm$.pipe(
+      takeUntilDestroyed(),
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.searchTerm = term;
+      this.currentPage = 1;
+      this.loadUsersForRole();
+    });
 
-    ngOnInit(): void {
-      // Load filter dropdown options once on initial startup
-      this.loadDropdownOptions();
+    // Load filter dropdown options once on initial startup
+    this.loadDropdownOptions();
 
-      this.initCurrentUser()
-        .pipe(
-          switchMap(() => this.route.queryParams)
-        )
-        .subscribe(params => {
-          if (this.showAccessDeniedModal) return; // Teacher blocked — skip data load
+    this.initCurrentUser()
+      .pipe(
+        switchMap(() => this.route.queryParams),
+        map(params => {
+          if (this.showAccessDeniedModal) return null; // Teacher blocked — skip data load
 
           this.currentPage = params['page'] ? Number(params['page']) : 1;
           this.pageSize = params['pageSize'] ? Number(params['pageSize']) : 10;
@@ -269,21 +267,21 @@ export class ViewAllUserss implements OnInit {
 
           return requestParams;
         }),
-      filter((params): params is any => params !== null),
-    distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
-      tap(() => {
-        this.loading = true;
-        this.errorMessage = null;
-      }),
-      switchMap(requestParams =>
-        this.apiService.searchUsers(requestParams).pipe(
-          catchError(err => {
-            this.errorMessage = err?.message || 'Failed to search users.';
-            this.loading = false;
-            return of(null);
-          })
+        filter((params): params is any => params !== null),
+        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+        tap(() => {
+          this.loading = true;
+          this.errorMessage = null;
+        }),
+        switchMap(requestParams =>
+          this.apiService.searchUsers(requestParams).pipe(
+            catchError(err => {
+              this.errorMessage = err?.message || 'Failed to search users.';
+              this.loading = false;
+              return of(null);
+            })
+          )
         )
-      )
       )
       .subscribe(res => {
         if (res && res.success && res.data) {
@@ -481,7 +479,10 @@ export class ViewAllUserss implements OnInit {
   }
 
   /** Called from the search input — debounced via Subject */
-  onSearchInput(): void {
+  onSearchInput(value?: string): void {
+    if (value !== undefined) {
+      this.searchTerm = value;
+    }
     this._searchTerm$.next(this.searchTerm);
   }
 
