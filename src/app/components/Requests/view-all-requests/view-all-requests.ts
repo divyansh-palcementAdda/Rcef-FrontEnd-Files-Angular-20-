@@ -56,7 +56,17 @@ export class ViewAllRequests implements OnInit, OnDestroy {
   filterValues: { [key: string]: any } = {};
 
   // Stats
-  stats = {
+  stats: {
+    totalRequests: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    extensionRequests: number;
+    closureRequests: number;
+    total?: { total: number; pending: number; approved: number; rejected: number };
+    closure?: { total: number; pending: number; approved: number; rejected: number };
+    extension?: { total: number; pending: number; approved: number; rejected: number };
+  } = {
     totalRequests: 0,
     pending: 0,
     approved: 0,
@@ -65,7 +75,27 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     closureRequests: 0
   };
 
+  /** Dynamically returns the status breakdown for the active Request Type context */
+  get activeStatusStats(): { total: number; pending: number; approved: number; rejected: number } {
+    const s = this.stats || {};
+    if (this.requestTypeFilter === 'CLOSURE' && s.closure) {
+      return s.closure;
+    } else if (this.requestTypeFilter === 'EXTENSION' && s.extension) {
+      return s.extension;
+    } else if (s.total) {
+      return s.total;
+    }
+    return {
+      total: s.totalRequests || 0,
+      pending: s.pending || 0,
+      approved: s.approved || 0,
+      rejected: s.rejected || 0
+    };
+  }
+
+
   selectedCard = 'total';
+
   filterDrawerOpen = false;
   protected readonly Math = Math;
 
@@ -345,10 +375,7 @@ export class ViewAllRequests implements OnInit, OnDestroy {
   removeChip(key: string): void {
     if (key === 'searchTerm') this.searchTerm = '';
     else if (key === 'requestTypeFilter') this.requestTypeFilter = '';
-    else if (key === 'statusFilter') {
-      this.statusFilter = '';
-      this.selectedCard = 'total';
-    }
+    else if (key === 'statusFilter') this.statusFilter = '';
     else if (key === 'priorityFilter') this.priorityFilter = '';
     else if (key === 'taskTypeFilter') this.taskTypeFilter = '';
     else if (key === 'hasProofFilter') this.hasProofFilter = '';
@@ -401,22 +428,55 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     this.onlyActionableRequestsFilter = newValues['onlyActionableRequestsFilter'] || '';
     this.onlyMyRequestsFilter = newValues['onlyMyRequestsFilter'] || '';
 
-    if (this.statusFilter) {
-      this.selectedCard = this.statusFilter.toLowerCase();
+    this.currentPage = 1;
+    this.loadRequestsFromServer();
+  }
+
+  selectRequestType(type: string): void {
+    if (this.requestTypeFilter === type) {
+      this.requestTypeFilter = '';
     } else {
-      this.selectedCard = 'total';
+      this.requestTypeFilter = type;
     }
-
     this.currentPage = 1;
     this.loadRequestsFromServer();
   }
 
-  selectCard(card: string, status: string) {
-    this.selectedCard = card;
-    this.statusFilter = status;
+  selectRequestStatus(status: string): void {
+    if (this.statusFilter === status) {
+      this.statusFilter = '';
+    } else {
+      this.statusFilter = status;
+    }
     this.currentPage = 1;
     this.loadRequestsFromServer();
   }
+
+  selectCard(cardName: string) {
+    switch (cardName) {
+      case 'total':
+        this.statusFilter = '';
+        this.requestTypeFilter = '';
+        break;
+      case 'pending':
+        this.selectRequestStatus('PENDING');
+        break;
+      case 'approved':
+        this.selectRequestStatus('APPROVED');
+        break;
+      case 'rejected':
+        this.selectRequestStatus('REJECTED');
+        break;
+      case 'closure':
+        this.selectRequestType('CLOSURE');
+        break;
+      case 'extension':
+        this.selectRequestType('EXTENSION');
+        break;
+    }
+  }
+
+
 
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {

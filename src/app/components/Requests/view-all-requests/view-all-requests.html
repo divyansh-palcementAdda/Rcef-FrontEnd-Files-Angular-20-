@@ -11,7 +11,7 @@
 
     <!-- KPI Cards Grid Skeleton -->
     <div class="row g-3 mb-4">
-      <div class="col-md-3" *ngFor="let k of [1,2,3,4]">
+      <div class="col-md-2" *ngFor="let k of [1,2,3,4,5,6]">
         <div class="skeleton-card rounded-3"
           style="height: 85px; background: rgba(255,255,255,0.05); animation: skeleton-pulse 1.5s infinite ease-in-out;">
         </div>
@@ -70,6 +70,14 @@
             <span class="stitch-hero-dot" style="background-color: #10b981;"></span>
             <span>{{ stats.approved }} Approved</span>
           </div>
+          <div class="stitch-hero-pill">
+            <span class="stitch-hero-dot" style="background-color: #6366f1;"></span>
+            <span>{{ stats.closureRequests }} Closure</span>
+          </div>
+          <div class="stitch-hero-pill">
+            <span class="stitch-hero-dot" style="background-color: #06b6d4;"></span>
+            <span>{{ stats.extensionRequests }} Extension</span>
+          </div>
         </div>
       </div>
       <div class="stitch-hero-illustration">
@@ -80,31 +88,77 @@
     </div>
 
     <!-- ==========================================
-       2. KPI CARDS SECTION
+       2. HIERARCHICAL ANALYTICS CARDS SECTION
        ========================================== -->
     <div class="dashboard-analytics-container mb-4">
-      <div class="overall-statistics-grid mb-4">
-        <!-- Total Requests -->
-        <app-analytics-stat-card [title]="'Total Requests'" [value]="stats.totalRequests"
-          [iconClass]="'bi bi-journal-text'" [theme]="'blue'" [selected]="selectedCard === 'total'"
-          (click)="selectCard('total', '')">
-        </app-analytics-stat-card>
-        <!-- Pending -->
-        <app-analytics-stat-card [title]="'Pending Requests'" [value]="stats.pending"
-          [iconClass]="'bi bi-hourglass-split'" [theme]="'amber'" [selected]="selectedCard === 'pending'"
-          (click)="selectCard('pending', 'PENDING')">
-        </app-analytics-stat-card>
-        <!-- Approved -->
-        <app-analytics-stat-card [title]="'Approved Requests'" [value]="stats.approved"
-          [iconClass]="'bi bi-check-circle'" [theme]="'emerald'" [selected]="selectedCard === 'approved'"
-          (click)="selectCard('approved', 'APPROVED')">
-        </app-analytics-stat-card>
-        <!-- Rejected -->
-        <app-analytics-stat-card [title]="'Rejected Requests'" [value]="stats.rejected" [iconClass]="'bi bi-x-circle'"
-          [theme]="'rose'" [selected]="selectedCard === 'rejected'" (click)="selectCard('rejected', 'REJECTED')">
-        </app-analytics-stat-card>
+
+      <!-- SECTION 1: REQUEST TYPE -->
+      <div class="mb-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <i class="bi bi-tag-fill text-primary"></i>
+          <h6 class="fw-bold mb-0 text-dark text-uppercase tracking-wider" style="font-size: 0.8rem; letter-spacing: 0.05em;">Request Type</h6>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <app-analytics-stat-card [title]="'Total Requests'" [value]="stats?.total?.total || stats?.totalRequests || 0"
+              [subtitle]="'All Request Types'" [iconClass]="'bi bi-journal-text'" [theme]="'blue'"
+              [selected]="!requestTypeFilter" (click)="selectRequestType('')">
+            </app-analytics-stat-card>
+          </div>
+          <div class="col-md-4">
+            <app-analytics-stat-card [title]="'Closure Requests'" [value]="stats?.closure?.total || stats?.closureRequests || 0"
+              [subtitle]="'Task Closure Submissions'" [iconClass]="'bi bi-lock-fill'" [theme]="'indigo'"
+              [selected]="requestTypeFilter === 'CLOSURE'" (click)="selectRequestType('CLOSURE')">
+            </app-analytics-stat-card>
+          </div>
+          <div class="col-md-4">
+            <app-analytics-stat-card [title]="'Extension Requests'" [value]="stats?.extension?.total || stats?.extensionRequests || 0"
+              [subtitle]="'DueDate Extension Requests'" [iconClass]="'bi bi-clock-history'" [theme]="'cyan'"
+              [selected]="requestTypeFilter === 'EXTENSION'" (click)="selectRequestType('EXTENSION')">
+            </app-analytics-stat-card>
+          </div>
+        </div>
       </div>
+
+      <!-- SECTION 2: REQUEST STATUS BREAKDOWN -->
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <i class="bi bi-bar-chart-line-fill text-secondary"></i>
+          <h6 class="fw-bold mb-0 text-dark text-uppercase tracking-wider" style="font-size: 0.8rem; letter-spacing: 0.05em;">Request Status Breakdown</h6>
+          <span class="badge bg-light text-dark border px-2 py-1 ms-1" style="font-size: 0.72rem; font-weight: 500;">
+            <i class="bi bi-funnel me-1 text-primary"></i>
+            {{ requestTypeFilter === 'CLOSURE' ? 'Closure Requests Scope' : (requestTypeFilter === 'EXTENSION' ? 'Extension Requests Scope' : 'All Requests Scope') }}
+          </span>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <app-analytics-stat-card [title]="'Pending Requests'" [value]="activeStatusStats?.pending || 0"
+              [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Pending Closure' : (requestTypeFilter === 'EXTENSION' ? 'Pending Extension' : 'All Pending')"
+              [iconClass]="'bi bi-hourglass-split'" [theme]="'amber'" [selected]="statusFilter === 'PENDING'"
+              (click)="selectRequestStatus('PENDING')">
+            </app-analytics-stat-card>
+          </div>
+          <div class="col-md-4">
+            <app-analytics-stat-card [title]="'Approved Requests'" [value]="activeStatusStats?.approved || 0"
+              [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Approved Closure' : (requestTypeFilter === 'EXTENSION' ? 'Approved Extension' : 'All Approved')"
+              [iconClass]="'bi bi-check-circle'" [theme]="'emerald'" [selected]="statusFilter === 'APPROVED'"
+              (click)="selectRequestStatus('APPROVED')">
+            </app-analytics-stat-card>
+          </div>
+          <div class="col-md-4">
+            <app-analytics-stat-card [title]="'Rejected Requests'" [value]="activeStatusStats?.rejected || 0"
+              [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Rejected Closure' : (requestTypeFilter === 'EXTENSION' ? 'Rejected Extension' : 'All Rejected')"
+              [iconClass]="'bi bi-x-circle'" [theme]="'rose'" [selected]="statusFilter === 'REJECTED'"
+              (click)="selectRequestStatus('REJECTED')">
+            </app-analytics-stat-card>
+          </div>
+        </div>
+      </div>
+
+
     </div>
+
+
 
     <!-- ==========================================
        3. REUSABLE MODERN ACTION TOOLBAR
