@@ -121,9 +121,9 @@ export const routes: Routes = [
   { path: 'task/:id', component: ViewTask, canActivate: [AuthGuard] },
   { path: 'task-requests', component: ViewAllRequests, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['TASK_REQUEST_VIEW_SELF', 'TASK_REQUEST_VIEW_DEPARTMENT', 'TASK_APPROVE', 'TASK_VIEW'] } },
   { path: 'roles-permissions', component: RolePermissionManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['USER_EDIT'] } },
-  { path: 'sub-departments', component: SubDepartmentManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'] } },
-  { path: 'view-all-sub-departments', component: ViewAllSubDepartmentsComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'] } },
-  { path: 'sub-department-details/:id', component: SubDepartmentDetailsComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'] } },
+  { path: 'sub-departments', component: SubDepartmentManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'], forbiddenRoles: ['TEACHER'] } },
+  { path: 'view-all-sub-departments', component: ViewAllSubDepartmentsComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'], forbiddenRoles: ['TEACHER'] } },
+  { path: 'sub-department-details/:id', component: SubDepartmentDetailsComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['SUB_DEPARTMENT_CREATE'], forbiddenRoles: ['TEACHER'] } },
   { path: 'hierarchy-tree', component: HierarchyViewerComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['USER_VIEW'] } },
   { path: 'task-templates', component: TaskTemplateManagementComponent, canActivate: [AuthGuard, RoleGuard], data: { permissions: ['TASK_CREATE'] } },
   {

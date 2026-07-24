@@ -436,12 +436,12 @@ export class Test4 implements OnInit, OnDestroy {
 
   onProofsSelected(event: any): void {
     const files: FileList = event.target.files;
-    const maxSize = 10 * 1024 * 1024;
+    const maxSize = 25 * 1024 * 1024;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.size > maxSize) {
-        alert(`File "${file.name}" exceeds 10MB limit.`);
+        alert(`File "${file.name}" exceeds 25MB limit.`);
         continue;
       }
       this.selectedProofs.push(file);

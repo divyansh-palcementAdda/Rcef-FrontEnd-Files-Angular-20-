@@ -33,9 +33,20 @@ export const RoleGuard: CanActivateFn = (
 
   const requiredPermissions = (route.data['permissions'] as string[]) ?? [];
   const allowedRoles = (route.data['roles'] as string[]) ?? [];
+  const forbiddenRoles = (route.data['forbiddenRoles'] as string[]) ?? [];
+  const userRole = authSrv.getCurrentRole();
+
+  // Check explicitly forbidden roles first (takes precedence)
+  if (userRole && forbiddenRoles.includes(userRole)) {
+    snack.open('Access denied. Your role is not authorized to access this page.', 'Close', {
+      duration: 4000,
+      panelClass: ['snackbar-warn'],
+    });
+    return router.createUrlTree(['/access-denied']);
+  }
 
   // SUPER_ADMIN gets a master bypass
-  if (authSrv.getCurrentRole() === 'SUPER_ADMIN') {
+  if (userRole === 'SUPER_ADMIN') {
     return true;
   }
 

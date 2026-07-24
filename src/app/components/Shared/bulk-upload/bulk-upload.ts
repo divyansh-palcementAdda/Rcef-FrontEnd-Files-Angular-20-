@@ -98,8 +98,8 @@ export class BulkUploadComponent implements OnInit {
       this.showError('Only Excel files (.xlsx, .xls) are allowed.');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      this.showError('File size exceeds the 10MB limit.');
+    if (file.size > 25 * 1024 * 1024) { // 25MB limit
+      this.showError('File size exceeds the 25MB limit.');
       return;
     }
     this.selectedFile = file;

@@ -758,12 +758,12 @@ export class ViewTask implements OnInit, OnDestroy {
 
   onProofsSelected(event: any): void {
     const files: FileList = event.target.files;
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 25 * 1024 * 1024; // 25MB
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.size > maxSize) {
-        this.errorMessage = `File "${file.name}" exceeds 10MB limit.`;
+        this.errorMessage = `File "${file.name}" exceeds 25MB limit.`;
         continue;
       }
       this.selectedProofs.push(file);

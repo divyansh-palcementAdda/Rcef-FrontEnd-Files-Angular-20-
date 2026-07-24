@@ -355,6 +355,7 @@ export class ViewDepartmentsComponent implements OnInit {
     this.departments = safeList;
     this.applyFilters();
     this.loading = false;
+    this.autoSelectDepartmentBasedOnRole();
   }
 
   openAddDepartment(): void {
@@ -449,14 +450,28 @@ export class ViewDepartmentsComponent implements OnInit {
     this.departments = depts || [];
     this.applyFilters();
     this.loading = false;
+    this.autoSelectDepartmentBasedOnRole();
+  }
 
-    // Auto-select Admission department by default
-    const admissionDept = this.departments.find(d =>
-      d.name?.toLowerCase().includes('admission')
-    );
-    if (admissionDept) {
-      this.selectDepartment(admissionDept);
+  /**
+   * Programmatically auto-selects a department based on user role and permissions.
+   * - SUPER_ADMIN: No auto-selection (waits for manual user choice).
+   * - ADMIN / SUB_ADMIN / HOD: Auto-selects the first accessible department and loads its sub-departments immediately.
+   */
+  private autoSelectDepartmentBasedOnRole(): void {
+    if (!this.departments || this.departments.length === 0) {
+      return;
     }
+
+    const userRole = (this.authApiService.getCurrentRole() || '').toUpperCase();
+
+    // SUPER_ADMIN: Keep current behavior (display all departments, do not auto-select any)
+    if (userRole === 'SUPER_ADMIN') {
+      return;
+    }
+
+    // ADMIN, SUB_ADMIN, HOD & other restricted roles: Auto-select first accessible department
+    this.selectDepartment(this.departments[0]);
   }
 
   private handleError(err: any, fallback: string): void {
