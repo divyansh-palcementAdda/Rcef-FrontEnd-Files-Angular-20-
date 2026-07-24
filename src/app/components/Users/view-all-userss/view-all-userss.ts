@@ -59,6 +59,7 @@ export class ViewAllUserss implements OnInit {
   isDrawerOpen = false;
 
   showBulkUploadModal = false;
+  isExportDropdownOpen = false;
 
   // Stats & breakdown responses
   stats = {
@@ -212,12 +213,13 @@ export class ViewAllUserss implements OnInit {
   }
 
   ngOnInit(): void {
+    this.searchTerm = '';
     // ── Debounced main search (prevents API call on every keystroke) ──
     this._searchTerm$.pipe(
       debounceTime(400), distinctUntilChanged()
     ).subscribe(() => {
       this.currentPage = 1;
-      this.updateQueryParams();
+      this.loadUsersForRole();
     });
 
     // ── Debounced search streams for Add User modal dropdowns ──
@@ -245,7 +247,7 @@ export class ViewAllUserss implements OnInit {
         this.pageSize = params['pageSize'] ? Number(params['pageSize']) : 10;
         this.sortBy = params['sortBy'] || 'fullName';
         this.sortDirection = params['sortDirection'] || 'asc';
-        this.searchTerm = params['search'] || '';
+        this.searchTerm = '';
         this.roleFilter = params['role'] || '';
         this.departmentIdFilter = params['department'] ? Number(params['department']) : '';
         this.subDepartmentIdFilter = params['subDepartment'] || '';
@@ -439,6 +441,15 @@ export class ViewAllUserss implements OnInit {
   /** Called from the search input — debounced via Subject */
   onSearchInput(): void {
     this._searchTerm$.next(this.searchTerm);
+  }
+
+  toggleExportDropdown(event?: Event): void {
+    event?.stopPropagation();
+    this.isExportDropdownOpen = !this.isExportDropdownOpen;
+  }
+
+  closeExportDropdown(): void {
+    this.isExportDropdownOpen = false;
   }
 
   /** Apply filters immediately (status, role, dept changes) */
@@ -648,6 +659,7 @@ export class ViewAllUserss implements OnInit {
   }
 
   exportUsers(format: string): void {
+    this.closeExportDropdown();
     const params = {
       format,
       sortBy: this.sortBy,
@@ -659,8 +671,23 @@ export class ViewAllUserss implements OnInit {
       subjectId: this.subjectIdFilter,
       status: this.statusFilter
     };
-    const url = this.apiService.getExportUsersUrl(params);
-    window.open(url, '_blank');
+
+    this.apiService.downloadExportUsers(params).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const today = new Date().toISOString().split('T')[0];
+        a.href = url;
+        a.download = `users-export-${today}.${format === 'CSV' ? 'csv' : 'xlsx'}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err: any) => {
+        this.errorMessage = err?.message || err?.error?.message || 'Failed to export users.';
+      }
+    });
   }
 
   /** Handle page click with type safety */
@@ -1178,6 +1205,9 @@ export class ViewAllUserss implements OnInit {
       this.addUserShowManagerDrop = false;
       this.addUserShowSubDeptDrop = false;
       this.addUserShowSubjectDrop = false;
+    }
+    if (!target.closest('.export-dropdown-wrap')) {
+      this.isExportDropdownOpen = false;
     }
   }
 

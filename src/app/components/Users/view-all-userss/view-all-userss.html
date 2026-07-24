@@ -45,11 +45,13 @@
       <button class="btn btn-outline-secondary" (click)="downloadTemplate()">
         <i class="bi bi-download me-1"></i>Download Template
       </button>
-      <div class="dropdown d-inline-block">
-        <button class="btn btn-outline-success dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <div class="dropdown d-inline-block export-dropdown-wrap position-relative">
+        <button class="btn btn-outline-success dropdown-toggle" type="button" id="exportDropdown" aria-expanded="false"
+          (click)="toggleExportDropdown($event)">
           <i class="bi bi-file-earmark-arrow-down-fill me-1"></i>Export
         </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="exportDropdown">
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0" [class.show]="isExportDropdownOpen"
+          [style.display]="isExportDropdownOpen ? 'block' : 'none'" aria-labelledby="exportDropdown">
           <li>
             <a class="dropdown-item py-2" (click)="exportUsers('EXCEL')" style="cursor: pointer;">
               <i class="bi bi-file-earmark-excel text-success me-2"></i>Export Excel

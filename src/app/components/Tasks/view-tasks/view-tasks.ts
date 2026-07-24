@@ -836,7 +836,76 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   exportTasks(): void {
-    console.log('Exporting tasks...');
+    const exportParams = {
+      ...this.buildFilterParams(),
+      page: 0,
+      size: Math.max(this.totalTasks || this.tasks.length || 0, 1),
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection
+    };
+
+    this.loading = true;
+    this.loadingMessage = 'Preparing export...';
+
+    this.apiService.searchTasks(exportParams)
+      .pipe(finalize(() => this.loading = false))
+      .subscribe({
+        next: (res) => {
+          const rows = res?.success && res.data?.content ? res.data.content : [];
+          if (!rows.length) {
+            console.warn('No tasks available to export.');
+            return;
+          }
+
+          const headers = [
+            'Task ID',
+            'Title',
+            'Description',
+            'Department',
+            'Assignee',
+            'Due Date',
+            'Status',
+            'Priority',
+            'Task Type'
+          ];
+
+          const escapeCsv = (value: any): string => {
+            const text = value === null || value === undefined ? '' : String(value);
+            return `"${text.replace(/"/g, '""')}"`;
+          };
+
+          const csvRows = rows.map(task => [
+            task.taskId,
+            task.title,
+            task.description || '',
+            task.departmentNames?.join(' / ') || (task as any)?.department?.name || '',
+            task.assignedToNames?.join(' / ') || '',
+            task.dueDate ? this.formatDate(task.dueDate).split(' (')[0] : '',
+            task.status || '',
+            (task as any).priority || '',
+            (task as any).taskType || ''
+          ]);
+
+          const csvContent = [
+            headers.map(escapeCsv).join(','),
+            ...csvRows.map(row => row.map(escapeCsv).join(','))
+          ].join('\n');
+
+          const blob = new Blob([`\ufeff${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const today = new Date().toISOString().split('T')[0];
+          a.href = url;
+          a.download = `tasks-export-${today}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          console.error('Task export failed', err);
+        }
+      });
   }
 
   resetFilters(): void {
