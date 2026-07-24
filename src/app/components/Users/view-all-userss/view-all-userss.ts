@@ -58,6 +58,7 @@ export class ViewAllUserss implements OnInit {
   isDrawerOpen = false;
 
   showBulkUploadModal = false;
+  isExportDropdownOpen = false;
 
   // Stats & breakdown responses
   stats = {
@@ -210,34 +211,36 @@ export class ViewAllUserss implements OnInit {
       }
     });
 
-    // ── Debounced main search (prevents API call on every keystroke) ──
-    this._searchTerm$.pipe(
-      takeUntilDestroyed(),
-      debounceTime(400),
-      distinctUntilChanged()
-    ).subscribe(term => {
-      this.searchTerm = term;
-      this.currentPage = 1;
-      this.updateQueryParams();
-    });
-  }
+    ngOnInit(): void {
+      this.searchTerm = '';
+      // ── Debounced main search (prevents API call on every keystroke) ──
+      this._searchTerm$.pipe(
+        takeUntilDestroyed(),
+        debounceTime(400),
+        distinctUntilChanged()
+      ).subscribe(term => {
+        this.searchTerm = term;
+        this.currentPage = 1;
+        this.loadUsersForRole();
+      });
+    }
 
-  ngOnInit(): void {
-    // Load filter dropdown options once on initial startup
-    this.loadDropdownOptions();
+    ngOnInit(): void {
+      // Load filter dropdown options once on initial startup
+      this.loadDropdownOptions();
 
-    this.initCurrentUser()
-      .pipe(
-        switchMap(() => this.route.queryParams),
-        takeUntilDestroyed(this.destroyRef),
-        map(params => {
-          if (this.showAccessDeniedModal) return null;
+      this.initCurrentUser()
+        .pipe(
+          switchMap(() => this.route.queryParams)
+        )
+        .subscribe(params => {
+          if (this.showAccessDeniedModal) return; // Teacher blocked — skip data load
 
           this.currentPage = params['page'] ? Number(params['page']) : 1;
           this.pageSize = params['pageSize'] ? Number(params['pageSize']) : 10;
           this.sortBy = params['sortBy'] || 'fullName';
           this.sortDirection = params['sortDirection'] || 'asc';
-          this.searchTerm = params['search'] || '';
+          this.searchTerm = '';
           this.roleFilter = params['role'] || '';
           this.departmentIdFilter = params['department'] ? Number(params['department']) : '';
           this.subDepartmentIdFilter = params['subDepartment'] || '';
@@ -266,21 +269,21 @@ export class ViewAllUserss implements OnInit {
 
           return requestParams;
         }),
-        filter((params): params is any => params !== null),
-        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
-        tap(() => {
-          this.loading = true;
-          this.errorMessage = null;
-        }),
-        switchMap(requestParams =>
-          this.apiService.searchUsers(requestParams).pipe(
-            catchError(err => {
-              this.errorMessage = err?.message || 'Failed to search users.';
-              this.loading = false;
-              return of(null);
-            })
-          )
+      filter((params): params is any => params !== null),
+    distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+      tap(() => {
+        this.loading = true;
+        this.errorMessage = null;
+      }),
+      switchMap(requestParams =>
+        this.apiService.searchUsers(requestParams).pipe(
+          catchError(err => {
+            this.errorMessage = err?.message || 'Failed to search users.';
+            this.loading = false;
+            return of(null);
+          })
         )
+      )
       )
       .subscribe(res => {
         if (res && res.success && res.data) {
@@ -430,14 +433,65 @@ export class ViewAllUserss implements OnInit {
    *  Load the correct list depending on role with dynamic filters
    *  ------------------------------------------------------------ */
   loadUsersForRole(): void {
-    this.updateQueryParams();
+    this.loading = true;
+    this.errorMessage = null;
+
+    const params: any = {
+      page: this.currentPage - 1,
+      size: this.pageSize,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection
+    };
+
+    if (this.searchTerm) params.search = this.searchTerm;
+    if (this.roleFilter) params.role = this.roleFilter;
+    if (this.departmentIdFilter) params.departmentId = this.departmentIdFilter.toString();
+    if (this.subDepartmentIdFilter) params.subDepartmentId = this.subDepartmentIdFilter;
+    if (this.subjectIdFilter) params.subjectId = this.subjectIdFilter.toString();
+    if (this.statusFilter) params.status = this.statusFilter;
+
+    // Enforcement of HOD dynamic RBAC filtering
+    if (this.currentRole === 'HOD' && this.hodSubDepartmentId) {
+      params.subDepartmentId = this.hodSubDepartmentId;
+      this.subDepartmentIdFilter = this.hodSubDepartmentId;
+    }
+
+    this.apiService.searchUsers(params).subscribe({
+      next: (res) => {
+        if (res && res.success && res.data) {
+          const data = res.data;
+          this.users = data.content || [];
+          this.filteredUsers = this.users;
+          this.totalElements = data.pagination?.totalElements ?? 0;
+          this.totalPages = data.pagination?.totalPages ?? 1;
+          this.currentPage = (data.pagination?.currentPage ?? 0) + 1;
+
+          this.stats = data.stats || this.stats;
+          this.departmentBreakdown = data.departmentBreakdown || [];
+          this.roleBreakdown = data.roleBreakdown || {};
+          this.subjectBreakdown = data.subjectBreakdown || [];
+        }
+        this.loading = false;
+      },
+      error: (err: any) => {
+        this.errorMessage = err?.message || 'Failed to search users.';
+        this.loading = false;
+      }
+    });
   }
 
   /** Called from the search input — debounced via Subject */
-  onSearchInput(val?: string): void {
-    const value = val !== undefined ? val : this.searchTerm;
-    this.searchTerm = value;
-    this._searchTerm$.next(value);
+  onSearchInput(): void {
+    this._searchTerm$.next(this.searchTerm);
+  }
+
+  toggleExportDropdown(event?: Event): void {
+    event?.stopPropagation();
+    this.isExportDropdownOpen = !this.isExportDropdownOpen;
+  }
+
+  closeExportDropdown(): void {
+    this.isExportDropdownOpen = false;
   }
 
   /** Apply filters immediately (status, role, dept changes) */
@@ -647,6 +701,7 @@ export class ViewAllUserss implements OnInit {
   }
 
   exportUsers(format: string): void {
+    this.closeExportDropdown();
     const params = {
       format,
       sortBy: this.sortBy,
@@ -658,8 +713,23 @@ export class ViewAllUserss implements OnInit {
       subjectId: this.subjectIdFilter,
       status: this.statusFilter
     };
-    const url = this.apiService.getExportUsersUrl(params);
-    window.open(url, '_blank');
+
+    this.apiService.downloadExportUsers(params).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const today = new Date().toISOString().split('T')[0];
+        a.href = url;
+        a.download = `users-export-${today}.${format === 'CSV' ? 'csv' : 'xlsx'}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err: any) => {
+        this.errorMessage = err?.message || err?.error?.message || 'Failed to export users.';
+      }
+    });
   }
 
   /** Handle page click with type safety */
@@ -1177,6 +1247,9 @@ export class ViewAllUserss implements OnInit {
       this.addUserShowManagerDrop = false;
       this.addUserShowSubDeptDrop = false;
       this.addUserShowSubjectDrop = false;
+    }
+    if (!target.closest('.export-dropdown-wrap')) {
+      this.isExportDropdownOpen = false;
     }
   }
 

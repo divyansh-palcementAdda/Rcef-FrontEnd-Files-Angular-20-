@@ -1670,3 +1670,53 @@
   background: rgba(0, 0, 0, 0.5);
   z-index: 1050;
 }
+
+/* Bulk upload modal overlay */
+.modal-backdrop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem 1rem;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  overflow-y: auto;
+}
+
+.modal-window-wrapper {
+  width: 100%;
+  max-width: 1100px;
+  margin-top: 0;
+  position: relative;
+  z-index: 2001;
+}
+
+.modal-size-large {
+  width: min(1100px, 100%);
+}
+
+.modal-form-layout {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+  max-height: calc(100vh - 3rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-form-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+  flex: 0 0 auto;
+}
+
+.modal-form-body {
+  padding: 1.5rem;
+  overflow: auto;
+  flex: 1 1 auto;
+}

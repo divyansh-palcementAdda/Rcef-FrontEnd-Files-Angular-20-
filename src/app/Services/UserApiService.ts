@@ -405,6 +405,13 @@ export class UserApiService {
     return url;
   }
 
+  downloadExportUsers(params: any): Observable<Blob> {
+    const url = this.getExportUsersUrl(params);
+    return this.http.get(url, { responseType: 'blob' }).pipe(
+      catchError(err => this.handleError(err, 'export users'))
+    );
+  }
+
   getExportTaskDistributionUrl(userId: number, params: any): string {
     let url = `${this.apiUrl}/${userId}/task-distribution/export?type=${params.type}&format=${params.format}`;
     if (params.search) url += `&search=${encodeURIComponent(params.search)}`;
