@@ -55,28 +55,23 @@
     <div class="stitch-hero">
       <div class="stitch-hero-content">
         <h1 class="stitch-hero-title">Task Requests</h1>
-        <p class="stitch-hero-subtitle">Approve or reject closure and extension requests submitted by teachers and
-          department staff.</p>
+        <p class="stitch-hero-subtitle">Review and action closure &amp; extension requests submitted by staff.</p>
         <div class="stitch-hero-pills">
           <div class="stitch-hero-pill">
             <span class="stitch-hero-dot" style="background-color: #ffffff;"></span>
             <span>{{ stats.totalRequests }} Total</span>
           </div>
           <div class="stitch-hero-pill">
-            <span class="stitch-hero-dot" style="background-color: #f59e0b;"></span>
+            <span class="stitch-hero-dot" style="background-color: #fbbf24;"></span>
             <span>{{ stats.pending }} Pending</span>
           </div>
           <div class="stitch-hero-pill">
-            <span class="stitch-hero-dot" style="background-color: #10b981;"></span>
+            <span class="stitch-hero-dot" style="background-color: #34d399;"></span>
             <span>{{ stats.approved }} Approved</span>
           </div>
           <div class="stitch-hero-pill">
-            <span class="stitch-hero-dot" style="background-color: #6366f1;"></span>
-            <span>{{ stats.closureRequests }} Closure</span>
-          </div>
-          <div class="stitch-hero-pill">
-            <span class="stitch-hero-dot" style="background-color: #06b6d4;"></span>
-            <span>{{ stats.extensionRequests }} Extension</span>
+            <span class="stitch-hero-dot" style="background-color: #f87171;"></span>
+            <span>{{ stats.rejected }} Rejected</span>
           </div>
         </div>
       </div>
@@ -88,73 +83,94 @@
     </div>
 
     <!-- ==========================================
-       2. HIERARCHICAL ANALYTICS CARDS SECTION
+       2. ANALYTICS CARDS SECTION
        ========================================== -->
-    <div class="dashboard-analytics-container mb-4">
+    <div class="analytics-section mb-4">
 
       <!-- SECTION 1: REQUEST TYPE -->
-      <div class="mb-4">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="bi bi-tag-fill text-primary"></i>
-          <h6 class="fw-bold mb-0 text-dark text-uppercase tracking-wider" style="font-size: 0.8rem; letter-spacing: 0.05em;">Request Type</h6>
+      <div class="analytics-section-block">
+        <div class="analytics-section-label">
+          <span class="analytics-section-label-dot dot-indigo"></span>
+          <span>Filter by Request Type</span>
         </div>
         <div class="row g-3">
-          <div class="col-md-4">
-            <app-analytics-stat-card [title]="'Total Requests'" [value]="stats?.total?.total || stats?.totalRequests || 0"
-              [subtitle]="'All Request Types'" [iconClass]="'bi bi-journal-text'" [theme]="'blue'"
-              [selected]="!requestTypeFilter" (click)="selectRequestType('')">
+          <div class="col-sm-6">
+            <app-analytics-stat-card
+              [title]="'Closure Requests'"
+              [value]="stats?.closure?.total ?? stats?.closureRequests ?? 0"
+              [subtitle]="'Task Closure Submissions'"
+              [iconClass]="'bi bi-lock-fill'"
+              [theme]="'indigo'"
+              [selected]="requestTypeFilter === 'CLOSURE'"
+              (click)="selectRequestType('CLOSURE')">
             </app-analytics-stat-card>
           </div>
-          <div class="col-md-4">
-            <app-analytics-stat-card [title]="'Closure Requests'" [value]="stats?.closure?.total || stats?.closureRequests || 0"
-              [subtitle]="'Task Closure Submissions'" [iconClass]="'bi bi-lock-fill'" [theme]="'indigo'"
-              [selected]="requestTypeFilter === 'CLOSURE'" (click)="selectRequestType('CLOSURE')">
-            </app-analytics-stat-card>
-          </div>
-          <div class="col-md-4">
-            <app-analytics-stat-card [title]="'Extension Requests'" [value]="stats?.extension?.total || stats?.extensionRequests || 0"
-              [subtitle]="'DueDate Extension Requests'" [iconClass]="'bi bi-clock-history'" [theme]="'cyan'"
-              [selected]="requestTypeFilter === 'EXTENSION'" (click)="selectRequestType('EXTENSION')">
+          <div class="col-sm-6">
+            <app-analytics-stat-card
+              [title]="'Extension Requests'"
+              [value]="stats?.extension?.total ?? stats?.extensionRequests ?? 0"
+              [subtitle]="'Due Date Extension Requests'"
+              [iconClass]="'bi bi-clock-history'"
+              [theme]="'cyan'"
+              [selected]="requestTypeFilter === 'EXTENSION'"
+              (click)="selectRequestType('EXTENSION')">
             </app-analytics-stat-card>
           </div>
         </div>
       </div>
 
-      <!-- SECTION 2: REQUEST STATUS BREAKDOWN -->
-      <div>
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="bi bi-bar-chart-line-fill text-secondary"></i>
-          <h6 class="fw-bold mb-0 text-dark text-uppercase tracking-wider" style="font-size: 0.8rem; letter-spacing: 0.05em;">Request Status Breakdown</h6>
-          <span class="badge bg-light text-dark border px-2 py-1 ms-1" style="font-size: 0.72rem; font-weight: 500;">
-            <i class="bi bi-funnel me-1 text-primary"></i>
-            {{ requestTypeFilter === 'CLOSURE' ? 'Closure Requests Scope' : (requestTypeFilter === 'EXTENSION' ? 'Extension Requests Scope' : 'All Requests Scope') }}
-          </span>
+      <!-- DIVIDER -->
+      <div class="analytics-divider">
+        <span class="analytics-divider-line"></span>
+        <span class="analytics-divider-chip">
+          <i class="bi bi-funnel-fill me-1"></i>
+          {{ requestTypeFilter === 'CLOSURE' ? 'Closure Scope' : requestTypeFilter === 'EXTENSION' ? 'Extension Scope' : 'All Requests' }}
+        </span>
+        <span class="analytics-divider-line"></span>
+      </div>
+
+      <!-- SECTION 2: STATUS BREAKDOWN -->
+      <div class="analytics-section-block">
+        <div class="analytics-section-label">
+          <span class="analytics-section-label-dot dot-amber"></span>
+          <span>Status Breakdown</span>
         </div>
         <div class="row g-3">
-          <div class="col-md-4">
-            <app-analytics-stat-card [title]="'Pending Requests'" [value]="activeStatusStats?.pending || 0"
-              [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Pending Closure' : (requestTypeFilter === 'EXTENSION' ? 'Pending Extension' : 'All Pending')"
-              [iconClass]="'bi bi-hourglass-split'" [theme]="'amber'" [selected]="statusFilter === 'PENDING'"
+          <div class="col-sm-4">
+            <app-analytics-stat-card
+              [title]="'Pending'"
+              [value]="activeStatusStats?.pending ?? 0"
+              [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Pending Closure' : requestTypeFilter === 'EXTENSION' ? 'Pending Extension' : 'Awaiting Review'"
+              [iconClass]="'bi bi-hourglass-split'"
+              [theme]="'amber'"
+              [selected]="statusFilter === 'PENDING'"
               (click)="selectRequestStatus('PENDING')">
             </app-analytics-stat-card>
           </div>
-          <div class="col-md-4">
-            <app-analytics-stat-card [title]="'Approved Requests'" [value]="activeStatusStats?.approved || 0"
-              [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Approved Closure' : (requestTypeFilter === 'EXTENSION' ? 'Approved Extension' : 'All Approved')"
-              [iconClass]="'bi bi-check-circle'" [theme]="'emerald'" [selected]="statusFilter === 'APPROVED'"
+          <div class="col-sm-4">
+            <app-analytics-stat-card
+              [title]="'Approved'"
+              [value]="activeStatusStats?.approved ?? 0"
+              [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Approved Closure' : requestTypeFilter === 'EXTENSION' ? 'Approved Extension' : 'Accepted Requests'"
+              [iconClass]="'bi bi-check-circle-fill'"
+              [theme]="'emerald'"
+              [selected]="statusFilter === 'APPROVED'"
               (click)="selectRequestStatus('APPROVED')">
             </app-analytics-stat-card>
           </div>
-          <div class="col-md-4">
-            <app-analytics-stat-card [title]="'Rejected Requests'" [value]="activeStatusStats?.rejected || 0"
-              [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Rejected Closure' : (requestTypeFilter === 'EXTENSION' ? 'Rejected Extension' : 'All Rejected')"
-              [iconClass]="'bi bi-x-circle'" [theme]="'rose'" [selected]="statusFilter === 'REJECTED'"
+          <div class="col-sm-4">
+            <app-analytics-stat-card
+              [title]="'Rejected'"
+              [value]="activeStatusStats?.rejected ?? 0"
+              [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Rejected Closure' : requestTypeFilter === 'EXTENSION' ? 'Rejected Extension' : 'Declined Requests'"
+              [iconClass]="'bi bi-x-circle-fill'"
+              [theme]="'red'"
+              [selected]="statusFilter === 'REJECTED'"
               (click)="selectRequestStatus('REJECTED')">
             </app-analytics-stat-card>
           </div>
         </div>
       </div>
-
 
     </div>
 
@@ -235,14 +251,14 @@
               <td data-label="Task & Requester">
                 <div class="stitch-task-title-area">
                   <div class="stitch-task-title-row">
-                    <span class="stitch-task-title">{{ req.taskTitle }}</span>
+                    <a [routerLink]="['/task', req.taskId]" class="stitch-task-title">{{ req.taskTitle }}</a>
                     <span class="stitch-tag-badge" [ngClass]="{
                       'tag-priority-high': req.taskPriority === 'HIGH',
                       'tag-priority-medium': req.taskPriority === 'MEDIUM',
                       'tag-priority-low': req.taskPriority === 'LOW'
                     }">{{ req.taskPriority }}</span>
                   </div>
-                  <p class="stitch-task-desc">By: <strong class="text-white opacity-90">{{ req.requester }}</strong> ({{
+                  <p class="stitch-task-desc">By: <strong class="fw-semibold text-dark">{{ req.requester }}</strong> ({{
                     req.requesterRole }})</p>
                 </div>
               </td>
@@ -421,10 +437,10 @@
             <p class="text-muted mt-2 small">Lazy loading proof documents...</p>
           </div>
 
-          <div *ngIf="!loadingDetail">
+          <div *ngIf="!loadingDetail && activeRequestDetail">
             <!-- Request general meta -->
             <div class="detail-section mb-4 p-3 rounded bg-light border">
-              <h5 class="fw-bold text-dark mb-2">{{ activeRequestDetail.taskTitle }}</h5>
+              <h5 class="fw-bold text-dark mb-2"><a [routerLink]="['/task', activeRequestDetail.taskId]" (click)="closeDetailModal()" class="text-dark text-decoration-none hover-primary-text">{{ activeRequestDetail.taskTitle }}</a></h5>
               <p class="text-muted small mb-3">Task ID: #{{ activeRequestDetail.taskId }} | Priority: <span class="badge bg-secondary">{{
                 activeRequestDetail.taskPriority }}</span></p>
 

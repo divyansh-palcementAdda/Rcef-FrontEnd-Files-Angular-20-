@@ -97,6 +97,12 @@
   --theme-glow: rgba(236, 72, 153, 0.15);
 }
 
+.card-theme-rose {
+  --theme-primary: #f43f5e;
+  --theme-subtle: #fff1f2;
+  --theme-glow: rgba(244, 63, 94, 0.15);
+}
+
 /* 3. Selected Active State */
 .analytics-stat-card.is-selected {
   border-color: var(--theme-primary) !important;

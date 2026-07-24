@@ -113,12 +113,70 @@
 }
 
 /* ----------------------------------------------------------
-   KPI CARDS GRID
+   ANALYTICS SECTION
    ---------------------------------------------------------- */
-.overall-statistics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
+.analytics-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.analytics-section-block {
+  width: 100%;
+}
+
+.analytics-section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #64748b;
+  margin-bottom: 0.85rem;
+}
+
+.analytics-section-label-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-indigo { background-color: #4f46e5; }
+.dot-amber  { background-color: #f59e0b; }
+.dot-cyan   { background-color: #06b6d4; }
+
+/* Animated divider between the two analytics sub-sections */
+.analytics-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.analytics-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.analytics-divider-chip {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #4f46e5;
+  background: #eeebff;
+  border: 1px solid #c7d2fe;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
 }
 
 /* ----------------------------------------------------------
@@ -165,6 +223,15 @@
   font-size: 0.88rem;
   font-weight: 700;
   color: #111827;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.stitch-task-title:hover,
+.hover-primary-text:hover {
+  color: #4f46e5 !important;
+  text-decoration: underline !important;
 }
 
 .stitch-task-desc {
@@ -277,6 +344,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.stitch-pag-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  flex-wrap: wrap;
 }
 
 .stitch-pag-size-selector {
