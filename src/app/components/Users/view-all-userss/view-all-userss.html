@@ -279,7 +279,7 @@
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
             <input type="text" class="form-control" placeholder="Search by name, email, or role..."
-              [(ngModel)]="searchTerm" (input)="onSearchInput()">
+              [ngModel]="searchTerm" (ngModelChange)="onSearchInput($event)">
           </div>
         </div>
         <div class="col-md-3">

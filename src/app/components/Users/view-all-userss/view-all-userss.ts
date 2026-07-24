@@ -1,5 +1,4 @@
-// view-all-userss.component.ts
-import { Component, OnInit, inject, HostListener } from '@angular/core';
+import { Component, OnInit, inject, HostListener, DestroyRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { userDto } from '../../../Model/userDto';
 import { CommonModule } from '@angular/common';
@@ -12,7 +11,7 @@ import { Department } from '../../../Model/department';
 import { ApiService } from '../../../Services/api-service';
 import { SubjectApiService } from '../../../Services/subject-api.service';
 import { forkJoin, Observable, of, Subject, switchMap } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../Services/modal-service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
@@ -190,6 +189,7 @@ export class ViewAllUserss implements OnInit {
   currentRole!: string;          // ADMIN | HOD
   private hodSubDepartmentId?: string;   // only for HOD (UUID)
 
+  private destroyRef = inject(DestroyRef);
   private modalService = inject(ModalService);
 
   constructor(
@@ -206,55 +206,97 @@ export class ViewAllUserss implements OnInit {
   ) {
     this.modalService.modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.success) {
-        this.loadUsersForRole();
+        this.updateQueryParams();
       }
+    });
+
+    // ── Debounced main search (prevents API call on every keystroke) ──
+    this._searchTerm$.pipe(
+      takeUntilDestroyed(),
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.searchTerm = term;
+      this.currentPage = 1;
+      this.updateQueryParams();
     });
   }
 
   ngOnInit(): void {
-    // ── Debounced main search (prevents API call on every keystroke) ──
-    this._searchTerm$.pipe(
-      debounceTime(400), distinctUntilChanged()
-    ).subscribe(() => {
-      this.currentPage = 1;
-      this.updateQueryParams();
-    });
-
-    // ── Debounced search streams for Add User modal dropdowns ──
-    this._addUserManagerSearch$.pipe(
-      debounceTime(300), distinctUntilChanged()
-    ).subscribe(() => this._rebuildFilteredManagers());
-
-    this._addUserSubjectSearch$.pipe(
-      debounceTime(300), distinctUntilChanged()
-    ).subscribe(() => this._rebuildFilteredSubjects());
-
-    this._addUserDeptSearch$.pipe(
-      debounceTime(300), distinctUntilChanged()
-    ).subscribe(() => this._rebuildFilteredDepts());
-    // ──────────────────────────────────────────────────────────
+    // Load filter dropdown options once on initial startup
+    this.loadDropdownOptions();
 
     this.initCurrentUser()
       .pipe(
-        switchMap(() => this.route.queryParams)
-      )
-      .subscribe(params => {
-        if (this.showAccessDeniedModal) return; // Teacher blocked — skip data load
-        
-        this.currentPage = params['page'] ? Number(params['page']) : 1;
-        this.pageSize = params['pageSize'] ? Number(params['pageSize']) : 10;
-        this.sortBy = params['sortBy'] || 'fullName';
-        this.sortDirection = params['sortDirection'] || 'asc';
-        this.searchTerm = params['search'] || '';
-        this.roleFilter = params['role'] || '';
-        this.departmentIdFilter = params['department'] ? Number(params['department']) : '';
-        this.subDepartmentIdFilter = params['subDepartment'] || '';
-        this.subjectIdFilter = params['subject'] ? Number(params['subject']) : '';
-        this.statusFilter = params['status'] ? params['status'].toUpperCase() : '';
-        this.selectedCard = params['card'] || 'total';
+        switchMap(() => this.route.queryParams),
+        takeUntilDestroyed(this.destroyRef),
+        map(params => {
+          if (this.showAccessDeniedModal) return null;
 
-        this.loadDropdownOptions();
-        this.loadUsersForRole();
+          this.currentPage = params['page'] ? Number(params['page']) : 1;
+          this.pageSize = params['pageSize'] ? Number(params['pageSize']) : 10;
+          this.sortBy = params['sortBy'] || 'fullName';
+          this.sortDirection = params['sortDirection'] || 'asc';
+          this.searchTerm = params['search'] || '';
+          this.roleFilter = params['role'] || '';
+          this.departmentIdFilter = params['department'] ? Number(params['department']) : '';
+          this.subDepartmentIdFilter = params['subDepartment'] || '';
+          this.subjectIdFilter = params['subject'] ? Number(params['subject']) : '';
+          this.statusFilter = params['status'] ? params['status'].toUpperCase() : '';
+          this.selectedCard = params['card'] || 'total';
+
+          const requestParams: any = {
+            page: this.currentPage - 1,
+            size: this.pageSize,
+            sortBy: this.sortBy,
+            sortDirection: this.sortDirection
+          };
+
+          if (this.searchTerm) requestParams.search = this.searchTerm;
+          if (this.roleFilter) requestParams.role = this.roleFilter;
+          if (this.departmentIdFilter) requestParams.departmentId = this.departmentIdFilter.toString();
+          if (this.subDepartmentIdFilter) requestParams.subDepartmentId = this.subDepartmentIdFilter;
+          if (this.subjectIdFilter) requestParams.subjectId = this.subjectIdFilter.toString();
+          if (this.statusFilter) requestParams.status = this.statusFilter;
+
+          if (this.currentRole === 'HOD' && this.hodSubDepartmentId) {
+            requestParams.subDepartmentId = this.hodSubDepartmentId;
+            this.subDepartmentIdFilter = this.hodSubDepartmentId;
+          }
+
+          return requestParams;
+        }),
+        filter((params): params is any => params !== null),
+        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+        tap(() => {
+          this.loading = true;
+          this.errorMessage = null;
+        }),
+        switchMap(requestParams =>
+          this.apiService.searchUsers(requestParams).pipe(
+            catchError(err => {
+              this.errorMessage = err?.message || 'Failed to search users.';
+              this.loading = false;
+              return of(null);
+            })
+          )
+        )
+      )
+      .subscribe(res => {
+        if (res && res.success && res.data) {
+          const data = res.data;
+          this.users = data.content || [];
+          this.filteredUsers = this.users;
+          this.totalElements = data.pagination?.totalElements ?? 0;
+          this.totalPages = data.pagination?.totalPages ?? 1;
+          this.currentPage = (data.pagination?.currentPage ?? 0) + 1;
+
+          this.stats = data.stats || this.stats;
+          this.departmentBreakdown = data.departmentBreakdown || [];
+          this.roleBreakdown = data.roleBreakdown || {};
+          this.subjectBreakdown = data.subjectBreakdown || [];
+        }
+        this.loading = false;
       });
   }
 
@@ -309,7 +351,6 @@ export class ViewAllUserss implements OnInit {
       next: (depts) => {
         this.departmentsList = depts || [];
         this.availableDepartments = depts || [];
-        this._rebuildFilteredDepts();
         this.initializeFilterFields();
       },
       error: (err) => console.error('Failed to load departments', err)
@@ -359,28 +400,28 @@ export class ViewAllUserss implements OnInit {
         label: 'User Role',
         type: 'select',
         section: 'general',
-        options: this.rolesList.map(r => ({ value: r.name, label: r.displayName || r.name }))
+        options: (this.rolesList || []).map(r => ({ value: r.name, label: r.displayName || r.name }))
       },
       {
         key: 'departmentIdFilter',
         label: 'Department',
         type: 'select',
         section: 'organization',
-        options: this.departmentsList.map(d => ({ value: d.departmentId, label: d.name }))
+        options: (this.departmentsList || []).map(d => ({ value: d.departmentId, label: d.name }))
       },
       {
         key: 'subDepartmentIdFilter',
         label: 'Sub Department',
         type: 'select',
         section: 'organization',
-        options: this.subDepartmentsList.map(s => ({ value: s.id, label: s.name }))
+        options: (this.subDepartmentsList || []).map(s => ({ value: s.id, label: s.name }))
       },
       {
         key: 'subjectIdFilter',
         label: 'Subject',
         type: 'select',
         section: 'organization',
-        options: this.subjectsList.map(s => ({ value: s.id, label: s.subjectName }))
+        options: (this.subjectsList || []).map(s => ({ value: s.id, label: s.subjectName }))
       }
     ];
   }
@@ -389,56 +430,14 @@ export class ViewAllUserss implements OnInit {
    *  Load the correct list depending on role with dynamic filters
    *  ------------------------------------------------------------ */
   loadUsersForRole(): void {
-    this.loading = true;
-    this.errorMessage = null;
-
-    const params: any = {
-      page: this.currentPage - 1,
-      size: this.pageSize,
-      sortBy: this.sortBy,
-      sortDirection: this.sortDirection
-    };
-
-    if (this.searchTerm) params.search = this.searchTerm;
-    if (this.roleFilter) params.role = this.roleFilter;
-    if (this.departmentIdFilter) params.departmentId = this.departmentIdFilter.toString();
-    if (this.subDepartmentIdFilter) params.subDepartmentId = this.subDepartmentIdFilter;
-    if (this.subjectIdFilter) params.subjectId = this.subjectIdFilter.toString();
-    if (this.statusFilter) params.status = this.statusFilter;
-
-    // Enforcement of HOD dynamic RBAC filtering
-    if (this.currentRole === 'HOD' && this.hodSubDepartmentId) {
-      params.subDepartmentId = this.hodSubDepartmentId;
-      this.subDepartmentIdFilter = this.hodSubDepartmentId;
-    }
-
-    this.apiService.searchUsers(params).subscribe({
-      next: (res) => {
-        if (res && res.success && res.data) {
-          const data = res.data;
-          this.users = data.content || [];
-          this.filteredUsers = this.users;
-          this.totalElements = data.pagination?.totalElements ?? 0;
-          this.totalPages = data.pagination?.totalPages ?? 1;
-          this.currentPage = (data.pagination?.currentPage ?? 0) + 1;
-
-          this.stats = data.stats || this.stats;
-          this.departmentBreakdown = data.departmentBreakdown || [];
-          this.roleBreakdown = data.roleBreakdown || {};
-          this.subjectBreakdown = data.subjectBreakdown || [];
-        }
-        this.loading = false;
-      },
-      error: (err: any) => {
-        this.errorMessage = err?.message || 'Failed to search users.';
-        this.loading = false;
-      }
-    });
+    this.updateQueryParams();
   }
 
   /** Called from the search input — debounced via Subject */
-  onSearchInput(): void {
-    this._searchTerm$.next(this.searchTerm);
+  onSearchInput(val?: string): void {
+    const value = val !== undefined ? val : this.searchTerm;
+    this.searchTerm = value;
+    this._searchTerm$.next(value);
   }
 
   /** Apply filters immediately (status, role, dept changes) */
@@ -464,11 +463,11 @@ export class ViewAllUserss implements OnInit {
   selectCard(cardType: string): void {
     this.selectedCard = cardType;
     this.currentPage = 1;
-    
+
     // Reset temporary filters
     this.roleFilter = '';
     this.statusFilter = '';
-    
+
     if (cardType === 'admins') {
       this.roleFilter = 'ADMIN';
     } else if (cardType === 'subadmins') {
@@ -482,7 +481,7 @@ export class ViewAllUserss implements OnInit {
     } else if (cardType === 'inactive') {
       this.statusFilter = 'INACTIVE';
     }
-    
+
     this.updateQueryParams();
   }
 
@@ -536,9 +535,9 @@ export class ViewAllUserss implements OnInit {
   /** Active filter chips (mirrors Task Management pattern) */
   get activeChips(): Array<{ key: string; label: string }> {
     const chips: Array<{ key: string; label: string }> = [];
-    if (this.searchTerm)          chips.push({ key: 'search',        label: `Search: "${this.searchTerm}"` });
-    if (this.statusFilter)        chips.push({ key: 'status',        label: `Status: ${this.statusFilter}` });
-    if (this.roleFilter)          chips.push({ key: 'role',          label: `Role: ${this.roleFilter}` });
+    if (this.searchTerm) chips.push({ key: 'search', label: `Search: "${this.searchTerm}"` });
+    if (this.statusFilter) chips.push({ key: 'status', label: `Status: ${this.statusFilter}` });
+    if (this.roleFilter) chips.push({ key: 'role', label: `Role: ${this.roleFilter}` });
     if (this.departmentIdFilter) {
       const d = this.departmentsList.find(x => x.departmentId === Number(this.departmentIdFilter));
       chips.push({ key: 'department', label: `Dept: ${d ? d.name : this.departmentIdFilter}` });
@@ -557,24 +556,24 @@ export class ViewAllUserss implements OnInit {
   /** Current filter values snapshot for the drawer */
   get filterValues(): { [key: string]: any } {
     return {
-      searchTerm:           this.searchTerm,
-      statusFilter:         this.statusFilter,
-      roleFilter:           this.roleFilter,
-      departmentIdFilter:   this.departmentIdFilter,
+      searchTerm: this.searchTerm,
+      statusFilter: this.statusFilter,
+      roleFilter: this.roleFilter,
+      departmentIdFilter: this.departmentIdFilter,
       subDepartmentIdFilter: this.subDepartmentIdFilter,
-      subjectIdFilter:      this.subjectIdFilter
+      subjectIdFilter: this.subjectIdFilter
     };
   }
 
   /** Remove a single chip and reload */
   removeChip(key: string): void {
     switch (key) {
-      case 'search':        this.searchTerm = '';            break;
-      case 'status':        this.statusFilter = '';  this.selectedCard = 'total'; break;
-      case 'role':          this.roleFilter = '';           break;
-      case 'department':    this.departmentIdFilter = '';   break;
+      case 'search': this.searchTerm = ''; break;
+      case 'status': this.statusFilter = ''; this.selectedCard = 'total'; break;
+      case 'role': this.roleFilter = ''; break;
+      case 'department': this.departmentIdFilter = ''; break;
       case 'subDepartment': this.subDepartmentIdFilter = ''; break;
-      case 'subject':       this.subjectIdFilter = '';      break;
+      case 'subject': this.subjectIdFilter = ''; break;
     }
     this.currentPage = 1;
     this.loadUsersForRole();
@@ -584,13 +583,13 @@ export class ViewAllUserss implements OnInit {
   onToolbarSearch(term: string): void {
     this.searchTerm = term;
     this.currentPage = 1;
-    this.loadUsersForRole();
+    this.updateQueryParams();
   }
 
   onToolbarSearchClear(): void {
     this.searchTerm = '';
     this.currentPage = 1;
-    this.loadUsersForRole();
+    this.updateQueryParams();
   }
 
   /** Role-wise user count helpers */
@@ -674,11 +673,11 @@ export class ViewAllUserss implements OnInit {
   getPageNumbers(): (number | string)[] {
     const pages: (number | string)[] = [];
     const maxVisible = 3;
-    
+
     if (this.totalPages <= maxVisible) {
       return Array.from({ length: this.totalPages }, (_, i) => i + 1);
     }
-    
+
     if (this.currentPage <= 2) {
       pages.push(1, 2, 3, '...', this.totalPages);
     } else if (this.currentPage >= this.totalPages - 1) {
@@ -686,7 +685,7 @@ export class ViewAllUserss implements OnInit {
     } else {
       pages.push(1, '...', this.currentPage, '...', this.totalPages);
     }
-    
+
     return pages;
   }
 
@@ -816,7 +815,7 @@ export class ViewAllUserss implements OnInit {
     if (this.availableDepartments.length === 0) {
       this.departmentApiService.getAllDepartments().subscribe({
         next: (depts) => { this.availableDepartments = depts; this._rebuildFilteredDepts(); },
-        error: () => {}
+        error: () => { }
       });
     } else {
       this._rebuildFilteredDepts();
@@ -897,7 +896,7 @@ export class ViewAllUserss implements OnInit {
     if (role && role !== 'SUPER_ADMIN') {
       this.apiService.getEligibleManagers(role).subscribe({
         next: (managers) => { this.addUserEligibleManagers = managers; this._rebuildFilteredManagers(); },
-        error: () => {}
+        error: () => { }
       });
     }
 
@@ -974,7 +973,7 @@ export class ViewAllUserss implements OnInit {
           this.reloadAddUserSubjects();
         }
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -1011,7 +1010,7 @@ export class ViewAllUserss implements OnInit {
     const q = this.addUserManagerSearch.toLowerCase().trim();
     this._filteredManagers = q
       ? this.addUserEligibleManagers.filter(u =>
-          u.fullName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q))
+        u.fullName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q))
       : [...this.addUserEligibleManagers];
   }
 
@@ -1068,7 +1067,7 @@ export class ViewAllUserss implements OnInit {
             id => subs.some((s: any) => s.id === id)
           );
         },
-        error: () => {}
+        error: () => { }
       });
     } else if (deptIds.length > 0) {
       // Fallback: load by departments
@@ -1083,7 +1082,7 @@ export class ViewAllUserss implements OnInit {
             id => unique.some((s: any) => s.id === id)
           );
         },
-        error: () => {}
+        error: () => { }
       });
     }
   }
@@ -1097,7 +1096,7 @@ export class ViewAllUserss implements OnInit {
     const q = this.addUserSubjectSearch.toLowerCase().trim();
     this._filteredSubjects = q
       ? this.addUserSubjects.filter(s =>
-          s.subjectName?.toLowerCase().includes(q) || s.subjectCode?.toLowerCase().includes(q))
+        s.subjectName?.toLowerCase().includes(q) || s.subjectCode?.toLowerCase().includes(q))
       : [...this.addUserSubjects];
   }
 
@@ -1132,7 +1131,7 @@ export class ViewAllUserss implements OnInit {
       return;
     }
     if (!this.addUserPayload.fullName.trim() || !this.addUserPayload.username.trim() ||
-        !this.addUserPayload.password || !this.addUserPayload.roleName) {
+      !this.addUserPayload.password || !this.addUserPayload.roleName) {
       this.addUserError = 'Please fill all required fields.';
       return;
     }
@@ -1191,7 +1190,8 @@ export class ViewAllUserss implements OnInit {
     }
   }
 
-  goBackToDashboard() {    const token = this.jwtService.getAccessToken();
+  goBackToDashboard() {
+    const token = this.jwtService.getAccessToken();
     if (token) {
       const payload = this.jwtService.decodeToken(token);
       this.authApiService.goToDashboard();
@@ -1225,7 +1225,7 @@ export class ViewAllUserss implements OnInit {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        
+
         this.toastService.show({
           title: 'Success',
           message: 'Template downloaded successfully'
