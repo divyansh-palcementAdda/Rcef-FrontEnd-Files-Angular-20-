@@ -153,6 +153,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
+  totalElements = 0;
 
   // Filter selection options
   filterUsers: string[] = [];
@@ -291,6 +292,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   onTabChange(tab: 'overview' | 'tasks' | 'users' | 'subjects' | 'analytics' | 'activity'): void {
     this.activeTab = tab;
     if (tab === 'tasks') {
+      this.currentPage = 1;
       this.fetchTasks();
     } else if (tab === 'users') {
       this.loadUserBreakdowns();
@@ -317,8 +319,11 @@ export class SubDepartmentDetailsComponent implements OnInit {
     };
     this.deptApiService.getSubDepartmentTasks(this.subDeptId, params).subscribe({
       next: (res: any) => {
-        this.paginatedTasks = res.content || [];
-        this.totalPages = res.totalPages || 1;
+        this.paginatedTasks = res?.content || [];
+        this.totalPages = res?.page?.totalPages || 1;
+        this.totalElements = res?.page?.totalElements || 0;
+        this.pageSize = res?.page?.size || this.pageSize;
+        this.currentPage = (res?.page?.number ?? (this.currentPage - 1)) + 1;
         this.tasksLoading = false;
       },
       error: (err: any) => {
@@ -415,6 +420,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
       this.fetchTasks();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
