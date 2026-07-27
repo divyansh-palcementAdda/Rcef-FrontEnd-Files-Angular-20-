@@ -193,11 +193,6 @@ getRecurredInstancesByParent(parentTaskId: number): Observable<ApiResponse<TaskD
     return this.http.post<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}/generate-instance`, {});
   }
 
-  // 6. Delete Task (Admin only)
-  deleteTask(taskId: number): Observable<ApiResponse<null>> {
-    return this.http.delete<ApiResponse<null>>(`${this.baseUrl}/${taskId}`);
-  }
-
   // 7. Get Task by ID
   getTaskById(taskId: number): Observable<ApiResponse<TaskDto>> {
     return this.http.get<ApiResponse<TaskDto>>(`${this.baseUrl}/${taskId}`);
@@ -266,6 +261,13 @@ getRecurredInstancesByParent(parentTaskId: number): Observable<ApiResponse<TaskD
     return this.http.patch<ApiResponse<TaskDto>>(
       `${this.baseUrl}/${taskId}/toggle-recurring`,
       payload
+    );
+  }
+
+  // 15. Delete Task (soft delete)
+  deleteTask(taskId: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/${taskId}`).pipe(
+      catchError(err => this.handleError(err, 'delete task'))
     );
   }
 

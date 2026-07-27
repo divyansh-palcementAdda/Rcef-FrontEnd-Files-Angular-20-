@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 export class AnalyticsStatCardComponent {
   @Input() title = '';
   @Input() value: number | string = 0;
+  @Input() showValue = true;
   @Input() iconClass = '';
   @Input() theme = 'blue';
   @Input() selected = false;

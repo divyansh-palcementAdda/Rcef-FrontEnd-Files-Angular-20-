@@ -164,7 +164,7 @@ export class AuthorizationService {
     if (role === 'HOD') {
       const userSubDepts = this.currentUser.subDepartmentIds || [];
       const assignedIds = task.assignedToIds || (task.assignedUsers ? task.assignedUsers.map((u: any) => u.userId) : (task.assignedToId ? [task.assignedToId] : []));
-      
+
       // HOD direct assignment
       if (assignedIds.includes(userId)) {
         return true;
@@ -211,7 +211,7 @@ export class AuthorizationService {
    * Returns true if the user can delete this task.
    */
   canDeleteTask(task: any): boolean {
-    if (!this.hasPermission('TASK_DELETE')) return false;
+    if (!this.hasAnyPermission(['TASK_DELETE', 'SUB_DEPARTMENT_TASK_DELETE'])) return false;
     const role = this.authService.getCurrentRole();
     if (role === 'SUB_ADMIN' || role === 'TEACHER') return false;
     return this.canAccessTask(task);

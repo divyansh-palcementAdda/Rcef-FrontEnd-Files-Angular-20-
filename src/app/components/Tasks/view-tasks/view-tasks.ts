@@ -13,6 +13,7 @@ import { userDto } from '../../../Model/userDto';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { ModalService } from '../../../Services/modal-service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
+import { ToastService } from '../../../Services/ToastData';
 import { AuthorizationService } from '../../../Services/authorization.service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { SubjectApiService } from '../../../Services/subject-api.service';
@@ -45,6 +46,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private confirmDialog = inject(ConfirmDialogService);
   private authorizationService = inject(AuthorizationService);
+  private toastService = inject(ToastService);
 
 
   // Task Data
@@ -135,17 +137,17 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     delayed?: number;
     In_PROGRESS?: number;
   } = {
-    total: 0,
-    active: 0,
-    pending: 0,
-    completed: 0,
-    overdue: 0,
-    extensionRequests: 0,
-    closureRequests: 0,
-    upcoming: 0,
-    delayed: 0,
-    In_PROGRESS: 0
-  };
+      total: 0,
+      active: 0,
+      pending: 0,
+      completed: 0,
+      overdue: 0,
+      extensionRequests: 0,
+      closureRequests: 0,
+      upcoming: 0,
+      delayed: 0,
+      In_PROGRESS: 0
+    };
 
   taskTemplateBreakdown: TaskAnalyticsItemDto[] = [];
   taskCategoryBreakdown: TaskAnalyticsItemDto[] = [];
@@ -991,12 +993,17 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   deleteTask(event: Event, taskId?: number): void {
-    event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+    }
     if (!taskId) return;
 
+    const task = this.tasks.find(t => t.taskId === taskId);
+    const taskTitle = task ? `'${task.title}'` : 'this task';
+
     this.confirmDialog.confirm({
-      title: 'Delete Task',
-      message: 'Are you sure you want to delete this task? This action cannot be undone.',
+      title: 'Delete Task?',
+      message: `Are you sure you want to delete ${taskTitle}? This task will be Permanently Deleted and will no longer appear In Any Task Listings.`,
       confirmText: 'Delete',
       cancelText: 'Cancel',
       type: 'danger'
@@ -1010,12 +1017,20 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
           .pipe(
             finalize(() => this.loading = false),
             catchError(err => {
+              this.toastService.show({
+                title: 'Delete Failed',
+                message: err?.error?.message || err?.message || 'Failed to delete task'
+              });
               this.handleError(err, 'Failed to delete task.');
               return of({ success: false } as ApiResponse<null>);
             })
           )
           .subscribe(res => {
             if (res?.success) {
+              this.toastService.show({
+                title: 'Task Deleted',
+                message: 'Task Deleted successfully'
+              });
               this.applyFilters();
             } else {
               this.handleError(res, res?.message || 'Delete failed');
@@ -1130,6 +1145,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   canDeleteTask(task: TaskDto): boolean {
     return this.authorizationService.canDeleteTask(task);
   }
+
 
   canEditTask(task: TaskDto): boolean {
     return this.authorizationService.canEditTask(task);

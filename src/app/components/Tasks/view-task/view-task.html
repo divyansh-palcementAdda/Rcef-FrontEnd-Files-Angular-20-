@@ -65,6 +65,14 @@
             Edit Task
           </button>
 
+          <!-- Delete Task (Creators/Admins) -->
+          <button *ngIf="canDeleteTask()"
+            class="btn btn-outline-danger btn-sm px-3 py-1.5 rounded-3 d-flex align-items-center gap-1.5 fw-semibold task-header-action-btn"
+            (click)="deleteTask()" style="font-size: 0.85rem;">
+            <i class="bi bi-trash me-1"></i>
+            Delete Task
+          </button>
+
 
           <button class="btn btn-outline-secondary btn-sm" (click)="goBack()">
             Back

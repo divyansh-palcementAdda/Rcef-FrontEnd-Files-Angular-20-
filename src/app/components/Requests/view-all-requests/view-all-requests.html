@@ -95,25 +95,15 @@
         </div>
         <div class="row g-3">
           <div class="col-sm-6">
-            <app-analytics-stat-card
-              [title]="'Closure Requests'"
-              [value]="stats?.closure?.total ?? stats?.closureRequests ?? 0"
-              [subtitle]="'Task Closure Submissions'"
-              [iconClass]="'bi bi-lock-fill'"
-              [theme]="'indigo'"
-              [selected]="requestTypeFilter === 'CLOSURE'"
-              (click)="selectRequestType('CLOSURE')">
+            <app-analytics-stat-card [title]="'Closure Requests'" [showValue]="false"
+              [subtitle]="'Task Closure Submissions'" [iconClass]="'bi bi-lock-fill'" [theme]="'indigo'"
+              [selected]="requestTypeFilter === 'CLOSURE'" (click)="selectRequestType('CLOSURE')">
             </app-analytics-stat-card>
           </div>
           <div class="col-sm-6">
-            <app-analytics-stat-card
-              [title]="'Extension Requests'"
-              [value]="stats?.extension?.total ?? stats?.extensionRequests ?? 0"
-              [subtitle]="'Due Date Extension Requests'"
-              [iconClass]="'bi bi-clock-history'"
-              [theme]="'cyan'"
-              [selected]="requestTypeFilter === 'EXTENSION'"
-              (click)="selectRequestType('EXTENSION')">
+            <app-analytics-stat-card [title]="'Extension Requests'" [showValue]="false"
+              [subtitle]="'Due Date Extension Requests'" [iconClass]="'bi bi-clock-history'" [theme]="'cyan'"
+              [selected]="requestTypeFilter === 'EXTENSION'" (click)="selectRequestType('EXTENSION')">
             </app-analytics-stat-card>
           </div>
         </div>
@@ -124,7 +114,8 @@
         <span class="analytics-divider-line"></span>
         <span class="analytics-divider-chip">
           <i class="bi bi-funnel-fill me-1"></i>
-          {{ requestTypeFilter === 'CLOSURE' ? 'Closure Scope' : requestTypeFilter === 'EXTENSION' ? 'Extension Scope' : 'All Requests' }}
+          {{ requestTypeFilter === 'CLOSURE' ? 'Closure Scope' : requestTypeFilter === 'EXTENSION' ? 'Extension Scope' :
+          'All Requests' }}
         </span>
         <span class="analytics-divider-line"></span>
       </div>
@@ -137,35 +128,23 @@
         </div>
         <div class="row g-3">
           <div class="col-sm-4">
-            <app-analytics-stat-card
-              [title]="'Pending'"
-              [value]="activeStatusStats?.pending ?? 0"
+            <app-analytics-stat-card [title]="'Pending'" [value]="activeStatusStats?.pending ?? 0"
               [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Pending Closure' : requestTypeFilter === 'EXTENSION' ? 'Pending Extension' : 'Awaiting Review'"
-              [iconClass]="'bi bi-hourglass-split'"
-              [theme]="'amber'"
-              [selected]="statusFilter === 'PENDING'"
+              [iconClass]="'bi bi-hourglass-split'" [theme]="'amber'" [selected]="statusFilter === 'PENDING'"
               (click)="selectRequestStatus('PENDING')">
             </app-analytics-stat-card>
           </div>
           <div class="col-sm-4">
-            <app-analytics-stat-card
-              [title]="'Approved'"
-              [value]="activeStatusStats?.approved ?? 0"
+            <app-analytics-stat-card [title]="'Approved'" [value]="activeStatusStats?.approved ?? 0"
               [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Approved Closure' : requestTypeFilter === 'EXTENSION' ? 'Approved Extension' : 'Accepted Requests'"
-              [iconClass]="'bi bi-check-circle-fill'"
-              [theme]="'emerald'"
-              [selected]="statusFilter === 'APPROVED'"
+              [iconClass]="'bi bi-check-circle-fill'" [theme]="'emerald'" [selected]="statusFilter === 'APPROVED'"
               (click)="selectRequestStatus('APPROVED')">
             </app-analytics-stat-card>
           </div>
           <div class="col-sm-4">
-            <app-analytics-stat-card
-              [title]="'Rejected'"
-              [value]="activeStatusStats?.rejected ?? 0"
+            <app-analytics-stat-card [title]="'Rejected'" [value]="activeStatusStats?.rejected ?? 0"
               [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Rejected Closure' : requestTypeFilter === 'EXTENSION' ? 'Rejected Extension' : 'Declined Requests'"
-              [iconClass]="'bi bi-x-circle-fill'"
-              [theme]="'red'"
-              [selected]="statusFilter === 'REJECTED'"
+              [iconClass]="'bi bi-x-circle-fill'" [theme]="'red'" [selected]="statusFilter === 'REJECTED'"
               (click)="selectRequestStatus('REJECTED')">
             </app-analytics-stat-card>
           </div>
@@ -413,201 +392,202 @@
    5. DYNAMIC MODALS / DIALOGS
    ========================================== -->
 
-  <!-- A. LAZY RETRIEVAL REQUEST DETAILS MODAL -->
-  <div class="modal-backdrop-custom" *ngIf="activeRequestDetail" (click)="closeDetailModal()"></div>
-  <div class="modal fade" [class.show]="activeRequestDetail" [style.display]="activeRequestDetail ? 'block' : 'none'"
-    tabindex="-1" aria-labelledby="requestDetailModalLabel" [attr.aria-hidden]="!activeRequestDetail">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
-      <div class="modal-content border-0 shadow">
-        <div class="modal-header border-bottom bg-light">
-          <div>
-            <h5 class="modal-title fw-bold mb-0" id="requestDetailModalLabel">
-              <i class="bi bi-info-circle-fill text-primary me-2"></i>Request Details
-            </h5>
+<!-- A. LAZY RETRIEVAL REQUEST DETAILS MODAL -->
+<div class="modal-backdrop-custom" *ngIf="activeRequestDetail" (click)="closeDetailModal()"></div>
+<div class="modal fade" [class.show]="activeRequestDetail" [style.display]="activeRequestDetail ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="requestDetailModalLabel" [attr.aria-hidden]="!activeRequestDetail">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom bg-light">
+        <div>
+          <h5 class="modal-title fw-bold mb-0" id="requestDetailModalLabel">
+            <i class="bi bi-info-circle-fill text-primary me-2"></i>Request Details
+          </h5>
+        </div>
+        <button type="button" class="btn-close" (click)="closeDetailModal()" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <!-- Spinner while lazy loading from GET /api/task-requests/{id} -->
+        <div *ngIf="loadingDetail" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading details...</span>
           </div>
-          <button type="button" class="btn-close" (click)="closeDetailModal()" aria-label="Close"></button>
+          <p class="text-muted mt-2 small">Lazy loading proof documents...</p>
         </div>
 
-        <div class="modal-body p-4">
-          <!-- Spinner while lazy loading from GET /api/task-requests/{id} -->
-          <div *ngIf="loadingDetail" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading details...</span>
-            </div>
-            <p class="text-muted mt-2 small">Lazy loading proof documents...</p>
-          </div>
-
-          <div *ngIf="!loadingDetail && activeRequestDetail">
-            <!-- Request general meta -->
-            <div class="detail-section mb-4 p-3 rounded bg-light border">
-              <h5 class="fw-bold text-dark mb-2"><a [routerLink]="['/task', activeRequestDetail.taskId]" (click)="closeDetailModal()" class="text-dark text-decoration-none hover-primary-text">{{ activeRequestDetail.taskTitle }}</a></h5>
-              <p class="text-muted small mb-3">Task ID: #{{ activeRequestDetail.taskId }} | Priority: <span class="badge bg-secondary">{{
+        <div *ngIf="!loadingDetail && activeRequestDetail">
+          <!-- Request general meta -->
+          <div class="detail-section mb-4 p-3 rounded bg-light border">
+            <h5 class="fw-bold text-dark mb-2"><a [routerLink]="['/task', activeRequestDetail.taskId]"
+                (click)="closeDetailModal()" class="text-dark text-decoration-none hover-primary-text">{{
+                activeRequestDetail.taskTitle }}</a></h5>
+            <p class="text-muted small mb-3">Task ID: #{{ activeRequestDetail.taskId }} | Priority: <span
+                class="badge bg-secondary">{{
                 activeRequestDetail.taskPriority }}</span></p>
 
-              <div class="row g-3">
-                <div class="col-6">
-                  <span class="small text-muted d-block">Submitted By</span>
-                  <span class="small fw-semibold text-dark">{{ activeRequestDetail.requestedByFullName }}</span>
-                </div>
-                <div class="col-6">
-                  <span class="small text-muted d-block">Request Type</span>
-                  <span class="badge bg-secondary small">{{ activeRequestDetail.requestType }}</span>
-                </div>
-                <div class="col-6">
-                  <span class="small text-muted d-block">Requested Date</span>
-                  <span class="small text-dark">{{ activeRequestDetail.requestDate | date:'medium' }}</span>
-                </div>
-                <div class="col-6">
-                  <span class="small text-muted d-block">Status</span>
-                  <span class="badge small" [ngClass]="getStatusClass(activeRequestDetail.status)">{{
-                    activeRequestDetail.status }}</span>
-                </div>
+            <div class="row g-3">
+              <div class="col-6">
+                <span class="small text-muted d-block">Submitted By</span>
+                <span class="small fw-semibold text-dark">{{ activeRequestDetail.requestedByFullName }}</span>
+              </div>
+              <div class="col-6">
+                <span class="small text-muted d-block">Request Type</span>
+                <span class="badge bg-secondary small">{{ activeRequestDetail.requestType }}</span>
+              </div>
+              <div class="col-6">
+                <span class="small text-muted d-block">Requested Date</span>
+                <span class="small text-dark">{{ activeRequestDetail.requestDate | date:'medium' }}</span>
+              </div>
+              <div class="col-6">
+                <span class="small text-muted d-block">Status</span>
+                <span class="badge small" [ngClass]="getStatusClass(activeRequestDetail.status)">{{
+                  activeRequestDetail.status }}</span>
               </div>
             </div>
+          </div>
 
-            <!-- User Remarks -->
-            <div class="mb-4">
-              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-chat-left-text me-1 text-info"></i> User Remarks</h6>
-              <div class="p-3 rounded bg-light border text-dark small">
-                {{ activeRequestDetail.remarks || 'No remarks provided.' }}
-              </div>
+          <!-- User Remarks -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-chat-left-text me-1 text-info"></i> User Remarks</h6>
+            <div class="p-3 rounded bg-light border text-dark small">
+              {{ activeRequestDetail.remarks || 'No remarks provided.' }}
             </div>
+          </div>
 
-            <!-- Action remarks if approved/rejected -->
-            <div class="mb-4" *ngIf="activeRequestDetail.status !== 'PENDING'">
-              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-person-check me-1 text-success"></i> Resolution Info
-              </h6>
-              <div class="p-3 rounded bg-light border text-dark small">
-                <p class="mb-1" *ngIf="activeRequestDetail.approvedByFullName">Processed By: <strong>{{
-                    activeRequestDetail.approvedByFullName }}</strong></p>
-                <p class="mb-1" *ngIf="activeRequestDetail.processedAt">Processed At: {{ activeRequestDetail.processedAt |
-                  date:'medium' }}</p>
-                <p class="mb-0" *ngIf="activeRequestDetail.rejectionReason">Resolution Notes: <em>{{
-                    activeRequestDetail.rejectionReason }}</em></p>
-              </div>
+          <!-- Action remarks if approved/rejected -->
+          <div class="mb-4" *ngIf="activeRequestDetail.status !== 'PENDING'">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-person-check me-1 text-success"></i> Resolution Info
+            </h6>
+            <div class="p-3 rounded bg-light border text-dark small">
+              <p class="mb-1" *ngIf="activeRequestDetail.approvedByFullName">Processed By: <strong>{{
+                  activeRequestDetail.approvedByFullName }}</strong></p>
+              <p class="mb-1" *ngIf="activeRequestDetail.processedAt">Processed At: {{ activeRequestDetail.processedAt |
+                date:'medium' }}</p>
+              <p class="mb-0" *ngIf="activeRequestDetail.rejectionReason">Resolution Notes: <em>{{
+                  activeRequestDetail.rejectionReason }}</em></p>
             </div>
+          </div>
 
-            <!-- LAZY LOADED PROOF SECTION -->
-            <div class="mb-4">
-              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-file-earmark-check me-1 text-primary"></i> Uploaded
-                Proof Artifacts ({{ activeRequestDetail.proofs?.length || 0 }})</h6>
+          <!-- LAZY LOADED PROOF SECTION -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-file-earmark-check me-1 text-primary"></i> Uploaded
+              Proof Artifacts ({{ activeRequestDetail.proofs?.length || 0 }})</h6>
 
-              <div class="proofs-grid mt-2" *ngIf="activeRequestDetail.proofs && activeRequestDetail.proofs.length > 0">
-                <div
-                  class="proof-card p-2 rounded border bg-white d-flex align-items-center justify-content-between mb-2 shadow-sm"
-                  *ngFor="let proof of activeRequestDetail.proofs">
-                  <div class="d-flex align-items-center gap-2 text-truncate" style="max-width: 80%;">
-                    <!-- Image thumbnail or file icon -->
-                    <i class="bi bi-image text-info fs-4"
-                      *ngIf="proof.fileUrl.endsWith('.jpg') || proof.fileUrl.endsWith('.png') || proof.fileUrl.endsWith('.jpeg')"></i>
-                    <i class="bi bi-file-pdf text-danger fs-4" *ngIf="proof.fileUrl.endsWith('.pdf')"></i>
-                    <i class="bi bi-file-earmark-text text-secondary fs-4"
-                      *ngIf="!proof.fileUrl.endsWith('.pdf') && !proof.fileUrl.endsWith('.jpg') && !proof.fileUrl.endsWith('.png') && !proof.fileUrl.endsWith('.jpeg')"></i>
-                    <div class="text-truncate">
-                      <span class="d-block small text-dark fw-semibold text-truncate">{{ proof.fileName || 'Proof Document' }}</span>
-                      <span class="small text-muted" style="font-size: 0.7rem;">{{ proof.proofTypeName || 'Task Proof'
-                        }}</span>
-                    </div>
+            <div class="proofs-grid mt-2" *ngIf="activeRequestDetail.proofs && activeRequestDetail.proofs.length > 0">
+              <div
+                class="proof-card p-2 rounded border bg-white d-flex align-items-center justify-content-between mb-2 shadow-sm"
+                *ngFor="let proof of activeRequestDetail.proofs">
+                <div class="d-flex align-items-center gap-2 text-truncate" style="max-width: 80%;">
+                  <!-- Image thumbnail or file icon -->
+                  <i class="bi bi-image text-info fs-4"
+                    *ngIf="proof.fileUrl.endsWith('.jpg') || proof.fileUrl.endsWith('.png') || proof.fileUrl.endsWith('.jpeg')"></i>
+                  <i class="bi bi-file-pdf text-danger fs-4" *ngIf="proof.fileUrl.endsWith('.pdf')"></i>
+                  <i class="bi bi-file-earmark-text text-secondary fs-4"
+                    *ngIf="!proof.fileUrl.endsWith('.pdf') && !proof.fileUrl.endsWith('.jpg') && !proof.fileUrl.endsWith('.png') && !proof.fileUrl.endsWith('.jpeg')"></i>
+                  <div class="text-truncate">
+                    <span class="d-block small text-dark fw-semibold text-truncate">{{ proof.fileName || 'Proof
+                      Document' }}</span>
+                    <span class="small text-muted" style="font-size: 0.7rem;">{{ proof.proofTypeName || 'Task Proof'
+                      }}</span>
                   </div>
-                  <a [href]="proof.fileUrl" target="_blank"
-                    class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center"
-                    style="width: 32px; height: 32px; border-radius: 50%;" title="View File">
-                    <i class="bi bi-eye"></i>
-                  </a>
                 </div>
+                <a [href]="proof.fileUrl" target="_blank"
+                  class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center"
+                  style="width: 32px; height: 32px; border-radius: 50%;" title="View File">
+                  <i class="bi bi-eye"></i>
+                </a>
               </div>
+            </div>
 
-              <!-- Empty proofs -->
-              <div class="text-center py-4 rounded bg-light border border-dashed"
-                *ngIf="!activeRequestDetail.proofs || activeRequestDetail.proofs.length === 0">
-                <i class="bi bi-folder-x text-muted fs-3"></i>
-                <p class="text-muted small mt-2 mb-0">No compliance proof files attached to this request.</p>
-              </div>
+            <!-- Empty proofs -->
+            <div class="text-center py-4 rounded bg-light border border-dashed"
+              *ngIf="!activeRequestDetail.proofs || activeRequestDetail.proofs.length === 0">
+              <i class="bi bi-folder-x text-muted fs-3"></i>
+              <p class="text-muted small mt-2 mb-0">No compliance proof files attached to this request.</p>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="modal-footer bg-light border-top">
-          <button *ngIf="activeRequestDetail?.canApprove"
-            class="btn btn-success d-flex align-items-center gap-2"
-            (click)="openApproveDialog(activeRequestDetail, $event); closeDetailModal()">
-            <i class="bi bi-check-circle"></i> Approve Request
-          </button>
-          <button *ngIf="activeRequestDetail?.canReject"
-            class="btn btn-danger d-flex align-items-center gap-2"
-            (click)="openRejectDialog(activeRequestDetail, $event); closeDetailModal()">
-            <i class="bi bi-x-circle"></i> Reject Request
-          </button>
-          <button class="btn btn-secondary px-4" (click)="closeDetailModal()">Close</button>
+      <div class="modal-footer bg-light border-top">
+        <button *ngIf="activeRequestDetail?.canApprove" class="btn btn-success d-flex align-items-center gap-2"
+          (click)="openApproveDialog(activeRequestDetail, $event); closeDetailModal()">
+          <i class="bi bi-check-circle"></i> Approve Request
+        </button>
+        <button *ngIf="activeRequestDetail?.canReject" class="btn btn-danger d-flex align-items-center gap-2"
+          (click)="openRejectDialog(activeRequestDetail, $event); closeDetailModal()">
+          <i class="bi bi-x-circle"></i> Reject Request
+        </button>
+        <button class="btn btn-secondary px-4" (click)="closeDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- B. APPROVE REQUEST DIALOG -->
+<div class="modal-backdrop-custom" *ngIf="approveDialog.isOpen" (click)="closeApproveDialog()"></div>
+<div class="modal fade" [class.show]="approveDialog.isOpen" [style.display]="approveDialog.isOpen ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="approveDialogLabel" [attr.aria-hidden]="!approveDialog.isOpen">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom bg-light">
+        <div>
+          <h5 class="modal-title fw-bold mb-0 text-success" id="approveDialogLabel">
+            <i class="bi bi-check-circle-fill me-2"></i>Approve Request
+          </h5>
+        </div>
+        <button type="button" class="btn-close" (click)="closeApproveDialog()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3" *ngIf="approveDialog.requestType === 'EXTENSION'">
+          <label class="form-label text-dark small fw-semibold">NEW DUE DATE (Required for extension)</label>
+          <input type="datetime-local" class="form-control border-secondary" [(ngModel)]="approveDialog.newDueDate" />
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-dark small fw-semibold">REMARKS (Optional)</label>
+          <textarea class="form-control border-secondary" rows="3"
+            placeholder="Add approval remarks or compliance notes..." [(ngModel)]="approveDialog.remarks"></textarea>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-light px-4 border" (click)="closeApproveDialog()">Cancel</button>
+          <button class="btn btn-success px-4" (click)="submitApprove()">Approve</button>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- B. APPROVE REQUEST DIALOG -->
-  <div class="modal-backdrop-custom" *ngIf="approveDialog.isOpen" (click)="closeApproveDialog()"></div>
-  <div class="modal fade" [class.show]="approveDialog.isOpen" [style.display]="approveDialog.isOpen ? 'block' : 'none'"
-    tabindex="-1" aria-labelledby="approveDialogLabel" [attr.aria-hidden]="!approveDialog.isOpen">
-    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
-      <div class="modal-content border-0 shadow">
-        <div class="modal-header border-bottom bg-light">
-          <div>
-            <h5 class="modal-title fw-bold mb-0 text-success" id="approveDialogLabel">
-              <i class="bi bi-check-circle-fill me-2"></i>Approve Request
-            </h5>
-          </div>
-          <button type="button" class="btn-close" (click)="closeApproveDialog()" aria-label="Close"></button>
+<!-- C. REJECT REQUEST DIALOG -->
+<div class="modal-backdrop-custom" *ngIf="rejectDialog.isOpen" (click)="closeRejectDialog()"></div>
+<div class="modal fade" [class.show]="rejectDialog.isOpen" [style.display]="rejectDialog.isOpen ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="rejectDialogLabel" [attr.aria-hidden]="!rejectDialog.isOpen">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom bg-light">
+        <div>
+          <h5 class="modal-title fw-bold mb-0 text-danger" id="rejectDialogLabel">
+            <i class="bi bi-x-circle-fill me-2"></i>Reject Request
+          </h5>
         </div>
-        <div class="modal-body p-4">
-          <div class="mb-3" *ngIf="approveDialog.requestType === 'EXTENSION'">
-            <label class="form-label text-dark small fw-semibold">NEW DUE DATE (Required for extension)</label>
-            <input type="datetime-local" class="form-control border-secondary"
-              [(ngModel)]="approveDialog.newDueDate" />
-          </div>
+        <button type="button" class="btn-close" (click)="closeRejectDialog()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <label class="form-label text-danger small fw-semibold">REJECTION REMARKS / REASON (Required)</label>
+          <textarea class="form-control border-danger" rows="3"
+            placeholder="Provide a detailed explanation for rejection..." [(ngModel)]="rejectDialog.reason"
+            required></textarea>
+        </div>
 
-          <div class="mb-4">
-            <label class="form-label text-dark small fw-semibold">REMARKS (Optional)</label>
-            <textarea class="form-control border-secondary" rows="3"
-              placeholder="Add approval remarks or compliance notes..." [(ngModel)]="approveDialog.remarks"></textarea>
-          </div>
-
-          <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-light px-4 border" (click)="closeApproveDialog()">Cancel</button>
-            <button class="btn btn-success px-4" (click)="submitApprove()">Approve</button>
-          </div>
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-light px-4 border" (click)="closeRejectDialog()">Cancel</button>
+          <button class="btn btn-danger px-4" [disabled]="!rejectDialog.reason.trim()" (click)="submitReject()">Reject
+            Request</button>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- C. REJECT REQUEST DIALOG -->
-  <div class="modal-backdrop-custom" *ngIf="rejectDialog.isOpen" (click)="closeRejectDialog()"></div>
-  <div class="modal fade" [class.show]="rejectDialog.isOpen" [style.display]="rejectDialog.isOpen ? 'block' : 'none'"
-    tabindex="-1" aria-labelledby="rejectDialogLabel" [attr.aria-hidden]="!rejectDialog.isOpen">
-    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
-      <div class="modal-content border-0 shadow">
-        <div class="modal-header border-bottom bg-light">
-          <div>
-            <h5 class="modal-title fw-bold mb-0 text-danger" id="rejectDialogLabel">
-              <i class="bi bi-x-circle-fill me-2"></i>Reject Request
-            </h5>
-          </div>
-          <button type="button" class="btn-close" (click)="closeRejectDialog()" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-4">
-          <div class="mb-4">
-            <label class="form-label text-danger small fw-semibold">REJECTION REMARKS / REASON (Required)</label>
-            <textarea class="form-control border-danger" rows="3"
-              placeholder="Provide a detailed explanation for rejection..." [(ngModel)]="rejectDialog.reason"
-              required></textarea>
-          </div>
-
-          <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-light px-4 border" (click)="closeRejectDialog()">Cancel</button>
-            <button class="btn btn-danger px-4" [disabled]="!rejectDialog.reason.trim()" (click)="submitReject()">Reject
-              Request</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+</div>

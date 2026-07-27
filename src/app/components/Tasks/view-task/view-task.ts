@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { TaskRequestDto, StructuredProofValueDto } from '../../../Model/TaskRequestDto';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
+import { ToastService } from '../../../Services/ToastData';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { AuthorizationService } from '../../../Services/authorization.service';
 
@@ -263,7 +264,8 @@ export class ViewTask implements OnInit, OnDestroy {
     private studentApiService: StudentApiService,
     private confirmDialog: ConfirmDialogService,
     private authService: AuthApiService,
-    private authorizationService: AuthorizationService
+    private authorizationService: AuthorizationService,
+    private toastService: ToastService
   ) { }
 
 
@@ -287,6 +289,41 @@ export class ViewTask implements OnInit, OnDestroy {
   canEditDelete(): boolean {
     if (!this.task) return false;
     return this.authorizationService.canEditTask(this.task) || this.authorizationService.canDeleteTask(this.task);
+  }
+
+  canDeleteTask(): boolean {
+    if (!this.task) return false;
+    return this.authorizationService.canDeleteTask(this.task);
+  }
+
+  deleteTask(): void {
+    if (!this.task || !this.canDeleteTask()) return;
+
+    this.confirmDialog.confirm({
+      title: 'Delete Task?',
+      message: `Are you sure you want to delete '${this.task.title}'? This task will be Permanently Deleted and will no longer appear In Any Task Listings.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then((confirmed) => {
+      if (confirmed && this.task) {
+        this.taskService.deleteTask(this.taskId).subscribe({
+          next: () => {
+            this.toastService.show({
+              title: 'Task Deleted',
+              message: 'Task Deleted successfully'
+            });
+            this.goBack();
+          },
+          error: (err) => {
+            this.toastService.show({
+              title: 'Delete Failed',
+              message: err.message || 'Failed to delete task'
+            });
+          }
+        });
+      }
+    });
   }
 
 
@@ -734,8 +771,8 @@ export class ViewTask implements OnInit, OnDestroy {
   isStudentSelectionProof(p: StructuredProofValueDto): boolean {
     if (!p) return false;
     return p.fieldType === 'STUDENT_SELECTION' ||
-           p.proofTypeName === 'Student Entries' ||
-           p.proofTypeName === 'STUDENT_ENTRIES';
+      p.proofTypeName === 'Student Entries' ||
+      p.proofTypeName === 'STUDENT_ENTRIES';
   }
 
   parseStudentSelection(value: string | undefined): any[] {

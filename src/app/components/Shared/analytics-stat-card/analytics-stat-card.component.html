@@ -27,7 +27,7 @@
     
     <!-- Value & Subtitle -->
     <div class="stat-card-body">
-      <h2 class="stat-card-value">{{ value }}</h2>
+      <h2 *ngIf="showValue" class="stat-card-value">{{ value }}</h2>
       <span *ngIf="subtitle" class="stat-card-subtitle">{{ subtitle }}</span>
     </div>
   </div>

@@ -505,7 +505,7 @@
                   </button>
                   <button
                     *ngIf="canDeleteTask(task) && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"
-                    class="action-icon-btn" (click)="deleteTask($event, task.taskId)" title="Delete Task">
+                    class="action-icon-btn text-danger" (click)="deleteTask($event, task.taskId)" title="Delete Task">
                     <i class="bi bi-trash"></i>
                   </button>
                 </div>
