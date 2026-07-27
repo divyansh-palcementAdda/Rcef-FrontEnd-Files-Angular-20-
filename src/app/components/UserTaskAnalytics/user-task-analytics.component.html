@@ -58,8 +58,8 @@
 
         <!-- All Departments card -->
         <div class="uta-dept-card" [class.uta-dept-card--active]="selectedDepartmentId === null"
-          (click)="selectCard(null)" role="button" tabindex="0"
-          (keydown.enter)="selectCard(null)" aria-label="All Departments">
+          (click)="selectCard(null)" role="button" tabindex="0" (keydown.enter)="selectCard(null)"
+          aria-label="All Departments">
           <div class="uta-dept-card__top">
             <span class="uta-dept-card__badge--all">ALL</span>
             <i class="bi bi-diagram-3-fill uta-dept-card__icon"></i>
@@ -69,16 +69,12 @@
         </div>
 
         <!-- Per-department -->
-        <div class="uta-dept-card"
-          *ngFor="let card of departmentCards"
-          [class.uta-dept-card--active]="selectedDepartmentId === card.departmentId"
-          (click)="selectCard(card)"
-          role="button" tabindex="0"
-          (keydown.enter)="selectCard(card)"
+        <div class="uta-dept-card" *ngFor="let card of departmentCards"
+          [class.uta-dept-card--active]="selectedDepartmentId === card.departmentId" (click)="selectCard(card)"
+          role="button" tabindex="0" (keydown.enter)="selectCard(card)"
           [attr.aria-label]="card.departmentName + ' — ' + card.taskCompletionPercentage + '% complete'">
           <div class="uta-dept-card__top">
-            <span class="uta-dept-card__pct"
-              [ngClass]="{
+            <span class="uta-dept-card__pct" [ngClass]="{
                 'uta-dept-card__pct--high': card.taskCompletionPercentage >= 75,
                 'uta-dept-card__pct--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
                 'uta-dept-card__pct--low':  card.taskCompletionPercentage < 40
@@ -92,8 +88,7 @@
             <span>{{ card.totalActiveTasks }} tasks</span>
           </div>
           <div class="uta-dept-card__bar">
-            <div class="uta-dept-card__bar-fill" [style.width.%]="card.taskCompletionPercentage"
-              [ngClass]="{
+            <div class="uta-dept-card__bar-fill" [style.width.%]="card.taskCompletionPercentage" [ngClass]="{
                 'uta-dept-card__bar-fill--high': card.taskCompletionPercentage >= 75,
                 'uta-dept-card__bar-fill--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
                 'uta-dept-card__bar-fill--low':  card.taskCompletionPercentage < 40
@@ -124,8 +119,8 @@
 
         <!-- All My Sub Departments card -->
         <div class="uta-dept-card" [class.uta-dept-card--active]="selectedSubDepartmentCardId === ''"
-          (click)="selectCard(null)" role="button" tabindex="0"
-          (keydown.enter)="selectCard(null)" aria-label="All My Sub Departments">
+          (click)="selectCard(null)" role="button" tabindex="0" (keydown.enter)="selectCard(null)"
+          aria-label="All My Sub Departments">
           <div class="uta-dept-card__top">
             <span class="uta-dept-card__badge--all">ALL</span>
             <i class="bi bi-diagram-2-fill uta-dept-card__icon"></i>
@@ -135,16 +130,12 @@
         </div>
 
         <!-- Per sub-department -->
-        <div class="uta-dept-card"
-          *ngFor="let card of departmentCards"
+        <div class="uta-dept-card" *ngFor="let card of departmentCards"
           [class.uta-dept-card--active]="selectedSubDepartmentCardId === card.subDepartmentId"
-          (click)="selectCard(card)"
-          role="button" tabindex="0"
-          (keydown.enter)="selectCard(card)"
+          (click)="selectCard(card)" role="button" tabindex="0" (keydown.enter)="selectCard(card)"
           [attr.aria-label]="(card.subDepartmentName || '') + ' — ' + card.taskCompletionPercentage + '% complete'">
           <div class="uta-dept-card__top">
-            <span class="uta-dept-card__pct"
-              [ngClass]="{
+            <span class="uta-dept-card__pct" [ngClass]="{
                 'uta-dept-card__pct--high': card.taskCompletionPercentage >= 75,
                 'uta-dept-card__pct--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
                 'uta-dept-card__pct--low':  card.taskCompletionPercentage < 40
@@ -158,8 +149,7 @@
             <span>{{ card.totalActiveTasks }} tasks</span>
           </div>
           <div class="uta-dept-card__bar">
-            <div class="uta-dept-card__bar-fill" [style.width.%]="card.taskCompletionPercentage"
-              [ngClass]="{
+            <div class="uta-dept-card__bar-fill" [style.width.%]="card.taskCompletionPercentage" [ngClass]="{
                 'uta-dept-card__bar-fill--high': card.taskCompletionPercentage >= 75,
                 'uta-dept-card__bar-fill--mid':  card.taskCompletionPercentage >= 40 && card.taskCompletionPercentage < 75,
                 'uta-dept-card__bar-fill--low':  card.taskCompletionPercentage < 40
@@ -181,9 +171,10 @@
         <label class="uta-filter-label">Search</label>
         <div class="uta-search-wrap">
           <i class="bi bi-search uta-search-icon"></i>
-          <input type="text" class="uta-search-input" placeholder="Name, role, employee ID…"
-            [(ngModel)]="search" (input)="onSearchInput(search)" (keyup.enter)="onFilterChange()" aria-label="Search users" />
-          <button class="uta-search-clear" *ngIf="search" (click)="search=''; onFilterChange()" aria-label="Clear search">
+          <input type="text" class="uta-search-input" placeholder="Name, role, employee ID…" [(ngModel)]="search"
+            (input)="onSearchInput(search)" (keyup.enter)="onFilterChange()" aria-label="Search users" />
+          <button class="uta-search-clear" *ngIf="search" (click)="search=''; onFilterChange()"
+            aria-label="Clear search">
             <i class="bi bi-x"></i>
           </button>
         </div>
@@ -201,7 +192,8 @@
       <!-- Status -->
       <div class="uta-filter-field">
         <label class="uta-filter-label">Task Status</label>
-        <select class="uta-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()" aria-label="Filter by status">
+        <select class="uta-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()"
+          aria-label="Filter by status">
           <option *ngFor="let s of statusList" [value]="s">{{ s === 'ALL' ? 'All Statuses' : s }}</option>
         </select>
       </div>
@@ -209,7 +201,8 @@
       <!-- From date -->
       <div class="uta-filter-field">
         <label class="uta-filter-label">From</label>
-        <input type="date" class="uta-select" [(ngModel)]="startDate" (change)="onFilterChange()" aria-label="Start date" />
+        <input type="date" class="uta-select" [(ngModel)]="startDate" (change)="onFilterChange()"
+          aria-label="Start date" />
       </div>
 
       <!-- To date -->
@@ -221,9 +214,11 @@
       <!-- Active Users Only toggle -->
       <div class="uta-filter-field">
         <label class="uta-filter-label">&nbsp;</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.82rem;color:#475569;margin:0;white-space:nowrap;">
-          <input type="checkbox" id="activeUsersToggle" style="width:15px;height:15px;cursor:pointer;accent-color:#4f46e5;"
-            [(ngModel)]="activeUsersOnly" (change)="onFilterChange()" />
+        <label
+          style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.82rem;color:#475569;margin:0;white-space:nowrap;">
+          <input type="checkbox" id="activeUsersToggle"
+            style="width:15px;height:15px;cursor:pointer;accent-color:#4f46e5;" [(ngModel)]="activeUsersOnly"
+            (change)="onFilterChange()" />
           Active Users Only
         </label>
       </div>
@@ -231,9 +226,10 @@
       <!-- Recurring Tasks toggle -->
       <div class="uta-filter-field">
         <label class="uta-filter-label">&nbsp;</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.82rem;color:#475569;margin:0;white-space:nowrap;">
-          <input type="checkbox" id="recurringToggle" style="width:15px;height:15px;cursor:pointer;accent-color:#4f46e5;"
-            [checked]="isRecurring === true"
+        <label
+          style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.82rem;color:#475569;margin:0;white-space:nowrap;">
+          <input type="checkbox" id="recurringToggle"
+            style="width:15px;height:15px;cursor:pointer;accent-color:#4f46e5;" [checked]="isRecurring === true"
             (change)="isRecurring = $any($event.target).checked ? true : null; onFilterChange()" />
           Recurring Only
         </label>
@@ -249,10 +245,8 @@
 
     </div>
   </section>
-
   <!-- ════ ANALYTICS TABLE ════ -->
   <section class="uta-table-section">
-
     <!-- Topbar -->
     <div class="uta-table-topbar">
       <div class="uta-table-topbar__left">
@@ -266,13 +260,11 @@
         </span>
       </div>
     </div>
-
     <!-- Loading state -->
     <div class="uta-loader" *ngIf="loadingTable">
       <div class="uta-spinner"></div>
       <span>Calculating analytics…</span>
     </div>
-
     <!-- Empty state -->
     <div class="uta-empty" *ngIf="!loadingTable && tableData.length === 0">
       <i class="bi bi-inbox uta-empty__icon"></i>
@@ -282,7 +274,6 @@
         <i class="bi bi-arrow-counterclockwise"></i> Reset Filters
       </button>
     </div>
-
     <!-- Table -->
     <div class="uta-table-wrap" *ngIf="!loadingTable && tableData.length > 0">
       <table class="uta-table" role="table">
@@ -303,7 +294,8 @@
             </th>
             <th class="text-center uta-th--sortable" (click)="sortBy('completed')" title="Completed tasks">Done</th>
             <th class="text-center uta-th--sortable" (click)="sortBy('pending')" title="Pending tasks">Pending</th>
-            <th class="text-center uta-th--sortable" (click)="sortBy('inProgress')" title="In progress tasks">Active</th>
+            <th class="text-center uta-th--sortable" (click)="sortBy('inProgress')" title="In progress tasks">Active
+            </th>
             <th class="text-center uta-th--sortable" (click)="sortBy('delayed')" title="Delayed tasks">Delayed</th>
             <th class="text-center" title="Request for Closure / Request for Extension">RFC / RFE</th>
             <th class="text-center uta-th--sortable" (click)="sortBy('completionPercentage')">
@@ -317,10 +309,8 @@
         </thead>
         <tbody>
           <ng-container *ngFor="let row of tableData">
-
             <!-- Main row -->
             <tr class="uta-row">
-
               <!-- User info -->
               <td>
                 <div class="uta-user-cell">
@@ -338,30 +328,32 @@
                   </div>
                 </div>
               </td>
-
               <!-- Department -->
               <td>
                 <div class="uta-dept-cell">{{ row.departmentName || '—' }}</div>
                 <div class="uta-dept-cell--sub" *ngIf="row.subDepartmentName">{{ row.subDepartmentName }}</div>
               </td>
-
               <!-- Count pills -->
               <td class="text-center">
-                <button class="uta-count-pill uta-count-pill--total" (click)="openTaskDrillDown(row,'ALL')" title="View all tasks">{{ row.totalTasks }}</button>
+                <button class="uta-count-pill uta-count-pill--total" (click)="openTaskDrillDown(row,'ALL')"
+                  title="View all tasks">{{ row.totalTasks }}</button>
               </td>
               <td class="text-center">
-                <button class="uta-count-pill uta-count-pill--done" (click)="openTaskDrillDown(row,'CLOSED')" title="View completed tasks">{{ row.completed }}</button>
+                <button class="uta-count-pill uta-count-pill--done" (click)="openTaskDrillDown(row,'CLOSED')"
+                  title="View completed tasks">{{ row.completed }}</button>
               </td>
               <td class="text-center">
-                <button class="uta-count-pill uta-count-pill--pending" (click)="openTaskDrillDown(row,'PENDING')" title="View pending tasks">{{ row.pending }}</button>
+                <button class="uta-count-pill uta-count-pill--pending" (click)="openTaskDrillDown(row,'PENDING')"
+                  title="View pending tasks">{{ row.pending }}</button>
               </td>
               <td class="text-center">
-                <button class="uta-count-pill uta-count-pill--active" (click)="openTaskDrillDown(row,'IN_PROGRESS')" title="View active tasks">{{ row.inProgress }}</button>
+                <button class="uta-count-pill uta-count-pill--active" (click)="openTaskDrillDown(row,'IN_PROGRESS')"
+                  title="View active tasks">{{ row.inProgress }}</button>
               </td>
               <td class="text-center">
-                <button class="uta-count-pill uta-count-pill--delayed" (click)="openTaskDrillDown(row,'DELAYED')" title="View delayed tasks">{{ row.delayed }}</button>
+                <button class="uta-count-pill uta-count-pill--delayed" (click)="openTaskDrillDown(row,'DELAYED')"
+                  title="View delayed tasks">{{ row.delayed }}</button>
               </td>
-
               <!-- RFC/RFE -->
               <td class="text-center">
                 <div class="uta-rfc-cell">
@@ -370,27 +362,24 @@
                   <span class="uta-rfc-label uta-rfc-label--rfe">{{ row.requestForExtension }} RFE</span>
                 </div>
               </td>
-
               <!-- Completion -->
               <td class="text-center">
                 <div class="uta-completion-cell">
-                  <div class="uta-completion-bar" role="progressbar" [attr.aria-valuenow]="row.completionPercentage" aria-valuemin="0" aria-valuemax="100">
-                    <div class="uta-completion-fill" [style.width.%]="row.completionPercentage"
-                      [ngClass]="{
+                  <div class="uta-completion-bar" role="progressbar" [attr.aria-valuenow]="row.completionPercentage"
+                    aria-valuemin="0" aria-valuemax="100">
+                    <div class="uta-completion-fill" [style.width.%]="row.completionPercentage" [ngClass]="{
                         'uta-completion-fill--high': row.completionPercentage >= 75,
                         'uta-completion-fill--mid':  row.completionPercentage >= 40 && row.completionPercentage < 75,
                         'uta-completion-fill--low':  row.completionPercentage < 40
                       }"></div>
                   </div>
-                  <span class="uta-completion-pct"
-                    [ngClass]="{
+                  <span class="uta-completion-pct" [ngClass]="{
                       'text-success': row.completionPercentage >= 75,
                       'text-warning': row.completionPercentage >= 40 && row.completionPercentage < 75,
                       'text-danger':  row.completionPercentage < 40
                     }">{{ row.completionPercentage }}%</span>
                 </div>
               </td>
-
               <!-- Requests -->
               <td class="text-center">
                 <button class="uta-req-btn" (click)="openRequestsModal(row)"
@@ -407,48 +396,45 @@
         </tbody>
       </table>
     </div>
-
     <!-- Pagination -->
     <div class="uta-pagination" *ngIf="!loadingTable && totalPages > 0">
       <div class="uta-pagination__left">
         <label class="uta-filter-label me-2">Rows per page</label>
-        <select class="uta-select uta-select--sm" [(ngModel)]="pageSize" (change)="onPageSizeChange()" aria-label="Rows per page">
+        <select class="uta-select uta-select--sm" [(ngModel)]="pageSize" (change)="onPageSizeChange()"
+          aria-label="Rows per page">
           <option *ngFor="let opt of pageSizeOptions" [value]="opt">{{ opt }}</option>
         </select>
       </div>
       <div class="uta-pagination__controls">
-        <button class="uta-pag-btn" [disabled]="currentPage === 0" (click)="onPageChange(0)" title="First page" aria-label="First page">
+        <button class="uta-pag-btn" [disabled]="currentPage === 0" (click)="onPageChange(0)" title="First page"
+          aria-label="First page">
           <i class="bi bi-chevron-double-left"></i>
         </button>
-        <button class="uta-pag-btn" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)" aria-label="Previous page">
+        <button class="uta-pag-btn" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)"
+          aria-label="Previous page">
           <i class="bi bi-chevron-left"></i>
         </button>
         <ng-container *ngFor="let p of [].constructor(totalPages); let idx = index">
-          <button class="uta-pag-btn"
-            *ngIf="idx >= currentPage - 2 && idx <= currentPage + 2"
-            [class.uta-pag-btn--active]="idx === currentPage"
-            (click)="onPageChange(idx)"
+          <button class="uta-pag-btn" *ngIf="idx >= currentPage - 2 && idx <= currentPage + 2"
+            [class.uta-pag-btn--active]="idx === currentPage" (click)="onPageChange(idx)"
             [attr.aria-current]="idx === currentPage ? 'page' : null">
             {{ idx + 1 }}
           </button>
         </ng-container>
-        <button class="uta-pag-btn" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(currentPage + 1)" aria-label="Next page">
+        <button class="uta-pag-btn" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(currentPage + 1)"
+          aria-label="Next page">
           <i class="bi bi-chevron-right"></i>
         </button>
-        <button class="uta-pag-btn" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(totalPages - 1)" title="Last page" aria-label="Last page">
+        <button class="uta-pag-btn" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(totalPages - 1)"
+          title="Last page" aria-label="Last page">
           <i class="bi bi-chevron-double-right"></i>
         </button>
       </div>
     </div>
-
   </section>
-
 </div>
-
-
 <!-- ════ REQUEST HISTORY MODAL ════ -->
-<div class="uta-modal-backdrop" *ngIf="showRequestsModal" (click)="closeRequestsModal()"
-  role="dialog" aria-modal="true"
+<div class="uta-modal-backdrop" *ngIf="showRequestsModal" (click)="closeRequestsModal()" role="dialog" aria-modal="true"
   [attr.aria-label]="'Request history for ' + requestsModalUser?.fullName">
   <div class="uta-modal uta-modal--requests" (click)="$event.stopPropagation()">
 
@@ -468,7 +454,7 @@
                 {{ requestsModalUser?.role }}
               </span>
               <span class="uta-badge-count">
-                {{ requestsModalUser?.requests?.length || 0 }} requests
+                {{ modalUserRequests.length }} requests
               </span>
             </div>
           </div>
@@ -482,35 +468,41 @@
     <!-- Body -->
     <div class="uta-modal__body">
 
+      <!-- Loading state -->
+      <div class="uta-loader" *ngIf="loadingRequests">
+        <div class="uta-spinner"></div>
+        <span>Loading user requests…</span>
+      </div>
+
       <!-- Summary chips -->
-      <div class="uta-req-summary" *ngIf="requestsModalUser && requestsModalUser.requests && requestsModalUser.requests.length > 0">
+      <div class="uta-req-summary" *ngIf="!loadingRequests && modalUserRequests && modalUserRequests.length > 0">
         <div class="uta-req-summary__chip uta-req-summary__chip--total">
           <i class="bi bi-stack"></i>
-          <span>{{ requestsModalUser.requests.length }} Total</span>
+          <span>{{ modalUserRequests.length }} Total</span>
         </div>
         <div class="uta-req-summary__chip uta-req-summary__chip--pending">
           <i class="bi bi-hourglass-split"></i>
-          <span>{{ countRequestsByStatus(requestsModalUser, 'PENDING') }} Pending</span>
+          <span>{{ countRequestsByStatus('PENDING') }} Pending</span>
         </div>
         <div class="uta-req-summary__chip uta-req-summary__chip--approved">
           <i class="bi bi-check-circle"></i>
-          <span>{{ countRequestsByStatus(requestsModalUser, 'APPROVED') }} Approved</span>
+          <span>{{ countRequestsByStatus('APPROVED') }} Approved</span>
         </div>
         <div class="uta-req-summary__chip uta-req-summary__chip--rejected">
           <i class="bi bi-x-circle"></i>
-          <span>{{ countRequestsByStatus(requestsModalUser, 'REJECTED') }} Rejected</span>
+          <span>{{ countRequestsByStatus('REJECTED') }} Rejected</span>
         </div>
       </div>
 
       <!-- Empty state -->
-      <div class="uta-empty" *ngIf="!requestsModalUser?.requests?.length">
+      <div class="uta-empty" *ngIf="!loadingRequests && modalUserRequests.length === 0">
         <i class="bi bi-inbox uta-empty__icon"></i>
         <div class="uta-empty__title">No requests</div>
         <div class="uta-empty__sub">This user has no request history.</div>
       </div>
 
       <!-- Requests table -->
-      <div class="uta-table-wrap" *ngIf="requestsModalUser?.requests?.length">
+      <div class="uta-table-wrap" *ngIf="!loadingRequests && modalUserRequests.length > 0">
         <table class="uta-req-table uta-req-table--modal">
           <thead>
             <tr>
@@ -525,7 +517,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let req of requestsModalUser!.requests" class="uta-req-table__row">
+            <tr *ngFor="let req of modalUserRequests" class="uta-req-table__row">
               <td class="uta-req-id">#{{ req.requestId }}</td>
               <td>
                 <span class="uta-req-task" [title]="req.taskTitle">{{ req.taskTitle }}</span>
@@ -571,8 +563,8 @@
 </div>
 
 <!-- ════ DRILL-DOWN TASK MODAL ════ -->
-<div class="uta-modal-backdrop" *ngIf="showTaskModal" (click)="closeTaskModal()" role="dialog"
-  aria-modal="true" [attr.aria-label]="'Tasks for ' + drillDownUser?.fullName">
+<div class="uta-modal-backdrop" *ngIf="showTaskModal" (click)="closeTaskModal()" role="dialog" aria-modal="true"
+  [attr.aria-label]="'Tasks for ' + drillDownUser?.fullName">
   <div class="uta-modal" (click)="$event.stopPropagation()">
 
     <!-- Header -->
@@ -652,11 +644,13 @@
     <div class="uta-modal__footer" *ngIf="drillDownTotalPages > 1">
       <span style="font-size:.78rem;color:#64748b;">{{ drillDownTotalRecords }} tasks total</span>
       <div class="uta-pagination__controls">
-        <button class="uta-pag-btn" [disabled]="drillDownPage === 0" (click)="onDrillDownPageChange(drillDownPage - 1)" aria-label="Previous">
+        <button class="uta-pag-btn" [disabled]="drillDownPage === 0" (click)="onDrillDownPageChange(drillDownPage - 1)"
+          aria-label="Previous">
           <i class="bi bi-chevron-left"></i>
         </button>
         <span class="uta-pag-current">{{ drillDownPage + 1 }} / {{ drillDownTotalPages }}</span>
-        <button class="uta-pag-btn" [disabled]="drillDownPage >= drillDownTotalPages - 1" (click)="onDrillDownPageChange(drillDownPage + 1)" aria-label="Next">
+        <button class="uta-pag-btn" [disabled]="drillDownPage >= drillDownTotalPages - 1"
+          (click)="onDrillDownPageChange(drillDownPage + 1)" aria-label="Next">
           <i class="bi bi-chevron-right"></i>
         </button>
       </div>

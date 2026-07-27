@@ -185,6 +185,10 @@ export class UserTaskAnalyticsApiService {
     return this.http.get<any>(`${this.apiUrl}/${userId}/tasks`, { params });
   }
 
+  getUserRequests(userId: number): Observable<UserTaskRequestDetailDTO[]> {
+    return this.http.get<UserTaskRequestDetailDTO[]>(`${this.apiUrl}/${userId}/requests`);
+  }
+
   getExportUrl(
     departmentId?: number | null,
     subDepartmentId?: string,

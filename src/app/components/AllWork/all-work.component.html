@@ -52,6 +52,20 @@
             <span class="metric-value">{{ dept.completed }}</span>
             <span class="metric-label">Completed</span>
           </div>
+
+          <div class="metric-item text-success">
+            <span class="metric-value">{{ dept.requestForClosure }}</span>
+            <span class="metric-label">Request for Closure</span>
+          </div>
+          <div class="metric-item text-success">
+            <span class="metric-value">{{ dept.requestForExtension }}</span>
+            <span class="metric-label">Request for Extension</span>
+          </div>
+          <div class="metric-item text-success">
+            <span class="metric-value">{{ dept.upcoming }}</span>
+            <span class="metric-label">Upcoming Tasks</span>
+          </div>
+
         </div>
       </div>
     </div>
@@ -240,7 +254,7 @@
                 <th class="text-center">
                   <div class="th-inner justify-content-center">
                     Task Statuses
-                    <span class="th-hint ms-1">(P / I / C / D)</span>
+                    <span class="th-hint ms-1">(P / I / C / D/ UC)</span>
                   </div>
                 </th>
                 <th class="sortable-th" (click)="sortSubDeptBy('completionPercentage')">
@@ -345,6 +359,9 @@
                       </span>
                       <span class="status-pill status-pill--delayed" title="Delayed">
                         <span class="status-dot"></span>{{ sd.delayed }}
+                      </span>
+                      <span class="status-pill status-pill--upcoming" title="Upcoming">
+                        <span class="status-dot"></span>{{ sd.upcoming }}
                       </span>
                     </div>
                   </td>

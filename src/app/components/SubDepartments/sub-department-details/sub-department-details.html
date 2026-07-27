@@ -131,12 +131,12 @@
           <div class="card-label">Delayed Tasks</div>
         </div>
 
-        <div class="counter-card" (click)="filterByCard('status', 'EXTENDED')">
+        <div class="counter-card" (click)="filterByCard('status', 'UPCOMING')">
           <div class="card-top-row">
             <div class="card-icon"><i class="bi bi-arrow-right-circle text-secondary"></i></div>
-            <div class="card-value">{{ subDeptDetail.analytics.extendedTasks }}</div>
+            <div class="card-value">{{ subDeptDetail.analytics.upcomingTasks }}</div>
           </div>
-          <div class="card-label">Extended Tasks</div>
+          <div class="card-label">Upcoming Tasks</div>
         </div>
 
         <div class="counter-card" (click)="filterByCard('status', 'REQUEST_FOR_CLOSURE')">
@@ -294,13 +294,21 @@
           <div class="card-label">Delayed Tasks</div>
         </div>
 
+        <div class="counter-card" (click)="filterByCard('status', 'UPCOMING')">
+          <div class="card-top-row">
+            <div class="card-icon"><i class="bi bi-arrow-right-circle text-secondary"></i></div>
+            <div class="card-value">{{ subDeptDetail.analytics.upcomingTasks }}</div>
+          </div>
+          <div class="card-label">Upcoming Tasks</div>
+        </div>
+        <!-- 
         <div class="counter-card" (click)="filterByCard('status', 'EXTENDED')">
           <div class="card-top-row">
             <div class="card-icon"><i class="bi bi-arrow-right-circle text-secondary"></i></div>
             <div class="card-value">{{ subDeptDetail.analytics.extendedTasks }}</div>
           </div>
           <div class="card-label">Extended Tasks</div>
-        </div>
+        </div> -->
 
         <div class="counter-card" (click)="filterByCard('status', 'REQUEST_FOR_CLOSURE')">
           <div class="card-top-row">

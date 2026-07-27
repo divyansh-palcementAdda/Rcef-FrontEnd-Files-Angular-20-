@@ -134,21 +134,21 @@
     padding: 1.5rem;
     min-height: 130px;
   }
-  
+
   .stitch-hero-title {
     font-size: 1.75rem;
   }
-  
+
   .stitch-hero-subtitle {
     font-size: 0.85rem;
     max-width: 400px;
   }
-  
+
   .stitch-hero-illustration-card {
     width: 75px;
     height: 75px;
   }
-  
+
   .stitch-hero-illustration-icon {
     font-size: 1.75rem;
   }
@@ -161,29 +161,30 @@
     padding: 1.25rem;
     min-height: auto;
   }
-  
+
   .stitch-hero-content {
     align-items: center;
     margin-bottom: 1rem;
   }
-  
+
   .stitch-hero-title {
     font-size: 1.5rem;
   }
-  
+
   .stitch-hero-subtitle {
     max-width: 100%;
     font-size: 0.8rem;
   }
-  
+
   .stitch-hero-pills {
     justify-content: center;
   }
-  
+
   .stitch-hero-illustration {
-    display: none; /* Hide illustration on mobile for more compact design */
+    display: none;
+    /* Hide illustration on mobile for more compact design */
   }
-  
+
   .stitch-hero::after {
     display: none;
   }
@@ -309,7 +310,8 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
-  margin-top: auto; /* Push metrics to bottom */
+  margin-top: auto;
+  /* Push metrics to bottom */
 }
 
 .metric-item {
@@ -330,27 +332,35 @@
   text-transform: uppercase;
 }
 
-.text-warning .metric-value { color: #d97706; }
-.text-danger .metric-value { color: #dc2626; }
-.text-success .metric-value { color: #059669; }
+.text-warning .metric-value {
+  color: #d97706;
+}
+
+.text-danger .metric-value {
+  color: #dc2626;
+}
+
+.text-success .metric-value {
+  color: #059669;
+}
 
 /* Responsive Department Cards */
 @media (max-width: 768px) {
   .dept-cards-container {
     gap: 1rem;
   }
-  
+
   .dept-card {
     flex: 0 0 100%;
     width: 100%;
     padding: 1rem;
   }
-  
+
   .dept-name {
     font-size: 0.95rem;
     max-width: 140px;
   }
-  
+
   .metric-value {
     font-size: 1.1rem;
   }
@@ -423,6 +433,7 @@
   .search-input {
     padding-left: 3.2rem;
   }
+
   .search-icon {
     left: 0.7rem;
   }
@@ -467,20 +478,20 @@
   .table-container {
     overflow-x: auto;
   }
-  
+
   .table {
     min-width: 900px;
   }
-  
+
   .table-header-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-box-wrapper {
     max-width: 100%;
   }
-  
+
   .export-actions-wrapper {
     align-self: flex-end;
   }
@@ -521,17 +532,18 @@
 }
 
 @media (max-width: 768px) {
+
   .table th,
   .table td {
     padding: 0.75rem 0.5rem;
     font-size: 0.82rem;
   }
-  
+
   .btn-group {
     flex-direction: column;
     gap: 0.25rem !important;
   }
-  
+
   .btn-group .btn {
     width: 100%;
   }
@@ -608,40 +620,40 @@
     max-width: 95vw;
     margin: 0.5rem;
   }
-  
+
   .modal-dialog-custom.modal-lg {
     max-width: 95vw;
     margin: 0.5rem;
   }
-  
+
   .modal-dialog-custom.modal-md {
     max-width: 95vw;
     margin: 0.5rem;
   }
-  
+
   .modal-header-custom {
     padding: 1rem;
   }
-  
+
   .modal-title-custom {
     font-size: 1.1rem;
   }
-  
+
   .modal-subtitle-custom {
     font-size: 0.75rem;
   }
-  
+
   .modal-body-custom {
     padding: 1rem;
     max-height: calc(90vh - 70px);
   }
-  
+
   .status-tabs-wrapper {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .tab-btn {
     flex-shrink: 0;
     padding: 0.4rem 0.75rem;
@@ -650,6 +662,7 @@
 }
 
 @media (max-width: 480px) {
+
   .modal-dialog-custom.modal-xl,
   .modal-dialog-custom.modal-lg,
   .modal-dialog-custom.modal-md {
@@ -659,12 +672,12 @@
     height: 100vh;
     max-height: 100vh;
   }
-  
+
   .modal-content-custom {
     border-radius: 0;
     height: 100%;
   }
-  
+
   .modal-body-custom {
     max-height: calc(100vh - 60px);
   }
@@ -851,25 +864,46 @@ thead.table-head-sticky {
   background-color: #fef3c7;
   color: #92400e;
 }
-.status-pill--pending .status-dot { background-color: #f59e0b; }
+
+.status-pill--pending .status-dot {
+  background-color: #f59e0b;
+}
 
 .status-pill--inprogress {
   background-color: #e0f2fe;
   color: #075985;
 }
-.status-pill--inprogress .status-dot { background-color: #0ea5e9; }
+
+.status-pill--inprogress .status-dot {
+  background-color: #0ea5e9;
+}
 
 .status-pill--completed {
   background-color: #dcfce7;
   color: #14532d;
 }
-.status-pill--completed .status-dot { background-color: #22c55e; }
+
+.status-pill--completed .status-dot {
+  background-color: #22c55e;
+}
 
 .status-pill--delayed {
   background-color: #fee2e2;
   color: #7f1d1d;
 }
-.status-pill--delayed .status-dot { background-color: #ef4444; }
+
+.status-pill--delayed .status-dot {
+  background-color: #ef4444;
+}
+
+.status-pill--upcoming {
+  background-color: #aaa3e9;
+  color: #4542c3;
+}
+
+.status-pill--upcoming .status-dot {
+  background-color: #7e5ae0;
+}
 
 /* ==========================================
    COMPLETION RATE BAR
@@ -896,9 +930,17 @@ thead.table-head-sticky {
   transition: width 0.4s ease;
 }
 
-.completion-bar-fill--low { background-color: #ef4444; }
-.completion-bar-fill--mid { background-color: #f59e0b; }
-.completion-bar-fill--high { background-color: #22c55e; }
+.completion-bar-fill--low {
+  background-color: #ef4444;
+}
+
+.completion-bar-fill--mid {
+  background-color: #f59e0b;
+}
+
+.completion-bar-fill--high {
+  background-color: #22c55e;
+}
 
 .completion-pct {
   font-size: 0.78rem;
@@ -949,6 +991,7 @@ thead.table-head-sticky {
   color: #475569;
   border-color: #e2e8f0;
 }
+
 .action-btn--users:hover {
   background-color: #e2e8f0;
   color: #1e293b;
@@ -960,6 +1003,7 @@ thead.table-head-sticky {
   color: #1d4ed8;
   border-color: #bfdbfe;
 }
+
 .action-btn--tasks:hover {
   background-color: #dbeafe;
   color: #1e40af;
@@ -971,6 +1015,7 @@ thead.table-head-sticky {
   color: #166534;
   border-color: #bbf7d0;
 }
+
 .action-btn--metrics:hover {
   background-color: #dcfce7;
   color: #14532d;
@@ -994,9 +1039,17 @@ thead.table-head-sticky {
   border-radius: 6px;
 }
 
-.skeleton-line.w-40 { width: 40%; }
-.skeleton-line.w-50 { width: 50%; }
-.skeleton-line.w-60 { width: 60%; }
+.skeleton-line.w-40 {
+  width: 40%;
+}
+
+.skeleton-line.w-50 {
+  width: 50%;
+}
+
+.skeleton-line.w-60 {
+  width: 60%;
+}
 
 .skeleton-chip {
   height: 28px;
@@ -1036,8 +1089,13 @@ thead.table-head-sticky {
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ==========================================
@@ -1143,7 +1201,8 @@ thead.table-head-sticky {
   }
 
   .action-btn span {
-    display: none; /* Icon only on mobile */
+    display: none;
+    /* Icon only on mobile */
   }
 
   .action-btn {
@@ -1166,6 +1225,7 @@ thead.table-head-sticky {
 }
 
 @media (max-width: 599px) {
+
   /* Table card transformation */
   .table-container .table thead {
     display: none;

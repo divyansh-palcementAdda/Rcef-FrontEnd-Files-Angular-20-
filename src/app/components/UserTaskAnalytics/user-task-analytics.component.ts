@@ -84,6 +84,48 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   // ── Request History Modal ─────────────────────────────────────────────────
   showRequestsModal: boolean = false;
   requestsModalUser: UserTaskAnalyticsRowDTO | null = null;
+  modalUserRequests: UserTaskRequestDetailDTO[] = [];
+  loadingRequests: boolean = false;
+
+  openRequestsModal(user: UserTaskAnalyticsRowDTO): void {
+    this.requestsModalUser = user;
+    this.modalUserRequests = [];
+    this.loadingRequests = true;
+    this.showRequestsModal = true;
+
+    this.analyticsService.getUserRequests(user.userId).subscribe({
+      next: (reqs) => {
+        this.modalUserRequests = reqs || [];
+        this.loadingRequests = false;
+      },
+      error: (err) => {
+        console.error('Error loading user requests on demand:', err);
+        this.modalUserRequests = [];
+        this.loadingRequests = false;
+      }
+    });
+  }
+
+  closeRequestsModal(): void {
+    this.showRequestsModal = false;
+    this.requestsModalUser = null;
+    this.modalUserRequests = [];
+    this.loadingRequests = false;
+  }
+
+  getRequestStatusClass(status: string): string {
+    switch ((status || '').toUpperCase()) {
+      case 'PENDING':  return 'uta-req-status--pending';
+      case 'APPROVED': return 'uta-req-status--approved';
+      case 'REJECTED': return 'uta-req-status--rejected';
+      default:         return '';
+    }
+  }
+
+  countRequestsByStatus(status: string): number {
+    if (!this.modalUserRequests) return 0;
+    return this.modalUserRequests.filter(r => (r.status || '').toUpperCase() === status).length;
+  }
 
   // ── Drill Down Modal ─────────────────────────────────────────────────────
   showTaskModal: boolean = false;
@@ -270,31 +312,6 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  // ── Request History Modal ─────────────────────────────────────────────────
-  openRequestsModal(user: UserTaskAnalyticsRowDTO): void {
-    this.requestsModalUser = user;
-    this.showRequestsModal = true;
-  }
-
-  closeRequestsModal(): void {
-    this.showRequestsModal = false;
-    this.requestsModalUser = null;
-  }
-
-  getRequestStatusClass(status: string): string {
-    switch ((status || '').toUpperCase()) {
-      case 'PENDING':  return 'uta-req-status--pending';
-      case 'APPROVED': return 'uta-req-status--approved';
-      case 'REJECTED': return 'uta-req-status--rejected';
-      default:         return '';
-    }
-  }
-
-  countRequestsByStatus(user: UserTaskAnalyticsRowDTO | null, status: string): number {
-    if (!user?.requests) return 0;
-    return user.requests.filter(r => (r.status || '').toUpperCase() === status).length;
   }
 
   // ── Drill Down Task Modal ─────────────────────────────────────────────────
