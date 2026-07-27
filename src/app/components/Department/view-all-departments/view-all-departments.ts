@@ -355,7 +355,7 @@ export class ViewDepartmentsComponent implements OnInit {
     this.departments = safeList;
     this.applyFilters();
     this.loading = false;
-    this.autoSelectDepartmentBasedOnRole();
+    this.autoSelectDefaultDepartment();
   }
 
   openAddDepartment(): void {
@@ -435,10 +435,10 @@ export class ViewDepartmentsComponent implements OnInit {
   private loadAllDepartments(): void {
     this.loading = true;
 
-    this.apiService.getAllDepartments().subscribe({
+    this.apiService.getAuthorizedDepartments().subscribe({
       next: (res: Department[]) => {
         const activeDepartments = (res || []).filter(
-          dept => dept.departmentStatus === 'ACTIVE'
+          dept => dept.departmentStatus === 'ACTIVE' || !dept.departmentStatus
         );
         this.handleDepartmentResponse(activeDepartments);
       },
@@ -450,28 +450,33 @@ export class ViewDepartmentsComponent implements OnInit {
     this.departments = depts || [];
     this.applyFilters();
     this.loading = false;
-    this.autoSelectDepartmentBasedOnRole();
+    this.autoSelectDefaultDepartment();
   }
 
   /**
-   * Programmatically auto-selects a department based on user role and permissions.
-   * - SUPER_ADMIN: No auto-selection (waits for manual user choice).
-   * - ADMIN / SUB_ADMIN / HOD: Auto-selects the first accessible department and loads its sub-departments immediately.
+   * Auto-selects the default department card when the page loads.
+   * Preference order:
+   * 1. Keep the currently selected department if it still exists in the response.
+   * 2. Prefer a department whose name includes "Admission".
+   * 3. Fallback to the first department returned by the API.
    */
-  private autoSelectDepartmentBasedOnRole(): void {
+  private autoSelectDefaultDepartment(): void {
     if (!this.departments || this.departments.length === 0) {
       return;
     }
 
-    const userRole = (this.authApiService.getCurrentRole() || '').toUpperCase();
+    const currentSelectionStillExists = this.selectedDept?.departmentId
+      && this.departments.some(dept => dept.departmentId === this.selectedDept?.departmentId);
 
-    // SUPER_ADMIN: Keep current behavior (display all departments, do not auto-select any)
-    if (userRole === 'SUPER_ADMIN') {
+    if (currentSelectionStillExists) {
       return;
     }
 
-    // ADMIN, SUB_ADMIN, HOD & other restricted roles: Auto-select first accessible department
-    this.selectDepartment(this.departments[0]);
+    const defaultDept = this.departments.find(dept =>
+      dept.name?.trim().toLowerCase().includes('admission')
+    ) || this.departments[0];
+
+    this.selectDepartment(defaultDept);
   }
 
   private handleError(err: any, fallback: string): void {

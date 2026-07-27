@@ -13,6 +13,11 @@ export interface DeptTemplateTaskSummary {
   statusBreakdown?: Record<string, number>;
 }
 
+interface AuthorizedDepartmentDto {
+  departmentId: number;
+  departmentName: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -28,6 +33,26 @@ export class DepartmentApiService {
       catchError(err => this.handleError(err, 'fetch all departments'))
     );
   }
+
+  getAuthorizedDepartments(): Observable<Department[]> {
+    return this.http.get<AuthorizedDepartmentDto[]>(`${this.apiUrl}/authorized`).pipe(
+      map((response: any) => {
+        const items = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.data)
+            ? response.data
+            : [];
+
+        return (items as AuthorizedDepartmentDto[]).map(item => ({
+          departmentId: item.departmentId,
+          name: item.departmentName,
+          departmentStatus: 'ACTIVE' as const
+        }));
+      }),
+      catchError(err => this.handleError(err, 'fetch authorized departments'))
+    );
+  }
+
  getZeroDueDepartmentsAsObjects(): Observable<Department[]> {
   return this.http.get<Department[]>(`${this.apiUrl}/zero-due`)
     .pipe(catchError(err => this.handleError(err, 'fetch zero due departments')));
