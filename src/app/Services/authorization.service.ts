@@ -208,12 +208,23 @@ export class AuthorizationService {
   }
 
   /**
-   * Returns true if the user can delete this task.
+   * Returns true if the user can delete this task according to front-end UI permissions.
+   * Fine-grained creator restrictions & assignment checks are enforced by backend API.
    */
   canDeleteTask(task: any): boolean {
-    if (!this.hasAnyPermission(['TASK_DELETE', 'SUB_DEPARTMENT_TASK_DELETE'])) return false;
+    if (!task) return false;
     const role = this.authService.getCurrentRole();
+    if (role === 'SUPER_ADMIN') return true;
     if (role === 'SUB_ADMIN' || role === 'TEACHER') return false;
-    return this.canAccessTask(task);
+
+    if (role === 'ADMIN') {
+      return this.hasPermission('TASK_DELETE') && this.canAccessTask(task);
+    }
+
+    if (role === 'HOD') {
+      return this.hasAnyPermission(['TASK_DELETE', 'SUB_DEPARTMENT_TASK_DELETE']) && this.canAccessTask(task);
+    }
+
+    return false;
   }
 }
