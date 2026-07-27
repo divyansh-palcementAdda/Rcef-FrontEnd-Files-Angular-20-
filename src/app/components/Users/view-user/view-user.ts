@@ -804,12 +804,16 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     }).then(confirmed => {
       if (!confirmed) return;
       this.userService.toggleUserStatus(this.userId).subscribe({
-        next: () => {
-          this.loadUserDetails();
+        next: (res: any) => {
+          if (res && res.data && res.data.status && this.user) {
+            this.user.status = res.data.status;
+          } else {
+            this.loadUserDetails();
+          }
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Failed to toggle user status:', err);
-          this.errorMessage = 'Failed to update user status.';
+          this.errorMessage = err?.error?.message || err?.message || 'Failed to update user status.';
         }
       });
     });

@@ -305,9 +305,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     // 7. User Hierarchy (User Heriky)
-    if (this.hasPermission('USER_VIEW') && (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW') || this.hasPermission('AUDIT_LOG_VIEW')) && currentRole !== 'TEACHER' && currentRole !== 'HOD') {
-      localLinks.push({ label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' });
-    }
+    // if (this.hasPermission('USER_VIEW') && (this.hasPermission('SUB_DEPARTMENT_REPORT_VIEW') || this.hasPermission('AUDIT_LOG_VIEW')) && currentRole !== 'TEACHER' && currentRole !== 'HOD') {
+    //   localLinks.push({ label: 'User Hierarchy', route: '/hierarchy-tree', icon: 'bi-diagram-3-fill' });
+    // }
 
     // 8. Recurring Task
     if (this.hasPermission('TASK_CREATE') && this.hasPermission('AUDIT_LOG_VIEW') && currentRole !== 'TEACHER' && currentRole !== 'HOD') {

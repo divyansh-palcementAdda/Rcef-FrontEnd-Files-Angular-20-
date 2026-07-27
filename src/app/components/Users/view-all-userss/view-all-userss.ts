@@ -213,13 +213,16 @@ export class ViewAllUserss implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log('[ViewAllUserss] Initializing ViewAllUserss component...');
     this.searchTerm = '';
+
     // ── Debounced main search (prevents API call on every keystroke) ──
     this._searchTerm$.pipe(
-      takeUntilDestroyed(),
+      takeUntilDestroyed(this.destroyRef),
       debounceTime(400),
       distinctUntilChanged()
     ).subscribe(term => {
+      console.log('[ViewAllUserss] Search term changed via input:', term);
       this.searchTerm = term;
       this.currentPage = 1;
       this.loadUsersForRole();
@@ -230,15 +233,23 @@ export class ViewAllUserss implements OnInit {
 
     this.initCurrentUser()
       .pipe(
-        switchMap(() => this.route.queryParams),
+        takeUntilDestroyed(this.destroyRef),
+        switchMap(() => {
+          console.log('[ViewAllUserss] Current user initialized. Subscribing to queryParams...');
+          return this.route.queryParams;
+        }),
         map(params => {
-          if (this.showAccessDeniedModal) return null; // Teacher blocked — skip data load
+          console.log('[ViewAllUserss] Received route queryParams:', params);
+          if (this.showAccessDeniedModal) {
+            console.warn('[ViewAllUserss] User is TEACHER (Access Denied). Skipping user search API call.');
+            return null; // Teacher blocked — skip data load
+          }
 
           this.currentPage = params['page'] ? Number(params['page']) : 1;
           this.pageSize = params['pageSize'] ? Number(params['pageSize']) : 10;
           this.sortBy = params['sortBy'] || 'fullName';
           this.sortDirection = params['sortDirection'] || 'asc';
-          this.searchTerm = '';
+          this.searchTerm = params['search'] || '';
           this.roleFilter = params['role'] || '';
           this.departmentIdFilter = params['department'] ? Number(params['department']) : '';
           this.subDepartmentIdFilter = params['subDepartment'] || '';
@@ -265,17 +276,20 @@ export class ViewAllUserss implements OnInit {
             this.subDepartmentIdFilter = this.hodSubDepartmentId;
           }
 
+          console.log('[ViewAllUserss] Constructed user search requestParams:', requestParams);
           return requestParams;
         }),
         filter((params): params is any => params !== null),
         distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
         tap(() => {
+          console.log('[ViewAllUserss] Triggering search API call, setting loading = true');
           this.loading = true;
           this.errorMessage = null;
         }),
         switchMap(requestParams =>
           this.apiService.searchUsers(requestParams).pipe(
             catchError(err => {
+              console.error('[ViewAllUserss] Error during searchUsers API request:', err);
               this.errorMessage = err?.message || 'Failed to search users.';
               this.loading = false;
               return of(null);
@@ -283,21 +297,30 @@ export class ViewAllUserss implements OnInit {
           )
         )
       )
-      .subscribe(res => {
-        if (res && res.success && res.data) {
-          const data = res.data;
-          this.users = data.content || [];
-          this.filteredUsers = this.users;
-          this.totalElements = data.pagination?.totalElements ?? 0;
-          this.totalPages = data.pagination?.totalPages ?? 1;
-          this.currentPage = (data.pagination?.currentPage ?? 0) + 1;
+      .subscribe({
+        next: res => {
+          console.log('[ViewAllUserss] searchUsers API response received:', res);
+          if (res && res.success && res.data) {
+            const data = res.data;
+            this.users = data.content || [];
+            this.filteredUsers = this.users;
+            this.totalElements = data.pagination?.totalElements ?? 0;
+            this.totalPages = data.pagination?.totalPages ?? 1;
+            this.currentPage = (data.pagination?.currentPage ?? 0) + 1;
 
-          this.stats = data.stats || this.stats;
-          this.departmentBreakdown = data.departmentBreakdown || [];
-          this.roleBreakdown = data.roleBreakdown || {};
-          this.subjectBreakdown = data.subjectBreakdown || [];
+            this.stats = data.stats || this.stats;
+            this.departmentBreakdown = data.departmentBreakdown || [];
+            this.roleBreakdown = data.roleBreakdown || {};
+            this.subjectBreakdown = data.subjectBreakdown || [];
+          }
+          this.loading = false;
+          console.log('[ViewAllUserss] User data loaded successfully. loading = false');
+        },
+        error: err => {
+          console.error('[ViewAllUserss] Unexpected pipeline error:', err);
+          this.errorMessage = err?.message || 'Failed to load users.';
+          this.loading = false;
         }
-        this.loading = false;
       });
   }
 
@@ -308,27 +331,32 @@ export class ViewAllUserss implements OnInit {
   private initCurrentUser(): Observable<void> {
     const token = this.jwtService.getAccessToken();
     if (!token) {
+      console.warn('[ViewAllUserss] No access token found in local storage. Redirecting to login.');
       this.router.navigate(['/login']);
       return of(void 0);
     }
 
     const decoded = this.jwtService.decodeToken(token);
     if (!decoded) {
+      console.warn('[ViewAllUserss] Could not decode JWT token. Redirecting to login.');
       this.router.navigate(['/login']);
       return of(void 0);
     }
 
-    this.currentUserId = decoded['userId'];
+    this.currentUserId = decoded['userId'] ?? decoded['id'];
     this.currentRole = this.authApiService.getCurrentRole() ?? '';
+    console.log('[ViewAllUserss] Initialized current user:', { userId: this.currentUserId, role: this.currentRole });
 
     // TEACHER has no access to this page — show 403 modal instead
     if (this.currentRole === 'TEACHER') {
+      console.warn('[ViewAllUserss] Access denied: User has TEACHER role.');
       this.showAccessDeniedModal = true;
       this.loading = false;
       return of(void 0);
     }
 
     if (this.currentRole === 'HOD') {
+      console.log('[ViewAllUserss] User is HOD. Fetching user details to determine sub-department...');
       // HOD needs sub-department → fetch full user DTO
       return this.apiService.getUserById(this.currentUserId).pipe(
         switchMap((user: userDto) => {
@@ -339,6 +367,11 @@ export class ViewAllUserss implements OnInit {
             // fallback to legacy single-string field if present
             this.hodSubDepartmentId = user.subDepartmentId;
           }
+          console.log('[ViewAllUserss] Resolved HOD subDepartmentId:', this.hodSubDepartmentId);
+          return of(void 0);
+        }),
+        catchError(err => {
+          console.error('[ViewAllUserss] Failed to fetch HOD details:', err);
           return of(void 0);
         })
       );
@@ -800,14 +833,22 @@ export class ViewAllUserss implements OnInit {
 
       if (!confirmed) return;
 
-      this.apiService.deleteUser(userId).subscribe({
-        next: () => {
-          this.users = this.users.filter(u => u.userId !== userId);
-          this.applyFilters();
+      this.apiService.toggleUserStatus(userId).subscribe({
+        next: (res: any) => {
+          const user = this.users.find(u => u.userId === userId);
+          const newStatus = res?.data?.status || 'INACTIVE';
+          if (user) {
+            user.status = newStatus;
+          }
+          this.toastService.show({
+            title: 'User Deactivated',
+            message: res?.message || `User status updated to ${newStatus}`
+          });
+          this.loadUsersForRole();
         },
         error: (err: any) => {
           this.errorMessage =
-            err?.error?.message || 'Failed to deactivate user.';
+            err?.error?.message || err?.message || 'Failed to deactivate user.';
         }
       });
 
@@ -828,18 +869,22 @@ export class ViewAllUserss implements OnInit {
       if (!confirmed) return;
 
       this.apiService.toggleUserStatus(userId).subscribe({
-        next: () => {
+        next: (res: any) => {
           const user = this.users.find(u => u.userId === userId);
+          const newStatus = res?.data?.status || 'ACTIVE';
 
           if (user) {
-            user.status = 'ACTIVE';
+            user.status = newStatus;
           }
-
-          this.applyFilters();
+          this.toastService.show({
+            title: 'User Activated',
+            message: res?.message || `User status updated to ${newStatus}`
+          });
+          this.loadUsersForRole();
         },
         error: (err: any) => {
           this.errorMessage =
-            err?.error?.message || 'Failed to activate user.';
+            err?.error?.message || err?.message || 'Failed to activate user.';
         }
       });
 
