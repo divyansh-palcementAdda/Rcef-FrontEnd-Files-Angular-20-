@@ -319,7 +319,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         value: d.activeSubDepartments,
         color: c('dark'),
         icon: 'bi-building',
-        route: '/view-all-sub-departments',
+        route: '/departments',
         delta: d.activeSubDepartments ?? 0
       },
 

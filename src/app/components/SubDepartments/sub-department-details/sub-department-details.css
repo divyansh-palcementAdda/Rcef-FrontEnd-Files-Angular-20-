@@ -709,7 +709,7 @@
 }
 
 .dashboard-table col.col-action {
-  width: 110px;
+  width: 140px;
 }
 
 .dashboard-table th,
@@ -770,6 +770,12 @@
 
 .col-action {
   white-space: nowrap;
+}
+
+.col-action .view-task-btn {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .task-id-badge {

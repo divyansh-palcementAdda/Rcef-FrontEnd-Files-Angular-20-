@@ -9,7 +9,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables, ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 Chart.register(...registerables);
 
@@ -133,10 +134,11 @@ export class SubDepartmentDetailsComponent implements OnInit {
   activityLoading = false;
   chartsLoading = false;
 
-  activeTab: 'overview' | 'tasks' | 'users' | 'subjects' | 'analytics' | 'activity' = 'overview';
+  activeTab: 'overview' | 'tasks' | 'users' | 'subjects' | 'analytics' | 'activity' = 'tasks';
 
   // Task Grid Variables
   paginatedTasks: any[] = [];
+  private searchTerm$ = new Subject<string>();
   
   // Filter Fields
   searchTerm = '';
@@ -205,7 +207,19 @@ export class SubDepartmentDetailsComponent implements OnInit {
     private deptApiService: DepartmentApiService,
     private userApiService: UserApiService,
     private snackBar: MatSnackBar
-  ) {}
+  ) {
+    this.searchTerm$
+      .pipe(
+        debounceTime(350),
+        distinctUntilChanged()
+      )
+      .subscribe(() => {
+        if (this.activeTab === 'tasks') {
+          this.currentPage = 1;
+          this.fetchTasks();
+        }
+      });
+  }
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -239,6 +253,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
         // Start background tasks
         this.loadFilterOptions();
         this.loadOverviewActivity();
+        this.onTabChange('tasks');
       },
       error: (err: any) => {
         this.showError('Failed to load sub-department details: ' + err.message);
@@ -406,6 +421,10 @@ export class SubDepartmentDetailsComponent implements OnInit {
     this.fetchTasks();
   }
 
+  onSearchInput(): void {
+    this.searchTerm$.next(this.searchTerm);
+  }
+
   toggleSort(column: string): void {
     if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -441,11 +460,9 @@ export class SubDepartmentDetailsComponent implements OnInit {
     this.userFilter = '';
     this.subjectFilter = '';
     this.templateFilter = '';
-    this.applyTaskFilters();
   }
 
   filterByCard(type: string, value: string): void {
-    this.onTabChange('tasks');
     this.resetAllFilters();
     if (type === 'status') {
       this.statusFilter = value;
@@ -458,7 +475,12 @@ export class SubDepartmentDetailsComponent implements OnInit {
     } else if (type === 'template') {
       this.templateFilter = value;
     }
-    this.applyTaskFilters();
+    if (this.activeTab !== 'tasks') {
+      this.onTabChange('tasks');
+      return;
+    }
+    this.currentPage = 1;
+    this.fetchTasks();
   }
 
   updateCharts(detail: any): void {

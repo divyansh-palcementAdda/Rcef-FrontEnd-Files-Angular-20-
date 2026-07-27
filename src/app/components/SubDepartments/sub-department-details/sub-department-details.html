@@ -251,6 +251,75 @@
          2. TASKS TAB
          ================================================ -->
     <div *ngIf="activeTab === 'tasks'" class="tab-pane-content">
+      <!-- Summary cards shown on Tasks tab as well -->
+      <div class="counters-grid" *ngIf="subDeptDetail.analytics">
+
+        <div class="counter-card" (click)="filterByCard('status', '')">
+          <div class="card-top-row">
+            <div class="card-icon"><i class="bi bi-list-task text-primary"></i></div>
+            <div class="card-value">{{ subDeptDetail.analytics.totalTasks }}</div>
+          </div>
+          <div class="card-label">Total Tasks</div>
+        </div>
+
+        <div class="counter-card" (click)="filterByCard('status', 'PENDING')">
+          <div class="card-top-row">
+            <div class="card-icon"><i class="bi bi-clock text-warning"></i></div>
+            <div class="card-value text-warning">{{ subDeptDetail.analytics.pendingTasks }}</div>
+          </div>
+          <div class="card-label">Pending Tasks</div>
+        </div>
+
+        <div class="counter-card" (click)="filterByCard('status', 'IN_PROGRESS')">
+          <div class="card-top-row">
+            <div class="card-icon"><i class="bi bi-activity text-info"></i></div>
+            <div class="card-value text-info">{{ subDeptDetail.analytics.inProgressTasks }}</div>
+          </div>
+          <div class="card-label">In Progress</div>
+        </div>
+
+        <div class="counter-card" (click)="filterByCard('status', 'CLOSED')">
+          <div class="card-top-row">
+            <div class="card-icon"><i class="bi bi-check-circle text-success"></i></div>
+            <div class="card-value text-success">{{ subDeptDetail.analytics.closedTasks }}</div>
+          </div>
+          <div class="card-label">Closed Tasks</div>
+        </div>
+
+        <div class="counter-card" (click)="filterByCard('status', 'DELAYED')">
+          <div class="card-top-row">
+            <div class="card-icon"><i class="bi bi-exclamation-triangle text-danger"></i></div>
+            <div class="card-value text-danger">{{ subDeptDetail.analytics.delayedTasks }}</div>
+          </div>
+          <div class="card-label">Delayed Tasks</div>
+        </div>
+
+        <div class="counter-card" (click)="filterByCard('status', 'EXTENDED')">
+          <div class="card-top-row">
+            <div class="card-icon"><i class="bi bi-arrow-right-circle text-secondary"></i></div>
+            <div class="card-value">{{ subDeptDetail.analytics.extendedTasks }}</div>
+          </div>
+          <div class="card-label">Extended Tasks</div>
+        </div>
+
+        <div class="counter-card" (click)="filterByCard('status', 'REQUEST_FOR_CLOSURE')">
+          <div class="card-top-row">
+            <div class="card-icon"><i class="bi bi-lock-fill text-success"></i></div>
+            <div class="card-value">{{ subDeptDetail.analytics.requestForClosure }}</div>
+          </div>
+          <div class="card-label">Closure Requests</div>
+        </div>
+
+        <div class="counter-card" (click)="filterByCard('status', 'REQUEST_FOR_EXTENSION')">
+          <div class="card-top-row">
+            <div class="card-icon"><i class="bi bi-calendar-range text-warning"></i></div>
+            <div class="card-value">{{ subDeptDetail.analytics.requestForExtension }}</div>
+          </div>
+          <div class="card-label">Extension Requests</div>
+        </div>
+
+      </div>
+
       <div *ngIf="tasksLoading" class="loading-state">
         <div class="spinner"></div>
         <span>Loading tasks...</span>
@@ -260,7 +329,7 @@
         <div class="filters-toolbar">
           <div class="search-input-group">
             <i class="bi bi-search"></i>
-            <input type="text" [(ngModel)]="searchTerm" (input)="applyTaskFilters()"
+            <input type="text" [(ngModel)]="searchTerm" (input)="onSearchInput()"
               placeholder="Search task ID or title...">
           </div>
 
@@ -318,16 +387,14 @@
                 <col class="col-assigned">
                 <col class="col-subject">
                 <col class="col-status">
-                <col class="col-priority">
-                <col class="col-targets">
                 <col class="col-duedate">
                 <col class="col-created">
                 <col class="col-action">
               </colgroup>
               <thead>
                 <tr>
-                  <th (click)="toggleSort('taskId')">
-                    Task ID&nbsp;<i class="bi bi-arrow-down-up"></i>
+                  <th>
+                    S. No.
                   </th>
                   <th (click)="toggleSort('title')">
                     Title&nbsp;<i class="bi bi-arrow-down-up"></i>
@@ -337,8 +404,6 @@
                   <th>Assigned To</th>
                   <th>Subject</th>
                   <th>Status</th>
-                  <th>Priority</th>
-                  <th>Targets</th>
                   <th (click)="toggleSort('dueDate')">
                     Due Date&nbsp;<i class="bi bi-arrow-down-up"></i>
                   </th>
@@ -349,9 +414,9 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let task of paginatedTasks">
+                <tr *ngFor="let task of paginatedTasks; let i = index">
                   <td class="col-taskid">
-                    <span class="task-id-badge">#{{ task.taskId }}</span>
+                    <span class="task-id-badge">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
                   </td>
                   <td class="col-title">
                     <a class="task-title-link" (click)="viewTaskDetails(task.taskId)">
@@ -380,16 +445,6 @@
                   <td class="col-status">
                     <span class="status-pill" [ngClass]="task.status.toLowerCase()">
                       {{ task.status | titlecase }}
-                    </span>
-                  </td>
-                  <td class="col-priority">
-                    <span class="priority-pill" [ngClass]="task.priority.toLowerCase()">
-                      {{ task.priority | titlecase }}
-                    </span>
-                  </td>
-                  <td class="col-targets">
-                    <span class="target-val">
-                      {{ task.completedCount || 0 }}&thinsp;/&thinsp;{{ task.targetCount || 1 }}
                     </span>
                   </td>
                   <td class="col-duedate cell-muted">{{ formatDate(task.dueDate) }}</td>
