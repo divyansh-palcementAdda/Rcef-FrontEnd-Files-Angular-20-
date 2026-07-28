@@ -490,7 +490,10 @@ export class ViewDepartmentsComponent implements OnInit {
       !this.searchTerm || d.name?.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
     this.totalPages  = Math.ceil(this.filteredDepartments.length / this.pageSize) || 1;
-    this.currentPage = 1;
+    this.currentPage = Math.min(this.currentPage, this.totalPages);
+    if (this.currentPage < 1 && this.totalPages > 0) {
+      this.currentPage = 1;
+    }
   }
 
   resetFilters(): void {

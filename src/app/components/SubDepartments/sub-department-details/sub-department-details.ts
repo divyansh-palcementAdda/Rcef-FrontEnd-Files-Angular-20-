@@ -210,7 +210,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   ) {
     this.searchTerm$
       .pipe(
-        debounceTime(350),
+        debounceTime(450),
         distinctUntilChanged()
       )
       .subscribe(() => {
