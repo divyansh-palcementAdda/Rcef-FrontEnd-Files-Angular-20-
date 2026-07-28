@@ -158,7 +158,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sd of paginatedAllSubDepts; let i = index">
+            <tr *ngFor="let sd of paginatedAllSubDepts; let i = index" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
               <td class="text-muted fw-semibold">{{ (allSubDeptsCurrentPage - 1) * allSubDeptsPageSize + i + 1 }}</td>
               <td><span class="badge bg-light text-dark fw-semibold">{{ sd.code || '—' }}</span></td>
               <td class="fw-bold" style="color: var(--text-main);">{{ sd.name }}</td>
@@ -170,10 +170,10 @@
               <td class="text-muted"><small>{{ sd.description || 'No description provided' }}</small></td>
               <td class="text-end" (click)="$event.stopPropagation()">
                 <div class="row-actions">
-                  <button class="action-icon-btn" (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
+                  <button class="action-icon-btn" (click)="viewSubDepartmentDetails(sd.id); $event.stopPropagation()" title="View Details">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <button class="action-icon-btn" (click)="openEditSubDeptModal(sd)" title="Edit">
+                  <button class="action-icon-btn" (click)="openEditSubDeptModal(sd); $event.stopPropagation()" title="Edit">
                     <i class="bi bi-pencil-square"></i>
                   </button>
                 </div>
@@ -185,18 +185,18 @@
 
       <!-- Mobile Cards -->
       <div class="d-md-none" *ngIf="!allSubDeptsLoading && paginatedAllSubDepts.length">
-        <div class="mobile-dept-card" *ngFor="let sd of paginatedAllSubDepts">
+        <div class="mobile-dept-card" *ngFor="let sd of paginatedAllSubDepts" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ sd.name }}</h6>
             <span class="badge bg-light text-dark">{{ sd.code || '—' }}</span>
           </div>
           <small class="text-muted d-block mb-1">{{ sd.department.name || '—' }}</small>
           <small class="text-muted">{{ sd.description || 'No description' }}</small>
-          <div class="row-actions mt-2 pt-2 border-top">
-            <button class="action-icon-btn" (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
+          <div class="row-actions mt-2 pt-2 border-top" (click)="$event.stopPropagation()">
+            <button class="action-icon-btn" (click)="viewSubDepartmentDetails(sd.id); $event.stopPropagation()" title="View Details">
               <i class="bi bi-eye"></i>
             </button>
-            <button class="action-icon-btn" (click)="openEditSubDeptModal(sd)" title="Edit">
+            <button class="action-icon-btn" (click)="openEditSubDeptModal(sd); $event.stopPropagation()" title="Edit">
               <i class="bi bi-pencil-square"></i>
             </button>
           </div>
@@ -296,17 +296,17 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sd of paginatedSubDepts; let i = index">
+            <tr *ngFor="let sd of paginatedSubDepts; let i = index" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
               <td class="text-muted fw-semibold">{{ (subDeptCurrentPage - 1) * subDeptPageSize + i + 1 }}</td>
               <td><span class="badge bg-light text-dark fw-semibold">{{ sd.code || '—' }}</span></td>
               <td class="fw-bold" style="color: var(--text-main);">{{ sd.name }}</td>
               <td class="text-muted"><small>{{ sd.description || 'No description provided' }}</small></td>
               <td class="text-end" (click)="$event.stopPropagation()">
                 <div class="row-actions">
-                  <button class="action-icon-btn" (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
+                  <button class="action-icon-btn" (click)="viewSubDepartmentDetails(sd.id); $event.stopPropagation()" title="View Details">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <button class="action-icon-btn" (click)="openEditSubDeptModal(sd)" title="Edit Sub-Department">
+                  <button class="action-icon-btn" (click)="openEditSubDeptModal(sd); $event.stopPropagation()" title="Edit Sub-Department">
                     <i class="bi bi-pencil-square"></i>
                   </button>
                 </div>
@@ -318,17 +318,17 @@
 
       <!-- Sub-dept mobile cards -->
       <div class="d-md-none" *ngIf="!subDeptLoading && paginatedSubDepts.length">
-        <div class="mobile-dept-card" *ngFor="let sd of paginatedSubDepts">
+        <div class="mobile-dept-card" *ngFor="let sd of paginatedSubDepts" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ sd.name }}</h6>
             <span class="badge bg-light text-dark">{{ sd.code || '—' }}</span>
           </div>
           <small class="text-muted">{{ sd.description || 'No description' }}</small>
-          <div class="row-actions mt-2 pt-2 border-top">
-            <button class="action-icon-btn" (click)="router.navigate(['/sub-department-details', sd.id])" title="View Details">
+          <div class="row-actions mt-2 pt-2 border-top" (click)="$event.stopPropagation()">
+            <button class="action-icon-btn" (click)="viewSubDepartmentDetails(sd.id); $event.stopPropagation()" title="View Details">
               <i class="bi bi-eye"></i>
             </button>
-            <button class="action-icon-btn" (click)="openEditSubDeptModal(sd)" title="Edit Sub-Department">
+            <button class="action-icon-btn" (click)="openEditSubDeptModal(sd); $event.stopPropagation()" title="Edit Sub-Department">
               <i class="bi bi-pencil-square"></i>
             </button>
           </div>

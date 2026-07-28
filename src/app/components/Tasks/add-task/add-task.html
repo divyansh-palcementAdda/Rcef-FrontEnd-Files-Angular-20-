@@ -112,8 +112,26 @@
 
             <!-- Responsible Departments -->
             <div>
-              <label class="form-label">Responsible Departments <span class="text-danger">*</span></label>
-              <div class="directory-card">
+              <label class="form-label">Responsible Department<span *ngIf="!isSubDeptPreFilled">s</span> <span class="text-danger">*</span></label>
+
+              <!-- Locked Pre-filled Department Card -->
+              <div *ngIf="isSubDeptPreFilled" class="card p-3 bg-light border-0 rounded-3 mb-2 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-building-lock text-primary fs-5"></i>
+                    <div>
+                      <strong class="d-block text-dark">{{ preFilledDeptName || getDepartmentName(selectedDepartmentIds[0]) || 'Department' }}</strong>
+                      <small class="text-muted">Pre-filled from Sub-Department context</small>
+                    </div>
+                  </div>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                    <i class="bi bi-lock-fill me-1"></i>Locked
+                  </span>
+                </div>
+              </div>
+
+              <!-- Directory Card (interactive when not pre-filled) -->
+              <div *ngIf="!isSubDeptPreFilled" class="directory-card">
                 <div class="directory-search">
                   <i class="bi bi-search"></i>
                   <input #deptSearchInput id="dept-search" type="text" class="form-control w-100"
@@ -141,7 +159,7 @@
                   </div>
                   <div *ngFor="let dept of filteredDepartments" class="form-check mb-2">
                     <input type="checkbox" class="form-check-input custom-checkbox" [id]="'dept-' + dept.departmentId"
-                      [checked]="taskForm.value.departmentIds.includes(dept.departmentId)"
+                      [checked]="selectedDepartmentIds.includes(dept.departmentId)"
                       (change)="updateDepartmentSelection(dept.departmentId, $event.target.checked)" [disabled]="
                       taskForm.value.assignToSelf &&
                       !currentUser?.departmentIds?.includes(dept.departmentId)
@@ -156,7 +174,7 @@
             </div>
 
             <!-- Assign Users -->
-            <div *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
+            <div *ngIf="selectedDepartmentIds.length || currentUser?.role === 'SUPER_ADMIN'">
               <label class="form-label">Assign Users</label>
 
               <!-- Self-Assign Banner -->
@@ -195,7 +213,7 @@
 
               <!-- Accordion users list directory styled -->
               <div class="accordion mb-2" id="userAccordion">
-                <div *ngFor="let deptId of taskForm.value.departmentIds; let i = index"
+                <div *ngFor="let deptId of selectedDepartmentIds; let i = index"
                   class="accordion-item rounded-3 mb-2 overflow-hidden border">
                   <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -256,7 +274,7 @@
               </div>
 
               <!-- Fallback Directory Card for Super Admin (no dept selected) -->
-              <div *ngIf="!taskForm.value.departmentIds?.length && currentUser?.role === 'SUPER_ADMIN'"
+              <div *ngIf="!selectedDepartmentIds.length && currentUser?.role === 'SUPER_ADMIN'"
                 class="directory-card">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="fw-bold text-slate-700 fs-7.5">All Active Users</span>
@@ -354,9 +372,27 @@
             </div>
 
             <!-- Sub-Department Selection -->
-            <div *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
-              <label class="form-label">Sub-Departments (Optional)</label>
-              <div class="custom-multiselect-container position-relative mb-2">
+            <div *ngIf="(taskForm.get('departmentIds')?.value || []).length || currentUser?.role === 'SUPER_ADMIN' || isSubDeptPreFilled">
+              <label class="form-label">Sub-Department</label>
+
+              <!-- Locked Pre-filled Sub-Department Card -->
+              <div *ngIf="isSubDeptPreFilled" class="card p-3 bg-light border-0 rounded-3 mb-2 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-diagram-2-fill text-primary fs-5"></i>
+                    <div>
+                      <strong class="d-block text-dark">{{ preFilledSubDeptName || getSubDeptName(getSelectedSubDeptIds()[0]) || 'Sub-Department' }}</strong>
+                      <small class="text-muted">Pre-filled from currently viewed Sub-Department</small>
+                    </div>
+                  </div>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                    <i class="bi bi-lock-fill me-1"></i>Locked
+                  </span>
+                </div>
+              </div>
+
+              <!-- Multiselect (interactive when not pre-filled) -->
+              <div *ngIf="!isSubDeptPreFilled" class="custom-multiselect-container position-relative mb-2">
                 <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3"
                   (click)="toggleSubDeptDropdown()">
                   <!-- Chips -->

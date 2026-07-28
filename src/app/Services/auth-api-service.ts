@@ -268,6 +268,7 @@ export class AuthApiService {
     if (role === 'SUPER_ADMIN') return true;
 
     const permissions = this.permissions$.value || [];
+    console.log('Permissions:', permissions, 'Checking for:', permission);
     return permissions.includes(permission);
   }
 

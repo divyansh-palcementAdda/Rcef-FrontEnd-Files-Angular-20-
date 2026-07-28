@@ -139,9 +139,8 @@ export class UserApiService {
   }
 
 
-  toggleUserStatus(userId: number): Observable<{ success: boolean; message: string }> {
-
-    return this.http.put<{ success: boolean; message: string }>(
+  toggleUserStatus(userId: number): Observable<any> {
+    return this.http.put<any>(
       `${this.apiUrl}/${userId}/toggle-status`,
       {}
     ).pipe(
