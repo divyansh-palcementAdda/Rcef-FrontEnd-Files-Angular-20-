@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs/operators';
-import { 
-  AllWorkApiService, 
-  WorkDashboardResponse, 
-  DepartmentCardDTO, 
-  SubDepartmentRowDTO, 
-  UserRowDTO, 
-  WorkAnalyticsResponse 
+import {
+  AllWorkApiService,
+  WorkDashboardResponse,
+  DepartmentCardDTO,
+  SubDepartmentRowDTO,
+  UserRowDTO,
+  WorkAnalyticsResponse
 } from '../../Services/all-work-api.service';
 import { JwtService } from '../../Services/jwt-service';
 import { ModalWrapperComponent } from '../Shared/modal-wrapper/modal-wrapper';
@@ -23,12 +23,9 @@ import { AllWorkAnalyticsComponent } from './modals/analytics/all-work-analytics
   selector: 'app-all-work',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    ModalWrapperComponent, 
-    AllWorkUsersComponent, 
-    AllWorkTasksComponent, 
-    AllWorkAnalyticsComponent
+    CommonModule,
+    FormsModule,
+    ModalWrapperComponent,
   ],
   templateUrl: './all-work.component.html',
   styleUrls: ['./all-work.component.css']
@@ -39,7 +36,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   // Current User Info
   currentUserId: number | null = null;
   role: string = '';
-  
+
   // Dashboard & Department Cards
   dashboardData: WorkDashboardResponse | null = null;
   departments: DepartmentCardDTO[] = [];
@@ -102,12 +99,12 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     public modalWrapperService: ModalWrapperService,
     private location: Location
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const token = this.jwtService.getAccessToken();
     this.currentUserId = token ? this.jwtService.getUserIdFromToken(token) : null;
-    
+
     // Subscribe to search input changes with debounce
     this.subscriptions.add(
       this.subDeptSearchSubject.pipe(
@@ -306,7 +303,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
             this.dashboardData = res;
             this.role = res.role;
             this.departments = res.departments || [];
-            
+
             if (this.role === 'SUPER_ADMIN' || this.role === 'ADMIN' || this.role === 'SUB_ADMIN') {
               // Only set default department if not already set from query params
               if (this.selectedDeptId === null && res.defaultId) {
@@ -395,7 +392,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
       const mouseEvent = event as MouseEvent;
       const keyboardEvent = event as KeyboardEvent;
       const isCtrlClick = (mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey || mouseEvent.button === 1)) ||
-                          (keyboardEvent && (keyboardEvent.ctrlKey || keyboardEvent.metaKey));
+        (keyboardEvent && (keyboardEvent.ctrlKey || keyboardEvent.metaKey));
 
       if (isCtrlClick) {
         let url = '';
@@ -469,7 +466,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     if (this.filterCreatedBy) {
       activeFilters.createdBy = this.filterCreatedBy;
     }
-    
+
     return Object.keys(activeFilters).length > 0 ? JSON.stringify(activeFilters) : '';
   }
 
@@ -478,7 +475,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     this.loadingSubDepts = true;
     this.subDeptError = false;
     this.cdr.markForCheck();
-    
+
     const serializedFilters = this.getSerializedFilters();
 
     this.subscriptions.add(

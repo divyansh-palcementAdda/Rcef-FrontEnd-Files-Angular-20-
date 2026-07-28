@@ -128,21 +128,21 @@
         </div>
         <div class="row g-3">
           <div class="col-sm-4">
-            <app-analytics-stat-card [title]="'Pending'" [value]="activeStatusStats?.pending ?? 0"
+            <app-analytics-stat-card [title]="'Pending'" [value]="activeStatusStats.pending"
               [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Pending Closure' : requestTypeFilter === 'EXTENSION' ? 'Pending Extension' : 'Awaiting Review'"
               [iconClass]="'bi bi-hourglass-split'" [theme]="'amber'" [selected]="statusFilter === 'PENDING'"
               (click)="selectRequestStatus('PENDING')">
             </app-analytics-stat-card>
           </div>
           <div class="col-sm-4">
-            <app-analytics-stat-card [title]="'Approved'" [value]="activeStatusStats?.approved ?? 0"
+            <app-analytics-stat-card [title]="'Approved'" [value]="activeStatusStats.approved"
               [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Approved Closure' : requestTypeFilter === 'EXTENSION' ? 'Approved Extension' : 'Accepted Requests'"
               [iconClass]="'bi bi-check-circle-fill'" [theme]="'emerald'" [selected]="statusFilter === 'APPROVED'"
               (click)="selectRequestStatus('APPROVED')">
             </app-analytics-stat-card>
           </div>
           <div class="col-sm-4">
-            <app-analytics-stat-card [title]="'Rejected'" [value]="activeStatusStats?.rejected ?? 0"
+            <app-analytics-stat-card [title]="'Rejected'" [value]="activeStatusStats.rejected"
               [subtitle]="requestTypeFilter === 'CLOSURE' ? 'Rejected Closure' : requestTypeFilter === 'EXTENSION' ? 'Rejected Extension' : 'Declined Requests'"
               [iconClass]="'bi bi-x-circle-fill'" [theme]="'red'" [selected]="statusFilter === 'REJECTED'"
               (click)="selectRequestStatus('REJECTED')">
