@@ -18,6 +18,7 @@ import { TaskDto } from '../../../Model/TaskDto';
 import { AuthorizationService } from '../../../Services/authorization.service';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
+import { UserTaskAnalyticsApiService, UserTaskAnalyticsRowDTO } from '../../../Services/user-task-analytics-api.service';
 
 Chart.register(...registerables);
 
@@ -214,6 +215,13 @@ export class SubDepartmentDetailsComponent implements OnInit {
   private authorizationService = inject(AuthorizationService);
   private taskApiService = inject(TaskApiService);
   private confirmDialog = inject(ConfirmDialogService);
+  private userTaskAnalyticsApiService = inject(UserTaskAnalyticsApiService);
+
+  // Role Analytics State
+  hodAnalyticsList: UserTaskAnalyticsRowDTO[] = [];
+  facultyAnalyticsList: UserTaskAnalyticsRowDTO[] = [];
+  hodAnalyticsLoading = false;
+  facultyAnalyticsLoading = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -359,6 +367,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
         // Start background tasks
         this.loadFilterOptions();
         this.loadOverviewActivity();
+        this.loadRoleTaskAnalytics();
         this.onTabChange('tasks');
       },
       error: (err: any) => {
@@ -737,5 +746,88 @@ export class SubDepartmentDetailsComponent implements OnInit {
       .map(part => part.charAt(0))
       .join('')
       .toUpperCase();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // HOD & FACULTY TASK ANALYTICS METHODS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  loadRoleTaskAnalytics(): void {
+    this.loadHodTaskAnalytics();
+    this.loadFacultyTaskAnalytics();
+  }
+
+  loadHodTaskAnalytics(): void {
+    if (!this.subDeptId) return;
+    this.hodAnalyticsLoading = true;
+    this.userTaskAnalyticsApiService.getUserTaskAnalytics(
+      null,
+      this.subDeptId,
+      'HOD',
+      null,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      null,
+      true,
+      '',
+      0,
+      100
+    ).subscribe({
+      next: (res: any) => {
+        this.hodAnalyticsList = res?.content || [];
+        this.hodAnalyticsLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Failed to load HOD task analytics', err);
+        this.hodAnalyticsLoading = false;
+      }
+    });
+  }
+
+  loadFacultyTaskAnalytics(): void {
+    if (!this.subDeptId) return;
+    this.facultyAnalyticsLoading = true;
+    this.userTaskAnalyticsApiService.getUserTaskAnalytics(
+      null,
+      this.subDeptId,
+      'TEACHER',
+      null,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      null,
+      true,
+      '',
+      0,
+      100
+    ).subscribe({
+      next: (res: any) => {
+        this.facultyAnalyticsList = res?.content || [];
+        this.facultyAnalyticsLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Failed to load Faculty task analytics', err);
+        this.facultyAnalyticsLoading = false;
+      }
+    });
+  }
+
+  getHodAnalyticsTotalTasks(): number {
+    return this.hodAnalyticsList.reduce((acc, curr) => acc + (curr.totalTasks || 0), 0);
+  }
+
+  getHodAnalyticsClosedTasks(): number {
+    return this.hodAnalyticsList.reduce((acc, curr) => acc + (curr.closed || curr.completed || 0), 0);
+  }
+
+  getFacultyAnalyticsTotalTasks(): number {
+    return this.facultyAnalyticsList.reduce((acc, curr) => acc + (curr.totalTasks || 0), 0);
+  }
+
+  getFacultyAnalyticsClosedTasks(): number {
+    return this.facultyAnalyticsList.reduce((acc, curr) => acc + (curr.closed || curr.completed || 0), 0);
   }
 }
