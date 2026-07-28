@@ -24,7 +24,7 @@ import { UsersImportComponent } from '../users-import/users-import';
   selector: 'app-view-all-users',
   templateUrl: './view-all-userss.html',
   styleUrls: ['./view-all-userss.css'],
-  imports: [CommonModule, FormsModule, EditUser, UsersImportComponent]
+  imports: [CommonModule, FormsModule, UsersImportComponent]
 })
 export class ViewAllUserss implements OnInit {
 
