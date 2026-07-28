@@ -29,6 +29,60 @@
   gap: 1.5rem;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-assign-task {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.65rem 1.35rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.btn-assign-task i {
+  font-size: 1rem;
+  transition: transform 0.25s ease;
+}
+
+.btn-assign-task:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+  transform: translateY(-2px);
+  color: #ffffff;
+}
+
+.btn-assign-task:hover i {
+  transform: rotate(90deg) scale(1.1);
+}
+
+.btn-assign-task:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+.btn-assign-task:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4), 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+
 .btn-back {
   background: var(--bg-color);
   border: 1px solid var(--border-color);
@@ -709,7 +763,7 @@
 }
 
 .dashboard-table col.col-action {
-  width: 140px;
+  width: 170px;
 }
 
 .dashboard-table th,
@@ -770,6 +824,15 @@
 
 .col-action {
   white-space: nowrap;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+.action-buttons-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
 }
 
 .col-action .view-task-btn {

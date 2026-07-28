@@ -515,6 +515,12 @@ export class ViewDepartmentsComponent implements OnInit {
     if (departmentId) this.router.navigate(['/department', departmentId]);
   }
 
+  viewSubDepartmentDetails(id?: string): void {
+    if (id) {
+      this.router.navigate(['/sub-department-details', id]);
+    }
+  }
+
   editDepartment(event: Event, departmentId?: number): void {
     event.stopPropagation();
     if (departmentId) this.router.navigate(['/edit-department', departmentId]);

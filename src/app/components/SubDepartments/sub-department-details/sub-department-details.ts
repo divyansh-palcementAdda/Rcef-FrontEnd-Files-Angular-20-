@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DepartmentApiService } from '../../../Services/department-api-service';
@@ -11,6 +11,13 @@ import { Chart, registerables, ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { forkJoin, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { AuthApiService } from '../../../Services/auth-api-service';
+import { ModalService } from '../../../Services/modal-service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TaskDto } from '../../../Model/TaskDto';
+import { AuthorizationService } from '../../../Services/authorization.service';
+import { TaskApiService } from '../../../Services/task-api-Service';
+import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 
 Chart.register(...registerables);
 
@@ -123,7 +130,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   readonly Math = Math;
   subDeptId!: string;
   subDeptDetail: SubDepartmentDetail | null = null;
-  
+
   // Loading flags
   loading = false;
   basicLoading = false;
@@ -139,7 +146,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   // Task Grid Variables
   paginatedTasks: any[] = [];
   private searchTerm$ = new Subject<string>();
-  
+
   // Filter Fields
   searchTerm = '';
   statusFilter = '';
@@ -200,13 +207,20 @@ export class SubDepartmentDetailsComponent implements OnInit {
     }
   };
 
+  private destroyRef = inject(DestroyRef);
+  private authorizationService = inject(AuthorizationService);
+  private taskApiService = inject(TaskApiService);
+  private confirmDialog = inject(ConfirmDialogService);
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private location: Location,
     private deptApiService: DepartmentApiService,
     private userApiService: UserApiService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authApiService: AuthApiService,
+    private modalService: ModalService
   ) {
     this.searchTerm$
       .pipe(
@@ -219,6 +233,86 @@ export class SubDepartmentDetailsComponent implements OnInit {
           this.fetchTasks();
         }
       });
+
+    this.modalService.modalClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
+      if (event.modal === 'add-task' && event.success) {
+        this.fetchTasks();
+        this.loadAnalyticsSummary();
+      }
+    });
+  }
+
+  canDeleteTask(task: TaskDto): boolean {
+    return this.authorizationService.canDeleteTask(task);
+  }
+
+  deleteTask(event: Event, taskId?: number): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!taskId) return;
+
+    const task = this.paginatedTasks.find(t => t.taskId === taskId);
+    const taskTitle = task ? `'${task.title}'` : 'this task';
+
+    this.confirmDialog.confirm({
+      title: 'Delete Task?',
+      message: `Are you sure you want to delete ${taskTitle}? This task will be permanently deleted.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.taskApiService.deleteTask(taskId).subscribe({
+        next: (res) => {
+          if (res?.success) {
+            this.snackBar.open('Task deleted successfully', 'Close', { duration: 3000 });
+            this.fetchTasks();
+            this.loadAnalyticsSummary();
+          } else {
+            this.showError(res?.message || 'Failed to delete task');
+          }
+        },
+        error: (err) => {
+          this.showError(err?.error?.message || err?.message || 'Failed to delete task');
+        }
+      });
+    });
+  }
+
+  get canAssignTask(): boolean {
+    const role = this.authApiService.getCurrentRole();
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'SUB_ADMIN' || role === 'HOD') {
+      return true;
+    }
+    return this.authApiService.hasPermission('TASK_CREATE') || this.authApiService.hasPermission('TASK_ASSIGN');
+  }
+
+  openAssignTaskModal(): void {
+    const deptId = this.subDeptDetail?.department?.departmentId;
+    const queryParams: any = {
+      modal: 'add-task',
+      subDepartmentId: this.subDeptId
+    };
+    if (deptId) {
+      queryParams['departmentId'] = deptId;
+    }
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  loadAnalyticsSummary(): void {
+    this.deptApiService.getSubDepartmentAnalytics(this.subDeptId).subscribe({
+      next: (res: any) => {
+        if (this.subDeptDetail) {
+          this.subDeptDetail.analytics = res;
+        }
+      }
+    });
   }
 
   ngOnInit(): void {

@@ -8,8 +8,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
-import { TaskApiService } from '../../../Services/task-api-Service';
+import { Router, ActivatedRoute } from '@angular/router';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { JwtService } from '../../../Services/jwt-service';
 import { Department } from '../../../Model/department';
@@ -22,6 +21,7 @@ import { AuthApiService } from '../../../Services/auth-api-service';
 import { TaskTemplateApiService, TaskTemplateDto, TaskTemplateCategoryDto } from '../../../Services/task-template-api.service';
 import { SubjectApiService } from '../../../Services/subject-api.service';
 import { forkJoin } from 'rxjs';
+import { TaskApiService, ApiResponse } from '../../../Services/task-api-Service';
 
 interface TaskFormControls {
   title: any;
@@ -48,6 +48,8 @@ interface TaskFormControls {
 
 export class AddTaskComponent implements OnInit, AfterViewInit {
   @Input() isModal = false;
+  @Input() initialDepartmentId?: number;
+  @Input() initialSubDepartmentId?: string;
   @Output() closed = new EventEmitter<boolean>();
   taskForm!: FormGroup;
   departments: Department[] = [];
@@ -62,6 +64,11 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   superAdminUserSearch = '';
   subDepartments: any[] = [];
   filteredSubDepartments: any[] = [];
+
+  // Pre-fill states
+  isSubDeptPreFilled = false;
+  preFilledSubDeptName = '';
+  preFilledDeptName = '';
 
   // Template States
   categories: TaskTemplateCategoryDto[] = [];
@@ -107,6 +114,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     private userService: UserApiService,
     private jwtService: JwtService,
     private router: Router,
+    private route: ActivatedRoute,
     private authApiService: AuthApiService,
     private templateApiService: TaskTemplateApiService,
     private subjectApiService: SubjectApiService
@@ -129,7 +137,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
           }
           this.loadDepartments();
         },
-        // ... error ...
+        error: () => this.loadDepartments()
       });
     } else {
       this.loadDepartments();
@@ -139,9 +147,38 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
       next: (subs) => {
         this.subDepartments = subs;
         this.filterSubDepartments();
+        this.checkPreFillContext();
       },
       error: (err) => {
         console.error('Failed to load sub-departments', err);
+      }
+    });
+
+    // Check query params for pre-filled Sub Department context
+    this.route.queryParams.subscribe((params) => {
+      const qDeptId = params['departmentId'] || this.initialDepartmentId;
+      const qSubDeptId = params['subDepartmentId'] || this.initialSubDepartmentId;
+
+      if (qSubDeptId) {
+        this.isSubDeptPreFilled = true;
+        const deptIdNum = qDeptId ? Number(qDeptId) : null;
+        const deptIdsArr = deptIdNum ? [deptIdNum] : [];
+
+        this.taskForm.patchValue({
+          departmentIds: deptIdsArr,
+          subDepartmentId: qSubDeptId,
+          subDepartmentIds: [qSubDeptId]
+        });
+
+        // Disable controls to lock fields from being modified
+        this.taskForm.get('departmentIds')?.disable();
+        this.taskForm.get('subDepartmentId')?.disable();
+        this.taskForm.get('subDepartmentIds')?.disable();
+
+        // Trigger user & subject loading for the pre-filled sub-department
+        this.onDepartmentOrSubDepartmentChange();
+        this.loadSubjectsForSubDepartments();
+        this.checkPreFillContext();
       }
     });
 
@@ -172,6 +209,30 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
       },
       error: (err) => console.error('Failed to load templates', err)
     });
+  }
+
+  get selectedDepartmentIds(): number[] {
+    return this.taskForm ? (this.taskForm.getRawValue().departmentIds || []) : [];
+  }
+
+  private checkPreFillContext(): void {
+    if (!this.isSubDeptPreFilled) return;
+    const raw = this.taskForm.getRawValue();
+    const currentSubId = raw.subDepartmentId;
+    if (currentSubId && this.subDepartments.length > 0) {
+      const subObj = this.subDepartments.find(s => s.id === currentSubId);
+      if (subObj) {
+        this.preFilledSubDeptName = subObj.name || 'Sub-Department';
+        if (subObj.department) {
+          this.preFilledDeptName = subObj.department.name;
+          const currentDepts = raw.departmentIds || [];
+          if (!currentDepts.length) {
+            this.taskForm.patchValue({ departmentIds: [subObj.department.departmentId] });
+            this.onDepartmentOrSubDepartmentChange();
+          }
+        }
+      }
+    }
   }
 
   private assignToSelfLogic(): void {
@@ -382,7 +443,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   filterSubDepartments(): void {
-    const selectedDeptIds = this.taskForm.value.departmentIds || [];
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const selectedDeptIds = raw.departmentIds || [];
     const isSuperAdmin = this.currentUser?.role === 'SUPER_ADMIN';
     if (!selectedDeptIds.length) {
       if (isSuperAdmin) {
@@ -398,7 +460,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
       return deptId && selectedDeptIds.includes(deptId);
     });
 
-    const currentSubId = this.taskForm.value.subDepartmentId;
+    const currentSubId = raw.subDepartmentId;
     if (currentSubId && !this.filteredSubDepartments.some(sub => sub.id === currentSubId)) {
       this.taskForm.get('subDepartmentId')?.setValue(null);
     }
@@ -513,14 +575,15 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   updateDepartmentSelection(deptId: number, checked: boolean): void {
-    const assignToSelf = this.taskForm.value.assignToSelf;
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const assignToSelf = raw.assignToSelf;
 
     if (assignToSelf) {
       // Block all changes — only allow current user's depts
       return;
     }
 
-    let selected = [...this.taskForm.value.departmentIds];
+    let selected = [...(raw.departmentIds || [])];
     if (checked && !selected.includes(deptId)) {
       selected.push(deptId);
     } else if (!checked) {
@@ -536,7 +599,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     this.isAutoAssigned = false;
     this.autoAssignedUser = null;
 
-    const assignToSelf = this.taskForm.value.assignToSelf;
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const assignToSelf = raw.assignToSelf;
 
     if (assignToSelf) {
       // Only allow if it's the current user
@@ -551,7 +615,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
       const selectedUser = this.allUsers.find(u => u.userId === userId);
       if (selectedUser) {
-        const currentDeptIds = [...(this.taskForm.value.departmentIds || [])];
+        const currentDeptIds = [...(raw.departmentIds || [])];
         let changed = false;
         selectedUser.departmentIds?.forEach(id => {
           if (!currentDeptIds.includes(id)) {
@@ -563,7 +627,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
           this.taskForm.patchValue({ departmentIds: currentDeptIds });
         }
 
-        if (selectedUser.subDepartmentId && !this.taskForm.value.subDepartmentId) {
+        if (selectedUser.subDepartmentId && !raw.subDepartmentId) {
           this.taskForm.patchValue({ subDepartmentId: selectedUser.subDepartmentId });
         }
       }
@@ -591,7 +655,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   private updateSelectAllDepts(): void {
-    const selected = this.taskForm.value.departmentIds;
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const selected = raw.departmentIds || [];
     this.selectAllDepts =
       this.filteredDepartments.length > 0 &&
       this.filteredDepartments.every((d) => selected.includes(d.departmentId));
@@ -606,7 +671,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   private updateFilteredUsers(): void {
-    const selectedDeptIds = this.taskForm.value.departmentIds;
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const selectedDeptIds = raw.departmentIds || [];
     for (const deptId of selectedDeptIds) {
       if (!this.filteredUsersByDept.has(deptId)) {
         const users = this.usersByDepartment.get(deptId) || [];
@@ -618,7 +684,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
   expandFirstAccordion(): void {
     setTimeout(() => {
-      const firstDeptId = this.taskForm.value.departmentIds[0];
+      const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+      const firstDeptId = raw.departmentIds ? raw.departmentIds[0] : null;
       if (firstDeptId) {
         const el = document.getElementById(`collapse-${firstDeptId}`);
         if (el && !el.classList.contains('show')) {
@@ -933,7 +1000,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   removeUser(userId: number): void {
-    const selectedDepts = this.taskForm.value.departmentIds || [];
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const selectedDepts = raw.departmentIds || [];
     selectedDepts.forEach((deptId: number) => {
       this.updateUserSelection(deptId, userId, false);
     });
@@ -973,8 +1041,9 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   onDepartmentOrSubDepartmentChange(): void {
-    const deptIds = this.taskForm.value.departmentIds || [];
-    const subDeptIds = this.taskForm.value.subDepartmentIds || [];
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const deptIds = raw.departmentIds || [];
+    const subDeptIds = raw.subDepartmentIds || [];
 
     // Reset auto-assign state
     this.isAutoAssigned = false;
@@ -1063,7 +1132,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   clearAutoAssignmentManual(): void {
     this.isAutoAssigned = false;
     this.autoAssignedUser = null;
-    const deptIds = this.taskForm.value.departmentIds || [];
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const deptIds = raw.departmentIds || [];
     if (deptIds.length > 0) {
       const deptId = deptIds[0];
       this.selectedUsersByDeptObj[deptId] = [];
@@ -1074,7 +1144,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
   getSelectedUsersList(): userDto[] {
     const list: userDto[] = [];
-    const deptIds = this.taskForm.value.departmentIds || [];
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const deptIds = raw.departmentIds || [];
     for (const deptId of deptIds) {
       const userIds = this.selectedUsersByDeptObj[deptId] || [];
       const users = this.usersByDepartment.get(deptId) || [];
@@ -1105,7 +1176,8 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   loadSubjectsForSubDepartments(): void {
-    const subDeptIds = this.taskForm.value.subDepartmentIds || [];
+    const raw = this.taskForm ? this.taskForm.getRawValue() : {};
+    const subDeptIds = raw.subDepartmentIds || [];
     if (!subDeptIds.length) {
       this.subjects = [];
       this.taskForm.get('subjectId')?.setValue(null);
@@ -1119,7 +1191,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
           index === self.findIndex((t: any) => t.id === sub.id)
         );
         this.subjects = unique;
-        const currentSubjectId = this.taskForm.value.subjectId;
+        const currentSubjectId = raw.subjectId;
         if (currentSubjectId && !this.subjects.some(sub => sub.id === currentSubjectId)) {
           this.taskForm.get('subjectId')?.setValue(null);
         }
@@ -1129,7 +1201,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   }
 
   getSelectedSubDeptIds(): string[] {
-    return this.taskForm.get('subDepartmentIds')?.value || [];
+    return this.taskForm ? (this.taskForm.getRawValue().subDepartmentIds || []) : [];
   }
 
   getSubDeptName(id: string): string {

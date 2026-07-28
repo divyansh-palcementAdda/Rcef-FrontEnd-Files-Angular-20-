@@ -18,8 +18,14 @@
         </p>
       </div>
     </div>
-    <div class="code-badge-wrapper">
-      <span class="code-badge">{{ subDeptDetail.code }}</span>
+    <div class="header-right d-flex align-items-center gap-3">
+      <button *ngIf="canAssignTask" class="btn-assign-task" (click)="openAssignTaskModal()">
+        <i class="bi bi-plus-lg me-1"></i>
+        <span>Assign Task</span>
+      </button>
+      <div class="code-badge-wrapper">
+        <span class="code-badge">{{ subDeptDetail.code }}</span>
+      </div>
     </div>
   </div>
   <!-- ── HOD Banner – always visible, loaded with basic info ── -->
@@ -428,7 +434,13 @@
                   </td>
                   <td class="col-title">
                     <a class="task-title-link" (click)="viewTaskDetails(task.taskId)">
-                      {{ task.title }}
+                      {{
+                      task.title +
+                      (task.taskType === 'TEMPLATE'
+                      ? (task.targetCount != null ? ' || ' + task.targetCount + ' Count' : '') +
+                      (task.targetPercentage != null ? ' || ' + task.targetPercentage + '%' : '')
+                      : '')
+                      }}
                     </a>
                   </td>
                   <td class="col-template cell-muted">
@@ -461,6 +473,11 @@
                     <button class="action-icon-btn view-task-btn" (click)="viewTaskDetails(task.taskId)"
                       title="View Task Details">
                       <i class="bi bi-eye me-1"></i>View
+                    </button>
+                    <button
+                      *ngIf="canDeleteTask(task) && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"
+                      class="action-icon-btn text-danger" (click)="deleteTask($event, task.taskId)" title="Delete Task">
+                      <i class="bi bi-trash"></i>
                     </button>
                   </td>
                 </tr>
