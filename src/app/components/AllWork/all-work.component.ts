@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription, Subject } from 'rxjs';
@@ -100,7 +100,8 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    public modalWrapperService: ModalWrapperService
+    public modalWrapperService: ModalWrapperService,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -704,10 +705,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   }
 
   goBackModal(): void {
-    this.modalWrapperService.pop();
-    // ignore quick clicks after navigating back in modal stack
-    this.ignoreClicksUntil = Date.now() + 300;
-    this.updateQueryParams();
+    this.location.back();
   }
 
   // =========================================================================

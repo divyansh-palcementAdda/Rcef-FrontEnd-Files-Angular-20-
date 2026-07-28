@@ -151,6 +151,6 @@ export class ViewTemplateTaskComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/task-templates']);
+    this.location.back();
   }
 }

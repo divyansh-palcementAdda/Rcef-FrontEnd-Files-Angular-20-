@@ -419,6 +419,6 @@ export class SubjectManagementComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/admin']);
+    this.location.back();
   }
 }
