@@ -131,6 +131,9 @@ export class SubDepartmentDetailsComponent implements OnInit {
   subDeptId!: string;
   subDeptDetail: SubDepartmentDetail | null = null;
 
+  /** userId passed from All-Users page when navigating via View button */
+  selectedUserId: number | null = null;
+
   // Loading flags
   loading = false;
   basicLoading = false;
@@ -298,6 +301,10 @@ export class SubDepartmentDetailsComponent implements OnInit {
     if (deptId) {
       queryParams['departmentId'] = deptId;
     }
+    // Pass the selected user's ID so the modal can pre-fill their departments/sub-dept
+    if (this.selectedUserId) {
+      queryParams['userId'] = this.selectedUserId;
+    }
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams,
@@ -319,6 +326,11 @@ export class SubDepartmentDetailsComponent implements OnInit {
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.subDeptId = idParam;
+      // Read optional userId passed from All-Users > View flow
+      this.route.queryParams.subscribe(params => {
+        const uid = params['userId'];
+        this.selectedUserId = uid ? Number(uid) : null;
+      });
       this.loadSubDepartmentDetail();
     } else {
       this.showError('Invalid sub-department ID');

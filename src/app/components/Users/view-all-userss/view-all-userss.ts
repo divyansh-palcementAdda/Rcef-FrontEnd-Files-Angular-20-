@@ -798,12 +798,26 @@ export class ViewAllUserss implements OnInit {
   }
 
   goToUser(userId: number): void {
-    this.router.navigate(['/user', userId]);
+    const user = this.users.find(u => u.userId === userId);
+    if (user?.subDepartmentId) {
+      this.router.navigate(['/sub-department-details', user.subDepartmentId], {
+        queryParams: { userId: userId }
+      });
+    } else {
+      this.router.navigate(['/user', userId]);
+    }
   }
 
   viewUser(event: Event, userId: number): void {
     event.stopPropagation();
-    this.router.navigate(['/user', userId]);
+    const user = this.users.find(u => u.userId === userId);
+    if (user?.subDepartmentId) {
+      this.router.navigate(['/sub-department-details', user.subDepartmentId], {
+        queryParams: { userId: userId }
+      });
+    } else {
+      this.router.navigate(['/user', userId]);
+    }
   }
 
   /** Get paginated users for current page */

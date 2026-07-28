@@ -70,6 +70,10 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   preFilledSubDeptName = '';
   preFilledDeptName = '';
 
+  // Pre-fill by selected user
+  preFilledUser: userDto | null = null;
+  isUserPreFilled = false;
+
   // Template States
   categories: TaskTemplateCategoryDto[] = [];
   templates: TaskTemplateDto[] = [];
@@ -158,6 +162,50 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     this.route.queryParams.subscribe((params) => {
       const qDeptId = params['departmentId'] || this.initialDepartmentId;
       const qSubDeptId = params['subDepartmentId'] || this.initialSubDepartmentId;
+      const qUserId = params['userId'] ? Number(params['userId']) : null;
+
+      // ── Pre-fill by userId (from All-Users > View > Sub-Dept-Details flow) ──
+      if (qUserId && !this.isUserPreFilled) {
+        this.isUserPreFilled = true;
+        this.userService.getUserById(qUserId).subscribe({
+          next: (targetUser) => {
+            this.preFilledUser = targetUser;
+
+            const userDeptIds: number[] = targetUser.departmentIds || [];
+            const userSubDeptId: string | undefined = targetUser.subDepartmentId;
+            const userSubDeptIds: string[] = targetUser.subDepartmentIds || (userSubDeptId ? [userSubDeptId] : []);
+
+            // Patch department & sub-department fields
+            const patchVal: any = {};
+            if (userDeptIds.length > 0) {
+              patchVal.departmentIds = userDeptIds;
+            }
+            if (userSubDeptId) {
+              patchVal.subDepartmentId = userSubDeptId;
+            }
+            if (userSubDeptIds.length > 0) {
+              patchVal.subDepartmentIds = userSubDeptIds;
+            }
+            // Pre-select the user in assignedToIds
+            patchVal.assignedToIds = [targetUser.userId];
+
+            this.taskForm.patchValue(patchVal);
+
+            // Pre-select user in selectedUsersByDeptObj for each dept
+            userDeptIds.forEach(deptId => {
+              this.selectedUsersByDeptObj[deptId] = [targetUser.userId];
+            });
+
+            // Trigger loading users for the pre-filled sub-departments
+            this.onDepartmentOrSubDepartmentChange();
+            if (userSubDeptIds.length > 0) {
+              this.loadSubjectsForSubDepartments();
+            }
+            this.checkPreFillContext();
+          },
+          error: (err) => console.warn('Could not pre-fill user data for assign-task modal:', err)
+        });
+      }
 
       if (qSubDeptId) {
         this.isSubDeptPreFilled = true;
@@ -1071,7 +1119,14 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
           this.filteredUsersByDept.set(deptId, [...activeUsers]);
           this.updateSelectAllUsersForDept(deptId);
 
-          if (activeUsers.length === 1) {
+          // Preserve pre-filled user selection if exists
+          const preFilledUserId = this.preFilledUser?.userId;
+          if (this.isUserPreFilled && preFilledUserId && activeUsers.some(u => u.userId === preFilledUserId)) {
+            // Keep the pre-filled user selected
+            this.selectedUsersByDeptObj[deptId] = [preFilledUserId];
+            this.updateAssignedToIds();
+            this.expandedDepts[deptId] = true;
+          } else if (activeUsers.length === 1) {
             const user = activeUsers[0];
             this.selectedUsersByDeptObj = { [deptId]: [user.userId] };
             this.updateAssignedToIds();
@@ -1104,7 +1159,14 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
           this.filteredUsersByDept.set(deptId, [...activeAdmins]);
           this.updateSelectAllUsersForDept(deptId);
 
-          if (activeAdmins.length === 1) {
+          // Preserve pre-filled user selection if exists
+          const preFilledUserId = this.preFilledUser?.userId;
+          if (this.isUserPreFilled && preFilledUserId && activeAdmins.some(u => u.userId === preFilledUserId)) {
+            // Keep the pre-filled user selected
+            this.selectedUsersByDeptObj[deptId] = [preFilledUserId];
+            this.updateAssignedToIds();
+            this.expandedDepts[deptId] = true;
+          } else if (activeAdmins.length === 1) {
             const admin = activeAdmins[0];
             this.selectedUsersByDeptObj = { [deptId]: [admin.userId] };
             this.updateAssignedToIds();
