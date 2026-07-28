@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { UserApiService } from '../../Services/UserApiService';
 import { userDto } from '../../Model/userDto';
@@ -26,7 +26,8 @@ export class HierarchyViewerComponent implements OnInit {
   constructor(
     private userApiService: UserApiService,
     private router: Router,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -166,6 +167,6 @@ export class HierarchyViewerComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/admin']);
+    this.location.back();
   }
 }

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -94,7 +94,8 @@ export class ViewDepartmentsComponent implements OnInit {
     public router: Router,
     private jwtService: JwtService,
     private authApiService: AuthApiService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private location: Location,
   ) {
     inject(ModalService).modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.success) {
@@ -423,13 +424,7 @@ export class ViewDepartmentsComponent implements OnInit {
   }
 
   goBackToDashboard() {
-    const token = this.jwtService.getAccessToken();
-    if (token) {
-      this.jwtService.decodeToken(token);
-      this.authApiService.goToDashboard();
-    } else {
-      this.router.navigate(['/login']);
-    }
+    this.location.back();
   }
 
   private loadAllDepartments(): void {

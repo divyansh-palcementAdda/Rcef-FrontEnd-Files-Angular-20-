@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -74,7 +74,8 @@ export class SubDepartmentManagementComponent implements OnInit {
     private deptApiService: DepartmentApiService,
     private userApiService: UserApiService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -390,7 +391,7 @@ export class SubDepartmentManagementComponent implements OnInit {
   // Helpers
   // -------------------------------------------------------------
   goBack(): void {
-    this.router.navigate(['/admin']);
+    this.location.back();
   }
 
   showSuccess(msg: string): void {

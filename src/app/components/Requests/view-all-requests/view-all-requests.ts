@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, of } from 'rxjs';
@@ -136,7 +136,8 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private jwtService: JwtService,
-    private authApiService: AuthApiService
+    private authApiService: AuthApiService,
+    private location: Location,
   ) { }
 
   ngOnInit(): void {
@@ -683,6 +684,6 @@ export class ViewAllRequests implements OnInit, OnDestroy {
   }
 
   goBackToDashboard(): void {
-    this.authApiService.goToDashboard();
+    this.location.back();
   }
 }

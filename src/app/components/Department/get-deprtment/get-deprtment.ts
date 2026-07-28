@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { DepartmentApiService, DeptTemplateTaskSummary } from '../../../Services/department-api-service';
@@ -99,6 +99,7 @@ export class GetDepartment implements OnInit {
     private deptSrv: DepartmentApiService,
     private taskSrv: TaskApiService,
     private router: Router,
+    private location: Location,
   ) {
     inject(ModalService).modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.success) {
@@ -142,7 +143,7 @@ export class GetDepartment implements OnInit {
     });
   }
   goBack(): void {
-    this.router.navigate(['/departments']);
+    this.location.back();
   }
   loadDepartmentTasks(): void {
     this.loadingTasks = true;

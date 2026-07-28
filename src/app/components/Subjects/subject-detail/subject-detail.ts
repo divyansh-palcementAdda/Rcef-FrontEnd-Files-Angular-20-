@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SubjectApiService } from '../../../Services/subject-api.service';
 import { SubjectDetail } from '../../../Model/subject';
@@ -21,7 +21,8 @@ export class SubjectDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private subjectApi: SubjectApiService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -50,7 +51,7 @@ export class SubjectDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/subjects']);
+    this.location.back();
   }
 
   showError(msg: string): void {
