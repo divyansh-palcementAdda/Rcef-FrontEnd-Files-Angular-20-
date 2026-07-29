@@ -3,19 +3,18 @@
     [class.rounded-4]="!isModal" [class.border-0]="!isModal" [class.modal-form-card]="isModal" novalidate>
 
     <!-- Form Header -->
-    <div [class.card-header]="!isModal" [class.text-white]="!isModal" [class.text-center]="!isModal"
-      [class.p-4]="!isModal" [class.table_head]="!isModal" [class.modal-form-header]="isModal" [class.d-flex]="isModal"
-      [class.align-items-center]="isModal" [class.justify-content-between]="isModal">
+    <div [class.card-header]="!isModal" [class.text-center]="!isModal"
+      [class.p-4]="!isModal" [class.modal-form-header]="isModal" class="d-flex align-items-center justify-content-between">
       <div>
-        <h3 class="mb-0 fw-bold" [style.color]="isModal ? 'var(--text-main)' : '#ffffff'">{{ isImportMode ? 'Import Users' : 'Add User' }}</h3>
-        <p class="mb-0 text-muted small" [style.color]="isModal ? 'var(--text-muted)' : 'rgba(255,255,255,0.75)'">{{ isImportMode ? 'Bulk import users from Excel file' : 'Create and configure a new user account' }}</p>
+        <h3 class="mb-0 fw-bold" [style.color]="isModal ? 'var(--text-main)' : 'var(--text-main)'">{{ isImportMode ? 'Import Users' : 'Add User' }}</h3>
+        <p class="mb-0 text-muted small" [style.color]="isModal ? 'var(--text-muted)' : 'var(--text-muted)'">{{ isImportMode ? 'Bulk import users from Excel file' : 'Create and configure a new user account' }}</p>
       </div>
       <div class="d-flex align-items-center gap-2">
         <button *ngIf="isModal" type="button" class="btn btn-outline-primary btn-sm" (click)="toggleImportMode()">
           <i class="bi" [ngClass]="isImportMode ? 'bi-person-plus' : 'bi-upload'"></i>
           {{ isImportMode ? 'Add Single User' : 'Import Users' }}
         </button>
-        <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()"
+        <button type="button" class="modal-close-btn-inline" (click)="cancel()"
           aria-label="Close">
           <i class="bi bi-x-lg fs-5"></i>
         </button>
@@ -119,12 +118,12 @@
 
       <!-- Personal Information Card -->
       <div *ngIf="!isImportMode">
-      <div class="form-section-card">
+      <div class="form-section-card animate__animated animate__fadeIn">
         <div class="form-section-header">
           <div class="form-section-icon"><i class="bi bi-person"></i></div>
           <div class="form-section-title-wrapper">
-            <h4 class="form-section-title">Personal Information</h4>
-            <p class="form-section-subtitle">Set real name and perform email verification</p>
+            <h4 class="form-section-title">Personal Details</h4>
+            <p class="form-section-subtitle">Manage user identification attributes</p>
           </div>
         </div>
         <div class="row g-3">
@@ -133,9 +132,16 @@
             <label class="form-label">Full Name <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-person"></i></span>
-              <input type="text" class="form-control" formControlName="fullName" placeholder="e.g. John Doe">
+              <input type="text" class="form-control" formControlName="fullName" placeholder="e.g. John Doe"
+                [ngClass]="{
+                  'is-invalid': f['fullName'].touched && f['fullName'].invalid,
+                  'is-valid':   f['fullName'].touched && f['fullName'].valid
+                }" />
             </div>
-            <small class="text-muted d-block mt-1 narration">Letters and spaces only (min 3 chars).</small>
+            <div *ngIf="f['fullName'].touched && f['fullName'].invalid" class="text-danger small mt-1">
+              <small *ngIf="f['fullName'].errors?.['required']">Full name is required.</small>
+              <small *ngIf="f['fullName'].errors?.['pattern']">Only letters and spaces (minimum 3 characters).</small>
+            </div>
           </div>
           <!-- Email + OTP -->
           <div class="col-md-6">
@@ -148,8 +154,7 @@
                 {{ otpValidated ? 'Verified' : 'Send OTP' }}
               </button>
             </div>
-            <small class="text-muted   d-block mt-1 narration">Verification code will be dispatched to this
-              email.</small>
+            <small class="text-muted d-block mt-1 narration">Verification code will be dispatched to this email.</small>
           </div>
           <!-- OTP Input -->
           <div class="col-md-6 animate__animated animate__fadeIn" *ngIf="otpSent && !otpValidated">
@@ -165,11 +170,11 @@
       </div>
 
       <!-- Account Credentials Card -->
-      <div class="form-section-card">
+      <div class="form-section-card animate__animated animate__fadeIn">
         <div class="form-section-header">
           <div class="form-section-icon"><i class="bi bi-shield-lock"></i></div>
           <div class="form-section-title-wrapper">
-            <h4 class="form-section-title">Account Credentials</h4>
+            <h4 class="form-section-title">Security Credentials</h4>
             <p class="form-section-subtitle">Set user identifier login credentials</p>
           </div>
         </div>
@@ -179,9 +184,16 @@
             <label class="form-label">Username <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text">@</span>
-              <input type="text" class="form-control" formControlName="username" placeholder="e.g. john_doe">
+              <input type="text" class="form-control" formControlName="username" placeholder="e.g. john_doe"
+                [ngClass]="{
+                  'is-invalid': f['username'].touched && f['username'].invalid,
+                  'is-valid':   f['username'].touched && f['username'].valid
+                }" />
             </div>
-            <small class="text-muted d-block mt-1 narration">Alphanumeric, dots, hyphens, and underscores.</small>
+            <div *ngIf="f['username'].touched && f['username'].invalid" class="text-danger small mt-1">
+              <small *ngIf="f['username'].errors?.['required']">Username is required.</small>
+              <small *ngIf="f['username'].errors?.['pattern']">Start with letter, 4–20 alphanumeric characters or underscores.</small>
+            </div>
           </div>
           <!-- Password -->
           <div class="col-md-6">
@@ -189,28 +201,45 @@
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-key"></i></span>
               <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password"
-                placeholder="Create a strong password">
+                placeholder="Create a strong password" [ngClass]="{
+                  'is-invalid': f['password'].touched && f['password'].invalid && f['password'].value,
+                  'is-valid':   f['password'].touched && f['password'].valid  && f['password'].value
+                }" />
               <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()"
                 tabindex="-1">
                 <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </button>
             </div>
-            <div class="progress mt-2" style="height: 6px;">
-              <div class="progress-bar" [style.width.%]="passwordStrength.score"
-                [style.backgroundColor]="passwordStrength.color"></div>
+            <!-- Password strength bar -->
+            <div *ngIf="userForm.get('password')?.value" class="mt-2">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="text-muted">Security Strength:</small>
+                <small class="fw-semibold" [ngClass]="{
+                  'text-danger':  passwordStrength.score <= 40,
+                  'text-warning': passwordStrength.score > 40 && passwordStrength.score <= 80,
+                  'text-success': passwordStrength.score > 80
+                }">{{ passwordStrength.label }}</small>
+              </div>
+              <div class="progress">
+                <div class="progress-bar" [style.width.%]="passwordStrength.score"
+                  [style.backgroundColor]="passwordStrength.color" role="progressbar"></div>
+              </div>
             </div>
-            <small class="text-muted d-block mt-1">{{ passwordStrength.label }} password strength</small>
+            <div *ngIf="f['password'].touched && f['password'].invalid && f['password'].value"
+              class="text-danger small mt-1">
+              <small>Must contain uppercase, lowercase, number, special symbol, and be at least 8 characters.</small>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Role & Hierarchy Card -->
-      <div class="form-section-card">
+      <div class="form-section-card animate__animated animate__fadeIn">
         <div class="form-section-header">
           <div class="form-section-icon"><i class="bi bi-person-badge"></i></div>
           <div class="form-section-title-wrapper">
             <h4 class="form-section-title">Role & Hierarchy</h4>
-            <p class="form-section-subtitle">Set role and reporting line supervisor</p>
+            <p class="form-section-subtitle">Modify reporting structure, supervisor and roles</p>
           </div>
         </div>
         <div class="row g-3">
@@ -219,10 +248,16 @@
             <label class="form-label">System Role <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-              <select class="form-select" formControlName="role">
+              <select class="form-select" formControlName="role" [ngClass]="{
+                  'is-invalid': f['role'].touched && f['role'].invalid,
+                  'is-valid':   f['role'].touched && f['role'].valid
+                }">
                 <option value="" disabled selected>Select Role</option>
                 <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
               </select>
+            </div>
+            <div *ngIf="f['role'].touched && f['role'].invalid" class="text-danger small mt-1">
+              <small>Role assignment is required.</small>
             </div>
           </div>
           <!-- Reporting Managers Searchable Multiselect -->
@@ -248,7 +283,7 @@
                 />
               </div>
               <!-- Dropdown Panel -->
-              <div *ngIf="showManagerDropdown && filteredManagersList().length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+              <div *ngIf="showManagerDropdown && filteredManagersList().length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 99999; max-height: 100px; overflow-y: auto;">
                 <div
                   *ngFor="let mgr of filteredManagersList()"
                   class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
@@ -264,14 +299,15 @@
                   <span>{{ mgr.fullName }} ({{ mgr.role }})</span>
                 </div>
               </div>
-              <div *ngIf="showManagerDropdown && filteredManagersList().length === 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted" style="z-index: 1050;">
+              <div *ngIf="showManagerDropdown && filteredManagersList().length === 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted" style="z-index: 99999;">
                 No matching managers found.
               </div>
             </div>
             <div *ngIf="userForm.get('reportingManagerIds')?.touched && userForm.get('reportingManagerIds')?.invalid"
               class="text-danger small mt-1">
-              At least one reporting manager is required.
+              <small>At least one reporting manager is required.</small>
             </div>
+            <div class="field-hint">Teacher → HOD → SubAdmin → Admin → SuperAdmin.</div>
           </div>
         </div>
       </div>
@@ -282,13 +318,13 @@
         <div class="form-section-header">
           <div class="form-section-icon"><i class="bi bi-diagram-3"></i></div>
           <div class="form-section-title-wrapper">
-            <h4 class="form-section-title">Department & Sub-Department</h4>
-            <p class="form-section-subtitle">Select organization units and scopes</p>
+            <h4 class="form-section-title">Department Access & Units</h4>
+            <p class="form-section-subtitle">Modify assigned organizational structures</p>
           </div>
         </div>
         <div class="row g-3">
           <!-- SubDepartment -->
-          <div class="col-md-6"
+          <div class="col-md-6 mb-2"
             *ngIf="(userForm.get('role')?.value === 'HOD' || userForm.get('role')?.value === 'TEACHER') && subDepartments.length > 0">
             <label class="form-label">Sub-Departments <span class="text-danger">*</span></label>
             <div class="custom-multiselect-container position-relative">
@@ -301,7 +337,7 @@
                 <span *ngIf="getSelectedSubDeptIds().length === 0" class="text-muted small px-2">Select Sub-Departments...</span>
               </div>
               <!-- Dropdown Panel -->
-              <div *ngIf="showSubDeptDropdown" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+              <div *ngIf="showSubDeptDropdown" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 99999; max-height: 100px; overflow-y: auto;">
                 <div
                   *ngFor="let sub of subDepartments"
                   class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
@@ -319,14 +355,74 @@
               </div>
             </div>
             <div
-              *ngIf="userForm.get('subDepartmentIds')?.touched && userForm.get('subDepartmentIds')?.errors?.['required']"
+              *ngIf="f['subDepartmentIds']?.touched && f['subDepartmentIds']?.invalid"
               class="text-danger small mt-1">
-              Sub-department assignment is required.
+              <small>Sub-department assignment is required.</small>
             </div>
           </div>
-          <!-- Subjects Searchable Multiselect -->
-          <div class="col-md-6">
-            <label class="form-label">Subjects</label>
+          <!-- Department List -->
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <label class="form-label mb-0">Departments Access <span class="text-danger">*</span></label>
+              <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control border-0 bg-transparent" placeholder="Search departments..."
+                    [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}" />
+                </div>
+              </div>
+            </div>
+
+            <div class="department-list p-3" style="max-height: 200px; overflow-y: auto;">
+              <div *ngIf="filteredDepartments().length === 0" class="text-center text-muted py-3">
+                <i class="bi bi-search me-1"></i> No matching departments.
+              </div>
+              <div *ngFor="let dept of filteredDepartments()" class="form-check mb-2">
+                <input type="checkbox" class="form-check-input custom-checkbox" [id]="'dept-' + dept.departmentId"
+                  [checked]="selectedDepartments.includes(dept.departmentId)"
+                  (change)="updateDepartmentSelection($event, dept.departmentId)" [disabled]="isDeptDisabled(dept)"
+                  [ngClass]="{ 'border-success': selectedDepartments.includes(dept.departmentId) }" />
+                <label class="form-check-label d-flex align-items-center" [for]="'dept-' + dept.departmentId"
+                  [ngClass]="{
+                    'text-muted':             isDeptDisabled(dept),
+                    'text-success fw-semibold': selectedDepartments.includes(dept.departmentId)
+                  }">
+                  <i class="bi bi-building me-2"></i>
+                  <span>{{ dept.name }}</span>
+                  <span *ngIf="isDeptDisabled(dept)" class="badge bg-secondary ms-2">Restricted</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field-hint mt-2">
+              <i class="bi bi-info-circle me-1"></i>
+              <span
+                *ngIf="userForm.get('role')?.value === 'HOD' || userForm.get('role')?.value === 'SUB_ADMIN'">HODs/SubAdmins
+                can only be assigned to a single department.</span>
+              <span *ngIf="userForm.get('role')?.value === 'TEACHER' || userForm.get('role')?.value === 'ADMIN'">Users
+                in this role can have multiple department access privileges.</span>
+            </div>
+
+            <div *ngIf="f['departmentIds'].touched && f['departmentIds'].invalid" class="text-danger small mt-1">
+              <small>At least one department selection is required.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subject Access Mapping (Only for HOD / Teacher and if sub-department selected) -->
+      <div class="form-section-card animate__animated animate__fadeIn"
+        *ngIf="(userForm.get('role')?.value === 'HOD' || userForm.get('role')?.value === 'TEACHER') && getSelectedSubDeptIds().length > 0">
+        <div class="form-section-header">
+          <div class="form-section-icon"><i class="bi bi-book"></i></div>
+          <div class="form-section-title-wrapper">
+            <h4 class="form-section-title">Subject Access</h4>
+            <p class="form-section-subtitle">Map user to specific academic subjects</p>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Select Subjects</label>
             <div class="custom-multiselect-container position-relative" (keydown)="handleMultiselectKeydown($event)">
               <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="focusSearchInput($event)">
                 <!-- Chips -->
@@ -347,7 +443,7 @@
                 />
               </div>
               <!-- Dropdown Panel -->
-              <div *ngIf="showSubjectDropdown && filteredSubjectsList().length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+              <div *ngIf="showSubjectDropdown && filteredSubjectsList().length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 99999; max-height: 100px; overflow-y: auto;">
                 <div
                   *ngFor="let sub of filteredSubjectsList(); let idx = index"
                   class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
@@ -364,35 +460,15 @@
                   <span>{{ sub.subjectName }} ({{ sub.subjectCode }})</span>
                 </div>
               </div>
-              <div *ngIf="showSubjectDropdown && filteredSubjectsList().length === 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted" style="z-index: 1050;">
+              <div *ngIf="showSubjectDropdown && filteredSubjectsList().length === 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted" style="z-index: 99999;">
                 No matching subjects found.
               </div>
             </div>
-            <small class="text-muted d-block mt-1 narration">Select one or more subjects for this user.</small>
-          </div>
-          <!-- Department List -->
-          <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-              <label class="form-label mb-0 fw-semibold">Select Departments Access <span
-                  class="text-danger">*</span></label>
-              <div class="col-md-4">
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
-                  <input type="text" class="form-control border-0 bg-transparent" placeholder="Search departments..."
-                    [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}" />
-                </div>
-              </div>
+            <div *ngIf="subjects.length === 0" class="text-muted small mt-2">
+              <i class="bi bi-info-circle me-1"></i> No subjects available for the selected sub-department.
             </div>
-            <div class="department-list p-3 bg-light rounded border" style="max-height: 200px; overflow-y: auto;">
-              <div *ngFor="let dept of filteredDepartments()" class="form-check mb-2">
-                <input type="checkbox" class="form-check-input" [id]="'dept-' + dept.departmentId"
-                  [checked]="selectedDepartments.includes(dept.departmentId)"
-                  (change)="updateDepartmentSelection($event, dept.departmentId)" [disabled]="isDeptDisabled(dept)">
-                <label class="form-check-label" [for]="'dept-' + dept.departmentId">
-                  {{ dept.name }}
-                  <span *ngIf="isDeptDisabled(dept)" class="text-muted small ms-1">(Restricted)</span>
-                </label>
-              </div>
+            <div class="field-hint mt-2">
+              User will gain task visibility/assignment rights for tasks categorized under these subjects.
             </div>
           </div>
         </div>
@@ -407,12 +483,13 @@
             <p class="form-section-subtitle">Permissions governed by role</p>
           </div>
         </div>
-        <div class="alert alert-secondary mb-0 py-2.5 d-flex align-items-start gap-2 bg-light border text-muted">
-          <i class="bi bi-info-circle-fill text-primary fs-5 mt-0.5"></i>
+        <div class="alert alert-secondary mb-0 py-2 d-flex align-items-start gap-2 bg-light border text-muted">
+          <i class="bi bi-info-circle-fill text-primary fs-5 flex-shrink-0 mt-1"></i>
           <span style="font-size: 0.85rem; line-height: 1.4;">
-            Permissions are automatically inherited based on the selected role (<strong>{{ userForm.get('role')?.value
-              }}</strong>). Administrators can review and override specific permissions inside the <strong>Roles &
-              Permissions</strong> dashboard setting.
+            Permissions are automatically inherited based on the selected role
+            (<strong>{{ userForm.get('role')?.value }}</strong>).
+            Administrators can review and override specific permissions inside the
+            <strong>Roles &amp; Permissions</strong> dashboard setting.
           </span>
         </div>
       </div>

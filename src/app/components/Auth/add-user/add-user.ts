@@ -83,6 +83,10 @@ export class AddUserComponent implements OnInit {
     });
   }
 
+  get f() {
+    return this.userForm.controls;
+  }
+
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       const deptIdStr = params['departmentId'];

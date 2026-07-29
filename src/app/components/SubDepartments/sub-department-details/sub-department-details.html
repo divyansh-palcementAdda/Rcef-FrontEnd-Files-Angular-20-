@@ -179,78 +179,217 @@
 
       </div>
 
-      <!-- Overview Lower: Performance + Activity -->
-      <div class="overview-lower-grid">
-
-        <!-- Performance Metrics -->
-        <div class="card perf-card">
-          <h3 class="card-title">
-            <i class="bi bi-speedometer2 text-info"></i> Performance Metrics
-          </h3>
-          <div class="perf-metrics-list" *ngIf="subDeptDetail.analytics">
-            <div class="metric-row">
-              <span class="label">Completion Rate</span>
-              <div class="metric-progress-wrapper">
-                <div class="metric-progress-bar bg-success"
-                  [style.width.%]="subDeptDetail.analytics.totalTasks > 0 ? (subDeptDetail.analytics.closedTasks / subDeptDetail.analytics.totalTasks * 100) : 0">
-                </div>
-              </div>
-              <strong class="val text-success">
-                {{ subDeptDetail.analytics.totalTasks > 0 ? Math.round(subDeptDetail.analytics.closedTasks /
-                subDeptDetail.analytics.totalTasks * 100) : 0 }}%
-              </strong>
+      <!-- ── Tasks of HODs Section ── -->
+      <div class="card role-analytics-card mt-4">
+        <div class="role-card-header">
+          <div class="header-title-group">
+            <div class="role-icon-box hod-icon-box">
+              <i class="bi bi-person-badge-fill"></i>
             </div>
-            <div class="metric-row">
-              <span class="label">Delay Rate</span>
-              <div class="metric-progress-wrapper">
-                <div class="metric-progress-bar bg-danger"
-                  [style.width.%]="subDeptDetail.analytics.totalTasks > 0 ? (subDeptDetail.analytics.delayedTasks / subDeptDetail.analytics.totalTasks * 100) : 0">
-                </div>
-              </div>
-              <strong class="val text-danger">
-                {{ subDeptDetail.analytics.totalTasks > 0 ? Math.round(subDeptDetail.analytics.delayedTasks /
-                subDeptDetail.analytics.totalTasks * 100) : 0 }}%
-              </strong>
+            <div>
+              <h3 class="role-section-title">Tasks of HODs</h3>
+              <p class="role-section-subtitle">
+                Individual task breakdown for Head(s) of Department mapped to this sub-department
+              </p>
             </div>
-            <div class="metric-row">
-              <span class="label">Pending Review Rate</span>
-              <div class="metric-progress-wrapper">
-                <div class="metric-progress-bar bg-warning"
-                  [style.width.%]="subDeptDetail.analytics.totalTasks > 0 ? (subDeptDetail.analytics.approvalPending / subDeptDetail.analytics.totalTasks * 100) : 0">
-                </div>
-              </div>
-              <strong class="val text-warning">
-                {{ subDeptDetail.analytics.totalTasks > 0 ? Math.round(subDeptDetail.analytics.approvalPending /
-                subDeptDetail.analytics.totalTasks * 100) : 0 }}%
-              </strong>
-            </div>
+          </div>
+          <div class="header-stats-badges" *ngIf="hodAnalyticsList.length > 0">
+            <span class="badge-stat font-weight-bold">
+              <i class="bi bi-people-fill me-1"></i>{{ hodAnalyticsList.length }} HOD{{ hodAnalyticsList.length > 1 ?
+              's' : '' }}
+            </span>
+            <!-- <span class="badge-stat font-weight-bold text-primary">
+              <i class="bi bi-list-task me-1"></i>{{ getHodAnalyticsTotalTasks() }} Total Tasks
+            </span> -->
           </div>
         </div>
 
-        <!-- Recent Activities -->
-        <div class="card recent-activity-card">
-          <h3 class="card-title">
-            <i class="bi bi-lightning-charge text-purple"></i> Recent Activities
-          </h3>
-          <div class="timeline" *ngIf="subDeptDetail.recentActivity && subDeptDetail.recentActivity.length > 0">
-            <div class="timeline-item" *ngFor="let item of subDeptDetail.recentActivity | slice:0:6">
-              <div class="timeline-dot"></div>
-              <div class="timeline-info">
-                <div class="timeline-meta">
-                  <span class="action-label">{{ item.action }}</span>
-                  <span class="time-label">{{ formatDate(item.timestamp) }}</span>
-                </div>
-                <p class="timeline-details">{{ item.details }}</p>
-                <span class="timeline-by">By: {{ item.performedBy }}</span>
-              </div>
-            </div>
+        <div *ngIf="hodAnalyticsLoading" class="loading-state p-4">
+          <div class="spinner"></div>
+          <span>Loading HOD task statistics...</span>
+        </div>
+
+        <div *ngIf="!hodAnalyticsLoading">
+          <div class="table-responsive" *ngIf="hodAnalyticsList.length > 0">
+            <table class="table table-hover align-middle analytics-table mb-0">
+              <thead>
+                <tr>
+                  <th style="min-width: 180px;">HOD</th>
+                  <th class="text-center">Total Tasks</th>
+                  <th class="text-center">Pending</th>
+                  <th class="text-center">Upcoming</th>
+                  <th class="text-center">In Progress</th>
+                  <th class="text-center">Completed / Closed</th>
+                  <th class="text-center">Delayed</th>
+                  <th class="text-center">Extended</th>
+                  <th class="text-center">Req. Closure</th>
+                  <th class="text-center">Req. Extension</th>
+                  <th class="text-center action-th">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let hod of hodAnalyticsList">
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="hod-avatar-initials sm-avatar">
+                        {{ getHodInitials(hod.fullName) }}
+                      </div>
+                      <div>
+                        <div class="user-fullname fw-bold">{{ hod.fullName }}</div>
+                        <div class="user-username text-muted small">{{ hod.username }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center fw-bold">{{ hod.totalTasks }}</td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-warning-subtle text-warning">{{ hod.pending }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-secondary-subtle text-secondary">{{ hod.upcoming }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-info-subtle text-info">{{ hod.inProgress }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-success-subtle text-success">{{ hod.closed || hod.completed
+                      }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-danger-subtle text-danger">{{ hod.delayed }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-purple-subtle text-purple">{{ hod.extended }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-teal-subtle text-teal">{{ hod.requestForClosure }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-orange-subtle text-orange">{{ hod.requestForExtension
+                      }}</span>
+                  </td>
+                  <td class="text-center action-td">
+                    <button class="btn-view-analytics" (click)="viewUserDetails(hod.userId)"
+                      title="View User Profile">
+                      <i class="bi bi-eye"></i> <span>View</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="empty-state" *ngIf="!subDeptDetail.recentActivity || subDeptDetail.recentActivity.length === 0">
-            <i class="bi bi-card-text"></i>
-            <p>No activity logs found</p>
+
+          <div class="empty-state p-4" *ngIf="hodAnalyticsList.length === 0">
+            <i class="bi bi-person-x text-muted" style="font-size: 2rem;"></i>
+            <p class="text-muted mt-2 mb-0">No HOD assigned to this sub-department.</p>
           </div>
         </div>
       </div>
+
+      <!-- ── Tasks of Faculty Section ── -->
+      <div class="card role-analytics-card mt-4">
+        <div class="role-card-header">
+          <div class="header-title-group">
+            <div class="role-icon-box faculty-icon-box">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+              <h3 class="role-section-title">Tasks of Faculty</h3>
+              <p class="role-section-subtitle">
+                Individual task breakdown for Faculty members mapped to this sub-department
+              </p>
+            </div>
+          </div>
+          <div class="header-stats-badges" *ngIf="facultyAnalyticsList.length > 0">
+            <span class="badge-stat font-weight-bold">
+              <i class="bi bi-mortarboard-fill me-1"></i>{{ facultyAnalyticsList.length }} Faculty Member{{
+              facultyAnalyticsList.length > 1 ? 's' : '' }}
+            </span>
+            <!-- <span class="badge-stat font-weight-bold text-primary">
+              <i class="bi bi-list-task me-1"></i>{{ getFacultyAnalyticsTotalTasks() }} Total Tasks
+            </span> -->
+          </div>
+        </div>
+
+        <div *ngIf="facultyAnalyticsLoading" class="loading-state p-4">
+          <div class="spinner"></div>
+          <span>Loading Faculty task statistics...</span>
+        </div>
+
+        <div *ngIf="!facultyAnalyticsLoading">
+          <div class="table-responsive" *ngIf="facultyAnalyticsList.length > 0">
+            <table class="table table-hover align-middle analytics-table mb-0">
+              <thead>
+                <tr>
+                  <th style="min-width: 180px;">Faculty</th>
+                  <th class="text-center">Total Tasks</th>
+                  <th class="text-center">Pending</th>
+                  <th class="text-center">Upcoming</th>
+                  <th class="text-center">In Progress</th>
+                  <th class="text-center">Completed / Closed</th>
+                  <th class="text-center">Delayed</th>
+                  <th class="text-center">Extended</th>
+                  <th class="text-center">Req. Closure</th>
+                  <th class="text-center">Req. Extension</th>
+                  <th class="text-center action-th">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let f of facultyAnalyticsList">
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="faculty-avatar-initials sm-avatar">
+                        {{ getHodInitials(f.fullName) }}
+                      </div>
+                      <div>
+                        <div class="user-fullname fw-bold">{{ f.fullName }}</div>
+                        <div class="user-username text-muted small">{{ f.username }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center fw-bold">{{ f.totalTasks }}</td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-warning-subtle text-warning">{{ f.pending }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-secondary-subtle text-secondary">{{ f.upcoming }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-info-subtle text-info">{{ f.inProgress }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-success-subtle text-success">{{ f.closed || f.completed
+                      }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-danger-subtle text-danger">{{ f.delayed }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-purple-subtle text-purple">{{ f.extended }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-teal-subtle text-teal">{{ f.requestForClosure }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge status-num-badge bg-orange-subtle text-orange">{{ f.requestForExtension }}</span>
+                  </td>
+                  <td class="text-center action-td">
+                    <button class="btn-view-analytics" (click)="viewUserDetails(f.userId)"
+                      title="View User Profile">
+                      <i class="bi bi-eye"></i> <span>View</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="empty-state p-4" *ngIf="facultyAnalyticsList.length === 0">
+            <i class="bi bi-people text-muted" style="font-size: 2rem;"></i>
+            <p class="text-muted mt-2 mb-0">No Faculty mapped to this sub-department.</p>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- ================================================
@@ -524,217 +663,6 @@
                 <i class="bi bi-chevron-double-right"></i>
               </button>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── Tasks of HODs Section ── -->
-      <div class="card role-analytics-card mt-4">
-        <div class="role-card-header">
-          <div class="header-title-group">
-            <div class="role-icon-box hod-icon-box">
-              <i class="bi bi-person-badge-fill"></i>
-            </div>
-            <div>
-              <h3 class="role-section-title">Tasks of HODs</h3>
-              <p class="role-section-subtitle">
-                Individual task breakdown for Head(s) of Department mapped to this sub-department
-              </p>
-            </div>
-          </div>
-          <div class="header-stats-badges" *ngIf="hodAnalyticsList.length > 0">
-            <span class="badge-stat font-weight-bold">
-              <i class="bi bi-people-fill me-1"></i>{{ hodAnalyticsList.length }} HOD{{ hodAnalyticsList.length > 1 ?
-              's' : '' }}
-            </span>
-            <!-- <span class="badge-stat font-weight-bold text-primary">
-              <i class="bi bi-list-task me-1"></i>{{ getHodAnalyticsTotalTasks() }} Total Tasks
-            </span> -->
-          </div>
-        </div>
-
-        <div *ngIf="hodAnalyticsLoading" class="loading-state p-4">
-          <div class="spinner"></div>
-          <span>Loading HOD task statistics...</span>
-        </div>
-
-        <div *ngIf="!hodAnalyticsLoading">
-          <div class="table-responsive" *ngIf="hodAnalyticsList.length > 0">
-            <table class="table table-hover align-middle analytics-table mb-0">
-              <thead>
-                <tr>
-                  <th style="min-width: 180px;">HOD</th>
-                  <th class="text-center">Total Tasks</th>
-                  <th class="text-center">Pending</th>
-                  <th class="text-center">Upcoming</th>
-                  <th class="text-center">In Progress</th>
-                  <th class="text-center">Completed / Closed</th>
-                  <th class="text-center">Delayed</th>
-                  <th class="text-center">Extended</th>
-                  <th class="text-center">Req. Closure</th>
-                  <th class="text-center">Req. Extension</th>
-                  <th class="text-center action-th">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let hod of hodAnalyticsList">
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="hod-avatar-initials sm-avatar">
-                        {{ getHodInitials(hod.fullName) }}
-                      </div>
-                      <div>
-                        <div class="user-fullname fw-bold">{{ hod.fullName }}</div>
-                        <div class="user-username text-muted small">{{ hod.username }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="text-center fw-bold">{{ hod.totalTasks }}</td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-warning-subtle text-warning">{{ hod.pending }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-secondary-subtle text-secondary">{{ hod.upcoming }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-info-subtle text-info">{{ hod.inProgress }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-success-subtle text-success">{{ hod.closed || hod.completed
-                      }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-danger-subtle text-danger">{{ hod.delayed }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-purple-subtle text-purple">{{ hod.extended }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-teal-subtle text-teal">{{ hod.requestForClosure }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-orange-subtle text-orange">{{ hod.requestForExtension
-                      }}</span>
-                  </td>
-                  <td class="text-center action-td">
-                    <button class="btn-view-analytics" (click)="viewUserDetails(hod.userId)"
-                      title="View User Profile">
-                      <i class="bi bi-eye"></i> <span>View</span>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="empty-state p-4" *ngIf="hodAnalyticsList.length === 0">
-            <i class="bi bi-person-x text-muted" style="font-size: 2rem;"></i>
-            <p class="text-muted mt-2 mb-0">No HOD assigned to this sub-department.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── Tasks of Faculty Section ── -->
-      <div class="card role-analytics-card mt-4">
-        <div class="role-card-header">
-          <div class="header-title-group">
-            <div class="role-icon-box faculty-icon-box">
-              <i class="bi bi-people-fill"></i>
-            </div>
-            <div>
-              <h3 class="role-section-title">Tasks of Faculty</h3>
-              <p class="role-section-subtitle">
-                Individual task breakdown for Faculty members mapped to this sub-department
-              </p>
-            </div>
-          </div>
-          <div class="header-stats-badges" *ngIf="facultyAnalyticsList.length > 0">
-            <span class="badge-stat font-weight-bold">
-              <i class="bi bi-mortarboard-fill me-1"></i>{{ facultyAnalyticsList.length }} Faculty Member{{
-              facultyAnalyticsList.length > 1 ? 's' : '' }}
-            </span>
-            <!-- <span class="badge-stat font-weight-bold text-primary">
-              <i class="bi bi-list-task me-1"></i>{{ getFacultyAnalyticsTotalTasks() }} Total Tasks
-            </span> -->
-          </div>
-        </div>
-
-        <div *ngIf="facultyAnalyticsLoading" class="loading-state p-4">
-          <div class="spinner"></div>
-          <span>Loading Faculty task statistics...</span>
-        </div>
-
-        <div *ngIf="!facultyAnalyticsLoading">
-          <div class="table-responsive" *ngIf="facultyAnalyticsList.length > 0">
-            <table class="table table-hover align-middle analytics-table mb-0">
-              <thead>
-                <tr>
-                  <th style="min-width: 180px;">Faculty</th>
-                  <th class="text-center">Total Tasks</th>
-                  <th class="text-center">Pending</th>
-                  <th class="text-center">Upcoming</th>
-                  <th class="text-center">In Progress</th>
-                  <th class="text-center">Completed / Closed</th>
-                  <th class="text-center">Delayed</th>
-                  <th class="text-center">Extended</th>
-                  <th class="text-center">Req. Closure</th>
-                  <th class="text-center">Req. Extension</th>
-                  <th class="text-center action-th">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let f of facultyAnalyticsList">
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="faculty-avatar-initials sm-avatar">
-                        {{ getHodInitials(f.fullName) }}
-                      </div>
-                      <div>
-                        <div class="user-fullname fw-bold">{{ f.fullName }}</div>
-                        <div class="user-username text-muted small">{{ f.username }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="text-center fw-bold">{{ f.totalTasks }}</td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-warning-subtle text-warning">{{ f.pending }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-secondary-subtle text-secondary">{{ f.upcoming }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-info-subtle text-info">{{ f.inProgress }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-success-subtle text-success">{{ f.closed || f.completed
-                      }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-danger-subtle text-danger">{{ f.delayed }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-purple-subtle text-purple">{{ f.extended }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-teal-subtle text-teal">{{ f.requestForClosure }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge status-num-badge bg-orange-subtle text-orange">{{ f.requestForExtension }}</span>
-                  </td>
-                  <td class="text-center action-td">
-                    <button class="btn-view-analytics" (click)="viewUserDetails(f.userId)"
-                      title="View User Profile">
-                      <i class="bi bi-eye"></i> <span>View</span>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="empty-state p-4" *ngIf="facultyAnalyticsList.length === 0">
-            <i class="bi bi-people text-muted" style="font-size: 2rem;"></i>
-            <p class="text-muted mt-2 mb-0">No Faculty mapped to this sub-department.</p>
           </div>
         </div>
       </div>
