@@ -168,12 +168,12 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   ) { }
 
   loadDropdownOptions(): void {
-    this.departmentService.getAllDepartments().subscribe({
+    this.departmentService.getAuthorizedDepartments().subscribe({
       next: (depts) => {
         this.departmentsList = depts || [];
         this.initializeFilterFields();
       },
-      error: (err) => console.error('Failed to load departments', err)
+      error: (err) => console.error('Failed to load authorized departments', err)
     });
 
     this.templateService.getAllTemplates().subscribe({

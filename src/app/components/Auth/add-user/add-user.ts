@@ -19,6 +19,9 @@ import { forkJoin, of } from 'rxjs';
 })
 export class AddUserComponent implements OnInit {
   @Input() isModal = false;
+  @Input() preselectedDepartmentId?: number;
+  @Input() preselectedSubDepartmentId?: string;
+  @Input() lockContext = false;
   @Output() closed = new EventEmitter<boolean>();
 
   userForm: FormGroup;
@@ -88,9 +91,23 @@ export class AddUserComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.preselectedDepartmentId) {
+      const deptId = +this.preselectedDepartmentId;
+      this.selectedDepartments = [deptId];
+      this.userForm.patchValue({ departmentIds: [deptId] });
+      this.onDepartmentChange();
+    }
+    if (this.preselectedSubDepartmentId) {
+      this.userForm.patchValue({
+        subDepartmentId: this.preselectedSubDepartmentId,
+        subDepartmentIds: [this.preselectedSubDepartmentId]
+      });
+      this.reloadSubjects();
+    }
+
     this.route.queryParams.subscribe(params => {
       const deptIdStr = params['departmentId'];
-      if (deptIdStr) {
+      if (deptIdStr && !this.preselectedDepartmentId) {
         this.departmentId = deptIdStr;
         const deptId = +deptIdStr;
         this.selectedDepartments = [deptId];

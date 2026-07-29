@@ -1276,3 +1276,179 @@ thead.table-head-sticky {
     display: table-cell;
   }
 }
+
+/* ==========================================
+   Metric Chips / Status Badges
+   ========================================== */
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.metric-chip--purple,
+.metric-chip--total {
+  background: #eeebff;
+  color: #4f46e5;
+}
+
+.metric-chip--warning,
+.metric-chip--pending {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.metric-chip--info,
+.metric-chip--active {
+  background: #ecfeff;
+  color: #0891b2;
+}
+
+.metric-chip--success,
+.metric-chip--completed,
+.metric-chip--done {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.metric-chip--danger,
+.metric-chip--delayed {
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.metric-chip--primary,
+.metric-chip--upcoming {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.metric-chip--orange,
+.metric-chip--rfe {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.metric-chip--blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* ==========================================
+   Sticky Table Columns
+   ========================================== */
+.sticky-col {
+  position: sticky;
+  z-index: 5;
+  background-color: #ffffff;
+}
+
+thead th.sticky-col {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: #f8fafc;
+}
+
+.table tbody tr:hover .sticky-col {
+  background-color: #fafbff;
+}
+
+.col-sno {
+  left: 0;
+  min-width: 60px;
+  max-width: 60px;
+}
+
+.col-subdept {
+  left: 60px;
+  min-width: 220px;
+  max-width: 220px;
+}
+
+.col-assigned {
+  left: 525px;
+  min-width: 130px;
+  max-width: 130px;
+}
+
+.sticky-col-last {
+  border-right: 2px solid #e2e8f0 !important;
+  box-shadow: 4px 0 8px -2px rgba(15, 23, 42, 0.08);
+}
+
+/* ── RFC/RFE Cell ── */
+.uta-rfc-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+.uta-rfc-sep {
+  color: #cbd5e1;
+  font-size: 0.75rem;
+}
+.uta-rfc-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.uta-rfc-label--rfc {
+  background: #ecfdf5;
+  color: #059669;
+}
+.uta-rfc-label--rfe {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+/* ── Sub Department Cell Truncation ── */
+.sd-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+.sd-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4f46e5, #818cf8);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sd-text-wrap {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+.sd-text-wrap .fw-semibold {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+.sd-text-wrap small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}

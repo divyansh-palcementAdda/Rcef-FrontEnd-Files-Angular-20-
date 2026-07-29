@@ -520,16 +520,10 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
   loadDepartments(): void {
     this.isLoadingDepartments = true;
-    this.departmentService.getAllDepartments().subscribe({
+    this.departmentService.getAuthorizedDepartments().subscribe({
       next: (res) => {
-        let filtered = res;
-        if (this.currentUser?.role === 'HOD') {
-          filtered = res.filter(
-            (d) => this.currentUser?.departmentIds?.includes(d.departmentId)
-          );
-        }
-        this.departments = filtered;
-        this.filteredDepartments = [...filtered];
+        this.departments = res;
+        this.filteredDepartments = [...res];
         this.isLoadingDepartments = false;
 
         // Critical Fix: Trigger search to show list

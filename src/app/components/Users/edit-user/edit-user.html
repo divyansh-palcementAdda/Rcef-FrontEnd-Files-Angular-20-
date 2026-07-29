@@ -5,8 +5,8 @@
     <!-- Form Header -->
     <div [class.edit-user-header]="!isModal" [class.modal-form-header]="isModal">
       <div>
-        <h3 class="mb-1 fw-bold">Edit User</h3>
-        <p class="mb-0 text-muted small">Update user profile attributes and accesses</p>
+        <h3 class="mb-1 fw-bold">{{ isEdit ? 'Edit User' : 'Add New User' }}</h3>
+        <p class="mb-0 text-muted small">{{ isEdit ? 'Update user profile attributes and accesses' : 'Register a new user account with role and department access' }}</p>
       </div>
       <!-- <button *ngIf="isModal" type="button" class="modal-close-btn-inline" (click)="cancel()" aria-label="Close">
         <i class="bi bi-x-lg fs-5"></i>
@@ -91,7 +91,7 @@
           <div class="row g-3">
 
             <!-- Full Name -->
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label">Full Name <span class="text-danger">*</span></label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-person"></i></span>
@@ -108,7 +108,7 @@
             </div>
 
             <!-- Username -->
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label">Username <span class="text-danger">*</span></label>
               <div class="input-group">
                 <span class="input-group-text">@</span>
@@ -122,6 +122,23 @@
                 <small *ngIf="f['username'].errors?.['required']">Username is required.</small>
                 <small *ngIf="f['username'].errors?.['pattern']">Start with letter, 4–20 alphanumeric characters or
                   underscores.</small>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="col-md-4">
+              <label class="form-label">Email Address <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input type="email" class="form-control" formControlName="email" placeholder="e.g. jane@example.com"
+                  [ngClass]="{
+                    'is-invalid': f['email']?.touched && f['email']?.invalid,
+                    'is-valid':   f['email']?.touched && f['email']?.valid
+                  }" />
+              </div>
+              <div *ngIf="f['email']?.touched && f['email']?.invalid" class="text-danger small mt-1">
+                <small *ngIf="f['email']?.errors?.['required']">Email is required.</small>
+                <small *ngIf="f['email']?.errors?.['email']">Please enter a valid email address.</small>
               </div>
             </div>
 
@@ -142,8 +159,9 @@
             <!-- Password -->
             <div class="col-12">
               <label class="form-label">
-                New Password
-                <span class="text-muted small">(Leave empty to retain current)</span>
+                Password
+                <span *ngIf="isEdit" class="text-muted small">(Leave empty to retain current)</span>
+                <span *ngIf="!isEdit" class="text-danger">*</span>
               </label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-key"></i></span>
@@ -449,7 +467,7 @@
       </button>
       <button type="submit" class="btn btn-primary px-5 d-flex align-items-center gap-2"
         [disabled]="isSubmitting || isLoading">
-        <span *ngIf="!isSubmitting"><i class="bi bi-check2-circle me-1"></i>Update User</span>
+        <span *ngIf="!isSubmitting"><i class="bi bi-check2-circle me-1"></i>{{ isEdit ? 'Update User' : 'Create User' }}</span>
         <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status"></span>
       </button>
     </div>

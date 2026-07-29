@@ -26,10 +26,15 @@ import { SubjectDto } from '../../../Model/subject';
 export class EditUser implements OnInit, OnDestroy, OnChanges {
   @Input() userId!: number;
   @Input() isModal = false;
+  @Input() isCreateMode = false;
   @Input() preselectedDepartmentId?: number;
   @Input() preselectedSubDepartmentId?: string;
   @Input() lockContext = false;
   @Output() closed = new EventEmitter<boolean>();
+
+  get isEdit(): boolean {
+    return !this.isCreateMode && !!this.userId && this.userId > 0;
+  }
   /** Form */
   editForm!: FormGroup;
   /** Current user info */
@@ -82,13 +87,22 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     this.currentUserRole = this.authService.getCurrentRole();
     this.isCurrentUserAdmin = this.currentUserRole === 'ADMIN' || this.currentUserRole === 'SUPER_ADMIN';
 
-    if (!this.userId) {
-      this.userId = +this.route.snapshot.paramMap.get('id')!;
+    if (!this.isCreateMode && (!this.userId || this.userId === 0)) {
+      const routeId = this.route.snapshot.paramMap.get('id');
+      if (routeId) {
+        this.userId = +routeId;
+      }
     }
     this.initForm();
     this.loadDepartments();
     this.loadAllUsers();
-    this.loadUser();
+
+    if (this.isEdit) {
+      this.loadUser();
+    } else {
+      this.isLoading = false;
+      this.setupCreateModeDefaults();
+    }
 
     // Set dynamic roles list based on logged-in user role
     const currentRole = this.authService.getCurrentRole() || '';
@@ -103,7 +117,9 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['userId'] && !changes['userId'].firstChange) {
-      this.loadUser();
+      if (this.isEdit) {
+        this.loadUser();
+      }
     }
   }
 
@@ -123,6 +139,10 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
           Validators.required,
           Validators.pattern(/^[a-zA-Z][a-zA-Z0-9_]{3,19}$/),
         ],
+      ],
+      email: [
+        '',
+        [Validators.required, Validators.email]
       ],
       password: [
         '',
@@ -254,6 +274,31 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     });
   }
 
+  private setupCreateModeDefaults(): void {
+    const pwdControl = this.editForm.get('password');
+    pwdControl?.setValidators([
+      Validators.required,
+      Validators.pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/)
+    ]);
+    pwdControl?.updateValueAndValidity();
+
+    if (this.preselectedDepartmentId) {
+      this.selectedDepartments = [this.preselectedDepartmentId];
+      this.editForm.patchValue({ departmentIds: [this.preselectedDepartmentId] });
+      this.onDepartmentChange();
+    }
+    if (this.preselectedSubDepartmentId) {
+      this.editForm.patchValue({
+        subDepartmentId: this.preselectedSubDepartmentId,
+        subDepartmentIds: [this.preselectedSubDepartmentId]
+      });
+      this.reloadSubjects();
+    }
+    if (this.isCurrentUserAdmin) {
+      this.editForm.get('role')?.enable();
+    }
+  }
+
   private loadUser(): void {
     this.isLoading = true;
     this.userApi.getUserById(this.userId).subscribe({
@@ -273,6 +318,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         this.editForm.patchValue({
           fullName: user.fullName,
           username: user.username,
+          email: user.email || '',
           password: '',
           role: user.role,
           departmentIds: deptIds,
@@ -431,6 +477,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     const payload: any = {
       fullName: formValue.fullName.trim(),
       username: formValue.username.trim(),
+      email: formValue.email ? formValue.email.trim() : undefined,
       role: formValue.role,
       departmentIds: this.selectedDepartments,
       parentUserId: formValue.parentUserId,
@@ -446,34 +493,64 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     }
 
     this.isSubmitting = true;
-    this.userApi.updateUser(this.userId, payload).subscribe({
-      next: (response) => {
-        this.isSubmitting = false;
-        this.successMessage = 'User updated successfully!';
-        
-        // Show success message for 2 seconds then redirect/close
-        setTimeout(() => {
-          if (this.isModal) {
-            this.closed.emit(true);
+    if (this.isEdit) {
+      this.userApi.updateUser(this.userId, payload).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          this.successMessage = 'User updated successfully!';
+          
+          // Show success message for 2 seconds then redirect/close
+          setTimeout(() => {
+            if (this.isModal) {
+              this.closed.emit(true);
+            } else {
+              this.router.navigate(['/viewAllUsers']);
+            }
+          }, 2000);
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          
+          if (err.status === 409) {
+            this.errorMessage = 'Username already exists. Please choose a different username.';
+          } else if (err.status === 403) {
+            this.errorMessage = 'You do not have permission to perform this action.';
           } else {
-            this.router.navigate(['/viewAllUsers']);
+            this.errorMessage = err.error?.message || 'Failed to update user. Please try again.';
           }
-        }, 2000);
-      },
-      error: (err) => {
-        this.isSubmitting = false;
-        
-        if (err.status === 409) {
-          this.errorMessage = 'Username already exists. Please choose a different username.';
-        } else if (err.status === 403) {
-          this.errorMessage = 'You do not have permission to perform this action.';
-        } else {
-          this.errorMessage = err.error?.message || 'Failed to update user. Please try again.';
-        }
-        
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      },
-    });
+          
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+      });
+    } else {
+      this.userApi.createUser(payload).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          this.successMessage = 'User created successfully!';
+          
+          setTimeout(() => {
+            if (this.isModal) {
+              this.closed.emit(true);
+            } else {
+              this.router.navigate(['/viewAllUsers']);
+            }
+          }, 2000);
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          
+          if (err.status === 409) {
+            this.errorMessage = 'Username or email already exists. Please choose a different one.';
+          } else if (err.status === 403) {
+            this.errorMessage = 'You do not have permission to perform this action.';
+          } else {
+            this.errorMessage = err.error?.message || 'Failed to create user. Please try again.';
+          }
+          
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+      });
+    }
   }
 
   cancel(): void {

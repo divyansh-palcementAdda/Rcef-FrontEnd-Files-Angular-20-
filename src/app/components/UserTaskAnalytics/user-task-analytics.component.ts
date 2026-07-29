@@ -45,7 +45,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   pageSize: number = 10;
   totalRecords: number = 0;
   totalPages: number = 0;
-  pageSizeOptions: number[] = [5, 10, 25, 50, 100];
+  pageSizeOptions: number[] = [5, 10, 25];
 
   // ── Sorting ─────────────────────────────────────────────────────────────
   sortField: string = 'fullName';
@@ -115,10 +115,10 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
 
   getRequestStatusClass(status: string): string {
     switch ((status || '').toUpperCase()) {
-      case 'PENDING':  return 'uta-req-status--pending';
+      case 'PENDING': return 'uta-req-status--pending';
       case 'APPROVED': return 'uta-req-status--approved';
       case 'REJECTED': return 'uta-req-status--rejected';
-      default:         return '';
+      default: return '';
     }
   }
 
@@ -142,7 +142,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     private analyticsService: UserTaskAnalyticsApiService,
     private authService: AuthApiService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDepartmentCards();
@@ -245,8 +245,8 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
         this.tableData = response.content || [];
         const meta = response.page ?? response;
         this.totalRecords = meta.totalElements ?? 0;
-        this.totalPages   = meta.totalPages   ?? 0;
-        this.currentPage  = meta.number       ?? this.currentPage;
+        this.totalPages = meta.totalPages ?? 0;
+        this.currentPage = meta.number ?? this.currentPage;
         this.loadingTable = false;
       },
       error: (err) => {
@@ -395,37 +395,37 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
 
   getAvatarClass(role: string): string {
     switch ((role || '').toUpperCase()) {
-      case 'HOD':        return 'uta-avatar--hod';
-      case 'TEACHER':    return 'uta-avatar--teacher';
-      case 'ADMIN':      return 'uta-avatar--admin';
-      case 'SUB_ADMIN':  return 'uta-avatar--subadmin';
-      case 'SUPER_ADMIN':return 'uta-avatar--super';
-      default:           return 'uta-avatar--default';
+      case 'HOD': return 'uta-avatar--hod';
+      case 'TEACHER': return 'uta-avatar--teacher';
+      case 'ADMIN': return 'uta-avatar--admin';
+      case 'SUB_ADMIN': return 'uta-avatar--subadmin';
+      case 'SUPER_ADMIN': return 'uta-avatar--super';
+      default: return 'uta-avatar--default';
     }
   }
 
   getRoleBadgeClass(role: string): string {
     switch ((role || '').toUpperCase()) {
-      case 'HOD':        return 'uta-role--hod';
-      case 'TEACHER':    return 'uta-role--teacher';
-      case 'ADMIN':      return 'uta-role--admin';
-      case 'SUB_ADMIN':  return 'uta-role--subadmin';
-      case 'SUPER_ADMIN':return 'uta-role--super';
-      default:           return 'uta-role--default';
+      case 'HOD': return 'uta-role--hod';
+      case 'TEACHER': return 'uta-role--teacher';
+      case 'ADMIN': return 'uta-role--admin';
+      case 'SUB_ADMIN': return 'uta-role--subadmin';
+      case 'SUPER_ADMIN': return 'uta-role--super';
+      default: return 'uta-role--default';
     }
   }
 
   getDrillStatusClass(status: string): string {
     switch ((status || '').toUpperCase()) {
-      case 'PENDING':              return 'uta-st--pending';
-      case 'IN_PROGRESS':          return 'uta-st--inprogress';
-      case 'CLOSED':               return 'uta-st--closed';
-      case 'DELAYED':              return 'uta-st--delayed';
-      case 'UPCOMING':             return 'uta-st--upcoming';
-      case 'EXTENDED':             return 'uta-st--extended';
-      case 'REQUEST_FOR_CLOSURE':  return 'uta-st--rfc';
-      case 'REQUEST_FOR_EXTENSION':return 'uta-st--rfe';
-      default:                     return 'uta-st--default';
+      case 'PENDING': return 'uta-st--pending';
+      case 'IN_PROGRESS': return 'uta-st--inprogress';
+      case 'CLOSED': return 'uta-st--closed';
+      case 'DELAYED': return 'uta-st--delayed';
+      case 'UPCOMING': return 'uta-st--upcoming';
+      case 'EXTENDED': return 'uta-st--extended';
+      case 'REQUEST_FOR_CLOSURE': return 'uta-st--rfc';
+      case 'REQUEST_FOR_EXTENSION': return 'uta-st--rfe';
+      default: return 'uta-st--default';
     }
   }
 

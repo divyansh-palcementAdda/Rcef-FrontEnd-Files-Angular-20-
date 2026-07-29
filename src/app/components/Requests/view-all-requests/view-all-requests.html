@@ -422,14 +422,12 @@
             <h5 class="fw-bold text-dark mb-2"><a [routerLink]="['/task', activeRequestDetail.taskId]"
                 (click)="closeDetailModal()" class="text-dark text-decoration-none hover-primary-text">{{
                 activeRequestDetail.taskTitle }}</a></h5>
-            <p class="text-muted small mb-3">Task ID: #{{ activeRequestDetail.taskId }} | Priority: <span
-                class="badge bg-secondary">{{
-                activeRequestDetail.taskPriority }}</span></p>
+            <p class="text-muted small mb-3">Task ID: #{{ activeRequestDetail.taskId }}</p>
 
             <div class="row g-3">
               <div class="col-6">
                 <span class="small text-muted d-block">Submitted By</span>
-                <span class="small fw-semibold text-dark">{{ activeRequestDetail.requestedByFullName }}</span>
+                <span class="small fw-semibold text-dark">{{ activeRequestDetail.requestedByName }}</span>
               </div>
               <div class="col-6">
                 <span class="small text-muted d-block">Request Type</span>
@@ -511,11 +509,12 @@
       </div>
 
       <div class="modal-footer bg-light border-top">
-        <button class="btn btn-success d-flex align-items-center gap-2"
+        <button *ngIf="activeRequestDetail?.status === 'PENDING'"
+          class="btn btn-success d-flex align-items-center gap-2"
           (click)="openApproveDialog(activeRequestDetail, $event); closeDetailModal()">
           <i class="bi bi-check-circle"></i> Approve Request
         </button>
-        <button class="btn btn-danger d-flex align-items-center gap-2"
+        <button *ngIf="activeRequestDetail?.status === 'PENDING'" class="btn btn-danger d-flex align-items-center gap-2"
           (click)="openRejectDialog(activeRequestDetail, $event); closeDetailModal()">
           <i class="bi bi-x-circle"></i> Reject Request
         </button>
