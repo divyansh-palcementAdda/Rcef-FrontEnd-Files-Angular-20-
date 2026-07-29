@@ -26,6 +26,9 @@ import { SubjectDto } from '../../../Model/subject';
 export class EditUser implements OnInit, OnDestroy, OnChanges {
   @Input() userId!: number;
   @Input() isModal = false;
+  @Input() preselectedDepartmentId?: number;
+  @Input() preselectedSubDepartmentId?: string;
+  @Input() lockContext = false;
   @Output() closed = new EventEmitter<boolean>();
   /** Form */
   editForm!: FormGroup;
@@ -105,6 +108,10 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
   }
 
   private initForm(): void {
+    const initialDeptIds = this.preselectedDepartmentId ? [this.preselectedDepartmentId] : [];
+    const initialSubDeptId = this.preselectedSubDepartmentId ? this.preselectedSubDepartmentId : null;
+    const initialSubDeptIds = this.preselectedSubDepartmentId ? [this.preselectedSubDepartmentId] : [];
+
     this.editForm = this.fb.group({
       fullName: [
         '',
@@ -126,11 +133,11 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         ],
       ],
       role: [{ value: '', disabled: !this.isCurrentUserAdmin }, Validators.required],
-      departmentIds: [[], Validators.required],
+      departmentIds: [initialDeptIds, Validators.required],
       parentUserId: [null],
       reportingManagerIds: [[]],
-      subDepartmentId: [null],
-      subDepartmentIds: [[]],
+      subDepartmentId: [initialSubDeptId],
+      subDepartmentIds: [initialSubDeptIds],
       subjectIds: [[]]
     });
 

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DepartmentApiService } from '../../Services/department-api-service';
 import { UserApiService } from '../../Services/UserApiService';
+import { ConfirmDialogService } from '../../Services/confirm-dialog.service';
 import { Department } from '../../Model/department';
 import { userDto } from '../../Model/userDto';
 
@@ -73,6 +74,7 @@ export class SubDepartmentManagementComponent implements OnInit {
   constructor(
     private deptApiService: DepartmentApiService,
     private userApiService: UserApiService,
+    private confirmDialogService: ConfirmDialogService,
     private snackBar: MatSnackBar,
     private router: Router,
     private location: Location
@@ -158,18 +160,24 @@ export class SubDepartmentManagementComponent implements OnInit {
   }
 
   deleteSubDept(id: string): void {
-    if (!confirm('Are you sure you want to delete this sub-department? All user associations will be cleared.')) {
-      return;
-    }
+    this.confirmDialogService.confirm({
+      title: 'Delete Sub Department',
+      message: 'This action will permanently delete this Sub Department and all related data, including users, tasks, task requests, proofs, activities, mappings, and other associated records.\n\nThis action cannot be undone and the deleted data cannot be restored.\n\nAre you sure you want to continue?',
+      confirmText: 'Delete Permanently',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then((confirmed) => {
+      if (!confirmed) return;
 
-    this.deptApiService.deleteSubDepartment(id).subscribe({
-      next: () => {
-        this.showSuccess('Sub-department deleted successfully');
-        if (this.selectedDepartment) {
-          this.selectDepartment(this.selectedDepartment);
-        }
-      },
-      error: (err) => this.showError('Failed to delete sub-department: ' + err.message)
+      this.deptApiService.deleteSubDepartment(id).subscribe({
+        next: () => {
+          this.showSuccess('Sub-department deleted successfully');
+          if (this.selectedDepartment) {
+            this.selectDepartment(this.selectedDepartment);
+          }
+        },
+        error: (err) => this.showError('Failed to delete sub-department: ' + err.message)
+      });
     });
   }
 
