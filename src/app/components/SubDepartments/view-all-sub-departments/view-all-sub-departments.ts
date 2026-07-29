@@ -132,7 +132,13 @@ export class ViewAllSubDepartmentsComponent implements OnInit {
     event.stopPropagation();
     if (!id) return;
 
-    this.confirmDialogService.confirm('Are you sure you want to delete this sub-department?').then((confirmed) => {
+    this.confirmDialogService.confirm({
+      title: 'Delete Sub Department',
+      message: 'This action will permanently delete this Sub Department and all related data, including users, tasks, task requests, proofs, activities, mappings, and other associated records.\n\nThis action cannot be undone and the deleted data cannot be restored.\n\nAre you sure you want to continue?',
+      confirmText: 'Delete Permanently',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then((confirmed) => {
       if (confirmed) {
         this.apiService.deleteSubDepartment(id).subscribe({
           next: () => {

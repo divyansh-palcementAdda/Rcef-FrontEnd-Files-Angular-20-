@@ -202,6 +202,46 @@ export class DepartmentApiService {
     );
   }
 
+  assignUserToSubDepartment(subDeptId: string, userId: number): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/sub-departments/${subDeptId}/users/${userId}`, {}).pipe(
+      catchError(err => this.handleError(err, 'assign user to sub-department'))
+    );
+  }
+
+  removeUserFromSubDepartment(subDeptId: string, userId: number): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/sub-departments/${subDeptId}/users/${userId}`).pipe(
+      catchError(err => this.handleError(err, 'remove user from sub-department'))
+    );
+  }
+
+  assignHodToSubDepartment(subDeptId: string, userId: number): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/sub-departments/${subDeptId}/hods/${userId}`, {}).pipe(
+      catchError(err => this.handleError(err, 'assign HOD to sub-department'))
+    );
+  }
+
+  removeHodFromSubDepartment(subDeptId: string, userId: number): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/sub-departments/${subDeptId}/hods/${userId}`).pipe(
+      catchError(err => this.handleError(err, 'remove HOD from sub-department'))
+    );
+  }
+
+  swapHodInSubDepartment(subDeptId: string, oldHodId: number | null, newHodId: number): Observable<any> {
+    let queryParams = `?newHodId=${newHodId}`;
+    if (oldHodId) {
+      queryParams += `&oldHodId=${oldHodId}`;
+    }
+    return this.http.post<any>(`${environment.apiUrl}/sub-departments/${subDeptId}/hods/swap${queryParams}`, {}).pipe(
+      catchError(err => this.handleError(err, 'swap HOD in sub-department'))
+    );
+  }
+
+  updateUserRoleInSubDepartment(subDeptId: string, userId: number, newRole: string): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/sub-departments/${subDeptId}/users/${userId}/role?newRole=${encodeURIComponent(newRole)}`, {}).pipe(
+      catchError(err => this.handleError(err, 'update user role in sub-department'))
+    );
+  }
+
   // -------------------------------------------------
   private handleError(error: any, context: string) {
     console.error(`Error in ${context}:`, error);

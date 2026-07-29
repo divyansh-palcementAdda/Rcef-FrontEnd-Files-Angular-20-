@@ -19,6 +19,7 @@ import { AuthorizationService } from '../../../Services/authorization.service';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { UserTaskAnalyticsApiService, UserTaskAnalyticsRowDTO } from '../../../Services/user-task-analytics-api.service';
+import { EditUser } from '../../Users/edit-user/edit-user';
 
 Chart.register(...registerables);
 
@@ -123,7 +124,7 @@ interface SubDepartmentDetail {
 @Component({
   selector: 'app-sub-department-details',
   standalone: true,
-  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective],
+  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective, EditUser],
   templateUrl: './sub-department-details.html',
   styleUrls: ['./sub-department-details.css']
 })
@@ -298,6 +299,257 @@ export class SubDepartmentDetailsComponent implements OnInit {
       return true;
     }
     return this.authApiService.hasPermission('TASK_CREATE') || this.authApiService.hasPermission('TASK_ASSIGN');
+  }
+
+  deleting = false;
+
+  get canDeleteSubDepartment(): boolean {
+    const role = this.authApiService.getCurrentRole();
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'SUB_ADMIN') {
+      return true;
+    }
+    return this.authApiService.hasPermission('SUB_DEPARTMENT_DELETE') || this.authApiService.hasPermission('DEPARTMENT_EDIT');
+  }
+
+  get canManageUsers(): boolean {
+    const role = this.authApiService.getCurrentRole();
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'SUB_ADMIN' || role === 'HOD') {
+      return true;
+    }
+    return this.authApiService.hasPermission('USER_CREATE') || this.authApiService.hasPermission('USER_EDIT') || this.authApiService.hasPermission('SUB_DEPARTMENT_CREATE');
+  }
+
+  // User & HOD Management States
+  showAddUserModal = false;
+  showAssignExistingUserModal = false;
+  showSwapHodModal = false;
+  showEditUserModal = false;
+  editingUserId: number | null = null;
+
+  assignableUsers: userDto[] = [];
+  assignableUsersLoading = false;
+  selectedAssignUserId: number | null = null;
+
+  selectedSwapOldHod: HodInfo | null = null;
+  selectedSwapNewHodId: number | null = null;
+  userActionLoading = false;
+
+  openAddUserModal(): void {
+    this.showAddUserModal = true;
+  }
+
+  closeAddUserModal(success?: boolean): void {
+    this.showAddUserModal = false;
+    if (success) {
+      this.snackBar.open('User created and mapped successfully', 'Close', { duration: 3000 });
+      this.reloadAllData();
+    }
+  }
+
+  openEditUserModal(userId: number): void {
+    this.editingUserId = userId;
+    this.showEditUserModal = true;
+  }
+
+  closeEditUserModal(success?: boolean): void {
+    this.showEditUserModal = false;
+    this.editingUserId = null;
+    if (success) {
+      this.snackBar.open('User updated successfully', 'Close', { duration: 3000 });
+      this.reloadAllData();
+    }
+  }
+
+  openAssignExistingUserModal(): void {
+    this.selectedAssignUserId = null;
+    this.showAssignExistingUserModal = true;
+    this.loadAssignableUsers();
+  }
+
+  closeAssignExistingUserModal(): void {
+    this.showAssignExistingUserModal = false;
+    this.selectedAssignUserId = null;
+  }
+
+  loadAssignableUsers(): void {
+    this.assignableUsersLoading = true;
+    this.userApiService.getAllUsers().subscribe({
+      next: (users: userDto[]) => {
+        const currentMappedUserIds = new Set(
+          (this.subDeptDetail?.userBreakdowns || []).map(u => u.userId)
+        );
+        this.assignableUsers = (users || []).filter(u => u.status === 'ACTIVE' && !currentMappedUserIds.has(u.userId));
+        this.assignableUsersLoading = false;
+      },
+      error: () => {
+        this.assignableUsersLoading = false;
+        this.snackBar.open('Failed to load assignable users', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  submitAssignExistingUser(): void {
+    if (!this.selectedAssignUserId) return;
+    this.userActionLoading = true;
+    this.deptApiService.assignUserToSubDepartment(this.subDeptId, this.selectedAssignUserId).subscribe({
+      next: () => {
+        this.userActionLoading = false;
+        this.closeAssignExistingUserModal();
+        this.snackBar.open('User mapped to Sub Department successfully', 'Close', { duration: 3000 });
+        this.reloadAllData();
+      },
+      error: (err) => {
+        this.userActionLoading = false;
+        this.snackBar.open(err?.message || 'Failed to assign user', 'Close', { duration: 4000 });
+      }
+    });
+  }
+
+  removeUserFromSubDept(user: any): void {
+    const userName = user.fullName || user.username || 'this user';
+    this.confirmDialog.confirm({
+      title: 'Remove User from Sub Department',
+      message: `Are you sure you want to remove ${userName} from this Sub Department? Their user account will remain active.`,
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      type: 'warning'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.userActionLoading = true;
+      this.deptApiService.removeUserFromSubDepartment(this.subDeptId, user.userId).subscribe({
+        next: () => {
+          this.userActionLoading = false;
+          this.snackBar.open('User unmapped successfully', 'Close', { duration: 3000 });
+          this.reloadAllData();
+        },
+        error: (err) => {
+          this.userActionLoading = false;
+          this.snackBar.open(err?.message || 'Failed to unmap user', 'Close', { duration: 4000 });
+        }
+      });
+    });
+  }
+
+  openSwapHodModal(hod?: HodInfo): void {
+    this.selectedSwapOldHod = hod || (this.subDeptDetail?.hods && this.subDeptDetail.hods.length > 0 ? this.subDeptDetail.hods[0] : null);
+    this.selectedSwapNewHodId = null;
+    this.showSwapHodModal = true;
+    this.loadAssignableUsers();
+  }
+
+  closeSwapHodModal(): void {
+    this.showSwapHodModal = false;
+    this.selectedSwapOldHod = null;
+    this.selectedSwapNewHodId = null;
+  }
+
+  submitSwapHod(): void {
+    if (!this.selectedSwapNewHodId) return;
+    const oldHodId = this.selectedSwapOldHod ? this.selectedSwapOldHod.userId : null;
+    this.userActionLoading = true;
+    this.deptApiService.swapHodInSubDepartment(this.subDeptId, oldHodId, this.selectedSwapNewHodId).subscribe({
+      next: () => {
+        this.userActionLoading = false;
+        this.closeSwapHodModal();
+        this.snackBar.open('HOD swapped successfully', 'Close', { duration: 3000 });
+        this.reloadAllData();
+      },
+      error: (err) => {
+        this.userActionLoading = false;
+        this.snackBar.open(err?.message || 'Failed to swap HOD', 'Close', { duration: 4000 });
+      }
+    });
+  }
+
+  removeHodFromSubDept(hod: HodInfo): void {
+    this.confirmDialog.confirm({
+      title: 'Remove HOD',
+      message: `Are you sure you want to remove ${hod.fullName} as HOD of this Sub Department?`,
+      confirmText: 'Remove HOD',
+      cancelText: 'Cancel',
+      type: 'warning'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.userActionLoading = true;
+      this.deptApiService.removeHodFromSubDepartment(this.subDeptId, hod.userId).subscribe({
+        next: () => {
+          this.userActionLoading = false;
+          this.snackBar.open('HOD removed successfully', 'Close', { duration: 3000 });
+          this.reloadAllData();
+        },
+        error: (err) => {
+          this.userActionLoading = false;
+          this.snackBar.open(err?.message || 'Failed to remove HOD', 'Close', { duration: 4000 });
+        }
+      });
+    });
+  }
+
+  updateUserRole(user: any, newRole: string): void {
+    const actionLabel = newRole === 'HOD' ? 'Promote to HOD' : 'Change role to ' + newRole;
+    this.confirmDialog.confirm({
+      title: actionLabel,
+      message: `Are you sure you want to change ${user.fullName || user.username}'s role to ${newRole}?`,
+      confirmText: 'Confirm',
+      cancelText: 'Cancel',
+      type: 'info'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.userActionLoading = true;
+      this.deptApiService.updateUserRoleInSubDepartment(this.subDeptId, user.userId, newRole).subscribe({
+        next: () => {
+          this.userActionLoading = false;
+          this.snackBar.open(`User role updated to ${newRole} successfully`, 'Close', { duration: 3000 });
+          this.reloadAllData();
+        },
+        error: (err) => {
+          this.userActionLoading = false;
+          this.snackBar.open(err?.message || 'Failed to update user role', 'Close', { duration: 4000 });
+        }
+      });
+    });
+  }
+
+  reloadAllData(): void {
+    this.loadSubDepartmentDetail();
+    this.loadHodTaskAnalytics();
+    this.loadFacultyTaskAnalytics();
+    if (this.activeTab === 'users') {
+      this.loadUserBreakdowns();
+    }
+  }
+
+  confirmAndDeleteSubDepartment(): void {
+    if (!this.subDeptId) return;
+
+    const subDeptName = this.subDeptDetail?.name ? `'${this.subDeptDetail.name}'` : 'this Sub Department';
+
+    this.confirmDialog.confirm({
+      title: 'Delete Sub Department',
+      message: `This action will permanently delete ${subDeptName} and all related data, including users, tasks, task requests, proofs, activities, mappings, and other associated records.\n\nThis action cannot be undone and the deleted data cannot be restored.\n\nAre you sure you want to continue?`,
+      confirmText: 'Delete Permanently',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.deleting = true;
+      this.deptApiService.deleteSubDepartment(this.subDeptId).subscribe({
+        next: () => {
+          this.deleting = false;
+          this.snackBar.open('Sub Department deleted successfully', 'Close', { duration: 3500 });
+          this.router.navigate(['/departments']);
+        },
+        error: (err) => {
+          this.deleting = false;
+          const msg = err?.error?.message || err?.message || 'Failed to delete sub department';
+          this.snackBar.open(msg, 'Close', { duration: 5000 });
+        }
+      });
+    });
   }
 
   openAssignTaskModal(): void {

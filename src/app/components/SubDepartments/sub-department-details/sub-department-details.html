@@ -18,10 +18,28 @@
         </p>
       </div>
     </div>
-    <div class="header-right d-flex align-items-center gap-3">
+    <div class="header-right d-flex align-items-center gap-2 flex-wrap">
       <button *ngIf="canAssignTask" class="btn-assign-task" (click)="openAssignTaskModal()">
         <i class="bi bi-plus-lg me-1"></i>
         <span>Assign Task</span>
+      </button>
+      <button *ngIf="canManageUsers"
+        class="btn btn-primary d-flex align-items-center gap-1 py-2 px-3 fw-semibold rounded-3 shadow-sm"
+        (click)="openAddUserModal()">
+        <i class="bi bi-person-plus-fill me-1"></i>
+        <span>Add User</span>
+      </button>
+      <button *ngIf="canManageUsers"
+        class="btn btn-outline-primary d-flex align-items-center gap-1 py-2 px-3 fw-semibold rounded-3 shadow-sm"
+        (click)="openAssignExistingUserModal()">
+        <i class="bi bi-person-check-fill me-1"></i>
+        <span>Assign Existing User</span>
+      </button>
+      <button *ngIf="canDeleteSubDepartment"
+        class="btn btn-outline-danger d-flex align-items-center gap-2 py-2 px-3 fw-semibold rounded-3 shadow-sm"
+        (click)="confirmAndDeleteSubDepartment()" [disabled]="deleting">
+        <i class="bi bi-trash-fill"></i>
+        <span>{{ deleting ? 'Deleting...' : 'Delete Sub Department' }}</span>
       </button>
       <div class="code-badge-wrapper">
         <span class="code-badge">{{ subDeptDetail.code }}</span>
@@ -30,33 +48,56 @@
   </div>
   <!-- ── HOD Banner – always visible, loaded with basic info ── -->
   <div class="hod-banner" *ngIf="subDeptDetail && subDeptDetail.hods && subDeptDetail.hods.length > 0">
-    <div class="hod-banner-label">
-      <i class="bi bi-person-badge-fill"></i>
-      <span>Head{{ subDeptDetail.hods.length > 1 ? 's' : '' }} of Department</span>
+    <div class="hod-banner-label d-flex align-items-center justify-content-between w-100 mb-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-person-badge-fill"></i>
+        <span>Head{{ subDeptDetail.hods.length > 1 ? 's' : '' }} of Department</span>
+      </div>
+      <div *ngIf="canManageUsers" class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" (click)="openSwapHodModal()" title="Swap HOD">
+          <i class="bi bi-arrow-repeat me-1"></i>Swap HOD
+        </button>
+      </div>
     </div>
     <div class="hod-cards-row">
-      <div class="hod-card" *ngFor="let hod of subDeptDetail.hods" (click)="viewUserDetails(hod.userId)">
-        <!-- Initials avatar (profile image not yet on User entity) -->
-        <div class="hod-avatar hod-avatar-initials">
-          {{ getHodInitials(hod.fullName) }}
-        </div>
-        <div class="hod-card-info">
-          <div class="hod-name">{{ hod.fullName }}</div>
-          <div class="hod-meta">
-            <span class="hod-emp-id"><i class="bi bi-person-badge me-1"></i>{{ hod.username }}</span>
-            <span class="hod-email"><i class="bi bi-envelope me-1"></i>{{ hod.email }}</span>
+      <div class="hod-card p-3 position-relative" *ngFor="let hod of subDeptDetail.hods">
+        <div class="d-flex align-items-center gap-3 w-100" (click)="viewUserDetails(hod.userId)"
+          style="cursor: pointer;">
+          <div class="hod-avatar hod-avatar-initials">
+            {{ getHodInitials(hod.fullName) }}
           </div>
+          <div class="hod-card-info flex-grow-1">
+            <div class="hod-name font-weight-bold">{{ hod.fullName }}</div>
+            <div class="hod-meta">
+              <span class="hod-emp-id"><i class="bi bi-person-badge me-1"></i>{{ hod.username }}</span>
+              <span class="hod-email"><i class="bi bi-envelope me-1"></i>{{ hod.email }}</span>
+            </div>
+          </div>
+          <span class="hod-role-chip me-2">HOD</span>
         </div>
-        <span class="hod-role-chip">HOD</span>
+        <div *ngIf="canManageUsers" class="hod-card-actions d-flex gap-1 ms-auto" (click)="$event.stopPropagation()">
+          <button class="btn btn-sm btn-light text-primary border" (click)="openSwapHodModal(hod)" title="Swap HOD">
+            <i class="bi bi-arrow-repeat"></i>
+          </button>
+          <button class="btn btn-sm btn-light text-danger border" (click)="removeHodFromSubDept(hod)"
+            title="Remove HOD">
+            <i class="bi bi-person-dash"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ── No HOD notice – only show when detail loaded but no HODs assigned ── -->
-  <div class="hod-banner hod-banner--empty"
+  <div class="hod-banner hod-banner--empty d-flex align-items-center justify-content-between"
     *ngIf="subDeptDetail && (!subDeptDetail.hods || subDeptDetail.hods.length === 0)">
-    <i class="bi bi-person-x me-2 text-muted"></i>
-    <span class="text-muted">No HOD assigned to this sub-department.</span>
+    <div>
+      <i class="bi bi-person-x me-2 text-muted"></i>
+      <span class="text-muted">No HOD assigned to this sub-department.</span>
+    </div>
+    <button *ngIf="canManageUsers" class="btn btn-sm btn-primary rounded-pill px-3" (click)="openSwapHodModal()">
+      <i class="bi bi-person-plus me-1"></i>Assign HOD
+    </button>
   </div>
 
   <!-- ── Loading State ── -->
@@ -268,8 +309,7 @@
                       }}</span>
                   </td>
                   <td class="text-center action-td">
-                    <button class="btn-view-analytics" (click)="viewUserDetails(hod.userId)"
-                      title="View User Profile">
+                    <button class="btn-view-analytics" (click)="viewUserDetails(hod.userId)" title="View User Profile">
                       <i class="bi bi-eye"></i> <span>View</span>
                     </button>
                   </td>
@@ -373,8 +413,7 @@
                     <span class="badge status-num-badge bg-orange-subtle text-orange">{{ f.requestForExtension }}</span>
                   </td>
                   <td class="text-center action-td">
-                    <button class="btn-view-analytics" (click)="viewUserDetails(f.userId)"
-                      title="View User Profile">
+                    <button class="btn-view-analytics" (click)="viewUserDetails(f.userId)" title="View User Profile">
                       <i class="bi bi-eye"></i> <span>View</span>
                     </button>
                   </td>
@@ -723,9 +762,19 @@
               <span class="text-danger">{{ u.delayed }} Overdue</span>
             </div>
 
-            <button class="btn-card-action" (click)="viewUserDetails(u.userId); $event.stopPropagation()">
-              <i class="bi bi-person-badge me-1"></i>View User Profile
-            </button>
+            <div class="d-flex align-items-center gap-2 mt-3" (click)="$event.stopPropagation()">
+              <button class="btn-card-action flex-grow-1" (click)="viewUserDetails(u.userId)">
+                <i class="bi bi-person-badge me-1"></i>View Profile
+              </button>
+              <button *ngIf="canManageUsers" class="btn btn-sm btn-outline-secondary py-2 px-3 rounded-3"
+                (click)="openEditUserModal(u.userId)" title="Edit User">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button *ngIf="canManageUsers" class="btn btn-sm btn-outline-danger py-2 px-3 rounded-3"
+                (click)="removeUserFromSubDept(u)" title="Remove from Sub Department">
+                <i class="bi bi-person-dash"></i>
+              </button>
+            </div>
           </div>
         </div>
         <div class="empty-state" *ngIf="!subDeptDetail.userBreakdowns || subDeptDetail.userBreakdowns.length === 0">
@@ -938,5 +987,126 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ── Add / Edit User Modal Overlay ── -->
+<div *ngIf="showAddUserModal || showEditUserModal" class="modal-backdrop fade show"
+  (click)="closeAddUserModal(); closeEditUserModal()"></div>
+<div *ngIf="showAddUserModal" class="modal d-block" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold">Add New User to Sub Department</h5>
+        <button type="button" class="btn-close" (click)="closeAddUserModal()"></button>
+      </div>
+      <div class="modal-body">
+        <app-edit-user [userId]="0" [isModal]="true" [preselectedDepartmentId]="subDeptDetail?.department?.departmentId"
+          [preselectedSubDepartmentId]="subDeptId" [lockContext]="true" (closed)="closeAddUserModal($event)">
+        </app-edit-user>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showEditUserModal && editingUserId" class="modal d-block" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold">Edit User</h5>
+        <button type="button" class="btn-close" (click)="closeEditUserModal()"></button>
+      </div>
+      <div class="modal-body">
+        <app-edit-user [userId]="editingUserId" [isModal]="true" (closed)="closeEditUserModal($event)">
+        </app-edit-user>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Assign Existing User Modal ── -->
+<div *ngIf="showAssignExistingUserModal" class="modal-backdrop fade show" (click)="closeAssignExistingUserModal()">
+</div>
+<div *ngIf="showAssignExistingUserModal" class="modal d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-person-check-fill me-2 text-primary"></i>Assign Existing User
+        </h5>
+        <button type="button" class="btn-close" (click)="closeAssignExistingUserModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small">Select an existing active user to map to <strong>{{ subDeptDetail?.name }}</strong>.
+        </p>
+
+        <div *ngIf="assignableUsersLoading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="small text-muted mt-2">Loading active users...</p>
+        </div>
+
+        <div *ngIf="!assignableUsersLoading">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Select User</label>
+            <select class="form-select rounded-3" [(ngModel)]="selectedAssignUserId">
+              <option [ngValue]="null" disabled>-- Choose a User --</option>
+              <option *ngFor="let u of assignableUsers" [value]="u.userId">
+                {{ u.fullName }} ({{ u.username }}) — {{ u.role }}
+              </option>
+            </select>
+          </div>
+          <div *ngIf="assignableUsers.length === 0" class="alert alert-info py-2 small">
+            No active unmapped users found in the system.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-top-0">
+        <button type="button" class="btn btn-light rounded-3" (click)="closeAssignExistingUserModal()">Cancel</button>
+        <button type="button" class="btn btn-primary rounded-3 px-4"
+          [disabled]="!selectedAssignUserId || userActionLoading" (click)="submitAssignExistingUser()">
+          {{ userActionLoading ? 'Assigning...' : 'Assign User' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Swap HOD Modal ── -->
+<div *ngIf="showSwapHodModal" class="modal-backdrop fade show" (click)="closeSwapHodModal()"></div>
+<div *ngIf="showSwapHodModal" class="modal d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-arrow-repeat me-2 text-primary"></i>Swap / Assign HOD</h5>
+        <button type="button" class="btn-close" (click)="closeSwapHodModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="selectedSwapOldHod" class="alert alert-light border rounded-3 mb-3 p-3">
+          <span class="text-muted small d-block">Current HOD to be replaced:</span>
+          <strong class="text-dark">{{ selectedSwapOldHod.fullName }}</strong> <span class="text-muted">({{
+            selectedSwapOldHod.username }})</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Select New HOD Candidate</label>
+          <select class="form-select rounded-3" [(ngModel)]="selectedSwapNewHodId">
+            <option [ngValue]="null" disabled>-- Choose Replacement HOD --</option>
+            <option *ngFor="let u of assignableUsers" [value]="u.userId">
+              {{ u.fullName }} ({{ u.username }}) — Current Role: {{ u.role }}
+            </option>
+          </select>
+        </div>
+        <p class="small text-muted">
+          Assigning a new HOD will promote the candidate to HOD role (if needed) and map them to <strong>{{
+            subDeptDetail?.name }}</strong>.
+        </p>
+      </div>
+      <div class="modal-footer border-top-0">
+        <button type="button" class="btn btn-light rounded-3" (click)="closeSwapHodModal()">Cancel</button>
+        <button type="button" class="btn btn-primary rounded-3 px-4"
+          [disabled]="!selectedSwapNewHodId || userActionLoading" (click)="submitSwapHod()">
+          {{ userActionLoading ? 'Swapping...' : 'Confirm HOD Swap' }}
+        </button>
+      </div>
+    </div>
   </div>
 </div>
