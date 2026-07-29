@@ -8,6 +8,10 @@ export interface StudentReportingDto {
   userId: number;
   enrollmentId: string;
   studentName: string;
+  phoneNumbe: string;
+  alternatePhone: string | null;
+  whatsappPhoneNo: string;
+  email: string;
   course: string;
 }
 

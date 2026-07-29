@@ -45,7 +45,7 @@ export class ViewDepartmentsComponent implements OnInit {
 
   // sub-dept pagination
   subDeptCurrentPage = 1;
-  subDeptPageSize    = 8;
+  subDeptPageSize    = 10;
   subDeptTotalPages  = 1;
 
   // ── All Sub-Departments panel state ──────────────────────────────────────

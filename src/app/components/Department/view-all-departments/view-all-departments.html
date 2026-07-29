@@ -214,9 +214,9 @@
         <div class="stitch-pag-left">
           <span>Rows per page:</span>
           <select class="stitch-pag-size-selector" [(ngModel)]="allSubDeptsPageSize" (change)="allSubDeptsCurrentPage = 1">
-            <option [value]="5">5</option>
-            <option [value]="10">10</option>
-            <option [value]="20">20</option>
+            <option [ngValue]="5">5</option>
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="20">20</option>
           </select>
           <span class="stitch-pag-label">
             {{ (allSubDeptsCurrentPage - 1) * allSubDeptsPageSize + 1 }}-{{ allSubDeptsCurrentPage * allSubDeptsPageSize > filteredAllSubDepts.length ? filteredAllSubDepts.length : allSubDeptsCurrentPage * allSubDeptsPageSize }} of {{ filteredAllSubDepts.length }} results
@@ -346,9 +346,9 @@
         <div class="stitch-pag-left">
           <span>Rows per page:</span>
           <select class="stitch-pag-size-selector" [(ngModel)]="subDeptPageSize" (change)="subDeptCurrentPage = 1">
-            <option [value]="5">5</option>
-            <option [value]="10">10</option>
-            <option [value]="20">20</option>
+            <option [ngValue]="5">5</option>
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="20">20</option>
           </select>
           <span class="stitch-pag-label">
             {{ (subDeptCurrentPage - 1) * subDeptPageSize + 1 }}-{{ subDeptCurrentPage * subDeptPageSize > filteredSubDepts.length ? filteredSubDepts.length : subDeptCurrentPage * subDeptPageSize }} of {{ filteredSubDepts.length }} results

@@ -546,7 +546,6 @@ export class ViewAllRequests implements OnInit, OnDestroy {
   // Lazy detail retrieval
   viewRequestDetails(request: any): void {
     this.loadingDetail = true;
-    this.activeRequestDetail = { ...request, proofs: [] };
 
     this.requestService.getRequestById(request.requestId).subscribe({
       next: (res) => {

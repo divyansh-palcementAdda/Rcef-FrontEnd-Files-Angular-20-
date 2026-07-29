@@ -58,7 +58,7 @@
               <label class="form-label">Template Category <span class="text-danger">*</span></label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-folder2"></i></span>
-                <select class="form-select" formControlName="templateCategoryId">
+                <select class="form-select" formControlName="templateCategoryId" (focus)="closeAllDropdowns()" (focus)="closeAllDropdowns()">
                   <option [ngValue]="null" disabled>Select Category</option>
                   <option *ngFor="let cat of categories" [ngValue]="cat.id">
                     {{ cat.name }} <span *ngIf="cat.subcategory">({{ cat.subcategory }})</span>
@@ -324,7 +324,7 @@
               <label class="form-label">Task Template <span class="text-danger">*</span></label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-file-earmark-ruled"></i></span>
-                <select class="form-select" formControlName="templateId">
+                <select class="form-select" formControlName="templateId" (focus)="closeAllDropdowns()">
                   <option [ngValue]="null" disabled>Select Template</option>
                   <option *ngFor="let temp of filteredTemplates" [ngValue]="temp.id">
                     {{ temp.title }}
@@ -408,7 +408,7 @@
                 <!-- Dropdown Panel -->
                 <div *ngIf="showSubDeptDropdown && filteredSubDepartments.length > 0"
                   class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white"
-                  style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+                  style="z-index: 1060; max-height: 220px; overflow-y: auto;">
                   <div *ngFor="let sub of filteredSubDepartments"
                     class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                     (mousedown)="toggleSubDeptSelection(sub.id, $event)" style="cursor: pointer;">
@@ -426,7 +426,7 @@
               <label class="form-label">Subject (Optional)</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-book"></i></span>
-                <select class="form-select" formControlName="subjectId">
+                <select class="form-select" formControlName="subjectId" (focus)="closeAllDropdowns()">
                   <option [ngValue]="null">Select Subject</option>
                   <option *ngFor="let sub of subjects" [ngValue]="sub.id">
                     {{ sub.subjectName }} ({{ sub.subjectCode }})
@@ -458,7 +458,7 @@
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-percent"></i></span>
                 <select class="form-select" formControlName="targetPercentage"
-                  [ngClass]="{ 'is-invalid': taskForm.get('targetPercentage')?.touched && taskForm.get('targetPercentage')?.invalid }">
+                  [ngClass]="{ 'is-invalid': taskForm.get('targetPercentage')?.touched && taskForm.get('targetPercentage')?.invalid }" (focus)="closeAllDropdowns()">
                   <option [ngValue]="null" disabled>Select Target Progress</option>
                   <option *ngFor="let opt of getProgressOptions()" [value]="opt">
                     {{ opt }}

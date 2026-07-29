@@ -61,7 +61,7 @@
               <label class="form-label">Template Category <span class="text-danger">*</span></label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-folder2"></i></span>
-                <select class="form-select" formControlName="templateCategoryId">
+                <select class="form-select" formControlName="templateCategoryId" (focus)="closeAllDropdowns()">
                   <option [ngValue]="null" disabled>Select Category</option>
                   <option *ngFor="let cat of categories" [ngValue]="cat.id">
                     {{ cat.name }} <span *ngIf="cat.subcategory">({{ cat.subcategory }})</span>
@@ -281,7 +281,7 @@
             <div *ngIf="taskForm.value.departmentIds?.length || currentUser?.role === 'SUPER_ADMIN'">
               <label class="form-label">Sub-Departments (Optional)</label>
               <div class="custom-multiselect-container position-relative mb-2">
-                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="showSubDeptDropdown = !showSubDeptDropdown">
+                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3" (click)="toggleSubDeptDropdown()">
                   <!-- Chips -->
                   <span *ngFor="let id of getSelectedSubDeptIds()" class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
                     <span>{{ getSubDeptName(id) }}</span>
@@ -290,7 +290,7 @@
                   <span *ngIf="getSelectedSubDeptIds().length === 0" class="text-muted small px-2">Select Sub-Departments...</span>
                 </div>
                 <!-- Dropdown Panel -->
-                <div *ngIf="showSubDeptDropdown && filteredSubDepartments.length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1050; max-height: 220px; overflow-y: auto;">
+                <div *ngIf="showSubDeptDropdown && filteredSubDepartments.length > 0" class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white" style="z-index: 1060; max-height: 220px; overflow-y: auto;">
                   <div
                     *ngFor="let sub of filteredSubDepartments"
                     class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
@@ -315,7 +315,7 @@
               <label class="form-label">Subject (Optional)</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-book"></i></span>
-                <select class="form-select" formControlName="subjectId">
+                <select class="form-select" formControlName="subjectId" (focus)="closeAllDropdowns()">
                   <option [ngValue]="null">Select Subject</option>
                   <option *ngFor="let sub of subjects" [ngValue]="sub.id">
                     {{ sub.subjectName }} ({{ sub.subjectCode }})

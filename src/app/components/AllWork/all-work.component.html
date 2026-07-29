@@ -239,12 +239,12 @@
                   </div>
                 </th>
                 <th class="sortable-th">User With Zero Task</th>
-                <th class="sortable-th" (click)="sortSubDeptBy('totalSubjects')">
+                <!-- <th class="sortable-th" (click)="sortSubDeptBy('totalSubjects')">
                   <div class="th-inner">
                     Subjects
                     <i class="bi ms-1" [ngClass]="getSortIcon('totalSubjects')"></i>
                   </div>
-                </th>
+                </th> -->
                 <th class="sortable-th" (click)="sortSubDeptBy('totalAssignedTasks')">
                   <div class="th-inner">
                     Assigned Tasks
@@ -253,22 +253,51 @@
                 </th>
                 <th class="text-center">
                   <div class="th-inner justify-content-center">
-                    Task Statuses
-                    <span class="th-hint ms-1">(P / I / C / D/ UC)</span>
+                    Pending
                   </div>
                 </th>
-                <th class="sortable-th" (click)="sortSubDeptBy('completionPercentage')">
+                <th class="text-center">
+                  <div class="th-inner justify-content-center">
+                    In Progress
+                  </div>
+                </th>
+                <th class="text-center">
+                  <div class="th-inner justify-content-center">
+                    Completed
+                  </div>
+                </th>
+                <th class="text-center">
+                  <div class="th-inner justify-content-center">
+                    Delayed
+                  </div>
+                </th>
+                <th class="text-center">
+                  <div class="th-inner justify-content-center">
+                    Upcoming
+                  </div>
+                </th>
+                <th class="text-center">
+                  <div class="th-inner justify-content-center">
+                    Request for Closure
+                  </div>
+                </th>
+                <th class="text-center">
+                  <div class="th-inner justify-content-center">
+                    Request for Extension
+                  </div>
+                </th>
+                <!-- <th class="sortable-th" (click)="sortSubDeptBy('completionPercentage')">
                   <div class="th-inner">
                     Completion Rate
                     <i class="bi ms-1" [ngClass]="getSortIcon('completionPercentage')"></i>
                   </div>
-                </th>
-                <th class="sortable-th" (click)="sortSubDeptBy('lastActivity')">
+                </th> -->
+                <!-- <th class="sortable-th" (click)="sortSubDeptBy('lastActivity')">
                   <div class="th-inner">
                     Last Activity
                     <i class="bi ms-1" [ngClass]="getSortIcon('lastActivity')"></i>
                   </div>
-                </th>
+                </th> -->
                 <th class="text-end">Actions</th>
               </tr>
             </thead>
@@ -293,13 +322,25 @@
                     <div class="skeleton-line w-40"></div>
                   </td>
                   <td>
-                    <div class="skeleton-badges"></div>
+                    <div class="skeleton-chip"></div>
                   </td>
                   <td>
-                    <div class="skeleton-progress"></div>
+                    <div class="skeleton-chip"></div>
                   </td>
                   <td>
-                    <div class="skeleton-line w-50"></div>
+                    <div class="skeleton-chip"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-chip"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-chip"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-chip"></div>
+                  </td>
+                  <td>
+                    <div class="skeleton-chip"></div>
                   </td>
                   <td>
                     <div class="skeleton-actions"></div>
@@ -336,36 +377,52 @@
                       {{ $any(sd).usersWithZeroTask ?? "-" }}
                     </div>
 
-                  <td [attr.data-label]="'Subjects'">
+                  <!-- <td [attr.data-label]="'Subjects'">
                     <div class="metric-chip metric-chip--violet">
                       <i class="bi bi-book-fill"></i>
                       {{ sd.totalSubjects }}
                     </div>
-                  </td>
+                  </td> -->
                   <td [attr.data-label]="'Assigned Tasks'">
                     <span class="fw-bold text-dark">{{ sd.totalAssignedTasks }}</span>
                     <small class="text-muted d-block">tasks</small>
                   </td>
-                  <td class="text-center" [attr.data-label]="'Task Statuses'">
-                    <div class="status-pills">
-                      <span class="status-pill status-pill--pending" title="Pending">
-                        <span class="status-dot"></span>{{ sd.pending }}
-                      </span>
-                      <span class="status-pill status-pill--inprogress" title="In Progress">
-                        <span class="status-dot"></span>{{ sd.inProgress }}
-                      </span>
-                      <span class="status-pill status-pill--completed" title="Completed">
-                        <span class="status-dot"></span>{{ sd.completed }}
-                      </span>
-                      <span class="status-pill status-pill--delayed" title="Delayed">
-                        <span class="status-dot"></span>{{ sd.delayed }}
-                      </span>
-                      <span class="status-pill status-pill--upcoming" title="Upcoming">
-                        <span class="status-dot"></span>{{ sd.upcoming }}
-                      </span>
+                  <td class="text-center" [attr.data-label]="'Pending'">
+                    <div class="metric-chip metric-chip--warning">
+                      {{ sd.pending }}
                     </div>
                   </td>
-                  <td [attr.data-label]="'Completion Rate'">
+                  <td class="text-center" [attr.data-label]="'In Progress'">
+                    <div class="metric-chip metric-chip--info">
+                      {{ sd.inProgress }}
+                    </div>
+                  </td>
+                  <td class="text-center" [attr.data-label]="'Completed'">
+                    <div class="metric-chip metric-chip--success">
+                      {{ sd.completed }}
+                    </div>
+                  </td>
+                  <td class="text-center" [attr.data-label]="'Delayed'">
+                    <div class="metric-chip metric-chip--danger">
+                      {{ sd.delayed }}
+                    </div>
+                  </td>
+                  <td class="text-center" [attr.data-label]="'Upcoming'">
+                    <div class="metric-chip metric-chip--primary">
+                      {{ sd.upcoming }}
+                    </div>
+                  </td>
+                  <td class="text-center" [attr.data-label]="'Request for Closure'">
+                    <div class="metric-chip metric-chip--success">
+                      {{ sd.requestForClosure ?? "-" }}
+                    </div>
+                  </td>
+                  <td class="text-center" [attr.data-label]="'Request for Extension'">
+                    <div class="metric-chip metric-chip--success">
+                      {{ sd.requestForExtension ?? "-" }}
+                    </div>
+                  </td>
+                  <!-- <td [attr.data-label]="'Completion Rate'">
                     <div class="completion-cell">
                       <div class="completion-bar-track">
                         <div class="completion-bar-fill"
@@ -395,7 +452,7 @@
                     <ng-template #noActivity>
                       <span class="text-muted small">—</span>
                     </ng-template>
-                  </td>
+                  </td> -->
                   <td class="text-end" [attr.data-label]="'Actions'">
                     <div class="row-actions">
                       <button class="action-btn action-btn--users" *ngIf="dashboardData?.canViewUsers"
@@ -421,7 +478,7 @@
 
               <!-- Empty state -->
               <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role !== 'HOD'">
-                <td colspan="9" class="empty-state-row">
+                <td colspan="15" class="empty-state-row">
                   <div class="empty-inline">
                     <div class="empty-inline-icon"><i class="bi bi-building"></i></div>
                     <div class="empty-inline-title">No Sub Departments Found</div>
@@ -430,7 +487,7 @@
                 </td>
               </tr>
               <tr *ngIf="subDepartments.length === 0 && !loadingSubDepts && role === 'HOD'">
-                <td colspan="9" class="empty-state-row">
+                <td colspan="15" class="empty-state-row">
                   <div class="empty-inline">
                     <div class="empty-inline-icon"><i class="bi bi-person-x"></i></div>
                     <div class="empty-inline-title">No Sub Departments Assigned</div>
@@ -440,7 +497,7 @@
                 </td>
               </tr>
               <tr *ngIf="subDeptError">
-                <td colspan="9" class="empty-state-row">
+                <td colspan="15" class="empty-state-row">
                   <div class="empty-inline">
                     <div class="empty-inline-icon text-danger"><i class="bi bi-exclamation-triangle"></i></div>
                     <div class="empty-inline-title">Failed to Load</div>

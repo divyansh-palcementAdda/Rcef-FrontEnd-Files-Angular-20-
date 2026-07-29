@@ -511,11 +511,11 @@
       </div>
 
       <div class="modal-footer bg-light border-top">
-        <button *ngIf="activeRequestDetail?.canApprove" class="btn btn-success d-flex align-items-center gap-2"
+        <button class="btn btn-success d-flex align-items-center gap-2"
           (click)="openApproveDialog(activeRequestDetail, $event); closeDetailModal()">
           <i class="bi bi-check-circle"></i> Approve Request
         </button>
-        <button *ngIf="activeRequestDetail?.canReject" class="btn btn-danger d-flex align-items-center gap-2"
+        <button class="btn btn-danger d-flex align-items-center gap-2"
           (click)="openRejectDialog(activeRequestDetail, $event); closeDetailModal()">
           <i class="bi bi-x-circle"></i> Reject Request
         </button>

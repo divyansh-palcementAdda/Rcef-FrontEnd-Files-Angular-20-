@@ -1083,8 +1083,17 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.custom-multiselect-container')) {
+    // Close sub-department dropdown when clicking outside its container
+    const clickedInsideDropdown = target.closest('.custom-multiselect-container');
+    if (!clickedInsideDropdown) {
       this.showSubDeptDropdown = false;
+    }
+    // Close any native select dropdowns by blurring them when clicking outside
+    if (target.tagName !== 'SELECT' && target.tagName !== 'OPTION') {
+      const activeSelect = document.activeElement as HTMLSelectElement;
+      if (activeSelect && activeSelect.tagName === 'SELECT') {
+        activeSelect.blur();
+      }
     }
   }
 
@@ -1231,10 +1240,22 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
   showSubDeptDropdown = false;
 
   toggleSubDeptDropdown(): void {
+    // Close all other dropdowns before opening this one
+    if (!this.showSubDeptDropdown) {
+      // Close any open native select dropdowns
+      const activeSelect = document.activeElement as HTMLSelectElement;
+      if (activeSelect && activeSelect.tagName === 'SELECT') {
+        activeSelect.blur();
+      }
+    }
     this.showSubDeptDropdown = !this.showSubDeptDropdown;
     if (this.showSubDeptDropdown) {
       this.filterSubDepartments();
     }
+  }
+
+  closeAllDropdowns(): void {
+    this.showSubDeptDropdown = false;
   }
 
   loadSubjectsForSubDepartments(): void {

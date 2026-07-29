@@ -1897,17 +1897,20 @@
                           </span>
                         </div>
 
-                        <!-- Count Text Display -->
-                        <div class="mt-2 text-secondary" style="font-size: 0.775rem; line-height: 1.45;"
-                          *ngIf="getStudentReportCounts(s)">
-                          Forms Reported : {{ getStudentReportCounts(s).formReportCount }}<br>
-                          Fees Reported : {{ getStudentReportCounts(s).feesReportCount }}<br>
-                          Total Reports : {{ getStudentReportCounts(s).totalReports }}
+                        <!-- Student Details Display -->
+                        <div class="mt-2 text-secondary" style="font-size: 0.775rem; line-height: 1.45;">
+                          User ID : {{ s.userId || '—' }}<br>
+                          Enrollment ID : {{ s.enrollmentId || '—' }}<br>
+                          Student Name : {{ s.studentName || '—' }}<br>
+                          Phone : {{ s.phoneNumbe || '—' }}<br>
+                          Alternate Phone : {{ s.alternatePhone || '—' }}<br>
+                          WhatsApp : {{ s.whatsappPhoneNo || '—' }}<br>
+                          Email : {{ s.email || '—' }}<br>
+                          Course : {{ s.course || '—' }}
                         </div>
 
 
                       </div>
-                      <i *ngIf="isStudentSelected(s)" class="bi bi-check-circle-fill student-check-icon"></i>
                     </label>
 
                     <!-- No results -->
