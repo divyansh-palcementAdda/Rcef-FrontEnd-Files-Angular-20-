@@ -537,16 +537,10 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     this.isLoadingDepartments = true;
     this.cdr.markForCheck();
 
-    this.departmentService.getAllDepartments().subscribe({
+    this.departmentService.getAuthorizedDepartments().subscribe({
       next: (depts) => {
-        let filtered = depts;
-        if (this.currentUser?.role === 'HOD') {
-          filtered = depts.filter((d) =>
-            this.currentUser?.departmentIds?.includes(d.departmentId)
-          );
-        }
-        this.departments = filtered;
-        this.filteredDepartments = [...filtered];
+        this.departments = depts;
+        this.filteredDepartments = [...depts];
         this.isLoadingDepartments = false;
         this.onDeptSearch();
         this.loadUsers();

@@ -20,6 +20,7 @@ import { TaskApiService } from '../../../Services/task-api-Service';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { UserTaskAnalyticsApiService, UserTaskAnalyticsRowDTO } from '../../../Services/user-task-analytics-api.service';
 import { EditUser } from '../../Users/edit-user/edit-user';
+import { AddUserComponent } from '../../Auth/add-user/add-user';
 
 Chart.register(...registerables);
 
@@ -124,7 +125,7 @@ interface SubDepartmentDetail {
 @Component({
   selector: 'app-sub-department-details',
   standalone: true,
-  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective, EditUser],
+  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective, AddUserComponent, EditUser],
   templateUrl: './sub-department-details.html',
   styleUrls: ['./sub-department-details.css']
 })
@@ -338,9 +339,9 @@ export class SubDepartmentDetailsComponent implements OnInit {
     this.showAddUserModal = true;
   }
 
-  closeAddUserModal(success?: boolean): void {
+  closeAddUserModal(success?: boolean | any): void {
     this.showAddUserModal = false;
-    if (success) {
+    if (success === true) {
       this.snackBar.open('User created and mapped successfully', 'Close', { duration: 3000 });
       this.reloadAllData();
     }
@@ -351,10 +352,10 @@ export class SubDepartmentDetailsComponent implements OnInit {
     this.showEditUserModal = true;
   }
 
-  closeEditUserModal(success?: boolean): void {
+  closeEditUserModal(success?: boolean | any): void {
     this.showEditUserModal = false;
     this.editingUserId = null;
-    if (success) {
+    if (success === true) {
       this.snackBar.open('User updated successfully', 'Close', { duration: 3000 });
       this.reloadAllData();
     }

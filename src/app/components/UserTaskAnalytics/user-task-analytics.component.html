@@ -292,18 +292,13 @@
                 ? (sortDir==='asc' ? 'bi-sort-up text-primary' : 'bi-sort-down text-primary')
                 : 'bi-arrow-down-up opacity-25'"></i>
             </th>
-            <th class="text-center uta-th--sortable" (click)="sortBy('completed')" title="Completed tasks">Done</th>
+            <th class="text-center uta-th--sortable" (click)="sortBy('completed')" title="Completed tasks">Closed</th>
             <th class="text-center uta-th--sortable" (click)="sortBy('pending')" title="Pending tasks">Pending</th>
-            <th class="text-center uta-th--sortable" (click)="sortBy('inProgress')" title="In progress tasks">Active
+            <th class="text-center uta-th--sortable" (click)="sortBy('inProgress')" title="In progress tasks">In
+              Progress
             </th>
             <th class="text-center uta-th--sortable" (click)="sortBy('delayed')" title="Delayed tasks">Delayed</th>
             <th class="text-center" title="Request for Closure / Request for Extension">RFC / RFE</th>
-            <th class="text-center uta-th--sortable" (click)="sortBy('completionPercentage')">
-              Completion
-              <i class="bi ms-1" [ngClass]="sortField==='completionPercentage'
-                ? (sortDir==='asc' ? 'bi-sort-up text-primary' : 'bi-sort-down text-primary')
-                : 'bi-arrow-down-up opacity-25'"></i>
-            </th>
             <th class="text-center">Requests</th>
           </tr>
         </thead>
@@ -363,7 +358,7 @@
                 </div>
               </td>
               <!-- Completion -->
-              <td class="text-center">
+              <!-- <td class="text-center">
                 <div class="uta-completion-cell">
                   <div class="uta-completion-bar" role="progressbar" [attr.aria-valuenow]="row.completionPercentage"
                     aria-valuemin="0" aria-valuemax="100">
@@ -379,7 +374,7 @@
                       'text-danger':  row.completionPercentage < 40
                     }">{{ row.completionPercentage }}%</span>
                 </div>
-              </td>
+              </td> -->
               <!-- Requests -->
               <td class="text-center">
                 <button class="uta-req-btn" (click)="openRequestsModal(row)"

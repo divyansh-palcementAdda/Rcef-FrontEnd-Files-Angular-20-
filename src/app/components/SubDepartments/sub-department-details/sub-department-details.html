@@ -1081,14 +1081,13 @@
         <button type="button" class="btn-close" (click)="closeAddUserModal()"></button>
       </div>
       <div class="modal-body">
-        <app-edit-user 
-          [userId]="0" 
+        <app-add-user 
           [isModal]="true" 
           [preselectedDepartmentId]="subDeptDetail?.department?.departmentId"
           [preselectedSubDepartmentId]="subDeptId"
           [lockContext]="true"
           (closed)="closeAddUserModal($event)">
-        </app-edit-user>
+        </app-add-user>
       </div>
     </div>
   </div>

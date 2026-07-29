@@ -350,19 +350,10 @@ export class CreateRecurringTaskComponent implements OnInit, AfterViewInit, OnDe
 
   private loadDepartments(): void {
     this.isLoadingDepartments = true;
-    this.departmentService.getAllDepartments().subscribe({
+    this.departmentService.getAuthorizedDepartments().subscribe({
       next: (departments) => {
-        let filtered = departments;
-        
-        // Filter for HOD users
-        if (this.currentUser?.role === 'HOD') {
-          filtered = departments.filter(
-            (dept) => this.currentUser?.departmentIds?.includes(dept.departmentId)
-          );
-        }
-        
-        this.departments = filtered;
-        this.filteredDepartments = [...filtered];
+        this.departments = departments;
+        this.filteredDepartments = [...departments];
         this.isLoadingDepartments = false;
         
         this.updateSelectAllDepts();
