@@ -26,7 +26,7 @@ import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.com
 import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
 import { TasksImportComponent } from '../tasks-import/tasks-import';
 import { AddTaskComponent } from '../add-task/add-task';
-
+import { DragScrollDirective } from '../../Shared/directives/drag-scroll.directive';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -37,7 +37,7 @@ interface ApiResponse<T> {
 @Component({
   selector: 'app-view-tasks',
   standalone: true,
-  imports: [CommonModule, FormsModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent, TasksImportComponent],
+  imports: [CommonModule, FormsModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent, TasksImportComponent, DragScrollDirective],
 
   templateUrl: './view-tasks.html',
   styleUrls: ['./view-tasks.css']

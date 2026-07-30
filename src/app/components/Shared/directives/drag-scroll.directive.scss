@@ -1,0 +1,17 @@
+[appDragScroll] {
+
+  overflow-x: auto;
+
+  cursor: grab;
+
+  user-select: auto;
+
+  scroll-behavior: smooth;
+
+}
+
+[appDragScroll].drag-scroll-active {
+
+  cursor: grabbing;
+
+}

@@ -8,6 +8,16 @@
   padding: 1.5rem;
 }
 
+.table-scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+  cursor: grab;
+}
+
+.drag-scroll-active {
+  cursor: grabbing !important;
+}
+
 /* ==========================================
    1. HERO HEADER
    ========================================== */

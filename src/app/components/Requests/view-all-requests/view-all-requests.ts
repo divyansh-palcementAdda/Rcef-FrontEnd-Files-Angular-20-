@@ -12,11 +12,12 @@ import { TaskRequestDto } from '../../../Model/TaskRequestDto';
 import { FilterDrawerComponent, FilterFieldConfig } from '../../Shared/filter-drawer/filter-drawer.component';
 import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.component';
 import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
+import { DragScrollDirective } from '../../Shared/directives/drag-scroll.directive';
 
 @Component({
   selector: 'app-view-all-requests',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent],
+  imports: [CommonModule, FormsModule, RouterModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent, DragScrollDirective],
   templateUrl: './view-all-requests.html',
   styleUrls: ['./view-all-requests.css']
 })

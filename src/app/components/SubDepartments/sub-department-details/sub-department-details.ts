@@ -21,6 +21,7 @@ import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { UserTaskAnalyticsApiService, UserTaskAnalyticsRowDTO } from '../../../Services/user-task-analytics-api.service';
 import { EditUser } from '../../Users/edit-user/edit-user';
 import { AddUserComponent } from '../../Auth/add-user/add-user';
+import { DragScrollDirective } from '../../Shared/directives/drag-scroll.directive';
 
 Chart.register(...registerables);
 
@@ -125,7 +126,7 @@ interface SubDepartmentDetail {
 @Component({
   selector: 'app-sub-department-details',
   standalone: true,
-  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective, AddUserComponent, EditUser],
+  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective, AddUserComponent, EditUser, DragScrollDirective],
   templateUrl: './sub-department-details.html',
   styleUrls: ['./sub-department-details.css']
 })

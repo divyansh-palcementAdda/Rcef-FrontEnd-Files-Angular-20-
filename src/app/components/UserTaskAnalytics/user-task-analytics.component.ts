@@ -12,11 +12,12 @@ import {
   TaskSummaryDTO
 } from '../../Services/user-task-analytics-api.service';
 import { AuthApiService } from '../../Services/auth-api-service';
+import { DragScrollDirective } from '../Shared/directives/drag-scroll.directive';
 
 @Component({
   selector: 'app-user-task-analytics',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, DragScrollDirective],
   templateUrl: './user-task-analytics.component.html',
   styleUrls: ['./user-task-analytics.component.css']
 })

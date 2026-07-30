@@ -1720,3 +1720,13 @@
   overflow: auto;
   flex: 1 1 auto;
 }
+
+.table-responsive {
+  overflow-x: auto;
+  white-space: nowrap;
+  cursor: grab;
+}
+
+.drag-scroll-active {
+  cursor: grabbing !important;
+}

@@ -497,7 +497,7 @@
       </div>
 
       <!-- Requests table -->
-      <div class="uta-table-wrap" *ngIf="!loadingRequests && modalUserRequests.length > 0">
+      <div class="uta-table-wrap" *ngIf="!loadingRequests && modalUserRequests.length > 0" appDragScroll>
         <table class="uta-req-table uta-req-table--modal">
           <thead>
             <tr>
@@ -515,7 +515,7 @@
             <tr *ngFor="let req of modalUserRequests" class="uta-req-table__row">
               <td class="uta-req-id">#{{ req.requestId }}</td>
               <td>
-                <span class="uta-req-task" [title]="req.taskTitle">{{ req.taskTitle }}</span>
+                <span class="uta-req-task" [title]="req.taskTitle">{{ req.taskTitle && req.taskTitle.length > 40 ? (req.taskTitle | slice:0:40) + '...' : (req.taskTitle || '—') }}</span>
               </td>
               <td>
                 <span class="uta-req-type"

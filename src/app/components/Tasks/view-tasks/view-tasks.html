@@ -366,7 +366,7 @@
        5. DATA GRID TABLE SECTION
        ========================================== -->
     <div *ngIf="!isEmpty && filteredTasks.length > 0" class="stitch-grid-container">
-      <div class="table-responsive">
+      <div class="table-responsive" appDragScroll>
         <table class="stitch-table align-middle">
           <thead>
             <tr>

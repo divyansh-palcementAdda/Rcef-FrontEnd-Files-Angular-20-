@@ -4,10 +4,20 @@
 
 .detail-container {
   padding: 1.5rem;
-  max-width: 1400px;
+  /* max-width: 1400px; */
   margin: 0 auto;
   color: var(--text-main);
   font-family: 'Inter', sans-serif;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  white-space: nowrap;
+  cursor: grab;
+}
+
+.drag-scroll-active {
+  cursor: grabbing !important;
 }
 
 /* ── Header ── */

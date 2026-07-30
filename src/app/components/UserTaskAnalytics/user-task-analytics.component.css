@@ -3,6 +3,18 @@
    Aligned with project design system (Inter, Bootstrap, indigo primary)
    ============================================================ */
 
+/* ── Drag Scroll Directive Styles ── */
+[appDragScroll] {
+  overflow-x: auto;
+  cursor: grab;
+  user-select: auto;
+  scroll-behavior: smooth;
+}
+
+[appDragScroll].drag-scroll-active {
+  cursor: grabbing;
+}
+
 /* ── Container ── */
 .uta-container {
   background: var(--bg-color, #f8fafc);

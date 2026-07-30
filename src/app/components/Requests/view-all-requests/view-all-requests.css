@@ -9,6 +9,16 @@
   background-color: #f9fafb;
 }
 
+.table-responsive {
+  overflow-x: auto;
+  white-space: nowrap;
+  cursor: grab;
+}
+
+.drag-scroll-active {
+  cursor: grabbing !important;
+}
+
 /* ----------------------------------------------------------
    HERO
    ---------------------------------------------------------- */

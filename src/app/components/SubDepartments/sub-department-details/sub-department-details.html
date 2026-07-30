@@ -251,7 +251,7 @@
         </div>
 
         <div *ngIf="!hodAnalyticsLoading">
-          <div class="table-responsive" *ngIf="hodAnalyticsList.length > 0">
+          <div class="table-responsive" appDragScroll *ngIf="hodAnalyticsList.length > 0">
             <table class="table table-hover align-middle analytics-table mb-0">
               <thead>
                 <tr>
@@ -356,7 +356,7 @@
         </div>
 
         <div *ngIf="!facultyAnalyticsLoading">
-          <div class="table-responsive" *ngIf="facultyAnalyticsList.length > 0">
+          <div class="table-responsive" appDragScroll *ngIf="facultyAnalyticsList.length > 0">
             <table class="table table-hover align-middle analytics-table mb-0">
               <thead>
                 <tr>
@@ -569,7 +569,7 @@
 
         <!-- Tasks Table -->
         <div class="card table-card">
-          <div class="table-responsive" *ngIf="paginatedTasks.length > 0">
+          <div class="table-responsive" appDragScroll *ngIf="paginatedTasks.length > 0">
             <table class="dashboard-table">
               <colgroup>
                 <col class="col-taskid">

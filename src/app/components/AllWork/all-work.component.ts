@@ -18,6 +18,7 @@ import { ModalWrapperService } from '../../Services/modal-wrapper.service';
 import { AllWorkUsersComponent } from './modals/users/all-work-users.component';
 import { AllWorkTasksComponent } from './modals/tasks/all-work-tasks.component';
 import { AllWorkAnalyticsComponent } from './modals/analytics/all-work-analytics.component';
+import { DragScrollDirective } from '../Shared/directives/drag-scroll.directive';
 
 @Component({
   selector: 'app-all-work',
@@ -26,6 +27,7 @@ import { AllWorkAnalyticsComponent } from './modals/analytics/all-work-analytics
     CommonModule,
     FormsModule,
     ModalWrapperComponent,
+    DragScrollDirective,
   ],
   templateUrl: './all-work.component.html',
   styleUrls: ['./all-work.component.css']
