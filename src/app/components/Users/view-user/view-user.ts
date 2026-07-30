@@ -17,11 +17,12 @@ import { JwtService } from '../../../Services/jwt-service';
 import { DatePipe } from '@angular/common';
 import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { EditUser } from '../edit-user/edit-user';
+import { DragScrollDirective } from '../../Shared/directives/drag-scroll.directive';
 
 @Component({
   selector: 'app-view-user',
   standalone: true,
-  imports: [CommonModule, FormsModule, EditUser],
+  imports: [CommonModule, FormsModule, EditUser, DragScrollDirective],
   templateUrl: './view-user.html',
   styleUrls: ['./view-user.css'],
 })
