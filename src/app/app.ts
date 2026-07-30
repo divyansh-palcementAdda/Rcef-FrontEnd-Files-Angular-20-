@@ -85,6 +85,11 @@ export class App {
 
   closeActiveModal(success: boolean = false): void {
     const modalName = this.activeModal;
+    this.activeModal = null;
+    this.editUserId = null;
+    this.editDepartmentId = null;
+    document.body.classList.remove('modal-open');
+
     if (!modalName) return;
 
     // Clear query parameters

@@ -22,6 +22,7 @@ import { UserTaskAnalyticsApiService, UserTaskAnalyticsRowDTO } from '../../../S
 import { EditUser } from '../../Users/edit-user/edit-user';
 import { AddUserComponent } from '../../Auth/add-user/add-user';
 import { DragScrollDirective } from '../../Shared/directives/drag-scroll.directive';
+import { EnterpriseUserPickerComponent } from '../../Shared/enterprise-user-picker/enterprise-user-picker.component';
 
 Chart.register(...registerables);
 
@@ -126,7 +127,7 @@ interface SubDepartmentDetail {
 @Component({
   selector: 'app-sub-department-details',
   standalone: true,
-  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective, AddUserComponent, EditUser, DragScrollDirective],
+  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective, AddUserComponent, EditUser, DragScrollDirective, EnterpriseUserPickerComponent],
   templateUrl: './sub-department-details.html',
   styleUrls: ['./sub-department-details.css']
 })
@@ -331,10 +332,21 @@ export class SubDepartmentDetailsComponent implements OnInit {
   assignableUsers: userDto[] = [];
   assignableUsersLoading = false;
   selectedAssignUserId: number | null = null;
+  selectedTeacherCandidates: userDto[] = [];
 
+  get currentSubDeptUserIds(): number[] {
+    return (this.subDeptDetail?.userBreakdowns || []).map(u => u.userId);
+  }
+
+  // HOD Assignment & Swap Module States
+  hodAssignmentMode: 'ASSIGN' | 'REPLACE' = 'ASSIGN';
   selectedSwapOldHod: HodInfo | null = null;
-  selectedSwapNewHodId: number | null = null;
+  selectedHodCandidates: userDto[] = [];
   userActionLoading = false;
+
+  get currentHodUserIds(): number[] {
+    return (this.subDeptDetail?.hods || []).map(h => h.userId);
+  }
 
   openAddUserModal(): void {
     this.showAddUserModal = true;
@@ -363,46 +375,40 @@ export class SubDepartmentDetailsComponent implements OnInit {
   }
 
   openAssignExistingUserModal(): void {
-    this.selectedAssignUserId = null;
+    this.selectedTeacherCandidates = [];
     this.showAssignExistingUserModal = true;
-    this.loadAssignableUsers();
   }
 
   closeAssignExistingUserModal(): void {
     this.showAssignExistingUserModal = false;
-    this.selectedAssignUserId = null;
+    this.selectedTeacherCandidates = [];
   }
 
-  loadAssignableUsers(): void {
-    this.assignableUsersLoading = true;
-    this.userApiService.getAllUsers().subscribe({
-      next: (users: userDto[]) => {
-        const currentMappedUserIds = new Set(
-          (this.subDeptDetail?.userBreakdowns || []).map(u => u.userId)
-        );
-        this.assignableUsers = (users || []).filter(u => u.status === 'ACTIVE' && !currentMappedUserIds.has(u.userId));
-        this.assignableUsersLoading = false;
-      },
-      error: () => {
-        this.assignableUsersLoading = false;
-        this.snackBar.open('Failed to load assignable users', 'Close', { duration: 3000 });
-      }
-    });
+  onTeacherSelectionChange(candidates: userDto[]): void {
+    this.selectedTeacherCandidates = candidates;
   }
 
   submitAssignExistingUser(): void {
-    if (!this.selectedAssignUserId) return;
+    if (this.selectedTeacherCandidates.length === 0) {
+      this.snackBar.open('Please select at least one Teacher candidate', 'Close', { duration: 3000 });
+      return;
+    }
+
     this.userActionLoading = true;
-    this.deptApiService.assignUserToSubDepartment(this.subDeptId, this.selectedAssignUserId).subscribe({
+    const assignObservables = this.selectedTeacherCandidates.map(candidate =>
+      this.deptApiService.assignUserToSubDepartment(this.subDeptId, candidate.userId)
+    );
+
+    forkJoin(assignObservables).subscribe({
       next: () => {
         this.userActionLoading = false;
         this.closeAssignExistingUserModal();
-        this.snackBar.open('User mapped to Sub Department successfully', 'Close', { duration: 3000 });
+        this.snackBar.open(`Assigned ${this.selectedTeacherCandidates.length} Teacher(s) to Sub Department successfully`, 'Close', { duration: 3000 });
         this.reloadAllData();
       },
       error: (err) => {
         this.userActionLoading = false;
-        this.snackBar.open(err?.message || 'Failed to assign user', 'Close', { duration: 4000 });
+        this.snackBar.open(err?.message || 'Failed to assign Teacher(s)', 'Close', { duration: 4000 });
       }
     });
   }
@@ -435,33 +441,64 @@ export class SubDepartmentDetailsComponent implements OnInit {
 
   openSwapHodModal(hod?: HodInfo): void {
     this.selectedSwapOldHod = hod || (this.subDeptDetail?.hods && this.subDeptDetail.hods.length > 0 ? this.subDeptDetail.hods[0] : null);
-    this.selectedSwapNewHodId = null;
+    this.selectedHodCandidates = [];
+    this.hodAssignmentMode = hod ? 'REPLACE' : 'ASSIGN';
     this.showSwapHodModal = true;
-    this.loadAssignableUsers();
   }
 
   closeSwapHodModal(): void {
     this.showSwapHodModal = false;
     this.selectedSwapOldHod = null;
-    this.selectedSwapNewHodId = null;
+    this.selectedHodCandidates = [];
+  }
+
+  onHodSelectionChange(candidates: userDto[]): void {
+    this.selectedHodCandidates = candidates;
   }
 
   submitSwapHod(): void {
-    if (!this.selectedSwapNewHodId) return;
-    const oldHodId = this.selectedSwapOldHod ? this.selectedSwapOldHod.userId : null;
+    if (this.selectedHodCandidates.length === 0) {
+      this.snackBar.open('Please select at least one HOD candidate', 'Close', { duration: 3000 });
+      return;
+    }
+
     this.userActionLoading = true;
-    this.deptApiService.swapHodInSubDepartment(this.subDeptId, oldHodId, this.selectedSwapNewHodId).subscribe({
-      next: () => {
-        this.userActionLoading = false;
-        this.closeSwapHodModal();
-        this.snackBar.open('HOD swapped successfully', 'Close', { duration: 3000 });
-        this.reloadAllData();
-      },
-      error: (err) => {
-        this.userActionLoading = false;
-        this.snackBar.open(err?.message || 'Failed to swap HOD', 'Close', { duration: 4000 });
-      }
-    });
+
+    if (this.hodAssignmentMode === 'REPLACE') {
+      const oldHodId = this.selectedSwapOldHod ? this.selectedSwapOldHod.userId : null;
+      const newHodId = this.selectedHodCandidates[0].userId;
+
+      this.deptApiService.swapHodInSubDepartment(this.subDeptId, oldHodId, newHodId).subscribe({
+        next: () => {
+          this.userActionLoading = false;
+          this.closeSwapHodModal();
+          this.snackBar.open('HOD replaced successfully', 'Close', { duration: 3000 });
+          this.reloadAllData();
+        },
+        error: (err) => {
+          this.userActionLoading = false;
+          this.snackBar.open(err?.message || 'Failed to replace HOD', 'Close', { duration: 4000 });
+        }
+      });
+    } else {
+      // ASSIGN MODE (Batch assign multiple HODs)
+      const assignObservables = this.selectedHodCandidates.map(candidate =>
+        this.deptApiService.assignHodToSubDepartment(this.subDeptId, candidate.userId)
+      );
+
+      forkJoin(assignObservables).subscribe({
+        next: () => {
+          this.userActionLoading = false;
+          this.closeSwapHodModal();
+          this.snackBar.open(`Assigned ${this.selectedHodCandidates.length} HOD(s) to Sub Department successfully`, 'Close', { duration: 3000 });
+          this.reloadAllData();
+        },
+        error: (err) => {
+          this.userActionLoading = false;
+          this.snackBar.open(err?.message || 'Failed to assign HOD(s)', 'Close', { duration: 4000 });
+        }
+      });
+    }
   }
 
   removeHodFromSubDept(hod: HodInfo): void {

@@ -6,44 +6,39 @@
       <button class="btn-back" (click)="goBack()" title="Back to Sub-Departments">
         <i class="bi bi-arrow-left"></i>
       </button>
-      <div>
-        <div class="title-row">
-          <h1 class="subdept-title">{{ subDeptDetail.name }}</h1>
+      <div class="header-info">
+        <div class="title-row d-flex align-items-center gap-2 flex-wrap">
+          <h1 class="subdept-title mb-0">{{ subDeptDetail.name }}</h1>
           <span class="status-badge active">Active</span>
+          <span class="subdept-code-chip"><i class="bi bi-hash"></i>{{ subDeptDetail.code }}</span>
         </div>
-        <p class="subdept-sub">
+        <p class="subdept-sub text-muted small mt-1 mb-0" *ngIf="subDeptDetail.department?.name">
           {{ subDeptDetail.department?.name }}
-          <i class="bi bi-chevron-right" style="font-size:0.75rem; margin:0 0.25rem;"></i>
-          {{ subDeptDetail.code }}
         </p>
       </div>
     </div>
-    <div class="header-right d-flex align-items-center gap-2 flex-wrap">
+    <div class="header-right d-flex align-items-center gap-2 flex-wrap ms-auto">
       <button *ngIf="canAssignTask" class="btn-assign-task" (click)="openAssignTaskModal()">
-        <i class="bi bi-plus-lg me-1"></i>
+        <i class="bi bi-plus-lg"></i>
         <span>Assign Task</span>
       </button>
-      <button *ngIf="canManageUsers"
-        class="btn btn-primary d-flex align-items-center gap-1 py-2 px-3 fw-semibold rounded-3 shadow-sm"
-        (click)="openAddUserModal()">
-        <i class="bi bi-person-plus-fill me-1"></i>
+      <button *ngIf="canManageUsers" class="btn-add-user" (click)="openAddUserModal()">
+        <i class="bi bi-person-plus-fill"></i>
         <span>Add User</span>
       </button>
-      <button *ngIf="canManageUsers"
-        class="btn btn-outline-primary d-flex align-items-center gap-1 py-2 px-3 fw-semibold rounded-3 shadow-sm"
-        (click)="openAssignExistingUserModal()">
-        <i class="bi bi-person-check-fill me-1"></i>
-        <span>Assign Existing User</span>
+      <button *ngIf="canManageUsers" class="btn-assign-existing" (click)="openAssignExistingUserModal()">
+        <i class="bi bi-person-check-fill"></i>
+        <span>Add Existing Teacher</span>
       </button>
-      <button *ngIf="canDeleteSubDepartment"
-        class="btn btn-outline-danger d-flex align-items-center gap-2 py-2 px-3 fw-semibold rounded-3 shadow-sm"
-        (click)="confirmAndDeleteSubDepartment()" [disabled]="deleting">
+
+      <div class="action-divider d-none d-lg-block" *ngIf="canDeleteSubDepartment && (canAssignTask || canManageUsers)">
+      </div>
+
+      <button *ngIf="canDeleteSubDepartment" class="btn-delete-subdept" (click)="confirmAndDeleteSubDepartment()"
+        [disabled]="deleting" title="Delete Sub Department">
         <i class="bi bi-trash-fill"></i>
         <span>{{ deleting ? 'Deleting...' : 'Delete Sub Department' }}</span>
       </button>
-      <div class="code-badge-wrapper">
-        <span class="code-badge">{{ subDeptDetail.code }}</span>
-      </div>
     </div>
   </div>
   <!-- ── HOD Banner – always visible, loaded with basic info ── -->
@@ -1024,87 +1019,178 @@
   </div>
 </div>
 
-<!-- ── Assign Existing User Modal ── -->
+<!-- ── Enterprise Multi-Teacher Assignment Modal ── -->
 <div *ngIf="showAssignExistingUserModal" class="modal-backdrop fade show" (click)="closeAssignExistingUserModal()">
 </div>
 <div *ngIf="showAssignExistingUserModal" class="modal d-block" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 shadow-lg border-0">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold"><i class="bi bi-person-check-fill me-2 text-primary"></i>Assign Existing User
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0 overflow-hidden">
+      <div class="modal-header bg-light border-bottom py-3">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-dark fs-5">
+          <i class="bi bi-person-check-fill text-primary"></i>
+          Teacher Assignment Module
         </h5>
         <button type="button" class="btn-close" (click)="closeAssignExistingUserModal()"></button>
       </div>
-      <div class="modal-body">
-        <p class="text-muted small">Select an existing active user to map to <strong>{{ subDeptDetail?.name }}</strong>.
-        </p>
 
-        <div *ngIf="assignableUsersLoading" class="text-center py-4">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="small text-muted mt-2">Loading active users...</p>
+      <div class="modal-body p-4">
+        <!-- Sub Department Context Banner -->
+        <div
+          class="subdept-context-banner mb-3 p-3 bg-indigo-subtle border border-indigo-subtle rounded-3 d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small d-block">Assigning Teachers to Sub Department:</span>
+            <strong class="text-indigo fs-6">{{ subDeptDetail?.name }}</strong>
+          </div>
+          <span class="badge bg-indigo text-white px-2.5 py-1 rounded-pill" *ngIf="subDeptDetail?.code">{{
+            subDeptDetail?.code }}</span>
         </div>
 
-        <div *ngIf="!assignableUsersLoading">
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Select User</label>
-            <select class="form-select rounded-3" [(ngModel)]="selectedAssignUserId">
-              <option [ngValue]="null" disabled>-- Choose a User --</option>
-              <option *ngFor="let u of assignableUsers" [value]="u.userId">
-                {{ u.fullName }} ({{ u.username }}) — {{ u.role }}
-              </option>
-            </select>
+        <!-- Enterprise User Picker Component Section -->
+        <div class="candidate-picker-section mb-4">
+          <label class="form-label fw-semibold text-dark">
+            Select Teacher Candidate(s)
+            <span class="text-danger">*</span>
+          </label>
+
+          <app-enterprise-user-picker roleFilter="TEACHER" statusFilter="ACTIVE"
+            [excludedUserIds]="currentSubDeptUserIds" [isMultiSelect]="true"
+            placeholder="Search teacher by name, username, or email..."
+            (selectionChange)="onTeacherSelectionChange($event)"></app-enterprise-user-picker>
+
+          <p class="small text-muted mt-2 mb-0">
+            <i class="bi bi-shield-check text-success me-1"></i>
+            Only active Teachers are loaded via server-side paginated search.
+          </p>
+        </div>
+
+        <!-- Assignment Summary Card -->
+        <div *ngIf="selectedTeacherCandidates.length > 0" class="assignment-summary-box p-3 border rounded-3 bg-light">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fw-semibold text-dark small">Assignment Summary</span>
+            <span class="badge bg-primary text-white">{{ selectedTeacherCandidates.length }} Teacher(s) Selected</span>
           </div>
-          <div *ngIf="assignableUsers.length === 0" class="alert alert-info py-2 small">
-            No active unmapped users found in the system.
+          <div class="d-flex flex-wrap gap-2">
+            <div *ngFor="let t of selectedTeacherCandidates"
+              class="badge bg-white text-dark border p-2 d-flex align-items-center gap-1.5 rounded-pill shadow-xs">
+              <span class="chip-avatar-initial" style="width: 18px; height: 18px; font-size: 0.65rem;">{{
+                getHodInitials(t.fullName) }}</span>
+              <span>{{ t.fullName }}</span>
+            </div>
           </div>
         </div>
       </div>
-      <div class="modal-footer border-top-0">
-        <button type="button" class="btn btn-light rounded-3" (click)="closeAssignExistingUserModal()">Cancel</button>
-        <button type="button" class="btn btn-primary rounded-3 px-4"
-          [disabled]="!selectedAssignUserId || userActionLoading" (click)="submitAssignExistingUser()">
-          {{ userActionLoading ? 'Assigning...' : 'Assign User' }}
+
+      <div class="modal-footer bg-light border-top">
+        <button type="button" class="btn btn-light border rounded-3 px-4"
+          (click)="closeAssignExistingUserModal()">Cancel</button>
+        <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold"
+          [disabled]="selectedTeacherCandidates.length === 0 || userActionLoading" (click)="submitAssignExistingUser()">
+          <i class="bi bi-check-circle me-1.5" *ngIf="!userActionLoading"></i>
+          <span *ngIf="userActionLoading" class="spinner-border spinner-border-sm me-1.5" role="status"></span>
+          {{ userActionLoading ? 'Assigning Teachers...' : 'Assign Selected Teacher(s)' }}
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ── Swap HOD Modal ── -->
+<!-- ── Enterprise Swap / Assign HOD Modal ── -->
 <div *ngIf="showSwapHodModal" class="modal-backdrop fade show" (click)="closeSwapHodModal()"></div>
 <div *ngIf="showSwapHodModal" class="modal d-block" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 shadow-lg border-0">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold"><i class="bi bi-arrow-repeat me-2 text-primary"></i>Swap / Assign HOD</h5>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0 overflow-hidden">
+      <div class="modal-header bg-light border-bottom py-3">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-dark fs-5">
+          <i class="bi bi-person-badge-fill text-primary"></i>
+          HOD Assignment Module
+        </h5>
         <button type="button" class="btn-close" (click)="closeSwapHodModal()"></button>
       </div>
-      <div class="modal-body">
-        <div *ngIf="selectedSwapOldHod" class="alert alert-light border rounded-3 mb-3 p-3">
-          <span class="text-muted small d-block">Current HOD to be replaced:</span>
-          <strong class="text-dark">{{ selectedSwapOldHod.fullName }}</strong> <span class="text-muted">({{
-            selectedSwapOldHod.username }})</span>
+
+      <div class="modal-body p-4">
+        <!-- Sub Department Context Banner -->
+        <div
+          class="subdept-context-banner mb-3 p-3 bg-indigo-subtle border border-indigo-subtle rounded-3 d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small d-block">Managing HODs for Sub Department:</span>
+            <strong class="text-indigo fs-6">{{ subDeptDetail?.name }}</strong>
+          </div>
+          <span class="badge bg-indigo text-white px-2.5 py-1 rounded-pill" *ngIf="subDeptDetail?.code">{{
+            subDeptDetail?.code }}</span>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Select New HOD Candidate</label>
-          <select class="form-select rounded-3" [(ngModel)]="selectedSwapNewHodId">
-            <option [ngValue]="null" disabled>-- Choose Replacement HOD --</option>
-            <option *ngFor="let u of assignableUsers" [value]="u.userId">
-              {{ u.fullName }} ({{ u.username }}) — Current Role: {{ u.role }}
-            </option>
-          </select>
+        <!-- Segmented Mode Control -->
+        <div class="segmented-pill-control p-1 bg-light border rounded-pill d-flex mb-4">
+          <button type="button"
+            class="segmented-pill-btn flex-fill py-2 px-3 border-0 rounded-pill fw-semibold small transition-all"
+            [class.active]="hodAssignmentMode === 'ASSIGN'"
+            (click)="hodAssignmentMode = 'ASSIGN'; selectedHodCandidates = []">
+            <i class="bi bi-person-plus-fill me-1.5"></i> Assign Additional HOD(s)
+          </button>
+          <button type="button"
+            class="segmented-pill-btn flex-fill py-2 px-3 border-0 rounded-pill fw-semibold small transition-all"
+            [class.active]="hodAssignmentMode === 'REPLACE'"
+            (click)="hodAssignmentMode = 'REPLACE'; selectedHodCandidates = []">
+            <i class="bi bi-arrow-repeat me-1.5"></i> Replace Existing HOD
+          </button>
         </div>
-        <p class="small text-muted">
-          Assigning a new HOD will promote the candidate to HOD role (if needed) and map them to <strong>{{
-            subDeptDetail?.name }}</strong>.
-        </p>
+
+        <!-- Current HODs Section -->
+        <div class="current-hods-section mb-4">
+          <label class="form-label fw-semibold text-secondary small text-uppercase letter-spacing-1">Current Assigned
+            HODs</label>
+
+          <div *ngIf="subDeptDetail?.hods && subDeptDetail!.hods!.length > 0" class="d-flex flex-wrap gap-2">
+            <div *ngFor="let hod of subDeptDetail?.hods"
+              class="current-hod-chip d-flex align-items-center gap-2 p-2 px-3 border rounded-3 bg-white shadow-xs"
+              [class.border-warning]="hodAssignmentMode === 'REPLACE' && selectedSwapOldHod?.userId === hod.userId">
+              <div class="hod-avatar-sm flex-shrink-0">{{ getHodInitials(hod.fullName) }}</div>
+              <div>
+                <div class="fw-semibold text-dark small lh-1">{{ hod.fullName }}</div>
+                <div class="text-muted" style="font-size: 0.72rem;">{{ hod.username }}</div>
+              </div>
+              <button *ngIf="hodAssignmentMode === 'REPLACE'" type="button" class="btn btn-xs ms-2"
+                [class.btn-warning]="selectedSwapOldHod?.userId === hod.userId"
+                [class.btn-outline-secondary]="selectedSwapOldHod?.userId !== hod.userId"
+                (click)="selectedSwapOldHod = hod" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">
+                {{ selectedSwapOldHod?.userId === hod.userId ? 'Replacing This HOD' : 'Select to Replace' }}
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="!subDeptDetail?.hods || subDeptDetail!.hods!.length === 0"
+            class="alert alert-light border py-2 px-3 text-muted small mb-0">
+            <i class="bi bi-info-circle me-1"></i> No HOD currently assigned to this sub-department.
+          </div>
+        </div>
+
+        <!-- Enterprise User Picker Component Section -->
+        <div class="candidate-picker-section">
+          <label class="form-label fw-semibold text-dark">
+            {{ hodAssignmentMode === 'ASSIGN' ? 'Select New HOD Candidate(s)' : 'Select Replacement HOD Candidate' }}
+            <span class="text-danger">*</span>
+          </label>
+
+          <app-enterprise-user-picker roleFilter="HOD" statusFilter="ACTIVE" [excludedUserIds]="currentHodUserIds"
+            [isMultiSelect]="hodAssignmentMode === 'ASSIGN'"
+            [placeholder]="hodAssignmentMode === 'ASSIGN' ? 'Search HOD candidate by name, username, or email...' : 'Search replacement HOD candidate...'"
+            (selectionChange)="onHodSelectionChange($event)"></app-enterprise-user-picker>
+
+          <p class="small text-muted mt-2 mb-0">
+            <i class="bi bi-shield-check text-success me-1"></i>
+            Only eligible, active HOD accounts are loaded from the server via lazy-loaded pagination.
+          </p>
+        </div>
       </div>
-      <div class="modal-footer border-top-0">
-        <button type="button" class="btn btn-light rounded-3" (click)="closeSwapHodModal()">Cancel</button>
-        <button type="button" class="btn btn-primary rounded-3 px-4"
-          [disabled]="!selectedSwapNewHodId || userActionLoading" (click)="submitSwapHod()">
-          {{ userActionLoading ? 'Swapping...' : 'Confirm HOD Swap' }}
+
+      <div class="modal-footer bg-light border-top">
+        <button type="button" class="btn btn-light border rounded-3 px-4" (click)="closeSwapHodModal()">Cancel</button>
+        <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold"
+          [disabled]="selectedHodCandidates.length === 0 || userActionLoading" (click)="submitSwapHod()">
+          <i class="bi bi-check-circle me-1.5" *ngIf="!userActionLoading"></i>
+          <span *ngIf="userActionLoading" class="spinner-border spinner-border-sm me-1.5" role="status"></span>
+          {{ userActionLoading ? (hodAssignmentMode === 'ASSIGN' ? 'Assigning...' : 'Swapping...') : (hodAssignmentMode
+          === 'ASSIGN' ? 'Assign Selected HOD(s)' : 'Confirm Replacement') }}
         </button>
       </div>
     </div>

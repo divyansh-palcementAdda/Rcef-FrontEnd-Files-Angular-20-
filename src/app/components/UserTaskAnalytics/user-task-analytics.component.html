@@ -162,12 +162,13 @@
   </section>
 
 
-  <!-- ════ FILTERS ════ -->
+  <!-- ════ FILTERS BAR ════ -->
   <section class="uta-filter-card">
-    <div class="uta-filter-grid">
+    <!-- Primary Filter Row: Search, Role, Status, From Date, To Date -->
+    <div class="uta-filter-primary-row">
 
       <!-- Search -->
-      <div class="uta-filter-field uta-filter-field--wide">
+      <div class="uta-filter-field uta-filter-field--search">
         <label class="uta-filter-label">Search</label>
         <div class="uta-search-wrap">
           <i class="bi bi-search uta-search-icon"></i>
@@ -189,13 +190,59 @@
         </select>
       </div>
 
-      <!-- Status -->
-      <div class="uta-filter-field">
-        <label class="uta-filter-label">Task Status</label>
-        <select class="uta-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()"
-          aria-label="Filter by status">
-          <option *ngFor="let s of statusList" [value]="s">{{ s === 'ALL' ? 'All Statuses' : s }}</option>
-        </select>
+      <!-- Sub Department Multi-Select (Visible for Super Admin, Admin, Sub Admin only) -->
+      <div class="uta-filter-field uta-multiselect-container position-relative" *ngIf="!isSubDeptMode">
+        <label class="uta-filter-label">Sub Department</label>
+        <button
+          type="button"
+          class="uta-select uta-multiselect-trigger d-flex align-items-center justify-content-between text-start"
+          (click)="toggleSubDeptDropdown($event)"
+        >
+          <span class="text-truncate me-1" [class.text-muted]="selectedSubDepartmentIds.length === 0">
+            {{ getSubDeptTriggerLabel() }}
+          </span>
+          <i class="bi bi-chevron-down small text-muted ms-auto"></i>
+        </button>
+
+        <!-- Floating Multi-Select Menu -->
+        <div
+          *ngIf="subDeptDropdownOpen"
+          class="uta-multiselect-menu position-absolute w-100 mt-1 shadow-lg border rounded-3 bg-white p-2"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="d-flex align-items-center justify-content-between px-2 py-1 mb-1 border-bottom">
+            <span class="small fw-semibold text-muted" style="font-size: 0.72rem;">Select Sub Depts</span>
+            <button
+              *ngIf="selectedSubDepartmentIds.length > 0"
+              type="button"
+              class="btn btn-link btn-xs text-danger text-decoration-none p-0 fw-semibold"
+              style="font-size: 0.72rem;"
+              (click)="clearSubDeptSelection($event)"
+            >
+              Clear
+            </button>
+          </div>
+
+          <div *ngIf="subDepartmentsOptions.length === 0" class="p-2 text-center text-muted small">
+            No sub-departments available
+          </div>
+
+          <div *ngIf="subDepartmentsOptions.length > 0" class="uta-multiselect-list overflow-y-auto" style="max-height: 180px;">
+            <label
+              *ngFor="let sd of subDepartmentsOptions"
+              class="uta-multiselect-item d-flex align-items-center gap-2 px-2 py-1.5 rounded-2 cursor-pointer"
+              [class.selected]="isSubDeptSelected(sd.id)"
+            >
+              <input
+                type="checkbox"
+                class="form-check-input custom-checkbox m-0"
+                [checked]="isSubDeptSelected(sd.id)"
+                (change)="toggleSubDeptSelection(sd.id)"
+              />
+              <span class="small fw-medium text-dark text-truncate">{{ sd.name }}</span>
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- From date -->
@@ -211,38 +258,30 @@
         <input type="date" class="uta-select" [(ngModel)]="endDate" (change)="onFilterChange()" aria-label="End date" />
       </div>
 
-      <!-- Active Users Only toggle -->
-      <div class="uta-filter-field">
-        <label class="uta-filter-label">&nbsp;</label>
-        <label
-          style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.82rem;color:#475569;margin:0;white-space:nowrap;">
-          <input type="checkbox" id="activeUsersToggle"
-            style="width:15px;height:15px;cursor:pointer;accent-color:#4f46e5;" [(ngModel)]="activeUsersOnly"
+    </div>
+
+    <!-- Secondary Row: Quick Filter Toggles & Clear Action -->
+    <div class="uta-filter-secondary-row">
+      <div class="uta-filter-toggles-group">
+        <label class="uta-toggle-chip" [class.active]="activeUsersOnly">
+          <input type="checkbox" id="activeUsersToggle" class="uta-toggle-checkbox" [(ngModel)]="activeUsersOnly"
             (change)="onFilterChange()" />
-          Active Users Only
+          <i class="bi bi-person-check-fill" *ngIf="activeUsersOnly"></i>
+          <i class="bi bi-person-dash" *ngIf="!activeUsersOnly"></i>
+          <span>Active Users Only</span>
         </label>
-      </div>
 
-      <!-- Recurring Tasks toggle -->
-      <div class="uta-filter-field">
-        <label class="uta-filter-label">&nbsp;</label>
-        <label
-          style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.82rem;color:#475569;margin:0;white-space:nowrap;">
-          <input type="checkbox" id="recurringToggle"
-            style="width:15px;height:15px;cursor:pointer;accent-color:#4f46e5;" [checked]="isRecurring === true"
+        <label class="uta-toggle-chip" [class.active]="isRecurring === true">
+          <input type="checkbox" id="recurringToggle" class="uta-toggle-checkbox" [checked]="isRecurring === true"
             (change)="isRecurring = $any($event.target).checked ? true : null; onFilterChange()" />
-          Recurring Only
+          <i class="bi bi-repeat"></i>
+          <span>Recurring Only</span>
         </label>
       </div>
 
-      <!-- Clear -->
-      <div class="uta-filter-field uta-filter-field--action">
-        <label class="uta-filter-label">&nbsp;</label>
-        <button class="uta-btn uta-btn--ghost uta-btn--full" (click)="clearFilters()">
-          <i class="bi bi-x-circle"></i> Clear
-        </button>
-      </div>
-
+      <button type="button" class="uta-btn-clear" (click)="clearFilters()">
+        <i class="bi bi-arrow-counterclockwise"></i> Clear Filters
+      </button>
     </div>
   </section>
   <!-- ════ ANALYTICS TABLE ════ -->

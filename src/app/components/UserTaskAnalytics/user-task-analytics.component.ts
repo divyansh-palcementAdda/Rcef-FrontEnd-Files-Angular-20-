@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -12,6 +12,7 @@ import {
   TaskSummaryDTO
 } from '../../Services/user-task-analytics-api.service';
 import { AuthApiService } from '../../Services/auth-api-service';
+import { DepartmentApiService } from '../../Services/department-api-service';
 import { DragScrollDirective } from '../Shared/directives/drag-scroll.directive';
 
 @Component({
@@ -54,6 +55,10 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
 
   // ── Filters ─────────────────────────────────────────────────────────────
   selectedSubDepartmentId: string = '';
+  selectedSubDepartmentIds: string[] = [];
+  subDeptDropdownOpen: boolean = false;
+  subDepartmentsOptions: any[] = [];
+  loadingSubDepts: boolean = false;
   selectedRole: string = '';
   selectedUserId: number | null = null;
   selectedStatus: string = 'ALL';
@@ -63,6 +68,46 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   isRecurring: boolean | null = null;
   activeUsersOnly: boolean = true;
   search: string = '';
+
+  // ── Sub-Department Multi-Select Helper Methods ─────────────────────────
+  toggleSubDeptDropdown(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.subDeptDropdownOpen = !this.subDeptDropdownOpen;
+  }
+
+  getSubDeptTriggerLabel(): string {
+    if (this.selectedSubDepartmentIds.length === 0) {
+      return 'All Sub Departments';
+    }
+    if (this.selectedSubDepartmentIds.length === 1) {
+      const found = this.subDepartmentsOptions.find(sd => sd.id === this.selectedSubDepartmentIds[0]);
+      return found ? found.name : '1 Sub Dept Selected';
+    }
+    return `${this.selectedSubDepartmentIds.length} Sub Depts Selected`;
+  }
+
+  isSubDeptSelected(id: string): boolean {
+    return this.selectedSubDepartmentIds.includes(id);
+  }
+
+  toggleSubDeptSelection(id: string): void {
+    if (this.isSubDeptSelected(id)) {
+      this.selectedSubDepartmentIds = this.selectedSubDepartmentIds.filter(sId => sId !== id);
+    } else {
+      this.selectedSubDepartmentIds = [...this.selectedSubDepartmentIds, id];
+    }
+    this.onFilterChange();
+  }
+
+  clearSubDeptSelection(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.selectedSubDepartmentIds = [];
+    this.onFilterChange();
+  }
 
   // ── RxJS subjects ────────────────────────────────────────────────────────
   private searchSubject = new Subject<string>();
@@ -142,11 +187,13 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   constructor(
     private analyticsService: UserTaskAnalyticsApiService,
     private authService: AuthApiService,
+    private deptApiService: DepartmentApiService,
     private router: Router
   ) { }
 
   ngOnInit(): void {
     this.loadDepartmentCards();
+    this.loadSubDepartmentsForSelectedDept();
     // Debounced search
     this.searchSubject.pipe(
       debounceTime(500),
@@ -155,6 +202,31 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     ).subscribe(() => {
       this.currentPage = 0;
       this.loadAnalyticsTable();
+    });
+  }
+
+  loadSubDepartmentsForSelectedDept(): void {
+    if (this.isSubDeptMode) return;
+    this.loadingSubDepts = true;
+
+    const obs$ = this.selectedDepartmentId
+      ? this.deptApiService.getSubDepartmentsByDepartment(this.selectedDepartmentId)
+      : this.deptApiService.getAllSubDepartments();
+
+    obs$.subscribe({
+      next: (res: any) => {
+        const items = Array.isArray(res) ? res : (res?.data || res?.content || []);
+        this.subDepartmentsOptions = items.map((sd: any) => ({
+          id: sd.id || sd.subDepartmentId,
+          name: sd.name || sd.subDepartmentName || `SubDept #${sd.id}`
+        }));
+        this.loadingSubDepts = false;
+      },
+      error: (err: any) => {
+        console.error('Error fetching sub-departments for filter', err);
+        this.subDepartmentsOptions = [];
+        this.loadingSubDepts = false;
+      }
     });
   }
 
@@ -182,6 +254,11 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     });
   }
 
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.subDeptDropdownOpen = false;
+  }
+
   /**
    * Applies the filter state from a clicked card without mutating the table
    * filter inputs that the user controls (role, status, dates, etc.).
@@ -192,18 +269,20 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
       this.selectedDepartmentId = null;
       this.selectedSubDepartmentCardId = '';
       this.selectedSubDepartmentId = '';
+      this.selectedSubDepartmentIds = [];
     } else if (card.cardType === 'DEPARTMENT') {
       this.selectedDepartmentId = card.departmentId ?? null;
       this.selectedSubDepartmentCardId = '';
       this.selectedSubDepartmentId = '';
+      this.selectedSubDepartmentIds = [];
     } else {
       // SUB_DEPARTMENT mode
       this.selectedDepartmentId = null;
       this.selectedSubDepartmentCardId = card.subDepartmentId ?? '';
-      // Pass the sub-department selection into the shared filter field
-      // so the table endpoint receives ?subDepartmentId=<uuid>
       this.selectedSubDepartmentId = card.subDepartmentId ?? '';
+      this.selectedSubDepartmentIds = card.subDepartmentId ? [card.subDepartmentId] : [];
     }
+    this.loadSubDepartmentsForSelectedDept();
     this.currentPage = 0;
     this.loadAnalyticsTable();
   }
@@ -218,6 +297,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     this.selectedDepartmentId = deptId;
     this.selectedSubDepartmentCardId = '';
     this.selectedSubDepartmentId = '';
+    this.selectedSubDepartmentIds = [];
     this.currentPage = 0;
     this.loadAnalyticsTable();
   }
@@ -226,9 +306,13 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     this.loadingTable = true;
     const sortParam = `${this.sortField},${this.sortDir}`;
 
+    const subDeptParam = this.isSubDeptMode
+      ? this.selectedSubDepartmentCardId
+      : (this.selectedSubDepartmentIds.length > 0 ? this.selectedSubDepartmentIds.join(',') : '');
+
     this.analyticsService.getUserTaskAnalytics(
       this.selectedDepartmentId,
-      this.selectedSubDepartmentId,
+      subDeptParam,
       this.selectedRole,
       this.selectedUserId,
       this.selectedStatus,
@@ -270,6 +354,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     this.selectedDepartmentId = null;
     this.selectedSubDepartmentCardId = '';
     this.selectedSubDepartmentId = '';
+    this.selectedSubDepartmentIds = [];
     this.selectedRole = '';
     this.selectedUserId = null;
     this.selectedStatus = 'ALL';
@@ -280,6 +365,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     this.activeUsersOnly = true;
     this.search = '';
     this.currentPage = 0;
+    this.loadSubDepartmentsForSelectedDept();
     this.loadAnalyticsTable();
     this.loadDepartmentCards();
   }

@@ -1,0 +1,118 @@
+.enterprise-picker-container {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+}
+
+.picker-input-box {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 42px;
+  border-color: #cbd5e1 !important;
+  transition: border-color 0.2s, box-shadow 0.2s, border-radius 0.15s;
+  cursor: text;
+}
+
+.picker-input-box:focus-within {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.picker-input-box.dropdown-is-open {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-bottom-color: #6366f1 !important;
+  box-shadow: 0 -2px 6px rgba(99, 102, 241, 0.1) !important;
+}
+
+.picker-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 0 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #6366f1 !important;
+  border-top: none !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-left-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+  background-color: #ffffff;
+  z-index: 1070;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.picker-option-item {
+  transition: background-color 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.picker-option-item:hover:not(.disabled-option) {
+  background-color: #f8fafc;
+}
+
+.picker-option-item.selected-option {
+  background-color: #f0f3ff;
+}
+
+.picker-option-item.active-keyboard-option {
+  background-color: #e0e7ff !important;
+  outline: none;
+}
+
+.picker-option-item.disabled-option {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+  background-color: #f8fafc;
+}
+
+.bg-indigo-subtle {
+  background-color: #e0e7ff !important;
+}
+
+.text-indigo {
+  color: #3730a3 !important;
+}
+
+.border-indigo-subtle {
+  border-color: #c7d2fe !important;
+}
+
+.chip-avatar-initial {
+  width: 18px;
+  height: 18px;
+  background-color: #6366f1;
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar-circle {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-checkbox {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 4px;
+}

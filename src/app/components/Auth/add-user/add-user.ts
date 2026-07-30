@@ -198,22 +198,34 @@ export class AddUserComponent implements OnInit {
 
   onDepartmentChange(): void {
     this.subDepartments = [];
-    this.userForm.get('subDepartmentId')?.setValue(null);
     if (this.selectedDepartments && this.selectedDepartments.length > 0) {
       const requests = this.selectedDepartments.map(id => this.departmentApiService.getSubDepartmentsByDepartment(id));
       forkJoin(requests).subscribe({
         next: (results) => {
-          this.subDepartments = results.flat();
+          const merged = results.flat();
+          this.subDepartments = merged.filter((sub, index, self) =>
+            index === self.findIndex(t => t.id === sub.id)
+          );
+          const currentSubDeptIds = this.getSelectedSubDeptIds();
+          const validSubDeptIds = currentSubDeptIds.filter(id => this.subDepartments.some(s => s.id === id));
+          this.userForm.get('subDepartmentIds')?.setValue(validSubDeptIds);
+          this.userForm.get('subDepartmentId')?.setValue(validSubDeptIds.length > 0 ? validSubDeptIds[0] : null);
+          this.reloadSubjects();
         },
         error: (err) => console.error('Failed to load sub-departments', err)
       });
+    } else {
+      this.userForm.get('subDepartmentIds')?.setValue([]);
+      this.userForm.get('subDepartmentId')?.setValue(null);
+      this.userForm.get('subjectIds')?.setValue([]);
+      this.subjects = [];
     }
   }
 
   loadDepartments(): void {
-    this.departmentApiService.getAllDepartments().subscribe({
+    this.departmentApiService.getAuthorizedDepartments().subscribe({
       next: (data) => (this.departments = data),
-      error: (err) => console.error('Failed to load departments', err)
+      error: (err) => console.error('Failed to load authorized departments', err)
     });
   }
 
@@ -624,13 +636,20 @@ export class AddUserComponent implements OnInit {
     );
   }
 
+  @HostListener('click', ['$event'])
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.custom-multiselect-container')) {
-      this.showSubDeptDropdown = false;
-      this.showSubjectDropdown = false;
+    if (!target) return;
+
+    if (!target.closest('.manager-multiselect-container')) {
       this.showManagerDropdown = false;
+    }
+    if (!target.closest('.subdept-multiselect-container')) {
+      this.showSubDeptDropdown = false;
+    }
+    if (!target.closest('.subject-multiselect-container')) {
+      this.showSubjectDropdown = false;
     }
   }
 

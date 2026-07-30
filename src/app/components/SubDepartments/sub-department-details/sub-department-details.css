@@ -31,66 +31,157 @@
   border-radius: 16px;
   padding: 1.5rem 2rem;
   box-shadow: var(--shadow-sm);
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  flex: 1 1 300px;
+  min-width: 0;
+}
+
+.header-info {
+  min-width: 0;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
 }
 
+/* Primary Action 1: Assign Task (Vibrant Indigo Solid with Shadow) */
 .btn-assign-task {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  gap: 0.45rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0.65rem 1.35rem;
-  border-radius: 12px;
+  border: none;
+  padding: 0.5rem 1rem;
+  height: 38px;
+  border-radius: 9999px;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.82rem;
   line-height: 1.2;
-  letter-spacing: 0.01em;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .btn-assign-task i {
-  font-size: 1rem;
-  transition: transform 0.25s ease;
+  font-size: 0.9rem;
+  transition: transform 0.2s ease;
 }
 
 .btn-assign-task:hover {
-  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.38);
+  transform: translateY(-1px);
   color: #ffffff;
 }
 
 .btn-assign-task:hover i {
-  transform: rotate(90deg) scale(1.1);
+  transform: rotate(90deg);
 }
 
-.btn-assign-task:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+/* Primary Action 2: Add User (Soft Indigo Accent Filled Button) */
+.btn-add-user {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+  padding: 0.5rem 1rem;
+  height: 38px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.btn-assign-task:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4), 0 4px 14px rgba(79, 70, 229, 0.35);
+.btn-add-user:hover {
+  background-color: #c7d2fe;
+  color: #1e1b4b;
+  border-color: #a5b4fc;
+  transform: translateY(-1px);
+}
+
+/* Secondary Action: Assign Existing User (Clean Slate Ghost/Outline Button) */
+.btn-assign-existing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background-color: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem 1rem;
+  height: 38px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-assign-existing:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+/* Vertical Action Divider */
+.action-divider {
+  width: 1px;
+  height: 22px;
+  background-color: #e2e8f0;
+  margin: 0 0.25rem;
+}
+
+/* Destructive Action: Delete Sub Department (Soft Danger Button) */
+.btn-delete-subdept {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background-color: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  padding: 0.5rem 1rem;
+  height: 38px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-delete-subdept:hover:not(:disabled) {
+  background-color: #ffe4e6;
+  border-color: #fda4af;
+  color: #be123c;
+  transform: translateY(-1px);
+}
+
+.btn-delete-subdept:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-back {
@@ -150,18 +241,19 @@
   border: 1px solid var(--success-color);
 }
 
-.code-badge-wrapper {
-  background: var(--primary-subtle);
-  border: 1px solid var(--primary-color);
-  padding: 0.5rem 1.2rem;
-  border-radius: 12px;
-}
-
-.code-badge {
+.subdept-code-chip {
+  font-size: 0.78rem;
   font-weight: 700;
-  color: var(--primary-color);
-  font-family: monospace;
-  font-size: 1rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  background-color: var(--primary-subtle, #f0f0ff);
+  color: var(--primary-color, #4f46e5);
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  letter-spacing: 0.02em;
 }
 
 /* ── HOD Banner ── */
@@ -1749,4 +1841,68 @@
   text-align: center !important;
   vertical-align: middle !important;
   white-space: nowrap;
+}
+
+/* ── HOD Assignment Module Styles ── */
+.hod-avatar-sm {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg-indigo-subtle {
+  background-color: #f0f3ff !important;
+}
+
+.bg-indigo {
+  background-color: #4f46e5 !important;
+}
+
+.text-indigo {
+  color: #3730a3 !important;
+}
+
+.border-indigo-subtle {
+  border-color: #c7d2fe !important;
+}
+
+.letter-spacing-1 {
+  letter-spacing: 0.05em;
+}
+
+.candidate-picker-section {
+  position: relative;
+  z-index: 1050;
+}
+
+/* ── Segmented Mode Pill Control ── */
+.segmented-pill-control {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0 !important;
+}
+
+.segmented-pill-btn {
+  background: transparent;
+  color: #64748b;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.segmented-pill-btn:hover:not(.active) {
+  color: #1e293b;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.segmented-pill-btn.active {
+  background-color: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-weight: 700 !important;
 }

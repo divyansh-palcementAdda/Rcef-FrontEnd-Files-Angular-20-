@@ -35,18 +35,20 @@ export class DepartmentApiService {
   }
 
   getAuthorizedDepartments(): Observable<Department[]> {
-    return this.http.get<AuthorizedDepartmentDto[]>(`${this.apiUrl}/authorized`).pipe(
+    return this.http.get<any>(`${this.apiUrl}/authorized`).pipe(
       map((response: any) => {
         const items = Array.isArray(response)
           ? response
           : Array.isArray(response?.data)
             ? response.data
-            : [];
+            : Array.isArray(response?.result)
+              ? response.result
+              : [];
 
-        return (items as AuthorizedDepartmentDto[]).map(item => ({
+        return items.map((item: any) => ({
           departmentId: item.departmentId,
-          name: item.departmentName,
-          departmentStatus: 'ACTIVE' as const
+          name: item.departmentName || item.name || `Department #${item.departmentId}`,
+          departmentStatus: item.departmentStatus || 'ACTIVE'
         }));
       }),
       catchError(err => this.handleError(err, 'fetch authorized departments'))

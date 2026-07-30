@@ -1,0 +1,91 @@
+<div class="enterprise-picker-container position-relative w-100">
+  <!-- Selected Chips & Input Box -->
+  <div class="picker-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3 bg-white w-100" [class.dropdown-is-open]="dropdownOpen" (click)="onFocus()">
+    <span *ngFor="let u of selectedUsers" class="user-chip badge bg-indigo-subtle text-indigo d-flex align-items-center gap-1.5 py-1 px-2.5 rounded-pill shadow-xs border border-indigo-subtle">
+      <span class="chip-avatar-initial">{{ getUserInitials(u.fullName) }}</span>
+      <span class="chip-name font-weight-semibold">{{ u.fullName }}</span>
+      <button type="button" class="btn-close btn-close-sm ms-1" style="font-size: 0.6rem;" (click)="removeSelectedUser(u.userId, $event)" aria-label="Remove"></button>
+    </span>
+
+    <input
+      type="text"
+      name="hodSearchInput_noAutofill"
+      id="hodSearchInput_noAutofill"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      class="picker-search-input flex-grow-1 border-0 bg-transparent py-1 px-2"
+      [placeholder]="selectedUsers.length === 0 ? placeholder : 'Add more HODs...'"
+      [(ngModel)]="searchTerm"
+      (input)="onSearchInput()"
+      (focus)="onFocus()"
+      style="outline: none; min-width: 180px; height: 32px; font-size: 0.875rem;"
+    />
+
+    <button *ngIf="selectedUsers.length > 0" type="button" class="btn btn-sm btn-link text-muted p-0 me-1" (click)="clearAll($event)" title="Clear all selections">
+      <i class="bi bi-x-circle-fill"></i>
+    </button>
+
+    <i class="bi bi-search text-muted me-2" *ngIf="!loading"></i>
+    <div *ngIf="loading" class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+  </div>
+
+  <!-- Dropdown Options List attached seamlessly below input box -->
+  <div
+    *ngIf="dropdownOpen"
+    #scrollContainer
+    class="picker-dropdown-menu position-absolute w-100 shadow-lg border rounded-bottom-3 bg-white overflow-y-auto"
+    (scroll)="onDropdownScroll($event)"
+  >
+    <div *ngIf="loading && users.length === 0" class="p-3 text-center text-muted small">
+      <div class="spinner-border spinner-border-sm text-primary me-2"></div> Searching HOD candidates...
+    </div>
+
+    <div *ngIf="!loading && users.length === 0" class="p-3 text-center text-muted small">
+      <i class="bi bi-person-x fs-5 d-block text-secondary mb-1"></i>
+      No HOD candidates found matching "{{ searchTerm }}".
+    </div>
+
+    <div
+      *ngFor="let user of users; let idx = index"
+      class="picker-option-item d-flex align-items-center gap-3 px-3 py-2.5 border-bottom border-light"
+      [class.selected-option]="isSelected(user.userId)"
+      [class.disabled-option]="isExcluded(user.userId)"
+      [class.active-keyboard-option]="idx === activeIndex"
+      (mousedown)="toggleUser(user, $event)"
+      style="cursor: pointer;"
+    >
+      <div class="form-check m-0 flex-shrink-0">
+        <input
+          type="checkbox"
+          class="form-check-input custom-checkbox"
+          [checked]="isSelected(user.userId) || isExcluded(user.userId)"
+          [disabled]="isExcluded(user.userId)"
+          style="pointer-events: none;"
+        />
+      </div>
+
+      <div class="user-avatar-circle flex-shrink-0">
+        {{ getUserInitials(user.fullName) }}
+      </div>
+
+      <div class="user-info-text flex-grow-1 overflow-hidden">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="user-fullname fw-semibold text-dark text-truncate">{{ user.fullName }}</span>
+          <span class="badge bg-light text-primary border border-primary-subtle text-uppercase" style="font-size: 0.68rem;">{{ user.role }}</span>
+          <span *ngIf="isExcluded(user.userId)" class="badge bg-secondary text-white ms-auto" style="font-size: 0.65rem;">Currently Assigned</span>
+        </div>
+        <div class="user-subtext text-muted small text-truncate mt-0.5">
+          <span class="me-2"><i class="bi bi-person-badge me-1"></i>{{ user.username }}</span>
+          <span *ngIf="user.email"><i class="bi bi-envelope me-1"></i>{{ user.email }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Infinite Scroll Loading Indicator -->
+    <div *ngIf="loadingMore" class="p-2 text-center text-muted small bg-light">
+      <div class="spinner-border spinner-border-sm text-primary me-1"></div> Loading more candidates...
+    </div>
+  </div>
+</div>
