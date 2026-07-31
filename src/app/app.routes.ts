@@ -38,6 +38,7 @@ import { TasksImportComponent } from './components/Tasks/tasks-import/tasks-impo
 import { ModalRedirectGuard } from './Guards/modal-redirect.guard';
 import { AccessDeniedComponent } from './components/Shared/access-denied/access-denied';
 import { AllWorkComponent } from './components/AllWork/all-work.component';
+import { DepartmentOverviewComponent } from './components/Department Overview/department-overview-component/department-overview-component';
 
 
 import { UserTaskAnalyticsComponent } from './components/UserTaskAnalytics/user-task-analytics.component';
@@ -146,6 +147,12 @@ export const routes: Routes = [
     component: UserTaskAnalyticsComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { permissions: ['WORK_ANALYTICS_VIEW', 'WORK_VIEW', 'USER_VIEW'] }
+  },
+  {
+    path: 'department-overview',
+    component: DepartmentOverviewComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { permissions: ['DEPARTMENT_VIEW'] }
   },
 
   { path: 'access-denied', component: AccessDeniedComponent },
