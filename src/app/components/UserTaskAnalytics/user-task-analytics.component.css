@@ -591,6 +591,55 @@
   z-index: 2;
 }
 
+/* Sticky columns - S.No, User, Department */
+.uta-table thead th:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+
+.uta-table thead th:nth-child(2) {
+  position: sticky;
+  left: 60px;
+  z-index: 3;
+}
+
+.uta-table thead th:nth-child(3) {
+  position: sticky;
+  left: 280px;
+  z-index: 3;
+  border-right: 2px solid var(--border-color, #e2e8f0);
+}
+
+.uta-table tbody td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+}
+
+.uta-table tbody td:nth-child(2) {
+  position: sticky;
+  left: 60px;
+  z-index: 1;
+  background: #fff;
+}
+
+.uta-table tbody td:nth-child(3) {
+  position: sticky;
+  left: 280px;
+  z-index: 1;
+  background: #fff;
+  border-right: 2px solid var(--border-color, #e2e8f0);
+}
+
+/* Fix background on hover for sticky columns */
+.uta-row:hover td:nth-child(1),
+.uta-row:hover td:nth-child(2),
+.uta-row:hover td:nth-child(3) {
+  background: #fafbff !important;
+}
+
 .uta-th--sortable {
   cursor: pointer;
   user-select: none;
@@ -614,6 +663,11 @@
 
 .uta-row:hover td {
   background: #fafbff;
+}
+
+/* Ensure non-sticky cells get hover effect */
+.uta-row:hover td:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(3)) {
+  background: #fafbff !important;
 }
 
 .uta-row--expanded td {

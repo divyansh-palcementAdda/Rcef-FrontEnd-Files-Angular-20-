@@ -189,9 +189,8 @@
         <table class="stitch-table align-middle">
           <thead>
             <tr>
-              <th style="width: 60px;">S.No</th>
-              <th style="width: 60px;">ID</th>
-              <th (click)="setSort('task.title')" style="cursor: pointer; white-space: nowrap;">
+              <th class="sticky-sno" style="width: 60px;">S.No</th>
+              <th class="sticky-task" (click)="setSort('task.title')" style="cursor: pointer; white-space: nowrap;">
                 Task & Requester
                 <i class="bi" [ngClass]="{
                   'bi-arrow-up text-primary': sortBy === 'task.title' && sortDirection === 'asc',
@@ -217,17 +216,12 @@
           <tbody>
             <tr *ngFor="let req of requests; let i = index" (click)="viewRequestDetails(req)" style="cursor: pointer;">
               <!-- S.No -->
-              <td data-label="S.No">
+              <td class="sticky-sno" data-label="S.No">
                 <span class="fw-semibold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
               </td>
 
-              <!-- ID -->
-              <td data-label="ID">
-                <span class="fw-semibold text-muted">#{{ req.requestId }}</span>
-              </td>
-
               <!-- Task & Requester -->
-              <td data-label="Task & Requester">
+              <td class="sticky-task" data-label="Task & Requester">
                 <div class="stitch-task-title-area">
                   <div class="stitch-task-title-row">
                     <a [routerLink]="['/task', req.taskId]" class="stitch-task-title">{{ req.taskTitle }}</a>

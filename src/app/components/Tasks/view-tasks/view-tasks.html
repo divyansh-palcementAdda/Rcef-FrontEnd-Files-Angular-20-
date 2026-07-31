@@ -370,8 +370,8 @@
         <table class="stitch-table align-middle">
           <thead>
             <tr>
-              <th style="width: 60px;">S.No</th>
-              <th (click)="setSort('title')" style="cursor: pointer;">
+              <th style="width: 60px; position: sticky; left: 0; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">S.No</th>
+              <th (click)="setSort('title')" style="cursor: pointer; position: sticky; left: 60px; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">
                 <span style="white-space: nowrap;">
                   Task Details
                   <i class="bi" [ngClass]="{
@@ -420,12 +420,12 @@
               (click)="viewTaskDetails(task.taskId)" style="cursor: pointer;">
 
               <!-- S.No -->
-              <td data-label="S.No">
+              <td data-label="S.No" style="position: sticky; left: 0; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
                 <span class="fw-semibold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
               </td>
 
               <!-- Task Details -->
-              <td data-label="Task Details">
+              <td data-label="Task Details" style="position: sticky; left: 60px; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
                 <div class="stitch-task-title-area">
                   <div class="stitch-task-title-row">
                     <span class="stitch-task-title">

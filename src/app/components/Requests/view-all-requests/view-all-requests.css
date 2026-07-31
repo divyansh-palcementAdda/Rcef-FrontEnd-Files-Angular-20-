@@ -13,6 +13,40 @@
   overflow-x: auto;
   white-space: nowrap;
   cursor: grab;
+  position: relative;
+}
+
+/* Sticky columns */
+.stitch-table th.sticky-sno,
+.stitch-table td.sticky-sno {
+  position: sticky;
+  left: 0;
+  background-color: #f9fafb;
+  z-index: 10;
+}
+
+.stitch-table td.sticky-sno {
+  background-color: #ffffff;
+}
+
+.stitch-table tr:hover td.sticky-sno {
+  background-color: #f8fafc;
+}
+
+.stitch-table th.sticky-task,
+.stitch-table td.sticky-task {
+  position: sticky;
+  left: 60px;
+  background-color: #f9fafb;
+  z-index: 10;
+}
+
+.stitch-table td.sticky-task {
+  background-color: #ffffff;
+}
+
+.stitch-table tr:hover td.sticky-task {
+  background-color: #f8fafc;
 }
 
 .drag-scroll-active {

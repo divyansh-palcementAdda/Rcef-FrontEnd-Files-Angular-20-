@@ -314,10 +314,11 @@
       </button>
     </div>
     <!-- Table -->
-    <div class="uta-table-wrap" *ngIf="!loadingTable && tableData.length > 0">
+    <div class="uta-table-wrap" *ngIf="!loadingTable && tableData.length > 0" appDragScroll>
       <table class="uta-table" role="table">
         <thead>
           <tr>
+            <th class="text-center">S.No</th>
             <th class="uta-th--sortable" (click)="sortBy('fullName')" aria-sort="none">
               User
               <i class="bi ms-1" [ngClass]="sortField==='fullName'
@@ -342,9 +343,13 @@
           </tr>
         </thead>
         <tbody>
-          <ng-container *ngFor="let row of tableData">
+          <ng-container *ngFor="let row of tableData; let i = index">
             <!-- Main row -->
             <tr class="uta-row">
+              <!-- S.No -->
+              <td class="text-center">
+                {{ currentPage * pageSize + i + 1 }}
+              </td>
               <!-- User info -->
               <td>
                 <div class="uta-user-cell">
@@ -540,7 +545,8 @@
         <table class="uta-req-table uta-req-table--modal">
           <thead>
             <tr>
-              <th>Req #</th>
+              <th class="text-center">S.No</th>
+              <!-- <th>Req #</th> -->
               <th>Task</th>
               <th>Type</th>
               <th>Status</th>
@@ -551,8 +557,9 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let req of modalUserRequests" class="uta-req-table__row">
-              <td class="uta-req-id">#{{ req.requestId }}</td>
+            <tr *ngFor="let req of modalUserRequests; let i = index" class="uta-req-table__row">
+              <td class="text-center">{{ i + 1 }}</td>
+              <!-- <td class="uta-req-id">#{{ req.requestId }}</td> -->
               <td>
                 <span class="uta-req-task" [title]="req.taskTitle">{{ req.taskTitle && req.taskTitle.length > 40 ? (req.taskTitle | slice:0:40) + '...' : (req.taskTitle || '—') }}</span>
               </td>
@@ -635,11 +642,11 @@
         <div class="uta-empty__sub">No tasks match the selected filter.</div>
       </div>
 
-      <div class="uta-table-wrap" *ngIf="!loadingDrillDown && drillDownTasks.length > 0">
+      <div class="uta-table-wrap" *ngIf="!loadingDrillDown && drillDownTasks.length > 0" appDragScroll>
         <table class="uta-table">
           <thead>
             <tr>
-              <th>#</th>
+              <th class="text-center">S.No</th>
               <th>Task Title</th>
               <th>Status</th>
               <th>Created By</th>
@@ -649,8 +656,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr class="uta-row" *ngFor="let t of drillDownTasks">
-              <td class="uta-req-id">#{{ t.taskId }}</td>
+            <tr class="uta-row" *ngFor="let t of drillDownTasks; let i = index">
+              <td class="text-center">{{ drillDownPage * drillDownPageSize + i + 1 }}</td>
               <td class="uta-task-title" [title]="t.title">{{ t.title }}</td>
               <td>
                 <span class="uta-status-pill" [ngClass]="getDrillStatusClass(t.status)">
