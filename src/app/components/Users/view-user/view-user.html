@@ -43,13 +43,12 @@
       </nav>
 
       <div class="d-flex gap-2">
+        <button class="btn btn-secondary" (click)="goBack()">
+          <i class="bi bi-arrow-left me-1"></i>Back
+        </button>
         <button class="btn btn-secondary px-3" title="Refresh Profile Data" (click)="loadUserDetails()">
           <i class="bi bi-arrow-clockwise"></i>
         </button>
-        <!-- <button class="btn btn-primary d-flex align-items-center gap-2" (click)="assignNewTask()">
-          <i class="bi bi-plus-lg"></i>
-          <span>Assign Task</span>
-        </button> -->
       </div>
     </div>
 
@@ -123,7 +122,7 @@
       <div class="performance-grid">
 
         <div *ngFor="let stat of taskStats" class="perf-card"
-          (click)="statusFilter = stat.label; setActiveTab('tasks'); applyFilters()">
+          (click)="selectDistributionStatus(stat.label); setActiveTab('tasks'); applyFilters()">
           <div>
             <div class="perf-count">{{ stat.count }}</div>
             <div class="perf-label text-truncate" style="max-width: 140px;">{{ stat.label.replace('_', ' ') }}</div>
@@ -1172,7 +1171,6 @@
 
     <!-- Main Dashboard Panels Grid -->
     <div class="dashboard-grid">
-
       <!-- Left Column: Tasks, Departments, Activity logs -->
       <div>
         <div class="panel-card">
@@ -1222,6 +1220,9 @@
                   <option value="IN_PROGRESS">In Progress</option>
                   <option value="DELAYED">Delayed</option>
                   <option value="CLOSED">Closed</option>
+                  <option value="EXTENDED">Extended</option>
+                  <option value="REQUEST_FOR_EXTENSION">Request For Extension</option>
+                  <option value="REQUEST_FOR_CLOSURE">Request For Closure</option>
                 </select>
               </div>
             </div>
@@ -1423,64 +1424,6 @@
       <!-- Right Column: Quick actions, Recent activities overview, User info metadata -->
       <div>
 
-        <!-- Quick Actions Panel -->
-        <div class="panel-card">
-          <div class="panel-header">
-            <h6 class="panel-title"><i class="bi bi-lightning-charge text-primary"></i>Quick Actions</h6>
-          </div>
-          <div class="quick-actions-list">
-            <button class="quick-action-btn primary" (click)="assignNewTask()">
-              <i class="bi bi-plus-circle"></i>
-              <span>Assign New Task</span>
-            </button>
-            <button class="quick-action-btn" (click)="editUser()" *ngIf="canEditDelete()">
-              <i class="bi bi-pencil-square"></i>
-              <span>Edit Profile Details</span>
-            </button>
-            <button class="quick-action-btn text-muted" (click)="loadUserDetails()">
-              <i class="bi bi-arrow-clockwise"></i>
-              <span>Refresh Workspace Data</span>
-            </button>
-            <button class="quick-action-btn danger" (click)="toggleUserStatus()"
-              *ngIf="canEditDelete() && user.status === 'ACTIVE'">
-              <i class="bi bi-person-dash"></i>
-              <span>Deactivate Profile</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Info details panel -->
-        <div class="panel-card">
-          <div class="panel-header">
-            <h6 class="panel-title"><i class="bi bi-info-circle text-primary"></i>Profile summary</h6>
-          </div>
-          <ul class="meta-list">
-            <li class="meta-item">
-              <span class="meta-label">Unique User ID</span>
-              <span class="meta-value fw-bold">#{{ user.userId }}</span>
-            </li>
-            <li class="meta-item">
-              <span class="meta-label">Departments Linked</span>
-              <span class="meta-value">{{ enrichedDepartments.length }}</span>
-            </li>
-            <li class="meta-item flex-column align-items-start gap-1"
-              *ngIf="user.reportingManagerNames && user.reportingManagerNames.length > 0">
-              <span class="meta-label">Reporting Managers</span>
-              <div class="d-flex flex-wrap gap-1 mt-1">
-                <span *ngFor="let name of user.reportingManagerNames"
-                  class="badge bg-light text-dark border px-2 py-1 rounded shadow-sm small">
-                  <i class="bi bi-person text-primary"></i> {{ name }}
-                </span>
-              </div>
-            </li>
-            <li class="meta-item"
-              *ngIf="(!user.reportingManagerNames || user.reportingManagerNames.length === 0) && user.parentFullName">
-              <span class="meta-label">Reports To</span>
-              <span class="meta-value text-primary"><i class="bi bi-person me-1"></i>{{ user.parentFullName }}</span>
-            </li>
-          </ul>
-        </div>
-
         <!-- Assigned Subjects Panel -->
         <div class="panel-card animate__animated animate__fadeIn" *ngIf="user.subjects && user.subjects.length > 0">
           <div class="panel-header">
@@ -1505,16 +1448,6 @@
 
       </div>
 
-    </div>
-
-    <!-- Back Button Footer controls -->
-    <div class="d-flex justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
-      <button class="btn btn-secondary" (click)="goBack()">
-        <i class="bi bi-arrow-left me-1"></i>Back to Users Directory
-      </button>
-      <!-- <button class="btn btn-outline-secondary" onclick="window.print()">
-        <i class="bi bi-printer me-1"></i>Print Page Details
-      </button> -->
     </div>
 
     <!-- ==================== Edit User Modal ==================== -->

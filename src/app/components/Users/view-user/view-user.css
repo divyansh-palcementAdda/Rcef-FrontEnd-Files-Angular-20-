@@ -273,6 +273,7 @@
 
 /* ── 5. PANEL CARDS ── */
 .panel-card {
+  width: 100%;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 14px;
@@ -913,17 +914,17 @@
 }
 
 /* ── 16. DASHBOARD GRID ── */
-.dashboard-grid {
+/* .dashboard-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 1.75rem;
-}
+} */
 
-@media (max-width:991px) {
+/* @media (max-width:991px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
-}
+} */
 
 /* ── 17. TASK TYPE BREAKDOWN CARDS ── */
 .task-type-grid {

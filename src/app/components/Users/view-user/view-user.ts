@@ -69,7 +69,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     { label: 'PENDING', count: 0, icon: 'bi-clock', color: '#F59E0B', gradient: 'from-amber-500 to-orange-500' },
     { label: 'UPCOMING', count: 0, icon: 'bi-calendar-event', color: '#0EA5E9', gradient: 'from-cyan-500 to-blue-500' },
     { label: 'DELAYED', count: 0, icon: 'bi-exclamation-triangle', color: '#EF4444', gradient: 'from-red-500 to-pink-500' },
-    { label: 'CLOSED', count: 0, icon: 'bi-check-circle', color: '#10B981', gradient: 'from-emerald-500 to-green-500' },
+    { label: 'COMPLETED', count: 0, icon: 'bi-check-circle', color: '#10B981', gradient: 'from-emerald-500 to-green-500' },
     { label: 'IN_PROGRESS', count: 0, icon: 'bi-arrow-repeat', color: '#6366F1', gradient: 'from-indigo-500 to-purple-500' }
   ];
 
@@ -533,8 +533,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
       { label: 'PENDING', count: this.userTasks.filter(t => t.status === 'PENDING').length, icon: 'bi-clock', color: '#F59E0B', gradient: 'from-amber-500 to-orange-500' },
       { label: 'UPCOMING', count: this.userTasks.filter(t => t.status === 'UPCOMING').length, icon: 'bi-calendar-event', color: '#0EA5E9', gradient: 'from-cyan-500 to-blue-500' },
       { label: 'DELAYED', count: this.userTasks.filter(t => t.status === 'DELAYED').length, icon: 'bi-exclamation-triangle', color: '#EF4444', gradient: 'from-red-500 to-pink-500' },
-      { label: 'CLOSED', count: this.userTasks.filter(t => t.status === 'CLOSED').length, icon: 'bi-check-circle', color: '#10B981', gradient: 'from-emerald-500 to-green-500' },
-      { label: 'IN_PROGRESS', count: this.userTasks.filter(t => t.status === 'IN_PROGRESS').length, icon: 'bi-arrow-repeat', color: '#6366F1', gradient: 'from-indigo-500 to-purple-500' }
+      { label: 'COMPLETED', count: this.userTasks.filter(t => t.status === 'CLOSED').length, icon: 'bi-check-circle', color: '#10B981', gradient: 'from-emerald-500 to-green-500' },
+      { label: 'IN_PROGRESS', count: this.userTasks.filter(t => t.status === 'IN_PROGRESS').length, icon: 'bi-arrow-repeat', color: '#6366F1', gradient: 'from-indigo-500 to-purple-500' },
+      { label: 'EXTENDED', count: this.userTasks.filter(t => t.status === 'EXTENDED').length, icon: 'bi-arrow-right-circle', color: '#6366F1', gradient: 'from-indigo-500 to-purple-500' },
+      { label: 'REQUEST_FOR_EXTENSION', count: this.userTasks.filter(t => t.status === 'REQUEST_FOR_EXTENSION').length, icon: 'bi-question-circle', color: '#F59E0B', gradient: 'from-amber-500 to-orange-500' },
+      { label: 'REQUEST_FOR_CLOSURE', count: this.userTasks.filter(t => t.status === 'REQUEST_FOR_CLOSURE').length, icon: 'bi-x-circle', color: '#EF4444', gradient: 'from-red-500 to-pink-500' }
     ];
   }
 
@@ -549,7 +552,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     return map[status] || 'task-status-default';
   }
 
-  applyFilters(): void {
+  applyFiltersInternal(skipSync: boolean = false): void {
     this.filteredTasks = this.userTasks.filter(task => {
       const matchesSearch = !this.searchTerm ||
         task.title?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
@@ -562,12 +565,29 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     });
     this.totalPages = Math.ceil(this.filteredTasks.length / this.pageSize) || 1;
     if (this.currentPage > this.totalPages) this.currentPage = 1;
+    
+    // Sync distribution status with task filter when filter changes
+    if (!skipSync) {
+      if (this.statusFilter) {
+        const reverseMapping: { [key: string]: string } = {
+          'CLOSED': 'COMPLETED'
+        };
+        this.selectedDistributionStatus = reverseMapping[this.statusFilter] || this.statusFilter;
+      } else {
+        this.selectedDistributionStatus = 'ALL';
+      }
+    }
+  }
+
+  applyFilters(): void {
+    this.applyFiltersInternal(false);
   }
 
   resetFilters(): void {
     this.searchTerm = '';
     this.statusFilter = '';
     this.taskTypeFilter = '';
+    this.selectedDistributionStatus = 'ALL';
     this.applyFilters();
   }
 
@@ -897,17 +917,30 @@ export class ViewUserComponent implements OnInit, OnDestroy {
       { key: 'UPCOMING', label: 'Upcoming', count: overview.upcoming, icon: 'bi-calendar-event', color: 'secondary' },
       { key: 'EXTENDED', label: 'Extended', count: overview.extended, icon: 'bi-arrow-right-circle', color: 'primary' },
       { key: 'REQUEST_FOR_EXTENSION', label: 'Request For Extension', count: overview.requestForExtension, icon: 'bi-question-circle', color: 'warning' },
-      { key: 'REQUEST_FOR_CLOSURE', label: 'Request For Closure', count: overview.requestForClosure, icon: 'bi-x-circle', color: 'danger' },
-      { key: 'RECURRING_PARENT', label: 'Recurring Parent', count: overview.recurringParent, icon: 'bi-arrow-repeat', color: 'info' }
+      { key: 'REQUEST_FOR_CLOSURE', label: 'Request For Closure', count: overview.requestForClosure, icon: 'bi-x-circle', color: 'danger' }
     ];
   }
 
   selectDistributionStatus(statusKey: string): void {
-    if (this.selectedDistributionStatus === statusKey) {
+    const isDeselecting = this.selectedDistributionStatus === statusKey;
+    
+    if (isDeselecting) {
       this.selectedDistributionStatus = 'ALL';
+      this.statusFilter = '';
     } else {
       this.selectedDistributionStatus = statusKey;
+      // Map distribution card keys to task status values
+      if (statusKey === 'COMPLETED') {
+        this.statusFilter = 'CLOSED';
+      } else if (statusKey === 'ALL') {
+        this.statusFilter = '';
+      } else {
+        this.statusFilter = statusKey;
+      }
     }
+    
+    this.setActiveTab('tasks');
+    this.applyFiltersInternal(true); // Skip sync to avoid loop
     this.updateQueryParams();
   }
 
