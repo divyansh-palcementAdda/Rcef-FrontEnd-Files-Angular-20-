@@ -1,0 +1,148 @@
+/* Department Overview Component Styles */
+
+.department-overview-container {
+  margin: 0 auto;
+}
+
+/* Summary Cards Grid */
+.summary-cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.summary-card {
+  flex: 1 1 200px;
+  min-width: 180px;
+}
+
+.summary-card .card {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  border-radius: 12px;
+}
+
+.summary-card .card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09) !important;
+  transform: translateY(-2px);
+}
+
+/* Table Section */
+.table-section .card {
+  border-radius: 12px;
+}
+
+.table-section h5 {
+  font-size: 1.1rem;
+}
+
+/* Table Styles */
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  font-weight: 600;
+  color: var(--text-main);
+  border-bottom: 2px solid var(--border-color);
+  background-color: var(--bg-color);
+  padding: 0.875rem 1rem;
+}
+
+.table tbody tr {
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.table tbody tr:hover {
+  background-color: var(--bg-color);
+}
+
+.table tbody td {
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+}
+
+/* Status Badges */
+.status-active {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border: 1px solid #10b981;
+  font-weight: 600;
+}
+
+.status-inactive {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #ef4444;
+  font-weight: 600;
+}
+
+/* Action Buttons */
+.row-actions {
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #9ca3af;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.action-icon-btn:hover {
+  color: #374151;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.action-icon-btn:focus-visible {
+  outline: 2px solid var(--primary-color, #0d6efd);
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .summary-cards-grid {
+    gap: 0.75rem;
+  }
+
+  .summary-card {
+    flex: 1 1 150px;
+    min-width: 140px;
+  }
+
+  .table-section .card-body {
+    padding: 1rem;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-cards-grid {
+    gap: 0.5rem;
+  }
+
+  .summary-card {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .table-section h5 {
+    font-size: 1rem;
+  }
+}

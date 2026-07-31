@@ -52,7 +52,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   searchTerm = '';
   statusFilter = '';
   currentPage = 1;
-  pageSize = 6;
+  pageSize = 5;
   totalPages = 1;
   TaskStatus = TaskStatus;
 
@@ -60,7 +60,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   filteredLogs: AuditLog[] = [];
   searchTermLogs = '';
   currentPageLogs = 1;
-  pageSizeLogs = 6;
+  pageSizeLogs = 5;
   totalPagesLogs = 1;
 
   activeTab: 'tasks' | 'departments' | 'logs' = 'tasks';

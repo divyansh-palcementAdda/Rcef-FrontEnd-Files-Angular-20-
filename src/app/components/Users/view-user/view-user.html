@@ -1277,9 +1277,9 @@
                 <span>Rows per page:</span>
                 <select class="stitch-pag-size-selector" [(ngModel)]="pageSize"
                   (change)="currentPage = 1; applyFilters()">
-                  <option [value]="5">5</option>
-                  <option [value]="10">10</option>
-                  <option [value]="20">20</option>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
                 </select>
                 <span class="stitch-pag-label">
                   {{ startIndex }}-{{ endIndex }} of {{ filteredTasks.length }} tasks
@@ -1383,9 +1383,9 @@
                 <span>Rows per page:</span>
                 <select class="stitch-pag-size-selector" [(ngModel)]="pageSizeLogs"
                   (change)="currentPageLogs = 1; applyFiltersLogs()">
-                  <option [value]="5">5</option>
-                  <option [value]="10">10</option>
-                  <option [value]="20">20</option>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
                 </select>
                 <span class="stitch-pag-label">
                   Page {{ currentPageLogs }} of {{ totalPagesLogs }}
