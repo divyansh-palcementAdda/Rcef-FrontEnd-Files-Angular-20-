@@ -5,70 +5,59 @@
     <button class="btn btn-secondary">
       <i class="bi bi-arrow-left me-1"></i>Back
     </button>
+      <div class="main-header mt-2">
+    <h2 class="fw-bold" style="color: var(--text-main);">Department overview</h2>
+  </div>
   </div>
 
-  <!-- Main Header -->
-  <div class="main-header mb-4">
-    <h2 class="fw-bold" style="color: var(--text-main);">Department overview</h2>
+
+    <div class="d-flex mb-4">
+    <div class="card border-0 shadow-sm w-100">
+      <div class="card-body p-4" style="background: white;">
+        <h5 class="fw-bold mb-3" style="color: var(--text-main);">
+          <i class="bi bi-info-circle me-2 text-primary"></i>Basic Information
+        </h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="d-flex align-items-center gap-2">
+              <div class="text-muted small fw-semibold">Department Name:</div>
+              <div class="fw-semibold" style="color: var(--text-main);">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="d-flex align-items-center gap-2">
+              <div class="text-muted small fw-semibold">Department Code:</div>
+              <div class="fw-semibold" style="color: var(--text-main);">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="d-flex align-items-center gap-2">
+              <div class="text-muted small fw-semibold">Status:</div>
+              <div class="fw-semibold" style="color: var(--text-main);">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="d-flex align-items-center gap-2">
+              <div class="text-muted small fw-semibold">Created Date:</div>
+              <div class="fw-semibold" style="color: var(--text-main);">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Summary Cards -->
-  <div class="summary-cards-grid mb-4">
-    <!-- Card 1 -->
-    <div class="summary-card">
-      <div class="card border-0 shadow-sm h-100">
+  <div class="summary-cards-grid mb-4" *ngIf="dashboardData">
+    <div class="summary-card" *ngFor="let card of statCards(dashboardData); let i = index">
+      <div class="card border-0 shadow-sm h-100" (click)="goToTaskPage(card)" style="cursor: pointer;">
         <div class="card-body d-flex align-items-center gap-3 p-3">
-          <div class="rounded-3 p-2 flex-shrink-0" style="background: #e8f0fe;">
-            <i class="bi bi-building fs-4" style="color: #3d6fd4;"></i>
+          <div class="rounded-3 p-2 flex-shrink-0" [style.background-color]="getCardBackgroundColor(card.color)">
+            <i class="bi {{ card.icon }} fs-4" [style.color]="getCardIconColor(card.color)"></i>
           </div>
           <div>
-            <div class="text-muted small">Total Departments</div>
-            <div class="fw-bold fs-5" style="color: var(--text-main);">0</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 2 -->
-    <div class="summary-card">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body d-flex align-items-center gap-3 p-3">
-          <div class="rounded-3 p-2 flex-shrink-0" style="background: #e6f9f0;">
-            <i class="bi bi-diagram-3-fill fs-4" style="color: #1db06a;"></i>
-          </div>
-          <div>
-            <div class="text-muted small">Sub-Departments</div>
-            <div class="fw-bold fs-5" style="color: var(--text-main);">0</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 3 -->
-    <div class="summary-card">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body d-flex align-items-center gap-3 p-3">
-          <div class="rounded-3 p-2 flex-shrink-0" style="background: #fef3c7;">
-            <i class="bi bi-people-fill fs-4" style="color: #d97706;"></i>
-          </div>
-          <div>
-            <div class="text-muted small">Total Employees</div>
-            <div class="fw-bold fs-5" style="color: var(--text-main);">0</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 4 -->
-    <div class="summary-card">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body d-flex align-items-center gap-3 p-3">
-          <div class="rounded-3 p-2 flex-shrink-0" style="background: #fce7f3;">
-            <i class="bi bi-clipboard-data-fill fs-4" style="color: #db2777;"></i>
-          </div>
-          <div>
-            <div class="text-muted small">Active Tasks</div>
-            <div class="fw-bold fs-5" style="color: var(--text-main);">0</div>
+            <div class="text-muted small">{{ card.title }}</div>
+            <div class="fw-bold fs-5" style="color: var(--text-main);">{{ card.value || 0 }}</div>
           </div>
         </div>
       </div>
@@ -82,16 +71,52 @@
         <h5 class="fw-bold mb-4" style="color: var(--text-main);">
           <i class="bi bi-table me-2 text-primary"></i>Department Details
         </h5>
-        
+
+        <!-- Search and Filter -->
+        <div class="row mb-3 g-2">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-light">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control" placeholder="Search departments..." id="searchInput">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="statusFilter">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="col-md-3 text-end">
+            <button class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-filter me-1"></i>Apply Filter
+            </button>
+          </div>
+        </div>
+
         <div class="table-responsive">
           <table class="table table-hover align-middle">
             <thead>
               <tr>
                 <th style="width: 50px;">S.No</th>
-                <th>Department Name</th>
-                <th>Code</th>
-                <th>Status</th>
-                <th>Description</th>
+                <th style="cursor: pointer;">
+                  Department Name
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Code
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Status
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Description
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
                 <th class="text-end">Actions</th>
               </tr>
             </thead>
@@ -117,6 +142,540 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="stitch-pagination">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+            <span class="stitch-pag-label">
+              1-12 of 1631 results
+            </span>
+          </div>
+
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" disabled title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" disabled title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="stitch-pag-btn active">1</button>
+            <button class="stitch-pag-btn">2</button>
+            <button class="stitch-pag-btn">3</button>
+            <button class="stitch-pag-btn">4</button>
+            <button class="stitch-pag-btn">5</button>
+            <button class="stitch-pag-btn" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub-Department Table Section -->
+  <div class="table-section mt-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--text-main);">
+          <i class="bi bi-diagram-3 me-2 text-primary"></i>Sub-Department Details
+        </h5>
+
+        <!-- Search and Filter -->
+        <div class="row mb-3 g-2">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-light">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control" placeholder="Search sub-departments..." id="searchSubDeptInput">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="subDeptStatusFilter">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="col-md-3 text-end">
+            <button class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-filter me-1"></i>Apply Filter
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 50px;">S.No</th>
+                <th style="cursor: pointer;">
+                  Sub-Department Name
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Code
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Status
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Description
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-muted fw-semibold">1</td>
+                <td class="fw-bold" style="color: var(--text-main);">Sample Sub-Department</td>
+                <td><span class="badge bg-light text-dark fw-semibold">SUB001</span></td>
+                <td>
+                  <span class="badge rounded-pill status-active">ACTIVE</span>
+                </td>
+                <td class="text-muted"><small>Sample sub-department description text</small></td>
+                <td class="text-end">
+                  <div class="row-actions">
+                    <button class="action-icon-btn" title="View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="action-icon-btn" title="Edit">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="stitch-pagination">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+            <span class="stitch-pag-label">
+              1-12 of 245 results
+            </span>
+          </div>
+
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" disabled title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" disabled title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="stitch-pag-btn active">1</button>
+            <button class="stitch-pag-btn">2</button>
+            <button class="stitch-pag-btn">3</button>
+            <button class="stitch-pag-btn">4</button>
+            <button class="stitch-pag-btn">5</button>
+            <button class="stitch-pag-btn" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Users Table Section -->
+  <div class="table-section mt-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--text-main);">
+          <i class="bi bi-people me-2 text-primary"></i>All Users
+        </h5>
+
+        <!-- Search and Filter -->
+        <div class="row mb-3 g-2">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-light">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control" placeholder="Search users..." id="searchUserInput">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="userRoleFilter">
+              <option value="">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="employee">Employee</option>
+            </select>
+          </div>
+          <div class="col-md-3 text-end">
+            <button class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-filter me-1"></i>Apply Filter
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 50px;">S.No</th>
+                <th style="cursor: pointer;">
+                  User Name
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Email
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Role
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Department
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Status
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-muted fw-semibold">1</td>
+                <td class="fw-bold" style="color: var(--text-main);">John Doe</td>
+                <td class="text-muted"><small>john.doe@example.com</small></td>
+                <td><span class="badge bg-primary fw-semibold">Admin</span></td>
+                <td><span class="badge bg-light text-dark fw-semibold">IT</span></td>
+                <td>
+                  <span class="badge rounded-pill status-active">ACTIVE</span>
+                </td>
+                <td class="text-end">
+                  <div class="row-actions">
+                    <button class="action-icon-btn" title="View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="action-icon-btn" title="Edit">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="stitch-pagination">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+            <span class="stitch-pag-label">
+              1-12 of 89 results
+            </span>
+          </div>
+
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" disabled title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" disabled title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="stitch-pag-btn active">1</button>
+            <button class="stitch-pag-btn">2</button>
+            <button class="stitch-pag-btn">3</button>
+            <button class="stitch-pag-btn">4</button>
+            <button class="stitch-pag-btn">5</button>
+            <button class="stitch-pag-btn" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Approval Table Section -->
+  <div class="table-section mt-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--text-main);">
+          <i class="bi bi-clock-history me-2 text-warning"></i>Pending Approval
+        </h5>
+
+        <!-- Search and Filter -->
+        <div class="row mb-3 g-2">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-light">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control" placeholder="Search pending approvals..." id="searchApprovalInput">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="approvalTypeFilter">
+              <option value="">All Types</option>
+              <option value="task">Task Approval</option>
+              <option value="extension">Extension Request</option>
+              <option value="closure">Closure Request</option>
+            </select>
+          </div>
+          <div class="col-md-3 text-end">
+            <button class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-filter me-1"></i>Apply Filter
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 50px;">S.No</th>
+                <th style="cursor: pointer;">
+                  Task Name
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Request Type
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Requested By
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Request Date
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Priority
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-muted fw-semibold">1</td>
+                <td class="fw-bold" style="color: var(--text-main);">Sample Task Approval</td>
+                <td><span class="badge bg-warning text-dark fw-semibold">Task Approval</span></td>
+                <td class="text-muted"><small>Jane Smith</small></td>
+                <td class="text-muted"><small>2024-01-15</small></td>
+                <td>
+                  <span class="badge rounded-pill bg-danger">High</span>
+                </td>
+                <td class="text-end">
+                  <div class="row-actions">
+                    <button class="action-icon-btn" title="View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="action-icon-btn" title="Approve" style="color: #10b981;">
+                      <i class="bi bi-check-circle"></i>
+                    </button>
+                    <button class="action-icon-btn" title="Reject" style="color: #dc2626;">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="stitch-pagination">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+            <span class="stitch-pag-label">
+              1-5 of 15 results
+            </span>
+          </div>
+
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" disabled title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" disabled title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="stitch-pag-btn active">1</button>
+            <button class="stitch-pag-btn">2</button>
+            <button class="stitch-pag-btn">3</button>
+            <button class="stitch-pag-btn" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Tasks Table Section -->
+  <div class="table-section mt-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--text-main);">
+          <i class="bi bi-list-check me-2 text-primary"></i>All Tasks
+        </h5>
+
+        <!-- Search and Filter -->
+        <div class="row mb-3 g-2">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-light">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control" placeholder="Search tasks..." id="searchTaskInput">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="taskStatusFilter">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+              <option value="delayed">Delayed</option>
+            </select>
+          </div>
+          <div class="col-md-3 text-end">
+            <button class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-filter me-1"></i>Apply Filter
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 50px;">S.No</th>
+                <th style="cursor: pointer;">
+                  Task Name
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Assigned To
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Department
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Due Date
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Status
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Priority
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-muted fw-semibold">1</td>
+                <td class="fw-bold" style="color: var(--text-main);">Sample Task</td>
+                <td class="text-muted"><small>John Doe</small></td>
+                <td><span class="badge bg-light text-dark fw-semibold">IT</span></td>
+                <td class="text-muted"><small>2024-01-20</small></td>
+                <td>
+                  <span class="badge rounded-pill status-active">ACTIVE</span>
+                </td>
+                <td>
+                  <span class="badge rounded-pill bg-danger">High</span>
+                </td>
+                <td class="text-end">
+                  <div class="row-actions">
+                    <button class="action-icon-btn" title="View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="action-icon-btn" title="Edit">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="stitch-pagination">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+            <span class="stitch-pag-label">
+              1-5 of 120 results
+            </span>
+          </div>
+
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" disabled title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" disabled title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="stitch-pag-btn active">1</button>
+            <button class="stitch-pag-btn">2</button>
+            <button class="stitch-pag-btn">3</button>
+            <button class="stitch-pag-btn">4</button>
+            <button class="stitch-pag-btn">5</button>
+            <button class="stitch-pag-btn" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
