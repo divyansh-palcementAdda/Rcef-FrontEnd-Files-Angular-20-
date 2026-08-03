@@ -3,10 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
+import { DepartmentApiService } from '../../../Services/department-api-service';
+import { TaskApiService } from '../../../Services/task-api-Service';
+import { UserApiService } from '../../../Services/UserApiService';
 import { DashboardDto } from '../../../Model/DashboardDto';
 import { Subscription } from 'rxjs';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-department-overview-component',
@@ -51,10 +55,59 @@ export class DepartmentOverviewComponent implements OnInit {
   subDeptPageSize: number = 5;
   subDeptTotalResults: number = 0;
 
+  // Sorting state for all tables
+  sortBy: string = 'createdAt';
+  sortDirection: string = 'desc';
+  userSortBy: string = 'fullName';
+  userSortDirection: string = 'asc';
+  approvalSortBy: string = 'requestedDate';
+  approvalSortDirection: string = 'desc';
+  subDeptSortBy: string = 'name';
+  subDeptSortDirection: string = 'asc';
+
+  // Modal state flags
+  showAddSubDepartmentModal: boolean = false;
+  showAssignModal: boolean = false;
+  showUpdateDepartmentModal: boolean = false;
+  showAddTaskModal: boolean = false;
+
+  // Form objects
+  newSubDept: any = {
+    departmentId: null,
+    name: '',
+    code: '',
+    description: ''
+  };
+
+  updateDepartmentForm: any = {
+    name: '',
+    description: ''
+  };
+
+  newTask: any = {
+    isTemplateTask: false,
+    title: '',
+    status: null,
+    description: ''
+  };
+
+  assignSearch: string = '';
+  selectedTeacherCandidates: any[] = [];
+  availableTeachers: any[] = [];
+  loadingTeachers: boolean = false;
+
+  // Getter for selected teachers
+  get selectedTeachers() {
+    return this.availableTeachers.filter(t => t.selected);
+  }
+
   constructor(
     public router: Router,
     private route: ActivatedRoute,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private departmentApiService: DepartmentApiService,
+    private taskApiService: TaskApiService,
+    private userApiService: UserApiService
   ) {}
 
   ngOnInit(): void {
@@ -128,8 +181,8 @@ export class DepartmentOverviewComponent implements OnInit {
       departmentId: this.departmentId,
       page: this.currentPage,
       size: this.pageSize,
-      sortBy: 'createdAt',
-      sortDirection: 'desc'
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection
     };
 
     if (this.searchTerm && this.searchTerm.trim()) {
@@ -158,8 +211,8 @@ export class DepartmentOverviewComponent implements OnInit {
     const params: any = {
       page: this.userCurrentPage,
       size: this.userPageSize,
-      sortBy: 'fullName',
-      sortDirection: 'asc',
+      sortBy: this.userSortBy,
+      sortDirection: this.userSortDirection,
       departmentId: this.departmentId
     };
 
@@ -189,8 +242,8 @@ export class DepartmentOverviewComponent implements OnInit {
     const params: any = {
       page: this.approvalCurrentPage,
       size: this.approvalPageSize,
-      sortBy: 'requestedDate',
-      sortDirection: 'desc',
+      sortBy: this.approvalSortBy,
+      sortDirection: this.approvalSortDirection,
       status: 'PENDING',
       departmentId: this.departmentId
     };
@@ -221,8 +274,8 @@ export class DepartmentOverviewComponent implements OnInit {
     const params: any = {
       page: this.subDeptCurrentPage,
       size: this.subDeptPageSize,
-      sortBy: 'name',
-      sortDirection: 'asc',
+      sortBy: this.subDeptSortBy,
+      sortDirection: this.subDeptSortDirection,
       departmentId: this.departmentId
     };
 
@@ -362,6 +415,58 @@ export class DepartmentOverviewComponent implements OnInit {
       this.subDeptCurrentPage = this.subDepartmentsData.totalPages - 1;
       this.loadSubDepartments();
     }
+  }
+
+  // Sorting handlers
+  onSort(column: string): void {
+    if (this.sortBy === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = column;
+      this.sortDirection = 'asc';
+    }
+    this.currentPage = 0;
+    this.loadTasks();
+  }
+
+  onUserSort(column: string): void {
+    if (this.userSortBy === column) {
+      this.userSortDirection = this.userSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.userSortBy = column;
+      this.userSortDirection = 'asc';
+    }
+    this.userCurrentPage = 0;
+    this.loadUsers();
+  }
+
+  onApprovalSort(column: string): void {
+    if (this.approvalSortBy === column) {
+      this.approvalSortDirection = this.approvalSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.approvalSortBy = column;
+      this.approvalSortDirection = 'asc';
+    }
+    this.approvalCurrentPage = 0;
+    this.loadApprovals();
+  }
+
+  onSubDeptSort(column: string): void {
+    if (this.subDeptSortBy === column) {
+      this.subDeptSortDirection = this.subDeptSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.subDeptSortBy = column;
+      this.subDeptSortDirection = 'asc';
+    }
+    this.subDeptCurrentPage = 0;
+    this.loadSubDepartments();
+  }
+
+  getSortIcon(column: string, currentSortBy: string, currentSortDirection: string): string {
+    if (currentSortBy !== column) {
+      return 'bi-arrow-down-up';
+    }
+    return currentSortDirection === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down';
   }
 
   getSubDeptPageNumbers(): number[] {
@@ -777,6 +882,221 @@ export class DepartmentOverviewComponent implements OnInit {
       console.error('No user ID found in user object:', user);
       alert('User ID not found. Please check the data.');
     }
+  }
+
+  // Modal open/close functions
+  openAddSubDepartmentModal(): void {
+    this.showAddSubDepartmentModal = true;
+    this.newSubDept = {
+      departmentId: this.departmentId,
+      name: '',
+      code: '',
+      description: ''
+    };
+  }
+
+  closeAddSubDepartmentModal(): void {
+    this.showAddSubDepartmentModal = false;
+  }
+
+  submitAddSubDepartment(): void {
+    if (!this.newSubDept.name || !this.newSubDept.code || !this.newSubDept.departmentId) {
+      alert('All fields are required to create a sub-department');
+      return;
+    }
+
+    this.departmentApiService.createSubDepartment(this.newSubDept).subscribe({
+      next: () => {
+        alert('Sub-department created successfully');
+        this.loadSubDepartments(); // Refresh the sub-departments list
+        this.closeAddSubDepartmentModal();
+      },
+      error: (err) => {
+        console.error('Failed to create sub-department:', err);
+        alert('Failed to create sub-department: ' + (err?.error?.message || err?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  openAssignModal(): void {
+    this.showAssignModal = true;
+    this.assignSearch = '';
+    this.selectedTeacherCandidates = [];
+    this.availableTeachers = [];
+    this.loadAvailableTeachers();
+  }
+
+  loadAvailableTeachers(): void {
+    this.loadingTeachers = true;
+    this.apiService.searchUsers({
+      role: 'TEACHER',
+      departmentId: this.departmentId,
+      page: 0,
+      size: 20,
+      sortBy: 'fullName',
+      sortDirection: 'asc'
+    }).subscribe({
+      next: (response) => {
+        let teachers = response.data?.content || [];
+        // Filter by search term if provided
+        if (this.assignSearch && this.assignSearch.trim()) {
+          const searchLower = this.assignSearch.toLowerCase();
+          teachers = teachers.filter((teacher: any) =>
+            teacher.fullName?.toLowerCase().includes(searchLower) ||
+            teacher.username?.toLowerCase().includes(searchLower) ||
+            teacher.email?.toLowerCase().includes(searchLower)
+          );
+        }
+        this.availableTeachers = teachers.map((teacher: any) => ({
+          ...teacher,
+          selected: false
+        }));
+        this.loadingTeachers = false;
+      },
+      error: (err) => {
+        console.error('Failed to load teachers:', err);
+        this.availableTeachers = [];
+        this.loadingTeachers = false;
+      }
+    });
+  }
+
+  onAssignSearch(): void {
+    // Debounce search could be added here
+    this.loadAvailableTeachers();
+  }
+
+  closeAssignModal(): void {
+    this.showAssignModal = false;
+    this.availableTeachers = [];
+    this.selectedTeacherCandidates = [];
+  }
+
+  submitAssign(): void {
+    // Get selected teachers from available teachers
+    this.selectedTeacherCandidates = this.selectedTeachers;
+
+    if (this.selectedTeacherCandidates.length === 0) {
+      alert('Please select at least one Teacher candidate');
+      return;
+    }
+
+    // Since there's no direct department assignment API, we'll use user update to assign department
+    const assignObservables = this.selectedTeacherCandidates.map(candidate =>
+      this.userApiService.updateUser(candidate.userId, { departmentId: this.departmentId })
+    );
+
+    forkJoin(assignObservables).subscribe({
+      next: () => {
+        alert(`Assigned ${this.selectedTeacherCandidates.length} Teacher(s) to Department successfully`);
+        this.loadUsers(); // Refresh the users list
+        this.closeAssignModal();
+      },
+      error: (err) => {
+        console.error('Failed to assign teachers:', err);
+        alert('Failed to assign teachers: ' + (err?.error?.message || err?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  openUpdateDepartmentModal(): void {
+    this.showUpdateDepartmentModal = true;
+    // Load current department data
+    this.departmentApiService.getDepartmentById(this.departmentId).subscribe({
+      next: (department) => {
+        this.updateDepartmentForm = {
+          name: department.name || '',
+          description: department.description || ''
+        };
+      },
+      error: (err) => {
+        console.error('Failed to load department data:', err);
+        alert('Failed to load department data');
+        this.closeUpdateDepartmentModal();
+      }
+    });
+  }
+
+  closeUpdateDepartmentModal(): void {
+    this.showUpdateDepartmentModal = false;
+  }
+
+  submitUpdateDepartment(): void {
+    if (!this.updateDepartmentForm.name) {
+      alert('Department name is required');
+      return;
+    }
+
+    const payload = {
+      departmentId: this.departmentId,
+      name: this.updateDepartmentForm.name,
+      description: this.updateDepartmentForm.description
+    };
+
+    this.departmentApiService.updateDepartment(this.departmentId, payload).subscribe({
+      next: () => {
+        alert('Department updated successfully');
+        this.closeUpdateDepartmentModal();
+        // Optionally refresh department data if needed
+      },
+      error: (err) => {
+        console.error('Failed to update department:', err);
+        alert('Failed to update department: ' + (err?.error?.message || err?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  openAddTaskModal(): void {
+    this.showAddTaskModal = true;
+    this.newTask = {
+      isTemplateTask: false,
+      title: '',
+      status: null,
+      description: ''
+    };
+  }
+
+  closeAddTaskModal(): void {
+    this.showAddTaskModal = false;
+  }
+
+  submitAddTask(): void {
+    if (!this.newTask.title || !this.newTask.status) {
+      alert('Task title and status are required');
+      return;
+    }
+
+    const payload = {
+      title: this.newTask.title,
+      description: this.newTask.description || '',
+      status: this.newTask.status,
+      departmentIds: [this.departmentId],
+      assignedToIds: [],
+      subDepartmentId: undefined,
+      subDepartmentIds: [],
+      subjectId: undefined,
+      templateId: this.newTask.isTemplateTask ? undefined : undefined,
+      targetCount: undefined,
+      targetPercentage: undefined,
+      startDate: undefined,
+      dueDate: undefined
+    };
+
+    this.taskApiService.createTask(payload).subscribe({
+      next: (response) => {
+        if (response.success) {
+          alert('Task created successfully');
+          this.loadTasks(); // Refresh the tasks list
+          this.closeAddTaskModal();
+        } else {
+          alert('Failed to create task: ' + response.message);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to create task:', err);
+        alert('Failed to create task: ' + (err?.error?.message || err?.message || 'Unknown error'));
+      }
+    });
   }
 
   viewApproval(approval: any): void {
