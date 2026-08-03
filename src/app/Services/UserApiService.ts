@@ -191,6 +191,37 @@ export class UserApiService {
     );
   }
 
+  /**
+   * Fetch users by sub-department using the user-breakdowns endpoint
+   * GET /api/sub-departments/{subDepartmentId}/user-breakdowns
+   * Maps the response to userDto format
+   */
+  getUsersBySubDepartmentBreakdown(subDepartmentId: string): Observable<userDto[]> {
+    console.log('Fetching users for sub-department using breakdown endpoint:', subDepartmentId);
+    return this.http.get<any[]>(`${environment.apiUrl}/sub-departments/${subDepartmentId}/user-breakdowns`).pipe(
+      map(users => users.map(user => ({
+        userId: user.userId,
+        username: user.username,
+        fullName: user.fullName,
+        email: '', // Not provided by breakdown API
+        role: user.role,
+        status: 'ACTIVE', // Default to ACTIVE since breakdown API returns active users
+        departmentIds: [],
+        departmentNames: [],
+        emailVerified: true,
+        subDepartmentId: subDepartmentId,
+        subDepartmentName: '',
+        subDepartmentIds: [subDepartmentId],
+        subDepartmentNames: [],
+        pendingTasks: user.pending || 0,
+        upcomingTasks: 0,
+        delayedTasks: user.delayed || 0,
+        closedTasks: user.completed || 0
+      } as userDto))),
+      catchError(err => this.handleError(err, 'fetch users by sub-department breakdown'))
+    );
+  }
+
   // ---------------- Role & Permission APIs ----------------
   getAllRoles(): Observable<any[]> {
     return this.http.get<any[]>(`${environment.apiUrl}/roles`).pipe(

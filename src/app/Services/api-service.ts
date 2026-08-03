@@ -59,4 +59,48 @@ export class ApiService {
     return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/otp/verify-otp`, payload);
   }
 
+  // ---------------- Tasks Search API ----------------
+  searchTasks(params: {
+    departmentId: number;
+    page: number;
+    size: number;
+    sortBy: string;
+    sortDirection: string;
+  }): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/tasks/search`, { params });
+  }
+
+  // ---------------- User Search API ----------------
+  searchUsers(params: {
+    page: number;
+    size: number;
+    sortBy: string;
+    sortDirection: string;
+    role?: string;
+    departmentId?: number;
+  }): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/user/search`, { params });
+  }
+
+  // ---------------- Task Requests Search API ----------------
+  searchTaskRequests(params: {
+    page: number;
+    size: number;
+    sortBy: string;
+    sortDirection: string;
+    status?: string;
+  }): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/task-requests/search`, { params });
+  }
+
+  // ---------------- Sub-Departments API ----------------
+  getSubDepartments(params?: {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDirection?: string;
+  }): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/sub-departments`, { params });
+  }
+
 }

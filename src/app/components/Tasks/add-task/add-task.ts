@@ -1095,6 +1095,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
     const raw = this.taskForm ? this.taskForm.getRawValue() : {};
     const deptIds = raw.departmentIds || [];
     const subDeptIds = raw.subDepartmentIds || [];
+    const subDeptId = raw.subDepartmentId;
 
     // Reset auto-assign state
     this.isAutoAssigned = false;
@@ -1111,8 +1112,51 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
     const deptId = deptIds[0]; // Primary department
 
-    // If sub-departments are selected, load users from those sub-departments
-    if (subDeptIds.length > 0) {
+    // If a single sub-department is selected, use the new user-breakdowns API
+    if (subDeptId) {
+      this.isLoadingUsers = true;
+      this.userService.getUsersBySubDepartmentBreakdown(subDeptId).subscribe({
+        next: (users) => {
+          this.isLoadingUsers = false;
+          // The user-breakdowns API doesn't include status field, so don't filter by status
+          const activeUsers = users;
+          this.usersByDepartment.set(deptId, activeUsers);
+          this.filteredUsersByDept.set(deptId, [...activeUsers]);
+          this.updateSelectAllUsersForDept(deptId);
+
+          // Preserve pre-filled user selection if exists
+          const preFilledUserId = this.preFilledUser?.userId;
+          if (this.isUserPreFilled && preFilledUserId && activeUsers.some(u => u.userId === preFilledUserId)) {
+            // Keep the pre-filled user selected
+            this.selectedUsersByDeptObj[deptId] = [preFilledUserId];
+            this.updateAssignedToIds();
+            this.expandedDepts[deptId] = true;
+          } else if (activeUsers.length === 1) {
+            const user = activeUsers[0];
+            this.selectedUsersByDeptObj = { [deptId]: [user.userId] };
+            this.updateAssignedToIds();
+            this.isAutoAssigned = true;
+            this.autoAssignedUser = user;
+          } else if (activeUsers.length > 1) {
+            this.autoAssignWarning = 'Multiple users found in selected sub-department. Please select one or more users.';
+            this.expandedDepts[deptId] = true;
+            this.selectedUsersByDeptObj[deptId] = [];
+            this.updateAssignedToIds();
+          } else {
+            this.autoAssignWarning = 'No users found in selected sub-department.';
+            this.selectedUsersByDeptObj[deptId] = [];
+            this.updateAssignedToIds();
+          }
+        },
+        error: (err) => {
+          this.isLoadingUsers = false;
+          console.error('Failed to load users for sub-department', err);
+          this.errorMessage = 'Failed to load users for sub-department.';
+        }
+      });
+    }
+    // If multiple sub-departments are selected, load users from those sub-departments
+    else if (subDeptIds.length > 0) {
       this.isLoadingUsers = true;
       this.userService.getUsersBySubDepartments(subDeptIds).subscribe({
         next: (users) => {

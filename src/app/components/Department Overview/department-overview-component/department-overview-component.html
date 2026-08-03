@@ -1,6 +1,6 @@
 <div class="department-overview-container py-4">
 
-  <!-- Back Button -->
+ 
   <div class="d-flex align-items-center gap-2 mb-4">
     <button class="btn btn-secondary">
       <i class="bi bi-arrow-left me-1"></i>Back
@@ -8,6 +8,22 @@
       <div class="main-header mt-2">
     <h2 class="fw-bold" style="color: var(--text-main);">Department overview</h2>
   </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="d-flex gap-2 mb-4">
+    <button class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i>Add Subdepartment
+    </button>
+    <button class="btn btn-primary">
+      <i class="bi bi-person-plus me-1"></i>Assign
+    </button>
+    <button class="btn btn-primary">
+      <i class="bi bi-pencil me-1"></i>Update Department
+    </button>
+    <button class="btn btn-primary">
+      <i class="bi bi-list-task me-1"></i>Add Task
+    </button>
   </div>
 
 
@@ -64,124 +80,7 @@
     </div>
   </div>
 
-  <!-- Table Section -->
-  <div class="table-section">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body p-4">
-        <h5 class="fw-bold mb-4" style="color: var(--text-main);">
-          <i class="bi bi-table me-2 text-primary"></i>Department Details
-        </h5>
-
-        <!-- Search and Filter -->
-        <div class="row mb-3 g-2">
-          <div class="col-md-6">
-            <div class="input-group">
-              <span class="input-group-text bg-light">
-                <i class="bi bi-search"></i>
-              </span>
-              <input type="text" class="form-control" placeholder="Search departments..." id="searchInput">
-            </div>
-          </div>
-          <div class="col-md-3">
-            <select class="form-select" id="statusFilter">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-          <div class="col-md-3 text-end">
-            <button class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-filter me-1"></i>Apply Filter
-            </button>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th style="width: 50px;">S.No</th>
-                <th style="cursor: pointer;">
-                  Department Name
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Code
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Status
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Description
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="text-muted fw-semibold">1</td>
-                <td class="fw-bold" style="color: var(--text-main);">Sample Department</td>
-                <td><span class="badge bg-light text-dark fw-semibold">DEPT001</span></td>
-                <td>
-                  <span class="badge rounded-pill status-active">ACTIVE</span>
-                </td>
-                <td class="text-muted"><small>Sample description text</small></td>
-                <td class="text-end">
-                  <div class="row-actions">
-                    <button class="action-icon-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="action-icon-btn" title="Edit">
-                      <i class="bi bi-pencil-square"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="stitch-pagination">
-          <div class="stitch-pag-left">
-            <span>Rows per page:</span>
-            <select class="stitch-pag-size-selector">
-              <option value="5" selected>5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-            </select>
-            <span class="stitch-pag-label">
-              1-12 of 1631 results
-            </span>
-          </div>
-
-          <div class="stitch-pag-controls">
-            <button class="stitch-pag-btn" disabled title="First Page">
-              <i class="bi bi-chevron-double-left"></i>
-            </button>
-            <button class="stitch-pag-btn" disabled title="Previous Page">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="stitch-pag-btn active">1</button>
-            <button class="stitch-pag-btn">2</button>
-            <button class="stitch-pag-btn">3</button>
-            <button class="stitch-pag-btn">4</button>
-            <button class="stitch-pag-btn">5</button>
-            <button class="stitch-pag-btn" title="Next Page">
-              <i class="bi bi-chevron-right"></i>
-            </button>
-            <button class="stitch-pag-btn" title="Last Page">
-              <i class="bi bi-chevron-double-right"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  
   <!-- Sub-Department Table Section -->
   <div class="table-section mt-4">
     <div class="card border-0 shadow-sm">
@@ -197,18 +96,18 @@
               <span class="input-group-text bg-light">
                 <i class="bi bi-search"></i>
               </span>
-              <input type="text" class="form-control" placeholder="Search sub-departments..." id="searchSubDeptInput">
+              <input type="text" class="form-control" placeholder="Search sub-departments..." id="searchSubDeptInput" [(ngModel)]="subDeptSearchTerm" (input)="onSubDeptSearch()">
             </div>
           </div>
           <div class="col-md-3">
-            <select class="form-select" id="subDeptStatusFilter">
+            <select class="form-select" id="subDeptStatusFilter" [(ngModel)]="subDeptStatusFilter" (change)="onSubDeptStatusFilterChange()">
               <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
             </select>
           </div>
           <div class="col-md-3 text-end">
-            <button class="btn btn-outline-primary btn-sm">
+            <button class="btn btn-outline-primary btn-sm" (click)="onSubDeptSearch()">
               <i class="bi bi-filter me-1"></i>Apply Filter
             </button>
           </div>
@@ -239,14 +138,14 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="text-muted fw-semibold">1</td>
-                <td class="fw-bold" style="color: var(--text-main);">Sample Sub-Department</td>
-                <td><span class="badge bg-light text-dark fw-semibold">SUB001</span></td>
+              <tr *ngFor="let subDept of subDepartmentsData?.content; let i = index">
+                <td class="text-muted fw-semibold">{{ (subDeptCurrentPage * subDeptPageSize) + i + 1 }}</td>
+                <td class="fw-bold" style="color: var(--text-main);">{{ subDept.name || '-' }}</td>
+                <td><span class="badge bg-light text-dark fw-semibold">{{ subDept.code || '-' }}</span></td>
                 <td>
-                  <span class="badge rounded-pill status-active">ACTIVE</span>
+                  <span class="badge rounded-pill" [class.status-active]="subDept.status === 'ACTIVE'" [class.status-inactive]="subDept.status === 'INACTIVE'">{{ subDept.status || '-' }}</span>
                 </td>
-                <td class="text-muted"><small>Sample sub-department description text</small></td>
+                <td class="text-muted"><small>{{ subDept.description || '-' }}</small></td>
                 <td class="text-end">
                   <div class="row-actions">
                     <button class="action-icon-btn" title="View">
@@ -266,32 +165,30 @@
         <div class="stitch-pagination">
           <div class="stitch-pag-left">
             <span>Rows per page:</span>
-            <select class="stitch-pag-size-selector">
+            <select class="stitch-pag-size-selector" [(ngModel)]="subDeptPageSize" (change)="onSubDeptPageSizeChange()">
               <option value="5" selected>5</option>
               <option value="10">10</option>
               <option value="20">20</option>
             </select>
             <span class="stitch-pag-label">
-              1-12 of 245 results
+              {{ (subDeptCurrentPage * subDeptPageSize) + 1 }}-{{ getSubDeptPaginationEnd() }} of {{ subDeptTotalResults }} results
             </span>
           </div>
 
           <div class="stitch-pag-controls">
-            <button class="stitch-pag-btn" disabled title="First Page">
+            <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === 0" (click)="onSubDeptFirstPage()" title="First Page">
               <i class="bi bi-chevron-double-left"></i>
             </button>
-            <button class="stitch-pag-btn" disabled title="Previous Page">
+            <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === 0" (click)="onSubDeptPreviousPage()" title="Previous Page">
               <i class="bi bi-chevron-left"></i>
             </button>
-            <button class="stitch-pag-btn active">1</button>
-            <button class="stitch-pag-btn">2</button>
-            <button class="stitch-pag-btn">3</button>
-            <button class="stitch-pag-btn">4</button>
-            <button class="stitch-pag-btn">5</button>
-            <button class="stitch-pag-btn" title="Next Page">
+            <button class="stitch-pag-btn" [class.active]="subDeptCurrentPage === page" *ngFor="let page of getSubDeptPageNumbers()" (click)="onSubDeptPageChange(page)">
+              {{ page + 1 }}
+            </button>
+            <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === subDepartmentsData?.totalPages - 1" (click)="onSubDeptNextPage()" title="Next Page">
               <i class="bi bi-chevron-right"></i>
             </button>
-            <button class="stitch-pag-btn" title="Last Page">
+            <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === subDepartmentsData?.totalPages - 1" (click)="onSubDeptLastPage()" title="Last Page">
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </div>
@@ -300,256 +197,8 @@
     </div>
   </div>
 
-  <!-- All Users Table Section -->
-  <div class="table-section mt-4">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body p-4">
-        <h5 class="fw-bold mb-4" style="color: var(--text-main);">
-          <i class="bi bi-people me-2 text-primary"></i>All Users
-        </h5>
 
-        <!-- Search and Filter -->
-        <div class="row mb-3 g-2">
-          <div class="col-md-6">
-            <div class="input-group">
-              <span class="input-group-text bg-light">
-                <i class="bi bi-search"></i>
-              </span>
-              <input type="text" class="form-control" placeholder="Search users..." id="searchUserInput">
-            </div>
-          </div>
-          <div class="col-md-3">
-            <select class="form-select" id="userRoleFilter">
-              <option value="">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="manager">Manager</option>
-              <option value="employee">Employee</option>
-            </select>
-          </div>
-          <div class="col-md-3 text-end">
-            <button class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-filter me-1"></i>Apply Filter
-            </button>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th style="width: 50px;">S.No</th>
-                <th style="cursor: pointer;">
-                  User Name
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Email
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Role
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Department
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Status
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="text-muted fw-semibold">1</td>
-                <td class="fw-bold" style="color: var(--text-main);">John Doe</td>
-                <td class="text-muted"><small>john.doe@example.com</small></td>
-                <td><span class="badge bg-primary fw-semibold">Admin</span></td>
-                <td><span class="badge bg-light text-dark fw-semibold">IT</span></td>
-                <td>
-                  <span class="badge rounded-pill status-active">ACTIVE</span>
-                </td>
-                <td class="text-end">
-                  <div class="row-actions">
-                    <button class="action-icon-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="action-icon-btn" title="Edit">
-                      <i class="bi bi-pencil-square"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="stitch-pagination">
-          <div class="stitch-pag-left">
-            <span>Rows per page:</span>
-            <select class="stitch-pag-size-selector">
-              <option value="5" selected>5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-            </select>
-            <span class="stitch-pag-label">
-              1-12 of 89 results
-            </span>
-          </div>
-
-          <div class="stitch-pag-controls">
-            <button class="stitch-pag-btn" disabled title="First Page">
-              <i class="bi bi-chevron-double-left"></i>
-            </button>
-            <button class="stitch-pag-btn" disabled title="Previous Page">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="stitch-pag-btn active">1</button>
-            <button class="stitch-pag-btn">2</button>
-            <button class="stitch-pag-btn">3</button>
-            <button class="stitch-pag-btn">4</button>
-            <button class="stitch-pag-btn">5</button>
-            <button class="stitch-pag-btn" title="Next Page">
-              <i class="bi bi-chevron-right"></i>
-            </button>
-            <button class="stitch-pag-btn" title="Last Page">
-              <i class="bi bi-chevron-double-right"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pending Approval Table Section -->
-  <div class="table-section mt-4">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body p-4">
-        <h5 class="fw-bold mb-4" style="color: var(--text-main);">
-          <i class="bi bi-clock-history me-2 text-warning"></i>Pending Approval
-        </h5>
-
-        <!-- Search and Filter -->
-        <div class="row mb-3 g-2">
-          <div class="col-md-6">
-            <div class="input-group">
-              <span class="input-group-text bg-light">
-                <i class="bi bi-search"></i>
-              </span>
-              <input type="text" class="form-control" placeholder="Search pending approvals..." id="searchApprovalInput">
-            </div>
-          </div>
-          <div class="col-md-3">
-            <select class="form-select" id="approvalTypeFilter">
-              <option value="">All Types</option>
-              <option value="task">Task Approval</option>
-              <option value="extension">Extension Request</option>
-              <option value="closure">Closure Request</option>
-            </select>
-          </div>
-          <div class="col-md-3 text-end">
-            <button class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-filter me-1"></i>Apply Filter
-            </button>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th style="width: 50px;">S.No</th>
-                <th style="cursor: pointer;">
-                  Task Name
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Request Type
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Requested By
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Request Date
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th style="cursor: pointer;">
-                  Priority
-                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
-                </th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="text-muted fw-semibold">1</td>
-                <td class="fw-bold" style="color: var(--text-main);">Sample Task Approval</td>
-                <td><span class="badge bg-warning text-dark fw-semibold">Task Approval</span></td>
-                <td class="text-muted"><small>Jane Smith</small></td>
-                <td class="text-muted"><small>2024-01-15</small></td>
-                <td>
-                  <span class="badge rounded-pill bg-danger">High</span>
-                </td>
-                <td class="text-end">
-                  <div class="row-actions">
-                    <button class="action-icon-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="action-icon-btn" title="Approve" style="color: #10b981;">
-                      <i class="bi bi-check-circle"></i>
-                    </button>
-                    <button class="action-icon-btn" title="Reject" style="color: #dc2626;">
-                      <i class="bi bi-x-circle"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="stitch-pagination">
-          <div class="stitch-pag-left">
-            <span>Rows per page:</span>
-            <select class="stitch-pag-size-selector">
-              <option value="5" selected>5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-            </select>
-            <span class="stitch-pag-label">
-              1-5 of 15 results
-            </span>
-          </div>
-
-          <div class="stitch-pag-controls">
-            <button class="stitch-pag-btn" disabled title="First Page">
-              <i class="bi bi-chevron-double-left"></i>
-            </button>
-            <button class="stitch-pag-btn" disabled title="Previous Page">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="stitch-pag-btn active">1</button>
-            <button class="stitch-pag-btn">2</button>
-            <button class="stitch-pag-btn">3</button>
-            <button class="stitch-pag-btn" title="Next Page">
-              <i class="bi bi-chevron-right"></i>
-            </button>
-            <button class="stitch-pag-btn" title="Last Page">
-              <i class="bi bi-chevron-double-right"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- All Tasks Table Section -->
+ <!-- All Tasks Table Section -->
   <div class="table-section mt-4">
     <div class="card border-0 shadow-sm">
       <div class="card-body p-4">
@@ -564,20 +213,20 @@
               <span class="input-group-text bg-light">
                 <i class="bi bi-search"></i>
               </span>
-              <input type="text" class="form-control" placeholder="Search tasks..." id="searchTaskInput">
+              <input type="text" class="form-control" placeholder="Search tasks..." id="searchTaskInput" [(ngModel)]="searchTerm" (input)="onSearch()">
             </div>
           </div>
           <div class="col-md-3">
-            <select class="form-select" id="taskStatusFilter">
+            <select class="form-select" id="taskStatusFilter" [(ngModel)]="statusFilter" (change)="onStatusFilterChange()">
               <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="delayed">Delayed</option>
+              <option value="IN_PROGRESS">Active</option>
+              <option value="PENDING">Pending</option>
+              <option value="CLOSED">Completed</option>
+              <option value="DELAYED">Delayed</option>
             </select>
           </div>
           <div class="col-md-3 text-end">
-            <button class="btn btn-outline-primary btn-sm">
+            <button class="btn btn-outline-primary btn-sm" (click)="onSearch()">
               <i class="bi bi-filter me-1"></i>Apply Filter
             </button>
           </div>
@@ -616,17 +265,17 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="text-muted fw-semibold">1</td>
-                <td class="fw-bold" style="color: var(--text-main);">Sample Task</td>
-                <td class="text-muted"><small>John Doe</small></td>
-                <td><span class="badge bg-light text-dark fw-semibold">IT</span></td>
-                <td class="text-muted"><small>2024-01-20</small></td>
+              <tr *ngFor="let task of tasksData?.content; let i = index">
+                <td class="text-muted fw-semibold">{{ i + 1 }}</td>
+                <td class="fw-bold" style="color: var(--text-main);">{{ task.title || '-' }}</td>
+                <td class="text-muted"><small>{{ task.assignedToName || '-' }}</small></td>
+                <td><span class="badge bg-light text-dark fw-semibold">{{ task.departmentName || '-' }}</span></td>
+                <td class="text-muted"><small>{{ task.dueDate ? (task.dueDate | date:'yyyy-MM-dd') : '-' }}</small></td>
                 <td>
-                  <span class="badge rounded-pill status-active">ACTIVE</span>
+                  <span class="badge rounded-pill status-active">{{ task.status || '-' }}</span>
                 </td>
                 <td>
-                  <span class="badge rounded-pill bg-danger">High</span>
+                  <span class="badge rounded-pill bg-danger">{{ task.priority || '-' }}</span>
                 </td>
                 <td class="text-end">
                   <div class="row-actions">
@@ -647,32 +296,31 @@
         <div class="stitch-pagination">
           <div class="stitch-pag-left">
             <span>Rows per page:</span>
-            <select class="stitch-pag-size-selector">
-              <option value="5" selected>5</option>
+            <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+              <option value="5">5</option>
               <option value="10">10</option>
+              <option value="12" selected>12</option>
               <option value="20">20</option>
             </select>
             <span class="stitch-pag-label">
-              1-5 of 120 results
+              {{ (currentPage * pageSize) + 1 }}-{{ getPaginationEnd() }} of {{ totalResults }} results
             </span>
           </div>
 
           <div class="stitch-pag-controls">
-            <button class="stitch-pag-btn" disabled title="First Page">
+            <button class="stitch-pag-btn" [disabled]="currentPage === 0" (click)="onFirstPage()" title="First Page">
               <i class="bi bi-chevron-double-left"></i>
             </button>
-            <button class="stitch-pag-btn" disabled title="Previous Page">
+            <button class="stitch-pag-btn" [disabled]="currentPage === 0" (click)="onPreviousPage()" title="Previous Page">
               <i class="bi bi-chevron-left"></i>
             </button>
-            <button class="stitch-pag-btn active">1</button>
-            <button class="stitch-pag-btn">2</button>
-            <button class="stitch-pag-btn">3</button>
-            <button class="stitch-pag-btn">4</button>
-            <button class="stitch-pag-btn">5</button>
-            <button class="stitch-pag-btn" title="Next Page">
+            <button class="stitch-pag-btn" [class.active]="currentPage === page" *ngFor="let page of getPageNumbers()" (click)="onPageChange(page)">
+              {{ page + 1 }}
+            </button>
+            <button class="stitch-pag-btn" [disabled]="currentPage === tasksData?.totalPages - 1" (click)="onNextPage()" title="Next Page">
               <i class="bi bi-chevron-right"></i>
             </button>
-            <button class="stitch-pag-btn" title="Last Page">
+            <button class="stitch-pag-btn" [disabled]="currentPage === tasksData?.totalPages - 1" (click)="onLastPage()" title="Last Page">
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </div>
@@ -680,5 +328,255 @@
       </div>
     </div>
   </div>
+
+
+  <!-- All Users Table Section -->
+  <div class="table-section mt-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--text-main);">
+          <i class="bi bi-people me-2 text-primary"></i>All Users
+        </h5>
+
+        <!-- Search and Filter -->
+        <div class="row mb-3 g-2">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-light">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control" placeholder="Search users..." id="searchUserInput" [(ngModel)]="userSearchTerm" (input)="onUserSearch()">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="userRoleFilter" [(ngModel)]="userRoleFilter" (change)="onUserRoleFilterChange()">
+              <option value="">All Roles</option>
+              <option value="ADMIN">Admin</option>
+              <option value="MANAGER">Manager</option>
+              <option value="EMPLOYEE">Employee</option>
+            </select>
+          </div>
+          <div class="col-md-3 text-end">
+            <button class="btn btn-outline-primary btn-sm" (click)="onUserSearch()">
+              <i class="bi bi-filter me-1"></i>Apply Filter
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 50px;">S.No</th>
+                <th style="cursor: pointer;">
+                  User Name
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Email
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Role
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Department
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Status
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of usersData?.content; let i = index">
+                <td class="text-muted fw-semibold">{{ i + 1 }}</td>
+                <td class="fw-bold" style="color: var(--text-main);">{{ user.fullName || '-' }}</td>
+                <td class="text-muted"><small>{{ user.email || '-' }}</small></td>
+                <td><span class="badge bg-primary fw-semibold">{{ user.role || '-' }}</span></td>
+                <td><span class="badge bg-light text-dark fw-semibold">{{ user.departmentName || '-' }}</span></td>
+                <td>
+                  <span class="badge rounded-pill status-active">{{ user.status || '-' }}</span>
+                </td>
+                <td class="text-end">
+                  <div class="row-actions">
+                    <button class="action-icon-btn" title="View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="action-icon-btn" title="Edit">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="stitch-pagination">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector" [(ngModel)]="userPageSize" (change)="onUserPageSizeChange()">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+            </select>
+            <span class="stitch-pag-label">
+              {{ (userCurrentPage * userPageSize) + 1 }}-{{ getUserPaginationEnd() }} of {{ userTotalResults }} results
+            </span>
+          </div>
+
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" [disabled]="userCurrentPage === 0" (click)="onUserFirstPage()" title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="userCurrentPage === 0" (click)="onUserPreviousPage()" title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="stitch-pag-btn" [class.active]="userCurrentPage === page" *ngFor="let page of getUserPageNumbers()" (click)="onUserPageChange(page)">
+              {{ page + 1 }}
+            </button>
+            <button class="stitch-pag-btn" [disabled]="userCurrentPage === usersData?.totalPages - 1" (click)="onUserNextPage()" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="userCurrentPage === usersData?.totalPages - 1" (click)="onUserLastPage()" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Approval Table Section -->
+  <div class="table-section mt-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--text-main);">
+          <i class="bi bi-clock-history me-2 text-warning"></i>Pending Approval
+        </h5>
+
+        <!-- Search and Filter -->
+        <div class="row mb-3 g-2">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-light">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control" placeholder="Search pending approvals..." id="searchApprovalInput" [(ngModel)]="approvalSearchTerm" (input)="onApprovalSearch()">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="approvalTypeFilter" [(ngModel)]="approvalTypeFilter" (change)="onApprovalTypeFilterChange()">
+              <option value="">All Types</option>
+              <option value="TASK">Task Approval</option>
+              <option value="EXTENSION">Extension Request</option>
+              <option value="CLOSURE">Closure Request</option>
+            </select>
+          </div>
+          <div class="col-md-3 text-end">
+            <button class="btn btn-outline-primary btn-sm" (click)="onApprovalSearch()">
+              <i class="bi bi-filter me-1"></i>Apply Filter
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 50px;">S.No</th>
+                <th style="cursor: pointer;">
+                  Task Name
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Request Type
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Requested By
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Request Date
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th style="cursor: pointer;">
+                  Priority
+                  <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
+                </th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let approval of approvalsData?.content; let i = index">
+                <td class="text-muted fw-semibold">{{ i + 1 }}</td>
+                <td class="fw-bold" style="color: var(--text-main);">{{ approval.taskTitle || '-' }}</td>
+                <td><span class="badge bg-warning text-dark fw-semibold">{{ approval.requestType || '-' }}</span></td>
+                <td class="text-muted"><small>{{ approval.requestedByName || '-' }}</small></td>
+                <td class="text-muted"><small>{{ approval.requestedDate ? (approval.requestedDate | date:'yyyy-MM-dd') : '-' }}</small></td>
+                <td>
+                  <span class="badge rounded-pill bg-danger">{{ approval.priority || '-' }}</span>
+                </td>
+                <td class="text-end">
+                  <div class="row-actions">
+                    <button class="action-icon-btn" title="View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="action-icon-btn" title="Approve" style="color: #10b981;">
+                      <i class="bi bi-check-circle"></i>
+                    </button>
+                    <button class="action-icon-btn" title="Reject" style="color: #dc2626;">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="stitch-pagination">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector" [(ngModel)]="approvalPageSize" (change)="onApprovalPageSizeChange()">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+            </select>
+            <span class="stitch-pag-label">
+              {{ (approvalCurrentPage * approvalPageSize) + 1 }}-{{ getApprovalPaginationEnd() }} of {{ approvalTotalResults }} results
+            </span>
+          </div>
+
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" [disabled]="approvalCurrentPage === 0" (click)="onApprovalFirstPage()" title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="approvalCurrentPage === 0" (click)="onApprovalPreviousPage()" title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="stitch-pag-btn" [class.active]="approvalCurrentPage === page" *ngFor="let page of getApprovalPageNumbers()" (click)="onApprovalPageChange(page)">
+              {{ page + 1 }}
+            </button>
+            <button class="stitch-pag-btn" [disabled]="approvalCurrentPage === approvalsData?.totalPages - 1" (click)="onApprovalNextPage()" title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="approvalCurrentPage === approvalsData?.totalPages - 1" (click)="onApprovalLastPage()" title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ 
 
 </div>
