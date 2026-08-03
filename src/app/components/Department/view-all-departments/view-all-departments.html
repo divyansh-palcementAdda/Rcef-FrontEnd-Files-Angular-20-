@@ -76,20 +76,29 @@
     <!-- Department Cards -->
     <div class="dept-cards-grid" *ngIf="!loading && departments.length">
       <div class="dept-card-item" *ngFor="let dept of departments; let i = index">
-        <div class="card border-0 shadow-sm h-100 dept-summary-card"
+        <div class="card border-0 shadow-sm dept-summary-card"
           [class.dept-card-active]="selectedDept?.departmentId === dept.departmentId" (click)="selectDepartment(dept)"
-          style="cursor: pointer;">
-          <div class="card-body d-flex align-items-center gap-3 p-3">
-            <div class="rounded-3 p-2 flex-shrink-0" [style.background]="cardColor(i).bg">
-              <i class="fs-4" [class]="'bi ' + cardColor(i).iconClass" [style.color]="cardColor(i).icon"></i>
-            </div>
-            <div class="overflow-hidden">
-              <div class="text-muted small text-truncate">{{ dept.name }}</div>
-              <div class="fw-bold fs-6" style="color: var(--text-main);">
-                <span class="badge rounded-pill" [style.background]="cardColor(i).bg" [style.color]="cardColor(i).icon">
-                  {{ dept.departmentStatus }}
-                </span>
+          style="cursor: pointer; min-height: 120px;">
+          <div class="card-body d-flex flex-column p-3" style="height: 100%;">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="rounded-3 p-2 flex-shrink-0" [style.background]="cardColor(i).bg">
+                <i class="fs-4" [class]="'bi ' + cardColor(i).iconClass" [style.color]="cardColor(i).icon"></i>
               </div>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <div class="text-muted small text-truncate">{{ dept.name }}</div>
+                <div class="fw-bold fs-6" style="color: var(--text-main);">
+                  <span class="badge rounded-pill" [style.background]="cardColor(i).bg" [style.color]="cardColor(i).icon">
+                    {{ dept.departmentStatus }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-auto">
+              <button class="btn btn-sm btn-outline-primary w-100" 
+                (click)="viewDepartmentOverview(dept.departmentId); $event.stopPropagation()" 
+                title="View Department Overview">
+                <i class="bi bi-eye"></i> View
+              </button>
             </div>
           </div>
         </div>

@@ -89,6 +89,7 @@ export class ApiService {
     sortBy: string;
     sortDirection: string;
     status?: string;
+    departmentId?: number;
   }): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/task-requests/search`, { params });
   }
@@ -99,6 +100,7 @@ export class ApiService {
     size?: number;
     sortBy?: string;
     sortDirection?: string;
+    departmentId?: number;
   }): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/sub-departments`, { params });
   }

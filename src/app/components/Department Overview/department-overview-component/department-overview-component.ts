@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
 import { DashboardDto } from '../../../Model/DashboardDto';
 import { Subscription } from 'rxjs';
@@ -29,7 +29,7 @@ export class DepartmentOverviewComponent implements OnInit {
   usersData: any;
   approvalsData: any;
   subDepartmentsData: any;
-  departmentId: number = 40; // Set your department ID here
+  departmentId: number = 0;
   currentPage: number = 0;
   pageSize: number = 12;
   totalResults: number = 0;
@@ -53,10 +53,27 @@ export class DepartmentOverviewComponent implements OnInit {
 
   constructor(
     public router: Router,
+    private route: ActivatedRoute,
     private apiService: ApiService
   ) {}
 
   ngOnInit(): void {
+    // Get departmentId from route parameters
+    this.route.queryParams.subscribe(params => {
+      this.departmentId = params['departmentId'] ? +params['departmentId'] : 0;
+      console.log('Department ID from route:', this.departmentId);
+
+      // Load data after getting departmentId
+      this.loadDashboardData();
+      this.setupSearchSubjects();
+      this.loadTasks();
+      this.loadUsers();
+      this.loadApprovals();
+      this.loadSubDepartments();
+    });
+  }
+
+  loadDashboardData(): void {
     this.dataSub = this.apiService.getDashboardData().subscribe({
       next: (data) => {
         if (data) {
@@ -66,7 +83,9 @@ export class DepartmentOverviewComponent implements OnInit {
       },
       error: (err) => console.error('Error fetching dashboard data:', err)
     });
+  }
 
+  setupSearchSubjects(): void {
     // Setup debounced search for tasks
     this.searchSubject.pipe(
       debounceTime(500),
@@ -102,11 +121,6 @@ export class DepartmentOverviewComponent implements OnInit {
       this.subDeptCurrentPage = 0;
       this.loadSubDepartments();
     });
-
-    this.loadTasks();
-    this.loadUsers();
-    this.loadApprovals();
-    this.loadSubDepartments();
   }
 
   loadTasks(): void {
@@ -146,7 +160,7 @@ export class DepartmentOverviewComponent implements OnInit {
       size: this.userPageSize,
       sortBy: 'fullName',
       sortDirection: 'asc',
-      departmentId: 41 // Using departmentId=41 as per your API requirement
+      departmentId: this.departmentId
     };
 
     if (this.userRoleFilter) {
@@ -177,7 +191,8 @@ export class DepartmentOverviewComponent implements OnInit {
       size: this.approvalPageSize,
       sortBy: 'requestedDate',
       sortDirection: 'desc',
-      status: 'PENDING' // Changed to PENDING as this is a "Pending Approval" table
+      status: 'PENDING',
+      departmentId: this.departmentId
     };
 
     if (this.approvalSearchTerm && this.approvalSearchTerm.trim()) {
@@ -207,7 +222,8 @@ export class DepartmentOverviewComponent implements OnInit {
       page: this.subDeptCurrentPage,
       size: this.subDeptPageSize,
       sortBy: 'name',
-      sortDirection: 'asc'
+      sortDirection: 'asc',
+      departmentId: this.departmentId
     };
 
     if (this.subDeptSearchTerm && this.subDeptSearchTerm.trim()) {
@@ -223,8 +239,67 @@ export class DepartmentOverviewComponent implements OnInit {
     this.subDepartmentsSub = this.apiService.getSubDepartments(params).subscribe({
       next: (response) => {
         console.log('Full Sub-Departments API response:', response);
-        this.subDepartmentsData = response.data || response;
-        this.subDeptTotalResults = response.data?.totalElements || response.data?.total || 0;
+        
+        let allSubDepartments: any[] = [];
+        
+        // Handle both paginated response and direct array response
+        if (response.data && Array.isArray(response.data.content)) {
+          // Paginated response structure
+          this.subDepartmentsData = response.data;
+          this.subDeptTotalResults = response.data.totalElements || 0;
+          console.log('Sub-Departments content:', this.subDepartmentsData);
+          console.log('Total sub-departments:', this.subDeptTotalResults);
+          return;
+        } else if (Array.isArray(response.data)) {
+          // Direct array response wrapped in data property
+          allSubDepartments = response.data;
+        } else if (Array.isArray(response)) {
+          // Direct array response without data wrapper
+          allSubDepartments = response;
+        } else {
+          // Fallback
+          this.subDepartmentsData = {
+            content: [],
+            totalElements: 0,
+            totalPages: 0
+          };
+          this.subDeptTotalResults = 0;
+          console.log('Sub-Departments content:', this.subDepartmentsData);
+          console.log('Total sub-departments:', this.subDeptTotalResults);
+          return;
+        }
+        
+        // Apply client-side filtering
+        let filteredSubDepartments = allSubDepartments;
+        
+        if (this.subDeptSearchTerm && this.subDeptSearchTerm.trim()) {
+          const searchTerm = this.subDeptSearchTerm.trim().toLowerCase();
+          filteredSubDepartments = filteredSubDepartments.filter(subDept => 
+            subDept.name?.toLowerCase().includes(searchTerm) ||
+            subDept.code?.toLowerCase().includes(searchTerm) ||
+            subDept.description?.toLowerCase().includes(searchTerm)
+          );
+        }
+        
+        if (this.subDeptStatusFilter) {
+          filteredSubDepartments = filteredSubDepartments.filter(subDept => 
+            subDept.department?.departmentStatus === this.subDeptStatusFilter
+          );
+        }
+        
+        // Apply client-side pagination
+        this.subDeptTotalResults = filteredSubDepartments.length;
+        const totalPages = Math.ceil(filteredSubDepartments.length / this.subDeptPageSize);
+        const startIndex = this.subDeptCurrentPage * this.subDeptPageSize;
+        const endIndex = Math.min(startIndex + this.subDeptPageSize, filteredSubDepartments.length);
+        const paginatedContent = filteredSubDepartments.slice(startIndex, endIndex);
+        
+        this.subDepartmentsData = {
+          content: paginatedContent,
+          totalElements: filteredSubDepartments.length,
+          totalPages: totalPages
+        };
+        
         console.log('Sub-Departments content:', this.subDepartmentsData);
         console.log('Total sub-departments:', this.subDeptTotalResults);
       },
@@ -668,6 +743,48 @@ export class DepartmentOverviewComponent implements OnInit {
 
   goToTaskPage(card: any): void {
     this.router.navigate([card.route], { queryParams: card.queryParams || {} });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/departments']);
+  }
+
+  viewSubDepartment(subDept: any): void {
+    if (subDept && subDept.id) {
+      this.router.navigate(['/sub-department-details', subDept.id]);
+    }
+  }
+
+  viewTask(task: any): void {
+    console.log('View task clicked:', task);
+    const taskId = task.id || task.taskId || task.taskId;
+    if (taskId) {
+      console.log('Navigating to task:', taskId);
+      this.router.navigate(['/task', taskId]);
+    } else {
+      console.error('No task ID found in task object:', task);
+      alert('Task ID not found. Please check the data.');
+    }
+  }
+
+  viewUser(user: any): void {
+    console.log('View user clicked:', user);
+    const userId = user.id || user.userId || user.userId;
+    if (userId) {
+      console.log('Navigating to user:', userId);
+      this.router.navigate(['/user', userId]);
+    } else {
+      console.error('No user ID found in user object:', user);
+      alert('User ID not found. Please check the data.');
+    }
+  }
+
+  viewApproval(approval: any): void {
+    if (approval && approval.taskId) {
+      this.router.navigate(['/task', approval.taskId]);
+    } else if (approval && approval.id) {
+      this.router.navigate(['/task-requests'], { queryParams: { requestId: approval.id } });
+    }
   }
 
   getCardBackgroundColor(color: string): string {

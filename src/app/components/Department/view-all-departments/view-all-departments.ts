@@ -132,6 +132,10 @@ export class ViewDepartmentsComponent implements OnInit {
     this.loadSubDepts(dept.departmentId);
   }
 
+  viewDepartmentOverview(departmentId: number): void {
+    this.router.navigate(['/department-overview'], { queryParams: { departmentId } });
+  }
+
   clearDeptSelection(): void {
     this.selectedDept = null;
     this.subDepts = [];

@@ -2,7 +2,7 @@
 
  
   <div class="d-flex align-items-center gap-2 mb-4">
-    <button class="btn btn-secondary">
+    <button class="btn btn-secondary" (click)="goBack()">
       <i class="bi bi-arrow-left me-1"></i>Back
     </button>
       <div class="main-header mt-2">
@@ -143,12 +143,12 @@
                 <td class="fw-bold" style="color: var(--text-main);">{{ subDept.name || '-' }}</td>
                 <td><span class="badge bg-light text-dark fw-semibold">{{ subDept.code || '-' }}</span></td>
                 <td>
-                  <span class="badge rounded-pill" [class.status-active]="subDept.status === 'ACTIVE'" [class.status-inactive]="subDept.status === 'INACTIVE'">{{ subDept.status || '-' }}</span>
+                  <span class="badge rounded-pill" [class.status-active]="subDept.department?.departmentStatus === 'ACTIVE'" [class.status-inactive]="subDept.department?.departmentStatus === 'INACTIVE'">{{ subDept.department?.departmentStatus || '-' }}</span>
                 </td>
                 <td class="text-muted"><small>{{ subDept.description || '-' }}</small></td>
                 <td class="text-end">
                   <div class="row-actions">
-                    <button class="action-icon-btn" title="View">
+                    <button class="action-icon-btn" title="View" (click)="viewSubDepartment(subDept)">
                       <i class="bi bi-eye"></i>
                     </button>
                     <button class="action-icon-btn" title="Edit">
@@ -279,7 +279,7 @@
                 </td>
                 <td class="text-end">
                   <div class="row-actions">
-                    <button class="action-icon-btn" title="View">
+                    <button class="action-icon-btn" title="View" (click)="viewTask(task); $event.stopPropagation()">
                       <i class="bi bi-eye"></i>
                     </button>
                     <button class="action-icon-btn" title="Edit">
@@ -403,7 +403,7 @@
                 </td>
                 <td class="text-end">
                   <div class="row-actions">
-                    <button class="action-icon-btn" title="View">
+                    <button class="action-icon-btn" title="View" (click)="viewUser(user); $event.stopPropagation()">
                       <i class="bi bi-eye"></i>
                     </button>
                     <button class="action-icon-btn" title="Edit">
@@ -525,7 +525,7 @@
                 </td>
                 <td class="text-end">
                   <div class="row-actions">
-                    <button class="action-icon-btn" title="View">
+                    <button class="action-icon-btn" title="View" (click)="viewApproval(approval)">
                       <i class="bi bi-eye"></i>
                     </button>
                     <button class="action-icon-btn" title="Approve" style="color: #10b981;">
