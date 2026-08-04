@@ -643,7 +643,7 @@
       </div>
 
       <div class="uta-table-wrap" *ngIf="!loadingDrillDown && drillDownTasks.length > 0" appDragScroll>
-        <table class="uta-table">
+        <table class="uta-table uta-table--modal">
           <thead>
             <tr>
               <th class="text-center">S.No</th>
@@ -665,7 +665,7 @@
                   {{ t.status | titlecase }}
                 </span>
               </td>
-              <td><span class="uta-user-id">{{ t.createdByName }}</span></td>
+              <td><span class="uta-created-by" [title]="t.createdByName">{{ t.createdByName }}</span></td>
               <td class="uta-date">{{ t.startDate | date:'d MMM y' }}</td>
               <td class="uta-date" [ngClass]="getDueDateClass(t.dueDate, t.status)">
                 {{ t.dueDate | date:'d MMM y' }}

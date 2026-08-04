@@ -573,7 +573,18 @@
 .uta-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 860px;
+  min-width: 950px;
+}
+
+/* Modal table with wider columns */
+.uta-table--modal {
+  min-width: 1200px;
+}
+
+/* Disable sticky columns for modal table */
+.uta-table--modal thead th,
+.uta-table--modal tbody td {
+  position: static !important;
 }
 
 .uta-table thead th {
@@ -1451,6 +1462,18 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ── Created By column in modal table ── */
+.uta-created-by {
+  font-size: 0.84rem;
+  color: var(--text-main, #0f172a);
+  font-weight: 500;
+  max-width: 350px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
 }
 
 /* ── Responsive ── */
