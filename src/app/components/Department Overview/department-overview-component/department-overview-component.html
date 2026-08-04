@@ -135,14 +135,14 @@
             </thead>
             <tbody>
               <tr *ngFor="let subDept of subDepartmentsData?.content; let i = index">
-                <td class="text-muted fw-semibold">{{ (subDeptCurrentPage * subDeptPageSize) + i + 1 }}</td>
-                <td class="fw-bold" style="color: var(--text-main);">{{ subDept.name || '-' }}</td>
-                <td><span class="badge bg-light text-dark fw-semibold">{{ subDept.code || '-' }}</span></td>
-                <td>
+                <td class="text-muted fw-semibold" data-label="S.No">{{ (subDeptCurrentPage * subDeptPageSize) + i + 1 }}</td>
+                <td class="fw-bold" style="color: var(--text-main);" data-label="Sub-Department Name">{{ subDept.name || '-' }}</td>
+                <td data-label="Code"><span class="badge bg-light text-dark fw-semibold">{{ subDept.code || '-' }}</span></td>
+                <td data-label="Status">
                   <span class="badge rounded-pill" [class.status-active]="subDept.department?.departmentStatus === 'ACTIVE'" [class.status-inactive]="subDept.department?.departmentStatus === 'INACTIVE'">{{ subDept.department?.departmentStatus || '-' }}</span>
                 </td>
-                <td class="text-muted"><small>{{ subDept.description || '-' }}</small></td>
-                <td class="text-end">
+                <td class="text-muted" data-label="Description"><small>{{ subDept.description || '-' }}</small></td>
+                <td class="text-end" data-label="Actions">
                   <div class="row-actions">
                     <button class="action-icon-btn" title="View" (click)="viewSubDepartment(subDept)">
                       <i class="bi bi-eye"></i>
@@ -257,18 +257,18 @@
             </thead>
             <tbody>
               <tr *ngFor="let task of tasksData?.content; let i = index">
-                <td class="text-muted fw-semibold">{{ (currentPage * pageSize) + i + 1 }}</td>
-                <td class="fw-bold" style="color: var(--text-main);">{{ task.title || '-' }}</td>
-                <td class="text-muted"><small>{{ task.assignedToName || '-' }}</small></td>
-                <td><span class="badge bg-light text-dark fw-semibold">{{ task.departmentName || '-' }}</span></td>
-                <td class="text-muted"><small>{{ task.dueDate ? (task.dueDate | date:'yyyy-MM-dd') : '-' }}</small></td>
-                <td>
+                <td class="text-muted fw-semibold" data-label="S.No">{{ (currentPage * pageSize) + i + 1 }}</td>
+                <td class="fw-bold" style="color: var(--text-main);" data-label="Task Name">{{ task.title || '-' }}</td>
+                <td class="text-muted" data-label="Assigned To"><small>{{ task.assignedToName || '-' }}</small></td>
+                <td data-label="Department"><span class="badge bg-light text-dark fw-semibold">{{ task.departmentName || '-' }}</span></td>
+                <td class="text-muted" data-label="Due Date"><small>{{ task.dueDate ? (task.dueDate | date:'yyyy-MM-dd') : '-' }}</small></td>
+                <td data-label="Status">
                   <span class="badge rounded-pill status-active">{{ task.status || '-' }}</span>
                 </td>
-                <td>
+                <td data-label="Priority">
                   <span class="badge rounded-pill bg-danger">{{ task.priority || '-' }}</span>
                 </td>
-                <td class="text-end">
+                <td class="text-end" data-label="Actions">
                   <div class="row-actions">
                     <button class="action-icon-btn" title="View" (click)="viewTask(task); $event.stopPropagation()">
                       <i class="bi bi-eye"></i>
@@ -379,15 +379,15 @@
             </thead>
             <tbody>
               <tr *ngFor="let user of usersData?.content; let i = index">
-                <td class="text-muted fw-semibold">{{ (userCurrentPage * userPageSize) + i + 1 }}</td>
-                <td class="fw-bold" style="color: var(--text-main);">{{ user.fullName || '-' }}</td>
-                <td class="text-muted"><small>{{ user.email || '-' }}</small></td>
-                <td><span class="badge bg-primary fw-semibold">{{ user.role || '-' }}</span></td>
-                <td><span class="badge bg-light text-dark fw-semibold">{{ user.departmentName || '-' }}</span></td>
-                <td>
+                <td class="text-muted fw-semibold" data-label="S.No">{{ (userCurrentPage * userPageSize) + i + 1 }}</td>
+                <td class="fw-bold" style="color: var(--text-main);" data-label="User Name">{{ user.fullName || '-' }}</td>
+                <td class="text-muted" data-label="Email"><small>{{ user.email || '-' }}</small></td>
+                <td data-label="Role"><span class="badge bg-primary fw-semibold">{{ user.role || '-' }}</span></td>
+                <td data-label="Department"><span class="badge bg-light text-dark fw-semibold">{{ user.departmentName || '-' }}</span></td>
+                <td data-label="Status">
                   <span class="badge rounded-pill status-active">{{ user.status || '-' }}</span>
                 </td>
-                <td class="text-end">
+                <td class="text-end" data-label="Actions">
                   <div class="row-actions">
                     <button class="action-icon-btn" title="View" (click)="viewUser(user); $event.stopPropagation()">
                       <i class="bi bi-eye"></i>
@@ -496,15 +496,15 @@
             </thead>
             <tbody>
               <tr *ngFor="let approval of approvalsData?.content; let i = index">
-                <td class="text-muted fw-semibold">{{ (approvalCurrentPage * approvalPageSize) + i + 1 }}</td>
-                <td class="fw-bold" style="color: var(--text-main);">{{ approval.taskTitle || '-' }}</td>
-                <td><span class="badge bg-warning text-dark fw-semibold">{{ approval.requestType || '-' }}</span></td>
-                <td class="text-muted"><small>{{ approval.requestedByName || '-' }}</small></td>
-                <td class="text-muted"><small>{{ approval.requestedDate ? (approval.requestedDate | date:'yyyy-MM-dd') : '-' }}</small></td>
-                <td>
+                <td class="text-muted fw-semibold" data-label="S.No">{{ (approvalCurrentPage * approvalPageSize) + i + 1 }}</td>
+                <td class="fw-bold" style="color: var(--text-main);" data-label="Task Name">{{ approval.taskTitle || '-' }}</td>
+                <td data-label="Request Type"><span class="badge bg-warning text-dark fw-semibold">{{ approval.requestType || '-' }}</span></td>
+                <td class="text-muted" data-label="Requested By"><small>{{ approval.requestedByName || '-' }}</small></td>
+                <td class="text-muted" data-label="Request Date"><small>{{ approval.requestedDate ? (approval.requestedDate | date:'yyyy-MM-dd') : '-' }}</small></td>
+                <td data-label="Priority">
                   <span class="badge rounded-pill bg-danger">{{ approval.priority || '-' }}</span>
                 </td>
-                <td class="text-end">
+                <td class="text-end" data-label="Actions">
                   <div class="row-actions">
                     <button class="action-icon-btn" title="View" (click)="viewApproval(approval)">
                       <i class="bi bi-eye"></i>
