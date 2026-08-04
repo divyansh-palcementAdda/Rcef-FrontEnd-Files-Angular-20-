@@ -6,7 +6,12 @@ import { ApiService } from '../../../Services/api-service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService } from '../../../Services/UserApiService';
+import { TaskTemplateApiService, TaskTemplateDto, TaskTemplateCategoryDto } from '../../../Services/task-template-api.service';
+import { SubjectApiService } from '../../../Services/subject-api.service';
+import { JwtService } from '../../../Services/jwt-service';
+import { RequestApiService } from '../../../Services/request-api-service';
 import { DashboardDto } from '../../../Model/DashboardDto';
+import { userDto } from '../../../Model/userDto';
 import { Subscription } from 'rxjs';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -18,6 +23,8 @@ import { forkJoin } from 'rxjs';
   templateUrl: './department-overview-component.html',
   styleUrl: './department-overview-component.css',
 })
+ 
+
 export class DepartmentOverviewComponent implements OnInit {
   private dataSub?: Subscription;
   private tasksSub?: Subscription;
@@ -34,6 +41,7 @@ export class DepartmentOverviewComponent implements OnInit {
   approvalsData: any;
   subDepartmentsData: any;
   departmentId: number = 0;
+  departmentName: string = '';
   currentPage: number = 0;
   pageSize: number = 12;
   totalResults: number = 0;
@@ -70,6 +78,33 @@ export class DepartmentOverviewComponent implements OnInit {
   showAssignModal: boolean = false;
   showUpdateDepartmentModal: boolean = false;
   showAddTaskModal: boolean = false;
+  showEditSubDepartmentModal: boolean = false;
+  showEditUserModal: boolean = false;
+
+  // Approve/Reject dialog state
+  approveDialog: {
+    isOpen: boolean;
+    requestId: number | null;
+    requestType: string | null;
+    remarks: string;
+    newDueDate: string;
+  } = {
+      isOpen: false,
+      requestId: null,
+      requestType: null,
+      remarks: '',
+      newDueDate: ''
+    };
+
+  rejectDialog: {
+    isOpen: boolean;
+    requestId: number | null;
+    reason: string;
+  } = {
+      isOpen: false,
+      requestId: null,
+      reason: ''
+    };
 
   // Form objects
   newSubDept: any = {
@@ -88,8 +123,80 @@ export class DepartmentOverviewComponent implements OnInit {
     isTemplateTask: false,
     title: '',
     status: null,
+    description: '',
+    departmentIds: [],
+    assignedToIds: [],
+    assignToSelf: false,
+    subDepartmentId: null,
+    subDepartmentIds: [],
+    subjectId: null,
+    templateCategoryId: null,
+    templateId: null,
+    targetCount: null,
+    targetPercentage: null,
+    startDate: '',
+    dueDate: ''
+  };
+
+  // Edit form objects
+  editSubDept: any = {
+    id: null,
+    departmentId: null,
+    name: '',
+    code: '',
     description: ''
   };
+
+  isEditMode: boolean = false;
+  editingTaskId: number | null = null;
+
+  editUser: any = {
+    id: null,
+    fullName: '',
+    username: '',
+    email: '',
+    password: '',
+    role: '',
+    departmentIds: [],
+    subDepartmentId: null,
+    subDepartmentIds: [],
+    subjectIds: [],
+    reportingManagerIds: [],
+    reportingManagerId: null,
+    subjectId: null
+  };
+
+  // Edit User Modal additional state
+  showEditPassword: boolean = false;
+  availableManagers: any[] = [];
+  availableDepartments: any[] = [];
+  availableSubDepartments: any[] = [];
+  availableSubjects: any[] = [];
+
+  // Template and dropdown data
+  templateCategories: TaskTemplateCategoryDto[] = [];
+  templates: TaskTemplateDto[] = [];
+  filteredTemplates: TaskTemplateDto[] = [];
+  selectedTemplate: TaskTemplateDto | null = null;
+  subDepartments: any[] = [];
+  filteredSubDepartments: any[] = [];
+  subjects: any[] = [];
+  departmentUsers: userDto[] = [];
+  filteredDepartmentUsers: userDto[] = [];
+  currentUser: userDto | null = null;
+  
+  // UI state
+  isSubmitting: boolean = false;
+  loading: boolean = false;
+  taskUserSearchTerm: string = '';
+  dueDateError: string = '';
+  startDateError: string = '';
+  minDate: string = '';
+  
+  // Dynamic template fields
+  hasCountField: boolean = false;
+  hasProgressField: boolean = false;
+  progressOptions: string[] = [];
 
   assignSearch: string = '';
   selectedTeacherCandidates: any[] = [];
@@ -107,8 +214,14 @@ export class DepartmentOverviewComponent implements OnInit {
     private apiService: ApiService,
     private departmentApiService: DepartmentApiService,
     private taskApiService: TaskApiService,
-    private userApiService: UserApiService
-  ) {}
+    private userApiService: UserApiService,
+    private templateApiService: TaskTemplateApiService,
+    private subjectApiService: SubjectApiService,
+    private jwtService: JwtService,
+    private requestApiService: RequestApiService
+  ) {
+    this.minDate = new Date().toISOString().split('T')[0];
+  }
 
   ngOnInit(): void {
     // Get departmentId from route parameters
@@ -116,13 +229,19 @@ export class DepartmentOverviewComponent implements OnInit {
       this.departmentId = params['departmentId'] ? +params['departmentId'] : 0;
       console.log('Department ID from route:', this.departmentId);
 
+      // Initialize task form with department ID
+      this.newTask.departmentIds = [this.departmentId];
+
       // Load data after getting departmentId
+      this.loadDepartmentName();
       this.loadDashboardData();
       this.setupSearchSubjects();
       this.loadTasks();
       this.loadUsers();
       this.loadApprovals();
       this.loadSubDepartments();
+      this.loadTemplatesAndCategories();
+      this.loadCurrentUser();
     });
   }
 
@@ -135,6 +254,19 @@ export class DepartmentOverviewComponent implements OnInit {
         }
       },
       error: (err) => console.error('Error fetching dashboard data:', err)
+    });
+  }
+
+  loadDepartmentName(): void {
+    this.departmentApiService.getDepartmentById(this.departmentId).subscribe({
+      next: (department) => {
+        this.departmentName = department.name || '';
+        console.log('Department name loaded:', this.departmentName);
+      },
+      error: (err) => {
+        console.error('Error fetching department name:', err);
+        this.departmentName = '';
+      }
     });
   }
 
@@ -918,6 +1050,204 @@ export class DepartmentOverviewComponent implements OnInit {
     });
   }
 
+  // Edit Sub-Department functions
+  openEditSubDepartmentModal(subDept: any): void {
+    this.showEditSubDepartmentModal = true;
+    // Use the correct ID field from the sub-department object
+    const subDeptId = subDept.id || subDept.subDepartmentId;
+    this.editSubDept = {
+      id: subDeptId,
+      departmentId: this.departmentId,
+      name: subDept.name || '',
+      code: subDept.code || '',
+      description: subDept.description || ''
+    };
+  }
+
+  closeEditSubDepartmentModal(): void {
+    this.showEditSubDepartmentModal = false;
+    this.editSubDept = {
+      id: null,
+      departmentId: null,
+      name: '',
+      code: '',
+      description: ''
+    };
+  }
+
+  submitEditSubDepartment(): void {
+    if (!this.editSubDept.name || !this.editSubDept.code || !this.editSubDept.id) {
+      alert('All fields are required to update a sub-department');
+      return;
+    }
+
+    // Convert id to string for API call
+    const subDeptId = String(this.editSubDept.id);
+    this.departmentApiService.updateSubDepartment(subDeptId, this.editSubDept).subscribe({
+      next: () => {
+        alert('Sub-department updated successfully');
+        this.loadSubDepartments();
+        this.closeEditSubDepartmentModal();
+      },
+      error: (err) => {
+        console.error('Failed to update sub-department:', err);
+        alert('Failed to update sub-department: ' + (err?.error?.message || err?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  // Edit User functions
+  openEditUserModal(user: any): void {
+    this.showEditUserModal = true;
+    this.editUser = {
+      id: user.userId,
+      fullName: user.fullName || '',
+      username: user.username || '',
+      email: user.email || '',
+      password: '',
+      role: user.role || '',
+      departmentIds: user.departmentIds || [],
+      subDepartmentId: user.subDepartmentId || null,
+      subDepartmentIds: user.subDepartmentIds || [],
+      subjectIds: user.subjectIds || [],
+      reportingManagerIds: user.reportingManagerIds || [],
+      reportingManagerId: user.reportingManagerIds?.[0] || null,
+      subjectId: user.subjectIds?.[0] || null
+    };
+    
+    // Load dropdown data for edit user modal
+    this.loadAvailableManagers();
+    this.loadAvailableDepartments();
+    this.loadAvailableSubDepartments();
+    this.loadAvailableSubjects();
+  }
+
+  closeEditUserModal(): void {
+    this.showEditUserModal = false;
+    this.showEditPassword = false;
+    this.editUser = {
+      id: null,
+      fullName: '',
+      username: '',
+      email: '',
+      password: '',
+      role: '',
+      departmentIds: [],
+      subDepartmentId: null,
+      subDepartmentIds: [],
+      subjectIds: [],
+      reportingManagerIds: [],
+      reportingManagerId: null,
+      subjectId: null
+    };
+  }
+
+  submitEditUser(): void {
+    if (!this.editUser.fullName || !this.editUser.username || !this.editUser.email || !this.editUser.role || !this.editUser.id) {
+      alert('All required fields must be filled to update a user');
+      return;
+    }
+
+    // Create a simplified payload matching the user update API
+    const userPayload: any = {
+      fullName: this.editUser.fullName,
+      username: this.editUser.username,
+      email: this.editUser.email,
+      role: this.editUser.role,
+      departmentIds: this.editUser.departmentIds,
+      subDepartmentId: this.editUser.subDepartmentId,
+      subDepartmentIds: this.editUser.subDepartmentIds,
+      subjectIds: this.editUser.subjectIds,
+      reportingManagerIds: this.editUser.reportingManagerIds
+    };
+
+    // Only include password if it's provided
+    if (this.editUser.password) {
+      userPayload.password = this.editUser.password;
+    }
+
+    this.userApiService.updateUser(this.editUser.id, userPayload).subscribe({
+      next: () => {
+        alert('User updated successfully');
+        this.loadUsers();
+        this.closeEditUserModal();
+      },
+      error: (err) => {
+        console.error('Failed to update user:', err);
+        alert('Failed to update user: ' + (err?.error?.message || err?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  // Load available managers for dropdown
+  loadAvailableManagers(): void {
+    this.userApiService.getAllUsers().subscribe({
+      next: (users: any) => {
+        this.availableManagers = users.content || users || [];
+      },
+      error: (err) => {
+        console.error('Error loading managers:', err);
+        this.availableManagers = [];
+      }
+    });
+  }
+
+  // Load available departments for dropdown
+  loadAvailableDepartments(): void {
+    this.departmentApiService.getAllDepartments().subscribe({
+      next: (departments: any) => {
+        this.availableDepartments = departments.content || departments || [];
+      },
+      error: (err) => {
+        console.error('Error loading departments:', err);
+        this.availableDepartments = [];
+      }
+    });
+  }
+
+  // Load available sub-departments for dropdown
+  loadAvailableSubDepartments(): void {
+    this.departmentApiService.getAllSubDepartments().subscribe({
+      next: (subDepts: any) => {
+        this.availableSubDepartments = subDepts.content || subDepts || [];
+      },
+      error: (err) => {
+        console.error('Error loading sub-departments:', err);
+        this.availableSubDepartments = [];
+      }
+    });
+  }
+
+  // Load available subjects for dropdown
+  loadAvailableSubjects(): void {
+    this.subjectApiService.getAllSubjects().subscribe({
+      next: (subjects: any) => {
+        this.availableSubjects = subjects.content || subjects || [];
+      },
+      error: (err) => {
+        console.error('Error loading subjects:', err);
+        this.availableSubjects = [];
+      }
+    });
+  }
+
+  // Check if department is selected
+  isDepartmentSelected(departmentId: number): boolean {
+    return this.editUser.departmentIds?.includes(departmentId) || false;
+  }
+
+  // Update department selection
+  updateDepartmentSelection(event: any, departmentId: number): void {
+    if (event.target.checked) {
+      if (!this.editUser.departmentIds) {
+        this.editUser.departmentIds = [];
+      }
+      this.editUser.departmentIds.push(departmentId);
+    } else {
+      this.editUser.departmentIds = this.editUser.departmentIds.filter((id: number) => id !== departmentId);
+    }
+  }
+
   openAssignModal(): void {
     this.showAssignModal = true;
     this.assignSearch = '';
@@ -1046,55 +1376,511 @@ export class DepartmentOverviewComponent implements OnInit {
     });
   }
 
-  openAddTaskModal(): void {
+  loadCurrentUser(): void {
+    const token = this.jwtService.getAccessToken();
+    if (token) {
+      const userId = this.jwtService.getUserIdFromToken(token);
+      if (userId) {
+        this.userApiService.getUserById(userId).subscribe({
+          next: (user) => {
+            this.currentUser = user;
+          },
+          error: (err) => console.error('Failed to load current user:', err)
+        });
+      }
+    }
+  }
+
+  loadTemplatesAndCategories(): void {
+    // Load template categories
+    this.templateApiService.getAllCategories().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.templateCategories = res.data.filter(c => c.isActive !== false);
+        }
+      },
+      error: (err) => console.error('Failed to load template categories:', err)
+    });
+
+    // Load templates
+    this.templateApiService.getAllTemplates().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.templates = res.data.filter(t => t.isActive !== false);
+        }
+      },
+      error: (err) => console.error('Failed to load templates:', err)
+    });
+
+    // Load subjects
+    this.subjectApiService.getAllSubjects().subscribe({
+      next: (subs) => {
+        this.subjects = subs || [];
+      },
+      error: (err) => console.error('Failed to load subjects:', err)
+    });
+  }
+
+  openAddTaskModal(task?: any): void {
     this.showAddTaskModal = true;
-    this.newTask = {
-      isTemplateTask: false,
-      title: '',
-      status: null,
-      description: ''
-    };
+    
+    if (task) {
+      // Edit mode
+      this.isEditMode = true;
+      this.editingTaskId = Number(task.id);
+      this.newTask = {
+        isTemplateTask: task.isTemplateTask || false,
+        title: task.title || '',
+        status: task.status || null,
+        description: task.description || '',
+        departmentIds: task.departmentIds || [this.departmentId],
+        assignedToIds: task.assignedToIds || [],
+        assignToSelf: false,
+        subDepartmentId: task.subDepartmentId || null,
+        subDepartmentIds: task.subDepartmentIds || [],
+        subjectId: task.subjectId || null,
+        templateCategoryId: task.templateCategoryId || null,
+        templateId: task.templateId || null,
+        targetCount: task.targetCount || null,
+        targetPercentage: task.targetPercentage || null,
+        startDate: task.startDate || '',
+        dueDate: task.dueDate || ''
+      };
+      
+      // Handle template selection if editing a template task
+      if (task.isTemplateTask && task.templateId) {
+        // We'll try to find the template, but handle case where filteredTemplates might not be loaded yet
+        if (this.filteredTemplates && this.filteredTemplates.length > 0) {
+          this.selectedTemplate = this.filteredTemplates.find(t => t.id === Number(task.templateId)) || null;
+          this.updateTemplateValidation();
+        } else {
+          this.selectedTemplate = null;
+          this.hasCountField = false;
+          this.hasProgressField = false;
+          this.progressOptions = [];
+        }
+      } else {
+        this.selectedTemplate = null;
+        this.hasCountField = false;
+        this.hasProgressField = false;
+        this.progressOptions = [];
+      }
+    } else {
+      // Add mode
+      this.isEditMode = false;
+      this.editingTaskId = null;
+      this.newTask = {
+        isTemplateTask: false,
+        title: '',
+        status: null,
+        description: '',
+        departmentIds: [this.departmentId],
+        assignedToIds: [],
+        assignToSelf: false,
+        subDepartmentId: null,
+        subDepartmentIds: [],
+        subjectId: null,
+        templateCategoryId: null,
+        templateId: null,
+        targetCount: null,
+        targetPercentage: null,
+        startDate: '',
+        dueDate: ''
+      };
+      this.selectedTemplate = null;
+      this.hasCountField = false;
+      this.hasProgressField = false;
+      this.progressOptions = [];
+    }
+    
+    this.dueDateError = '';
+    this.startDateError = '';
+    this.taskUserSearchTerm = '';
+    this.filteredDepartmentUsers = [...this.departmentUsers];
+    
+    // Load department users for assignment
+    this.loadDepartmentUsers();
+    
+    // Load sub-departments for the dropdown
+    this.loadSubDepartmentsForDropdown();
+  }
+
+  loadSubDepartmentsForDropdown(): void {
+    this.departmentApiService.getAllSubDepartments().subscribe({
+      next: (subs) => {
+        this.subDepartments = subs || [];
+        // Filter sub-departments for current department
+        this.filteredSubDepartments = this.subDepartments.filter(sub => 
+          sub.department?.departmentId === this.departmentId
+        );
+        console.log('Filtered sub-departments for dropdown:', this.filteredSubDepartments);
+      },
+      error: (err) => {
+        console.error('Failed to load sub-departments for dropdown:', err);
+        this.filteredSubDepartments = [];
+      }
+    });
+  }
+
+  loadDepartmentUsers(): void {
+    this.apiService.searchUsers({
+      departmentId: this.departmentId,
+      page: 0,
+      size: 100,
+      sortBy: 'fullName',
+      sortDirection: 'asc'
+    }).subscribe({
+      next: (response) => {
+        this.departmentUsers = response.data?.content || [];
+        this.filteredDepartmentUsers = [...this.departmentUsers];
+      },
+      error: (err) => console.error('Failed to load department users:', err)
+    });
   }
 
   closeAddTaskModal(): void {
     this.showAddTaskModal = false;
+    this.isEditMode = false;
+    this.editingTaskId = null;
+  }
+
+  // Task type and template handlers
+  onTaskTypeChange(): void {
+    if (!this.newTask.isTemplateTask) {
+      // Reset template fields
+      this.newTask.templateCategoryId = null;
+      this.newTask.templateId = null;
+      this.selectedTemplate = null;
+      this.filteredTemplates = [];
+      this.hasCountField = false;
+      this.hasProgressField = false;
+      this.progressOptions = [];
+      this.newTask.targetCount = null;
+      this.newTask.targetPercentage = null;
+    }
+  }
+
+  onTemplateCategoryChange(): void {
+    this.newTask.templateId = null;
+    this.selectedTemplate = null;
+    if (this.newTask.templateCategoryId) {
+      this.filteredTemplates = this.templates.filter(t => t.category.id === +this.newTask.templateCategoryId);
+    } else {
+      this.filteredTemplates = [];
+    }
+  }
+
+  onTemplateChange(): void {
+    this.selectedTemplate = null;
+    if (this.newTask.templateId) {
+      const template = this.templates.find(t => t.id === +this.newTask.templateId);
+      if (template) {
+        this.selectedTemplate = template;
+        if (template.title === 'Others') {
+          this.newTask.title = '';
+          this.newTask.description = '';
+        } else {
+          this.newTask.title = template.title;
+          this.newTask.description = template.description;
+        }
+        this.updateTemplateValidation();
+      }
+    } else {
+      this.newTask.title = '';
+      this.newTask.description = '';
+    }
+  }
+
+  updateTemplateValidation(): void {
+    if (!this.selectedTemplate) {
+      this.hasCountField = false;
+      this.hasProgressField = false;
+      this.progressOptions = [];
+      return;
+    }
+
+    const hasNumberField = this.selectedTemplate.fields?.some(f => f.fieldType === 'NUMBER' && f.fieldName?.toLowerCase() === 'count') || false;
+    const hasDropdownField = this.selectedTemplate.fields?.some(f => f.fieldType === 'DROPDOWN' && f.fieldName?.toLowerCase() === 'progress') || false;
+
+    this.hasCountField = hasNumberField;
+    this.hasProgressField = hasDropdownField;
+
+    if (hasDropdownField) {
+      const field = this.selectedTemplate.fields?.find(f => f.fieldType === 'DROPDOWN');
+      this.progressOptions = field?.options ? field.options.split(',') : [];
+    } else {
+      this.progressOptions = [];
+    }
+  }
+
+  // Status and date handlers
+  onStatusChange(): void {
+    if (this.newTask.status !== 'UPCOMING') {
+      this.newTask.startDate = '';
+      this.startDateError = '';
+    }
+  }
+
+  validateDates(): boolean {
+    this.dueDateError = '';
+    this.startDateError = '';
+
+    if (!this.newTask.dueDate) {
+      this.dueDateError = 'Due date is required.';
+      return false;
+    }
+
+    const startDate = this.newTask.startDate ? new Date(this.newTask.startDate) : new Date();
+    const dueDate = new Date(this.newTask.dueDate);
+
+    const startOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const dueOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+
+    if (dueOnly < startOnly) {
+      this.dueDateError = 'Due date cannot be before start date.';
+      return false;
+    }
+
+    if (this.newTask.status === 'UPCOMING' && !this.newTask.startDate) {
+      this.startDateError = 'Start date is required for upcoming tasks.';
+      return false;
+    }
+
+    return true;
+  }
+
+  // User assignment handlers
+  onTaskUserSearch(): void {
+    const query = this.taskUserSearchTerm.toLowerCase().trim();
+    this.filteredDepartmentUsers = this.departmentUsers.filter(user =>
+      user.fullName.toLowerCase().includes(query) ||
+      user.username.toLowerCase().includes(query)
+    );
+  }
+
+  toggleUserSelection(userId: number, checked: boolean): void {
+    if (checked) {
+      if (!this.newTask.assignedToIds.includes(userId)) {
+        this.newTask.assignedToIds.push(userId);
+      }
+    } else {
+      this.newTask.assignedToIds = this.newTask.assignedToIds.filter((id: number) => id !== userId);
+    }
+  }
+
+  onAssignToSelfChange(): void {
+    if (this.newTask.assignToSelf && this.currentUser) {
+      // Add current user to assigned IDs
+      if (!this.newTask.assignedToIds.includes(this.currentUser.userId)) {
+        this.newTask.assignedToIds.push(this.currentUser.userId);
+      }
+    } else {
+      // Remove current user from assigned IDs
+      if (this.currentUser) {
+        this.newTask.assignedToIds = this.newTask.assignedToIds.filter((id: number) => id !== this.currentUser!.userId);
+      }
+    }
+  }
+
+  // Sub-department and subject handlers
+  onSubDepartmentChange(): void {
+    if (this.newTask.subDepartmentId) {
+      // Load subjects for this sub-department if needed
+      this.newTask.subjectId = null;
+    }
   }
 
   submitAddTask(): void {
-    if (!this.newTask.title || !this.newTask.status) {
-      alert('Task title and status are required');
+    // Validate required fields
+    if (!this.newTask.title) {
+      alert('Task title is required');
+      return;
+    }
+
+    if (!this.newTask.status) {
+      alert('Status is required');
+      return;
+    }
+
+    if (!this.newTask.description) {
+      alert('Description is required');
+      return;
+    }
+
+    // Validate dates
+    if (!this.validateDates()) {
+      return;
+    }
+
+    // Validate template fields if template task
+    if (this.newTask.isTemplateTask) {
+      if (!this.newTask.templateCategoryId) {
+        alert('Template category is required for template-based tasks');
+        return;
+      }
+      if (!this.newTask.templateId) {
+        alert('Template is required for template-based tasks');
+        return;
+      }
+      if (this.hasCountField && !this.newTask.targetCount) {
+        alert('Target count is required for this template');
+        return;
+      }
+      if (this.hasProgressField && !this.newTask.targetPercentage) {
+        alert('Target progress is required for this template');
+        return;
+      }
+    }
+
+    this.isSubmitting = true;
+
+    const payload: any = {
+      title: this.newTask.title,
+      description: this.newTask.description,
+      status: this.newTask.status,
+      departmentIds: [this.departmentId],
+      assignedToIds: this.newTask.assignedToIds || [],
+      dueDate: this.newTask.dueDate,
+      isTemplateTask: this.newTask.isTemplateTask
+    };
+
+    // Add optional fields
+    if (this.newTask.startDate) {
+      payload.startDate = this.newTask.startDate;
+    }
+    if (this.newTask.subDepartmentId) {
+      payload.subDepartmentId = this.newTask.subDepartmentId;
+      payload.subDepartmentIds = [this.newTask.subDepartmentId];
+    }
+    if (this.newTask.subjectId) {
+      payload.subjectId = this.newTask.subjectId;
+    }
+    if (this.newTask.isTemplateTask) {
+      payload.templateId = this.newTask.templateId;
+      if (this.newTask.targetCount) {
+        payload.targetCount = this.newTask.targetCount;
+      }
+      if (this.newTask.targetPercentage) {
+        payload.targetPercentage = this.newTask.targetPercentage;
+      }
+    }
+
+    console.log('Submitting task payload:', payload);
+
+    if (this.isEditMode && this.editingTaskId) {
+      // Update existing task
+      this.taskApiService.updateTask(this.editingTaskId, payload).subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          alert('Task updated successfully');
+          this.loadTasks();
+          this.closeAddTaskModal();
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          console.error('Failed to update task:', err);
+          alert('Failed to update task: ' + (err?.error?.message || err?.message || 'Unknown error'));
+        }
+      });
+    } else {
+      // Create new task
+      this.taskApiService.createTask(payload).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          if (response.success) {
+            alert('Task created successfully');
+            this.loadTasks();
+            this.closeAddTaskModal();
+          } else {
+            alert('Failed to create task: ' + response.message);
+          }
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          console.error('Failed to create task:', err);
+          alert('Failed to create task: ' + (err?.error?.message || err?.message || 'Unknown error'));
+        }
+      });
+    }
+  }
+
+  // Approve/Reject Request Methods
+  openApproveDialog(approval: any, event: Event): void {
+    event.stopPropagation();
+    this.approveDialog = {
+      isOpen: true,
+      requestId: approval.requestId || approval.id,
+      requestType: approval.requestType,
+      remarks: '',
+      newDueDate: ''
+    };
+  }
+
+  closeApproveDialog(): void {
+    this.approveDialog.isOpen = false;
+  }
+
+  submitApprove(): void {
+    if (!this.approveDialog.requestId) return;
+
+    const payload: any = {
+      requestId: this.approveDialog.requestId,
+      remarks: this.approveDialog.remarks
+    };
+
+    if (this.approveDialog.requestType === 'EXTENSION' && this.approveDialog.newDueDate) {
+      payload.newDueDate = this.approveDialog.newDueDate;
+    }
+
+    this.loading = true;
+    this.requestApiService.approveRequestDirect(this.approveDialog.requestId, payload).subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.closeApproveDialog();
+        this.loadApprovals();
+      },
+      error: (err) => {
+        this.loading = false;
+        alert(err?.error?.message || 'Failed to approve request');
+      }
+    });
+  }
+
+  openRejectDialog(approval: any, event: Event): void {
+    event.stopPropagation();
+    this.rejectDialog = {
+      isOpen: true,
+      requestId: approval.requestId || approval.id,
+      reason: ''
+    };
+  }
+
+  closeRejectDialog(): void {
+    this.rejectDialog.isOpen = false;
+  }
+
+  submitReject(): void {
+    if (!this.rejectDialog.requestId) return;
+    if (!this.rejectDialog.reason.trim()) {
+      alert('Remarks/rejection reason is required.');
       return;
     }
 
     const payload = {
-      title: this.newTask.title,
-      description: this.newTask.description || '',
-      status: this.newTask.status,
-      departmentIds: [this.departmentId],
-      assignedToIds: [],
-      subDepartmentId: undefined,
-      subDepartmentIds: [],
-      subjectId: undefined,
-      templateId: this.newTask.isTemplateTask ? undefined : undefined,
-      targetCount: undefined,
-      targetPercentage: undefined,
-      startDate: undefined,
-      dueDate: undefined
+      requestId: this.rejectDialog.requestId,
+      reason: this.rejectDialog.reason
     };
 
-    this.taskApiService.createTask(payload).subscribe({
-      next: (response) => {
-        if (response.success) {
-          alert('Task created successfully');
-          this.loadTasks(); // Refresh the tasks list
-          this.closeAddTaskModal();
-        } else {
-          alert('Failed to create task: ' + response.message);
-        }
+    this.loading = true;
+    this.requestApiService.rejectRequestDirect(this.rejectDialog.requestId, payload).subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.closeRejectDialog();
+        this.loadApprovals();
       },
       error: (err) => {
-        console.error('Failed to create task:', err);
-        alert('Failed to create task: ' + (err?.error?.message || err?.message || 'Unknown error'));
+        this.loading = false;
+        alert(err?.error?.message || 'Failed to reject request');
       }
     });
   }

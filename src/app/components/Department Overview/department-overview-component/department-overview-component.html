@@ -1,29 +1,30 @@
 <div class="department-overview-container py-4">
 
  
-  <div class="d-flex align-items-center gap-2 mb-4">
-    <button class="btn btn-secondary" (click)="goBack()">
-      <i class="bi bi-arrow-left me-1"></i>Back
-    </button>
-      <div class="main-header mt-2">
-    <h2 class="fw-bold" style="color: var(--text-main);">Department overview</h2>
-  </div>
-  </div>
-
-  <!-- Action Buttons -->
-  <div class="d-flex gap-2 mb-4">
-    <button class="btn btn-primary" (click)="openAddSubDepartmentModal()">
-      <i class="bi bi-plus-circle me-1"></i>Add Sub Department
-    </button>
-    <button class="btn btn-primary" (click)="openAssignModal()">
-      <i class="bi bi-person-plus me-1"></i>Assign
-    </button>
-    <button class="btn btn-primary" (click)="openUpdateDepartmentModal()">
-      <i class="bi bi-pencil me-1"></i>Update Department
-    </button>
-    <button class="btn btn-primary" (click)="openAddTaskModal()">
-      <i class="bi bi-list-task me-1"></i>Add Task
-    </button>
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-secondary" (click)="goBack()">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </button>
+      <div class="main-header">
+        <h2 class="fw-bold mb-0" style="color: var(--text-main);">Department overview</h2>
+      </div>
+    </div>
+    
+    <div class="d-flex gap-3">
+      <button class="btn btn-primary" (click)="openAddSubDepartmentModal()">
+        <i class="bi bi-plus-circle me-1"></i>Add Sub Department
+      </button>
+      <!-- <button class="btn btn-primary" (click)="openAssignModal()">
+        <i class="bi bi-person-plus me-1"></i>Assign
+      </button> -->
+      <button class="btn btn-primary" (click)="openUpdateDepartmentModal()">
+        <i class="bi bi-pencil me-1"></i>Update Department
+      </button>
+      <button class="btn btn-primary" (click)="openAddTaskModal()">
+        <i class="bi bi-list-task me-1"></i>Add Task
+      </button>
+    </div>
   </div>
 
 
@@ -146,7 +147,7 @@
                     <button class="action-icon-btn" title="View" (click)="viewSubDepartment(subDept)">
                       <i class="bi bi-eye"></i>
                     </button>
-                    <button class="action-icon-btn" title="Edit">
+                    <button class="action-icon-btn" title="Edit" (click)="openEditSubDepartmentModal(subDept)">
                       <i class="bi bi-pencil-square"></i>
                     </button>
                   </div>
@@ -272,7 +273,7 @@
                     <button class="action-icon-btn" title="View" (click)="viewTask(task); $event.stopPropagation()">
                       <i class="bi bi-eye"></i>
                     </button>
-                    <button class="action-icon-btn" title="Edit">
+                    <button class="action-icon-btn" title="Edit" (click)="openAddTaskModal(task)">
                       <i class="bi bi-pencil-square"></i>
                     </button>
                   </div>
@@ -391,7 +392,7 @@
                     <button class="action-icon-btn" title="View" (click)="viewUser(user); $event.stopPropagation()">
                       <i class="bi bi-eye"></i>
                     </button>
-                    <button class="action-icon-btn" title="Edit">
+                    <button class="action-icon-btn" title="Edit" (click)="openEditUserModal(user)">
                       <i class="bi bi-pencil-square"></i>
                     </button>
                   </div>
@@ -508,10 +509,10 @@
                     <button class="action-icon-btn" title="View" (click)="viewApproval(approval)">
                       <i class="bi bi-eye"></i>
                     </button>
-                    <button class="action-icon-btn" title="Approve" style="color: #10b981;">
+                    <button class="action-icon-btn" title="Approve" style="color: #10b981;" (click)="openApproveDialog(approval, $event)">
                       <i class="bi bi-check-circle"></i>
                     </button>
-                    <button class="action-icon-btn" title="Reject" style="color: #dc2626;">
+                    <button class="action-icon-btn" title="Reject" style="color: #dc2626;" (click)="openRejectDialog(approval, $event)">
                       <i class="bi bi-x-circle"></i>
                     </button>
                   </div>
@@ -569,15 +570,19 @@
           <i class="bi bi-plus-circle text-primary"></i>
           Add Sub Department
         </h5>
-        <button type="button" class="btn-close" (click)="closeAddSubDepartmentModal()"></button>
+        <button type="button" class="btn-close-custom" (click)="closeAddSubDepartmentModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
       <div class="modal-body p-4">
         <div class="mb-3">
           <label class="form-label">Target Parent Department</label>
-          <select class="form-select" [(ngModel)]="newSubDept.departmentId">
-            <option [ngValue]="null">Select Department</option>
-            <option [value]="departmentId">{{ departmentId }}</option>
-          </select>
+          <div class="card p-3 bg-light border-0 rounded-3 shadow-sm">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-building text-primary fs-5"></i>
+              <strong class="text-dark">{{ departmentName || 'Loading...' }}</strong>
+            </div>
+          </div>
         </div>
         
         <div class="mb-3">
@@ -615,7 +620,9 @@
           <i class="bi bi-person-check-fill text-primary"></i>
                Assignment Module
         </h5>
-        <button type="button" class="btn-close" (click)="closeAssignModal()"></button>
+        <button type="button" class="btn-close-custom" (click)="closeAssignModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
       <div class="modal-body p-4">
         <div class="subdept-context-banner mb-3 p-3 bg-indigo-subtle border border-indigo-subtle rounded-3 d-flex align-items-center justify-content-between">
@@ -685,7 +692,9 @@
           <i class="bi bi-pencil text-primary"></i>
           Update Department
         </h5>
-        <button type="button" class="btn-close" (click)="closeUpdateDepartmentModal()"></button>
+        <button type="button" class="btn-close-custom" (click)="closeUpdateDepartmentModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
       <div class="modal-body p-4">
         <div class="mb-3">
@@ -716,78 +725,532 @@
 <!-- Add Task Modal -->
 <div *ngIf="showAddTaskModal" class="modal-backdrop" (click)="closeAddTaskModal()"></div>
 <div *ngIf="showAddTaskModal" class="modal d-block" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content rounded-4 shadow-lg border-0 overflow-hidden">
       <div class="modal-header bg-light border-bottom py-3">
         <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-dark fs-5">
           <i class="bi bi-list-task text-primary"></i>
-          Add Task
+          {{ isEditMode ? 'Edit Task' : 'Add Task' }}
         </h5>
-        <button type="button" class="btn-close" (click)="closeAddTaskModal()"></button>
+        <button type="button" class="btn-close-custom" (click)="closeAddTaskModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
       <div class="modal-body p-4">
-        <div class="mb-3">
+        <!-- Task Type Switcher -->
+        <div class="mb-4">
           <label class="form-label">Task Type <span class="text-danger">*</span></label>
           <div class="task-type-container">
-            <input type="radio" class="btn-check" id="taskTypeGeneral" [value]="false" [(ngModel)]="newTask.isTemplateTask">
+            <input type="radio" class="btn-check" id="taskTypeGeneral" [value]="false" [(ngModel)]="newTask.isTemplateTask" (change)="onTaskTypeChange()">
             <label class="task-type-btn" [class.active]="!newTask.isTemplateTask" for="taskTypeGeneral">
               <i class="bi bi-file-earmark-text"></i> General Task
             </label>
-            <input type="radio" class="btn-check" id="taskTypeTemplate" [value]="true" [(ngModel)]="newTask.isTemplateTask">
+            <input type="radio" class="btn-check" id="taskTypeTemplate" [value]="true" [(ngModel)]="newTask.isTemplateTask" (change)="onTaskTypeChange()">
             <label class="task-type-btn" [class.active]="newTask.isTemplateTask" for="taskTypeTemplate">
               <i class="bi bi-ui-checks-grid"></i> Template-Based Task
             </label>
           </div>
         </div>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <div class="mb-3">
+
+        <div class="row g-4">
+          <!-- Left Column -->
+          <div class="col-md-6 d-flex flex-column gap-3">
+            <!-- Template Category (only if template task) -->
+            <div *ngIf="newTask.isTemplateTask">
+              <label class="form-label">Template Category <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-folder2"></i></span>
+                <select class="form-select" [(ngModel)]="newTask.templateCategoryId" (change)="onTemplateCategoryChange()">
+                  <option [ngValue]="null" disabled>Select Category</option>
+                  <option *ngFor="let cat of templateCategories" [ngValue]="cat.id">
+                    {{ cat.name }} <span *ngIf="cat.subcategory">({{ cat.subcategory }})</span>
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Task Title -->
+            <div>
               <label class="form-label">Task Title <span class="text-danger">*</span></label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-pencil"></i></span>
-                <input type="text" class="form-control" [(ngModel)]="newTask.title" placeholder="e.g., Monthly Progress Report">
+                <input type="text" class="form-control" [(ngModel)]="newTask.title" 
+                  [disabled]="newTask.isTemplateTask && selectedTemplate?.title !== 'Others'"
+                  [placeholder]="newTask.isTemplateTask && selectedTemplate?.title !== 'Others' ? 'Auto-populated from template' : 'e.g., Monthly Progress Report'">
               </div>
             </div>
-          </div>
-          <div class="col-md-6">
-            <div class="mb-3">
+
+            <!-- Status -->
+            <div>
               <label class="form-label">Status <span class="text-danger">*</span></label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-tag"></i></span>
-                <select class="form-select" [(ngModel)]="newTask.status">
+                <select class="form-select" [(ngModel)]="newTask.status" (change)="onStatusChange()">
                   <option [ngValue]="null" disabled>Select Status</option>
                   <option [ngValue]="'PENDING'">Pending</option>
                   <option [ngValue]="'UPCOMING'">Upcoming</option>
                   <option [ngValue]="'IN_PROGRESS'">In Progress</option>
-                  <option [ngValue]="'COMPLETED'">Completed</option>
                   <option [ngValue]="'CLOSED'">Closed</option>
+                </select>
+              </div>
+              <small class="text-muted" *ngIf="newTask.status === 'UPCOMING'">Requires start date</small>
+            </div>
+
+            <!-- Responsible Department -->
+            <div>
+              <label class="form-label">Responsible Department <span class="text-danger">*</span></label>
+              <div class="card p-3 bg-light border-0 rounded-3 shadow-sm">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-building-lock text-primary fs-5"></i>
+                  <strong class="text-dark">{{ departmentName || 'Loading...' }}</strong>
+                </div>
+                <small class="text-muted">Pre-filled from Department context</small>
+              </div>
+            </div>
+
+            <!-- Assign Users -->
+            <div>
+              <label class="form-label">Assign Users</label>
+              <div class="accordion mb-2" id="userAccordion">
+                <div class="accordion-item rounded-3 mb-2 overflow-hidden border">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-users">
+                      Department Users
+                      <span class="badge bg-light text-primary ms-2">{{ departmentUsers.length }} members</span>
+                    </button>
+                  </h2>
+                  <div id="collapse-users" class="accordion-collapse collapse show" data-bs-parent="#userAccordion">
+                    <div class="accordion-body p-3">
+                      <div class="directory-search mb-2">
+                        <i class="bi bi-search"></i>
+                        <input type="text" class="form-control w-100" placeholder="Search members..." 
+                          [(ngModel)]="taskUserSearchTerm" (ngModelChange)="onTaskUserSearch()">
+                      </div>
+                      <div class="max-h-48 overflow-y-auto pr-1 d-flex flex-column gap-2">
+                        <div *ngFor="let user of filteredDepartmentUsers" class="form-check">
+                          <input type="checkbox" class="form-check-input custom-checkbox" [id]="'user-' + user.userId"
+                            [checked]="newTask.assignedToIds?.includes(user.userId)"
+                            (change)="toggleUserSelection(user.userId, $event.target.checked)" />
+                          <label class="form-check-label" [for]="'user-' + user.userId">
+                            {{ user.fullName }}
+                            <small class="text-muted ms-1">({{ user.role }})</small>
+                          </label>
+                        </div>
+                        <div *ngIf="!filteredDepartmentUsers.length" class="text-muted small text-center py-2">
+                          No members found.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-check mt-2">
+                <input type="checkbox" class="form-check-input custom-checkbox" id="assignToSelf" [(ngModel)]="newTask.assignToSelf" (change)="onAssignToSelfChange()">
+                <label class="form-check-label" for="assignToSelf">Assign to Myself</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="col-md-6 d-flex flex-column gap-3">
+            <!-- Task Template (only if template task) -->
+            <div *ngIf="newTask.isTemplateTask">
+              <label class="form-label">Task Template <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-file-earmark-ruled"></i></span>
+                <select class="form-select" [(ngModel)]="newTask.templateId" (change)="onTemplateChange()">
+                  <option [ngValue]="null" disabled>Select Template</option>
+                  <option *ngFor="let temp of filteredTemplates" [ngValue]="temp.id">
+                    {{ temp.title }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label class="form-label">Description <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-chat-dots"></i></span>
+                <textarea class="form-control" rows="3" [(ngModel)]="newTask.description" 
+                  [disabled]="newTask.isTemplateTask && selectedTemplate?.title !== 'Others'"
+                  placeholder="Describe scope, deliverables, and instructions..."></textarea>
+              </div>
+            </div>
+
+            <!-- Due Date -->
+            <div>
+              <label class="form-label">Due Date <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
+                <input type="date" class="form-control" [(ngModel)]="newTask.dueDate" [min]="minDate">
+              </div>
+              <small class="text-danger" *ngIf="dueDateError">{{ dueDateError }}</small>
+            </div>
+
+            <!-- Start Date (Upcoming only) -->
+            <div *ngIf="newTask.status === 'UPCOMING'">
+              <label class="form-label">Start Date <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar-plus"></i></span>
+                <input type="date" class="form-control" [(ngModel)]="newTask.startDate" [min]="minDate">
+              </div>
+              <small class="text-danger" *ngIf="startDateError">{{ startDateError }}</small>
+            </div>
+
+            <!-- Sub-Department Selection -->
+            <div>
+              <label class="form-label">Sub-Department (Optional)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-diagram-2"></i></span>
+                <select class="form-select" [(ngModel)]="newTask.subDepartmentId">
+                  <option [ngValue]="null">Select Sub-Department</option>
+                  <option *ngFor="let sub of filteredSubDepartments" [ngValue]="sub.id">
+                    {{ sub.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Subject Selection -->
+            <div *ngIf="newTask.subDepartmentId">
+              <label class="form-label">Subject (Optional)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-book"></i></span>
+                <select class="form-select" [(ngModel)]="newTask.subjectId">
+                  <option [ngValue]="null">Select Subject</option>
+                  <option *ngFor="let sub of subjects" [ngValue]="sub.id">
+                    {{ sub.subjectName }} ({{ sub.subjectCode }})
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Dynamic Field: Target Count -->
+            <div *ngIf="newTask.isTemplateTask && hasCountField">
+              <label class="form-label">Target Count <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                <input type="number" class="form-control" [(ngModel)]="newTask.targetCount" placeholder="e.g., 50" min="1">
+              </div>
+            </div>
+
+            <!-- Dynamic Field: Target Progress -->
+            <div *ngIf="newTask.isTemplateTask && hasProgressField">
+              <label class="form-label">Target Progress <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-percent"></i></span>
+                <select class="form-select" [(ngModel)]="newTask.targetPercentage">
+                  <option [ngValue]="null" disabled>Select Target Progress</option>
+                  <option *ngFor="let opt of progressOptions" [value]="opt">
+                    {{ opt }}
+                  </option>
                 </select>
               </div>
             </div>
           </div>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Responsible Department <span class="text-danger">*</span></label>
-          <div class="card p-3 bg-light border-0 rounded-3 mb-2 shadow-sm">
-            <div class="d-flex align-items-center gap-2">
-              <i class="bi bi-building text-primary fs-5"></i>
-              <strong class="text-dark">Department ID: {{ departmentId }}</strong>
-            </div>
-          </div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Description</label>
-          <textarea class="form-control" rows="3" [(ngModel)]="newTask.description" placeholder="Enter task description..."></textarea>
-        </div>
       </div>
       <div class="modal-footer bg-light border-top">
         <button type="button" class="btn btn-light border rounded-3 px-4" (click)="closeAddTaskModal()">Cancel</button>
-        <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold" (click)="submitAddTask()">
-          <i class="bi bi-plus-circle me-1.5"></i>Create Task
+        <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold" (click)="submitAddTask()" [disabled]="isSubmitting">
+          <i class="bi {{ isEditMode ? 'bi-pencil-square' : 'bi-plus-circle' }} me-1.5"></i>
+          <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update Task' : 'Create Task' }}</span>
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
         </button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Approve Request Dialog -->
+<div class="modal-backdrop-custom" *ngIf="approveDialog.isOpen" (click)="closeApproveDialog()"></div>
+<div class="modal fade" [class.show]="approveDialog.isOpen" [style.display]="approveDialog.isOpen ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="approveDialogLabel" [attr.aria-hidden]="!approveDialog.isOpen">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom bg-light">
+        <div>
+          <h5 class="modal-title fw-bold mb-0 text-success" id="approveDialogLabel">
+            <i class="bi bi-check-circle-fill me-2"></i>Approve Request
+          </h5>
+        </div>
+        <button type="button" class="btn-close" (click)="closeApproveDialog()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3" *ngIf="approveDialog.requestType === 'EXTENSION'">
+          <label class="form-label text-dark small fw-semibold">NEW DUE DATE (Required for extension)</label>
+          <input type="datetime-local" class="form-control border-secondary" [(ngModel)]="approveDialog.newDueDate" />
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-dark small fw-semibold">REMARKS (Optional)</label>
+          <textarea class="form-control border-secondary" rows="3"
+            placeholder="Add approval remarks or compliance notes..." [(ngModel)]="approveDialog.remarks"></textarea>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-light px-4 border" (click)="closeApproveDialog()">Cancel</button>
+          <button class="btn btn-success px-4" (click)="submitApprove()">Approve</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Request Dialog -->
+<div class="modal-backdrop-custom" *ngIf="rejectDialog.isOpen" (click)="closeRejectDialog()"></div>
+<div class="modal fade" [class.show]="rejectDialog.isOpen" [style.display]="rejectDialog.isOpen ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="rejectDialogLabel" [attr.aria-hidden]="!rejectDialog.isOpen">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom bg-light">
+        <div>
+          <h5 class="modal-title fw-bold mb-0 text-danger" id="rejectDialogLabel">
+            <i class="bi bi-x-circle-fill me-2"></i>Reject Request
+          </h5>
+        </div>
+        <button type="button" class="btn-close" (click)="closeRejectDialog()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <label class="form-label text-danger small fw-semibold">REJECTION REMARKS / REASON (Required)</label>
+          <textarea class="form-control border-danger" rows="3"
+            placeholder="Provide a detailed explanation for rejection..." [(ngModel)]="rejectDialog.reason"
+            required></textarea>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-light px-4 border" (click)="closeRejectDialog()">Cancel</button>
+          <button class="btn btn-danger px-4" [disabled]="!rejectDialog.reason.trim()" (click)="submitReject()">Reject
+            Request</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Sub-Department Modal -->
+<div *ngIf="showEditSubDepartmentModal" class="modal-backdrop" (click)="closeEditSubDepartmentModal()"></div>
+<div *ngIf="showEditSubDepartmentModal" class="modal d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0 overflow-hidden">
+      <div class="modal-header bg-light border-bottom py-3">
+        <div>
+          <h5 class="modal-title fw-bold mb-0">Edit Sub-Department</h5>
+          <p class="text-muted small mb-0">Update sub-department details</p>
+        </div>
+        <button type="button" class="btn-close" (click)="closeEditSubDepartmentModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+          <label class="form-label">Sub-Department Name <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+            <input type="text" class="form-control" [(ngModel)]="editSubDept.name" placeholder="Enter sub-department name">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Code <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-code-slash"></i></span>
+            <input type="text" class="form-control" [(ngModel)]="editSubDept.code" placeholder="Enter code">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+            <textarea class="form-control" [(ngModel)]="editSubDept.description" rows="3" placeholder="Enter description"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-top">
+        <button type="button" class="btn btn-light border rounded-3 px-4" (click)="closeEditSubDepartmentModal()">Cancel</button>
+        <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold" (click)="submitEditSubDepartment()">
+          <i class="bi bi-pencil-square me-1.5"></i>Update Sub-Department
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Edit User Modal -->
+<div *ngIf="showEditUserModal" class="modal-backdrop" (click)="closeEditUserModal()"></div>
+<div *ngIf="showEditUserModal" class="modal d-block" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0 overflow-hidden">
+      <div class="modal-header bg-light border-bottom py-3">
+        <div>
+          <h5 class="modal-title fw-bold mb-0">Edit User</h5>
+          <p class="text-muted small mb-0">Update user profile and access</p>
+        </div>
+        <button type="button" class="btn-close" (click)="closeEditUserModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        
+        <!-- Personal Details Section -->
+        <div class="form-section-card mb-4">
+          <div class="form-section-header">
+            <div class="form-section-icon"><i class="bi bi-person"></i></div>
+            <div class="form-section-title-wrapper">
+              <h4 class="form-section-title">Personal Details</h4>
+              <p class="form-section-subtitle">Manage user identification attributes</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Full Name <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" class="form-control" [(ngModel)]="editUser.fullName" placeholder="e.g. Jane Doe">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Username <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">@</span>
+                <input type="text" class="form-control" [(ngModel)]="editUser.username" placeholder="e.g. jane_doe">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Email Address <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input type="email" class="form-control" [(ngModel)]="editUser.email" placeholder="e.g. jane@example.com">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Credentials Section -->
+        <div class="form-section-card mb-4">
+          <div class="form-section-header">
+            <div class="form-section-icon"><i class="bi bi-shield-lock"></i></div>
+            <div class="form-section-title-wrapper">
+              <h4 class="form-section-title">Security Credentials</h4>
+              <p class="form-section-subtitle">Optionally update account credentials</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">
+                Password
+                <span class="text-muted small">(Leave empty to retain current)</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                <input [type]="showEditPassword ? 'text' : 'password'" class="form-control" [(ngModel)]="editUser.password"
+                  placeholder="Enter new strong password">
+                <button type="button" class="btn btn-outline-secondary" (click)="showEditPassword = !showEditPassword" tabindex="-1">
+                  <i class="bi" [ngClass]="showEditPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role & Hierarchy Section -->
+        <div class="form-section-card mb-4">
+          <div class="form-section-header">
+            <div class="form-section-icon"><i class="bi bi-person-badge"></i></div>
+            <div class="form-section-title-wrapper">
+              <h4 class="form-section-title">Role & Hierarchy</h4>
+              <p class="form-section-subtitle">Modify reporting structure, supervisor and roles</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">System Role <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                <select class="form-select" [(ngModel)]="editUser.role">
+                  <option value="" disabled>Select Role</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="SUB_ADMIN">Sub Admin</option>
+                  <option value="HOD">HOD</option>
+                  <option value="TEACHER">Teacher</option>
+                  <option value="SUPER_ADMIN">Super Admin</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6" *ngIf="editUser.role && editUser.role !== 'SUPER_ADMIN'">
+              <label class="form-label">Reporting Managers <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-people"></i></span>
+                <select class="form-select" [(ngModel)]="editUser.reportingManagerId">
+                  <option value="">Select Manager</option>
+                  <option *ngFor="let manager of availableManagers" [value]="manager.userId">{{ manager.fullName }} ({{ manager.role }})</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Department & Sub Department Section -->
+        <div class="form-section-card mb-4" *ngIf="editUser.role && editUser.role !== 'SUPER_ADMIN'">
+          <div class="form-section-header">
+            <div class="form-section-icon"><i class="bi bi-diagram-3"></i></div>
+            <div class="form-section-title-wrapper">
+              <h4 class="form-section-title">Department & Sub Department</h4>
+              <p class="form-section-subtitle">Select department, sub-department, and subjects in organizational hierarchy order</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <!-- Departments Access -->
+            <div class="col-12">
+              <label class="form-label">Departments Access <span class="text-danger">*</span></label>
+              <div class="department-list p-3 border rounded-3" style="max-height: 200px; overflow-y: auto;">
+                <div *ngIf="availableDepartments.length === 0" class="text-center text-muted py-3">
+                  <i class="bi bi-search me-1"></i> No departments available.
+                </div>
+                <div *ngFor="let dept of availableDepartments" class="form-check mb-2">
+                  <input type="checkbox" class="form-check-input custom-checkbox" [id]="'edit-dept-' + dept.departmentId"
+                    [checked]="isDepartmentSelected(dept.departmentId)"
+                    (change)="updateDepartmentSelection($event, dept.departmentId)" />
+                  <label class="form-check-label d-flex align-items-center" [for]="'edit-dept-' + dept.departmentId">
+                    <i class="bi bi-building me-2"></i>
+                    <span>{{ dept.name }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sub-Departments -->
+            <div class="col-12 mt-3" *ngIf="editUser.role === 'HOD' || editUser.role === 'TEACHER'">
+              <label class="form-label">Sub-Departments <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+                <select class="form-select" [(ngModel)]="editUser.subDepartmentId">
+                  <option value="">Select Sub-Department</option>
+                  <option *ngFor="let subDept of availableSubDepartments" [value]="subDept.id">{{ subDept.name }} ({{ subDept.code }})</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Subjects -->
+            <div class="col-12 mt-3" *ngIf="(editUser.role === 'HOD' || editUser.role === 'TEACHER') && editUser.subDepartmentId">
+              <label class="form-label">Subjects</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-book"></i></span>
+                <select class="form-select" [(ngModel)]="editUser.subjectId" multiple>
+                  <option *ngFor="let subject of availableSubjects" [value]="subject.id">{{ subject.subjectName }} ({{ subject.subjectCode }})</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer bg-light border-top">
+        <button type="button" class="btn btn-light border rounded-3 px-4" (click)="closeEditUserModal()">Cancel</button>
+        <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold" (click)="submitEditUser()">
+          <i class="bi bi-pencil-square me-1.5"></i>Update User
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
