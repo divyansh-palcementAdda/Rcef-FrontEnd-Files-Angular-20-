@@ -1,8 +1,8 @@
 <div class="department-overview-container py-4">
 
  
-  <div class="d-flex align-items-center justify-content-between mb-4">
-    <div class="d-flex align-items-center gap-2">
+  <div class="d-flex align-items-center justify-content-between mb-4 header-section">
+    <div class="d-flex align-items-center gap-2 header-left">
       <button class="btn btn-secondary" (click)="goBack()">
         <i class="bi bi-arrow-left me-1"></i>Back
       </button>
@@ -11,7 +11,7 @@
       </div>
     </div>
     
-    <div class="d-flex gap-3">
+    <div class="d-flex gap-3 header-buttons">
       <button class="btn btn-primary" (click)="openAddSubDepartmentModal()">
         <i class="bi bi-plus-circle me-1"></i>Add Sub Department
       </button>
@@ -257,7 +257,7 @@
             </thead>
             <tbody>
               <tr *ngFor="let task of tasksData?.content; let i = index">
-                <td class="text-muted fw-semibold">{{ i + 1 }}</td>
+                <td class="text-muted fw-semibold">{{ (currentPage * pageSize) + i + 1 }}</td>
                 <td class="fw-bold" style="color: var(--text-main);">{{ task.title || '-' }}</td>
                 <td class="text-muted"><small>{{ task.assignedToName || '-' }}</small></td>
                 <td><span class="badge bg-light text-dark fw-semibold">{{ task.departmentName || '-' }}</span></td>
@@ -379,7 +379,7 @@
             </thead>
             <tbody>
               <tr *ngFor="let user of usersData?.content; let i = index">
-                <td class="text-muted fw-semibold">{{ i + 1 }}</td>
+                <td class="text-muted fw-semibold">{{ (userCurrentPage * userPageSize) + i + 1 }}</td>
                 <td class="fw-bold" style="color: var(--text-main);">{{ user.fullName || '-' }}</td>
                 <td class="text-muted"><small>{{ user.email || '-' }}</small></td>
                 <td><span class="badge bg-primary fw-semibold">{{ user.role || '-' }}</span></td>
@@ -496,7 +496,7 @@
             </thead>
             <tbody>
               <tr *ngFor="let approval of approvalsData?.content; let i = index">
-                <td class="text-muted fw-semibold">{{ i + 1 }}</td>
+                <td class="text-muted fw-semibold">{{ (approvalCurrentPage * approvalPageSize) + i + 1 }}</td>
                 <td class="fw-bold" style="color: var(--text-main);">{{ approval.taskTitle || '-' }}</td>
                 <td><span class="badge bg-warning text-dark fw-semibold">{{ approval.requestType || '-' }}</span></td>
                 <td class="text-muted"><small>{{ approval.requestedByName || '-' }}</small></td>

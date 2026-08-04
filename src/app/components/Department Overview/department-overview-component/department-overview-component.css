@@ -4,6 +4,52 @@
   margin: 0 auto;
 }
 
+/* Header Section Responsive Styles */
+.header-section {
+  flex-wrap: nowrap;
+}
+
+.header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-buttons {
+  flex-shrink: 0;
+}
+
+@media (max-width: 320px) {
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem !important;
+  }
+
+  .header-left {
+    width: 100%;
+  }
+
+  .header-buttons {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem !important;
+  }
+
+  .header-buttons .btn {
+    flex: 1 1 auto;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .header-buttons .btn i {
+    margin-right: 0.25rem !important;
+  }
+
+  .main-header h2 {
+    font-size: 1.1rem !important;
+  }
+}
+
 /* Summary Cards Grid */
 .summary-cards-grid {
   display: flex;
