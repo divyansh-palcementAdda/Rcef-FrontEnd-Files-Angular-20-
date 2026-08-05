@@ -347,6 +347,11 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   onFilterChange(): void {
     this.currentPage = 0;
     this.loadAnalyticsTable();
+  }
+
+  onDateFilterChange(): void {
+    this.currentPage = 0;
+    this.loadAnalyticsTable();
     this.loadDepartmentCards();
   }
 
@@ -430,8 +435,8 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (response) => {
         this.drillDownTasks = response.content || [];
-        this.drillDownTotalRecords = response.totalElements || 0;
-        this.drillDownTotalPages = response.totalPages || 0;
+        this.drillDownTotalRecords = response.page?.totalElements || 0;
+        this.drillDownTotalPages = response.page?.totalPages || 0;
         this.loadingDrillDown = false;
       },
       error: (err) => {

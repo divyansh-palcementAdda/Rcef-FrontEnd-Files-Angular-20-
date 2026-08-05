@@ -248,14 +248,14 @@
       <!-- From date -->
       <div class="uta-filter-field">
         <label class="uta-filter-label">From</label>
-        <input type="date" class="uta-select" [(ngModel)]="startDate" (change)="onFilterChange()"
+        <input type="date" class="uta-select" [(ngModel)]="startDate" (change)="onDateFilterChange()"
           aria-label="Start date" />
       </div>
 
       <!-- To date -->
       <div class="uta-filter-field">
         <label class="uta-filter-label">To</label>
-        <input type="date" class="uta-select" [(ngModel)]="endDate" (change)="onFilterChange()" aria-label="End date" />
+        <input type="date" class="uta-select" [(ngModel)]="endDate" (change)="onDateFilterChange()" aria-label="End date" />
       </div>
 
     </div>
@@ -682,7 +682,7 @@
     </div>
 
     <!-- Footer pagination -->
-    <div class="uta-modal__footer" *ngIf="drillDownTotalPages > 1">
+    <div class="uta-modal__footer" *ngIf="drillDownTotalPages > 0">
       <span style="font-size:.78rem;color:#64748b;">{{ drillDownTotalRecords }} tasks total</span>
       <div class="uta-pagination__controls">
         <button class="uta-pag-btn" [disabled]="drillDownPage === 0" (click)="onDrillDownPageChange(drillDownPage - 1)"
