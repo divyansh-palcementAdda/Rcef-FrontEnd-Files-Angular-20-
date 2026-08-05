@@ -59,10 +59,11 @@ interface TaskFormControls {
 })
 export class UpdateTaskComponent implements OnInit, AfterViewInit {
   @Input() isModal = false;
+  @Input() taskId?: number;
   @Output() closed = new EventEmitter<boolean>();
   /* ---------- FORM ---------- */
   taskForm!: FormGroup;
-  taskId!: number;
+  private _taskId!: number;
 
   /* ---------- DATA ---------- */
   departments: Department[] = [];
@@ -151,9 +152,15 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
 
   /* ---------- LIFECYCLE ---------- */
   ngOnInit(): void {
-    const params = this.route.snapshot.queryParams;
-    this.taskId = +params['taskId'];
-    if (!this.taskId || isNaN(this.taskId)) {
+    // Get taskId from input or route params
+    if (this.taskId) {
+      this._taskId = this.taskId;
+    } else {
+      const params = this.route.snapshot.queryParams;
+      this._taskId = +params['taskId'];
+    }
+    
+    if (!this._taskId || isNaN(this._taskId)) {
       this.errorMessage = 'Invalid task ID.';
       if (!this.isModal) {
         this.router.navigate(['/view-tasks']);
@@ -430,7 +437,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   }
 
   private loadTask(): void {
-    this.taskService.getTaskById(this.taskId).subscribe({
+    this.taskService.getTaskById(this._taskId).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           console.log('Loaded Task:', res.data);
@@ -969,7 +976,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     this.isSubmitting = true;
     this.cdr.markForCheck();
 
-    this.taskService.updateTask(this.taskId, payload).subscribe({
+    this.taskService.updateTask(this._taskId, payload).subscribe({
       next: () => {
         this.successMessage = 'Task updated successfully!';
         this.cdr.markForCheck();
@@ -977,7 +984,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
           if (this.isModal) {
             this.closed.emit(true);
           } else {
-            this.router.navigate(['/task', this.taskId]);
+            this.router.navigate(['/task', this._taskId]);
           }
         }, 1500);
       },
@@ -1035,7 +1042,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
     if (this.isModal) {
       this.closed.emit(false);
     } else {
-      this.router.navigate(['/task', this.taskId]);
+      this.router.navigate(['/task', this._taskId]);
     }
   }
 

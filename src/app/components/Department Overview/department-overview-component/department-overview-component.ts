@@ -6,8 +6,6 @@ import { ApiService } from '../../../Services/api-service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService } from '../../../Services/UserApiService';
-import { TaskTemplateApiService, TaskTemplateDto, TaskTemplateCategoryDto } from '../../../Services/task-template-api.service';
-import { SubjectApiService } from '../../../Services/subject-api.service';
 import { JwtService } from '../../../Services/jwt-service';
 import { RequestApiService } from '../../../Services/request-api-service';
 import { DashboardDto } from '../../../Model/DashboardDto';
@@ -17,10 +15,12 @@ import { Subscription } from 'rxjs';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { forkJoin } from 'rxjs';
+import { AddTaskComponent } from '../../Tasks/add-task/add-task';
+import { UpdateTaskComponent } from '../../Tasks/update-task/update-task';
 
 @Component({
   selector: 'app-department-overview-component',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AddTaskComponent, UpdateTaskComponent],
   templateUrl: './department-overview-component.html',
   styleUrl: './department-overview-component.css',
 })
@@ -80,8 +80,12 @@ export class DepartmentOverviewComponent implements OnInit {
   showAssignModal: boolean = false;
   showUpdateDepartmentModal: boolean = false;
   showAddTaskModal: boolean = false;
+  showEditTaskModal: boolean = false;
   showEditSubDepartmentModal: boolean = false;
   showEditUserModal: boolean = false;
+  
+  // Task related state
+  selectedTaskId: number | null = null;
 
   // Approve/Reject dialog state
   approveDialog: {
@@ -121,25 +125,6 @@ export class DepartmentOverviewComponent implements OnInit {
     description: ''
   };
 
-  newTask: any = {
-    isTemplateTask: false,
-    title: '',
-    status: null,
-    description: '',
-    departmentIds: [],
-    assignedToIds: [],
-    assignToSelf: false,
-    subDepartmentId: null,
-    subDepartmentIds: [],
-    subjectId: null,
-    templateCategoryId: null,
-    templateId: null,
-    targetCount: null,
-    targetPercentage: null,
-    startDate: '',
-    dueDate: ''
-  };
-
   // Edit form objects
   editSubDept: any = {
     id: null,
@@ -149,8 +134,7 @@ export class DepartmentOverviewComponent implements OnInit {
     description: ''
   };
 
-  isEditMode: boolean = false;
-  editingTaskId: number | null = null;
+
 
   editUser: any = {
     id: null,
@@ -173,32 +157,14 @@ export class DepartmentOverviewComponent implements OnInit {
   availableManagers: any[] = [];
   availableDepartments: any[] = [];
   availableSubDepartments: any[] = [];
-  availableSubjects: any[] = [];
 
-  // Template and dropdown data
-  templateCategories: TaskTemplateCategoryDto[] = [];
-  templates: TaskTemplateDto[] = [];
-  filteredTemplates: TaskTemplateDto[] = [];
-  selectedTemplate: TaskTemplateDto | null = null;
-  subDepartments: any[] = [];
-  filteredSubDepartments: any[] = [];
-  subjects: any[] = [];
-  departmentUsers: userDto[] = [];
-  filteredDepartmentUsers: userDto[] = [];
+  // User and assign data
   currentUser: userDto | null = null;
   
   // UI state
   isSubmitting: boolean = false;
   loading: boolean = false;
-  taskUserSearchTerm: string = '';
-  dueDateError: string = '';
-  startDateError: string = '';
   minDate: string = '';
-  
-  // Dynamic template fields
-  hasCountField: boolean = false;
-  hasProgressField: boolean = false;
-  progressOptions: string[] = [];
 
   assignSearch: string = '';
   selectedTeacherCandidates: any[] = [];
@@ -217,8 +183,6 @@ export class DepartmentOverviewComponent implements OnInit {
     private departmentApiService: DepartmentApiService,
     private taskApiService: TaskApiService,
     private userApiService: UserApiService,
-    private templateApiService: TaskTemplateApiService,
-    private subjectApiService: SubjectApiService,
     private jwtService: JwtService,
     private requestApiService: RequestApiService
   ) {
@@ -231,9 +195,6 @@ export class DepartmentOverviewComponent implements OnInit {
       this.departmentId = params['departmentId'] ? +params['departmentId'] : 0;
       console.log('Department ID from route:', this.departmentId);
 
-      // Initialize task form with department ID
-      this.newTask.departmentIds = [this.departmentId];
-
       // Load data after getting departmentId
       this.loadDepartmentName();
       this.loadDashboardData();
@@ -242,7 +203,6 @@ export class DepartmentOverviewComponent implements OnInit {
       this.loadUsers();
       this.loadApprovals();
       this.loadSubDepartments();
-      this.loadTemplatesAndCategories();
       this.loadCurrentUser();
     });
   }
@@ -335,7 +295,8 @@ export class DepartmentOverviewComponent implements OnInit {
       next: (response) => {
         console.log('Full API response:', response);
         this.tasksData = response.data;
-        this.totalResults = response.data.pagination?.totalElements || 0;
+        // Task API has direct totalElements
+        this.totalResults = response.data.totalElements || 0;
         console.log('Tasks content:', response.data.content);
         console.log('Total results:', this.totalResults);
       },
@@ -366,7 +327,8 @@ export class DepartmentOverviewComponent implements OnInit {
       next: (response) => {
         console.log('Full User API response:', response);
         this.usersData = response.data;
-        this.userTotalResults = response.data.pagination?.totalElements || 0;
+        // User API has pagination inside data.pagination
+        this.userTotalResults = response.data.pagination?.totalElements || response.data.totalElements || 0;
         console.log('Users content:', response.data.content);
         console.log('Total users:', this.userTotalResults);
       },
@@ -398,7 +360,8 @@ export class DepartmentOverviewComponent implements OnInit {
       next: (response) => {
         console.log('Full Approval API response:', response);
         this.approvalsData = response.data;
-        this.approvalTotalResults = response.data.pagination?.totalElements || 0;
+        // Handle both pagination structures
+        this.approvalTotalResults = response.data.pagination?.totalElements || response.data.totalElements || 0;
         console.log('Approvals content:', response.data.content);
         console.log('Total approvals:', this.approvalTotalResults);
       },
@@ -423,7 +386,8 @@ export class DepartmentOverviewComponent implements OnInit {
           if (Array.isArray(response.data.content)) {
             // Paginated response structure
             this.subDepartmentsData = response.data;
-            this.subDeptTotalResults = response.data.pagination?.totalElements || 0;
+            // Handle both pagination structures
+            this.subDeptTotalResults = response.data.pagination?.totalElements || response.data.totalElements || 0;
             console.log('Sub-Departments content:', this.subDepartmentsData);
             console.log('Total sub-departments:', this.subDeptTotalResults);
             return;
@@ -1111,7 +1075,6 @@ export class DepartmentOverviewComponent implements OnInit {
     this.loadAvailableManagers();
     this.loadAvailableDepartments();
     this.loadAvailableSubDepartments();
-    this.loadAvailableSubjects();
   }
 
   closeEditUserModal(): void {
@@ -1206,19 +1169,6 @@ export class DepartmentOverviewComponent implements OnInit {
       error: (err) => {
         console.error('Error loading sub-departments:', err);
         this.availableSubDepartments = [];
-      }
-    });
-  }
-
-  // Load available subjects for dropdown
-  loadAvailableSubjects(): void {
-    this.subjectApiService.getAllSubjects().subscribe({
-      next: (subjects: any) => {
-        this.availableSubjects = subjects.content || subjects || [];
-      },
-      error: (err) => {
-        console.error('Error loading subjects:', err);
-        this.availableSubjects = [];
       }
     });
   }
@@ -1383,444 +1333,32 @@ export class DepartmentOverviewComponent implements OnInit {
     }
   }
 
-  loadTemplatesAndCategories(): void {
-    // Load template categories
-    this.templateApiService.getAllCategories().subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.templateCategories = res.data.filter(c => c.isActive !== false);
-        }
-      },
-      error: (err) => console.error('Failed to load template categories:', err)
-    });
-
-    // Load templates
-    this.templateApiService.getAllTemplates().subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.templates = res.data.filter(t => t.isActive !== false);
-        }
-      },
-      error: (err) => console.error('Failed to load templates:', err)
-    });
-
-    // Don't load all subjects initially - they will be loaded based on sub-department selection
-    this.subjects = [];
-  }
-
   openAddTaskModal(task?: any): void {
-    this.showAddTaskModal = true;
-    
     if (task) {
-      // Edit mode
-      this.isEditMode = true;
-      this.editingTaskId = Number(task.id);
-      this.newTask = {
-        isTemplateTask: task.isTemplateTask || false,
-        title: task.title || '',
-        status: task.status || null,
-        description: task.description || '',
-        departmentIds: task.departmentIds || [this.departmentId],
-        assignedToIds: task.assignedToIds || [],
-        assignToSelf: false,
-        subDepartmentId: task.subDepartmentId || null,
-        subDepartmentIds: task.subDepartmentIds || [],
-        subjectId: task.subjectId || null,
-        templateCategoryId: task.templateCategoryId || null,
-        templateId: task.templateId || null,
-        targetCount: task.targetCount || null,
-        targetPercentage: task.targetPercentage || null,
-        startDate: task.startDate || '',
-        dueDate: task.dueDate || ''
-      };
-      
-      // Load subjects for the existing sub-department if editing
-      if (this.newTask.subDepartmentId) {
-        this.subjectApiService.getSubjects(null, this.newTask.subDepartmentId.toString()).subscribe({
-          next: (subjects) => {
-            this.subjects = subjects || [];
-            console.log('Subjects loaded for sub-department (edit mode):', this.newTask.subDepartmentId, subjects);
-          },
-          error: (err) => {
-            console.error('Error loading subjects for sub-department:', err);
-            this.subjects = [];
-          }
-        });
-      } else {
-        this.subjects = [];
-      }
-      
-      // Handle template selection if editing a template task
-      if (task.isTemplateTask && task.templateId) {
-        // We'll try to find the template, but handle case where filteredTemplates might not be loaded yet
-        if (this.filteredTemplates && this.filteredTemplates.length > 0) {
-          this.selectedTemplate = this.filteredTemplates.find(t => t.id === Number(task.templateId)) || null;
-          this.updateTemplateValidation();
-        } else {
-          this.selectedTemplate = null;
-          this.hasCountField = false;
-          this.hasProgressField = false;
-          this.progressOptions = [];
-        }
-      } else {
-        this.selectedTemplate = null;
-        this.hasCountField = false;
-        this.hasProgressField = false;
-        this.progressOptions = [];
-      }
+      // Edit mode - use update-task component
+      this.selectedTaskId = Number(task.id);
+      this.showEditTaskModal = true;
     } else {
-      // Add mode
-      this.isEditMode = false;
-      this.editingTaskId = null;
-      this.newTask = {
-        isTemplateTask: false,
-        title: '',
-        status: null,
-        description: '',
-        departmentIds: [this.departmentId],
-        assignedToIds: [],
-        assignToSelf: false,
-        subDepartmentId: null,
-        subDepartmentIds: [],
-        subjectId: null,
-        templateCategoryId: null,
-        templateId: null,
-        targetCount: null,
-        targetPercentage: null,
-        startDate: '',
-        dueDate: ''
-      };
-      this.selectedTemplate = null;
-      this.hasCountField = false;
-      this.hasProgressField = false;
-      this.progressOptions = [];
-      // Reset subjects for add mode
-      this.subjects = [];
+      // Add mode - use add-task component
+      this.showAddTaskModal = true;
     }
-    
-    this.dueDateError = '';
-    this.startDateError = '';
-    this.taskUserSearchTerm = '';
-    this.filteredDepartmentUsers = [...this.departmentUsers];
-    
-    // Load department users for assignment
-    this.loadDepartmentUsers();
-    
-    // Load sub-departments for the dropdown
-    this.loadSubDepartmentsForDropdown();
-  }
-
-  loadSubDepartmentsForDropdown(): void {
-    this.departmentApiService.getAllSubDepartments().subscribe({
-      next: (subs) => {
-        this.subDepartments = subs || [];
-        // Filter sub-departments for current department
-        this.filteredSubDepartments = this.subDepartments.filter(sub => 
-          sub.department?.departmentId === this.departmentId
-        );
-        console.log('Filtered sub-departments for dropdown:', this.filteredSubDepartments);
-      },
-      error: (err) => {
-        console.error('Failed to load sub-departments for dropdown:', err);
-        this.filteredSubDepartments = [];
-      }
-    });
-  }
-
-  loadDepartmentUsers(): void {
-    this.apiService.searchUsers({
-      departmentId: this.departmentId,
-      page: 0,
-      size: 100,
-      sortBy: 'fullName',
-      sortDirection: 'asc'
-    }).subscribe({
-      next: (response) => {
-        this.departmentUsers = response.data?.content || [];
-        this.filteredDepartmentUsers = [...this.departmentUsers];
-      },
-      error: (err) => console.error('Failed to load department users:', err)
-    });
   }
 
   closeAddTaskModal(): void {
     this.showAddTaskModal = false;
-    this.isEditMode = false;
-    this.editingTaskId = null;
   }
 
-  // Task type and template handlers
-  onTaskTypeChange(): void {
-    if (!this.newTask.isTemplateTask) {
-      // Reset template fields
-      this.newTask.templateCategoryId = null;
-      this.newTask.templateId = null;
-      this.selectedTemplate = null;
-      this.filteredTemplates = [];
-      this.hasCountField = false;
-      this.hasProgressField = false;
-      this.progressOptions = [];
-      this.newTask.targetCount = null;
-      this.newTask.targetPercentage = null;
-    }
+  closeEditTaskModal(): void {
+    this.showEditTaskModal = false;
+    this.selectedTaskId = null;
   }
 
-  onTemplateCategoryChange(): void {
-    this.newTask.templateId = null;
-    this.selectedTemplate = null;
-    if (this.newTask.templateCategoryId) {
-      this.filteredTemplates = this.templates.filter(t => t.category.id === +this.newTask.templateCategoryId);
-    } else {
-      this.filteredTemplates = [];
-    }
-  }
-
-  onTemplateChange(): void {
-    this.selectedTemplate = null;
-    if (this.newTask.templateId) {
-      const template = this.templates.find(t => t.id === +this.newTask.templateId);
-      if (template) {
-        this.selectedTemplate = template;
-        if (template.title === 'Others') {
-          this.newTask.title = '';
-          this.newTask.description = '';
-        } else {
-          this.newTask.title = template.title;
-          this.newTask.description = template.description;
-        }
-        this.updateTemplateValidation();
-      }
-    } else {
-      this.newTask.title = '';
-      this.newTask.description = '';
-    }
-  }
-
-  updateTemplateValidation(): void {
-    if (!this.selectedTemplate) {
-      this.hasCountField = false;
-      this.hasProgressField = false;
-      this.progressOptions = [];
-      return;
-    }
-
-    const hasNumberField = this.selectedTemplate.fields?.some(f => f.fieldType === 'NUMBER' && f.fieldName?.toLowerCase() === 'count') || false;
-    const hasDropdownField = this.selectedTemplate.fields?.some(f => f.fieldType === 'DROPDOWN' && f.fieldName?.toLowerCase() === 'progress') || false;
-
-    this.hasCountField = hasNumberField;
-    this.hasProgressField = hasDropdownField;
-
-    if (hasDropdownField) {
-      const field = this.selectedTemplate.fields?.find(f => f.fieldType === 'DROPDOWN');
-      this.progressOptions = field?.options ? field.options.split(',') : [];
-    } else {
-      this.progressOptions = [];
-    }
-  }
-
-  // Status and date handlers
-  onStatusChange(): void {
-    if (this.newTask.status !== 'UPCOMING') {
-      this.newTask.startDate = '';
-      this.startDateError = '';
-    }
-  }
-
-  validateDates(): boolean {
-    this.dueDateError = '';
-    this.startDateError = '';
-
-    if (!this.newTask.dueDate) {
-      this.dueDateError = 'Due date is required.';
-      return false;
-    }
-
-    const startDate = this.newTask.startDate ? new Date(this.newTask.startDate) : new Date();
-    const dueDate = new Date(this.newTask.dueDate);
-
-    const startOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    const dueOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-
-    if (dueOnly < startOnly) {
-      this.dueDateError = 'Due date cannot be before start date.';
-      return false;
-    }
-
-    if (this.newTask.status === 'UPCOMING' && !this.newTask.startDate) {
-      this.startDateError = 'Start date is required for upcoming tasks.';
-      return false;
-    }
-
-    return true;
-  }
-
-  // User assignment handlers
-  onTaskUserSearch(): void {
-    const query = this.taskUserSearchTerm.toLowerCase().trim();
-    this.filteredDepartmentUsers = this.departmentUsers.filter(user =>
-      user.fullName.toLowerCase().includes(query) ||
-      user.username.toLowerCase().includes(query)
-    );
-  }
-
-  toggleUserSelection(userId: number, checked: boolean): void {
-    if (checked) {
-      if (!this.newTask.assignedToIds.includes(userId)) {
-        this.newTask.assignedToIds.push(userId);
-      }
-    } else {
-      this.newTask.assignedToIds = this.newTask.assignedToIds.filter((id: number) => id !== userId);
-    }
-  }
-
-  onAssignToSelfChange(): void {
-    if (this.newTask.assignToSelf && this.currentUser) {
-      // Add current user to assigned IDs
-      if (!this.newTask.assignedToIds.includes(this.currentUser.userId)) {
-        this.newTask.assignedToIds.push(this.currentUser.userId);
-      }
-    } else {
-      // Remove current user from assigned IDs
-      if (this.currentUser) {
-        this.newTask.assignedToIds = this.newTask.assignedToIds.filter((id: number) => id !== this.currentUser!.userId);
-      }
-    }
-  }
-
-  // Sub-department and subject handlers
-  onSubDepartmentChange(): void {
-    // Reset subject selection when sub-department changes
-    this.newTask.subjectId = null;
-    
-    if (this.newTask.subDepartmentId) {
-      // Load subjects for this sub-department using query parameter approach
-      this.subjectApiService.getSubjects(null, this.newTask.subDepartmentId.toString()).subscribe({
-        next: (subjects) => {
-          this.subjects = subjects || [];
-          console.log('Subjects loaded for sub-department:', this.newTask.subDepartmentId, subjects);
-        },
-        error: (err) => {
-          console.error('Error loading subjects for sub-department:', err);
-          this.subjects = [];
-        }
-      });
-    } else {
-      // Clear subjects if no sub-department selected
-      this.subjects = [];
-    }
-  }
-
-  submitAddTask(): void {
-    // Validate required fields
-    if (!this.newTask.title) {
-      alert('Task title is required');
-      return;
-    }
-
-    if (!this.newTask.status) {
-      alert('Status is required');
-      return;
-    }
-
-    if (!this.newTask.description) {
-      alert('Description is required');
-      return;
-    }
-
-    // Validate dates
-    if (!this.validateDates()) {
-      return;
-    }
-
-    // Validate template fields if template task
-    if (this.newTask.isTemplateTask) {
-      if (!this.newTask.templateCategoryId) {
-        alert('Template category is required for template-based tasks');
-        return;
-      }
-      if (!this.newTask.templateId) {
-        alert('Template is required for template-based tasks');
-        return;
-      }
-      if (this.hasCountField && !this.newTask.targetCount) {
-        alert('Target count is required for this template');
-        return;
-      }
-      if (this.hasProgressField && !this.newTask.targetPercentage) {
-        alert('Target progress is required for this template');
-        return;
-      }
-    }
-
-    this.isSubmitting = true;
-
-    const payload: any = {
-      title: this.newTask.title,
-      description: this.newTask.description,
-      status: this.newTask.status,
-      departmentIds: [this.departmentId],
-      assignedToIds: this.newTask.assignedToIds || [],
-      dueDate: this.newTask.dueDate,
-      isTemplateTask: this.newTask.isTemplateTask
-    };
-
-    // Add optional fields
-    if (this.newTask.startDate) {
-      payload.startDate = this.newTask.startDate;
-    }
-    if (this.newTask.subDepartmentId) {
-      payload.subDepartmentId = this.newTask.subDepartmentId;
-      payload.subDepartmentIds = [this.newTask.subDepartmentId];
-    }
-    if (this.newTask.subjectId) {
-      payload.subjectId = this.newTask.subjectId;
-    }
-    if (this.newTask.isTemplateTask) {
-      payload.templateId = this.newTask.templateId;
-      if (this.newTask.targetCount) {
-        payload.targetCount = this.newTask.targetCount;
-      }
-      if (this.newTask.targetPercentage) {
-        payload.targetPercentage = this.newTask.targetPercentage;
-      }
-    }
-
-    console.log('Submitting task payload:', payload);
-
-    if (this.isEditMode && this.editingTaskId) {
-      // Update existing task
-      this.taskApiService.updateTask(this.editingTaskId, payload).subscribe({
-        next: () => {
-          this.isSubmitting = false;
-          alert('Task updated successfully');
-          this.loadTasks();
-          this.closeAddTaskModal();
-        },
-        error: (err) => {
-          this.isSubmitting = false;
-          console.error('Failed to update task:', err);
-          alert('Failed to update task: ' + (err?.error?.message || err?.message || 'Unknown error'));
-        }
-      });
-    } else {
-      // Create new task
-      this.taskApiService.createTask(payload).subscribe({
-        next: (response) => {
-          this.isSubmitting = false;
-          if (response.success) {
-            alert('Task created successfully');
-            this.loadTasks();
-            this.closeAddTaskModal();
-          } else {
-            alert('Failed to create task: ' + response.message);
-          }
-        },
-        error: (err) => {
-          this.isSubmitting = false;
-          console.error('Failed to create task:', err);
-          alert('Failed to create task: ' + (err?.error?.message || err?.message || 'Unknown error'));
-        }
-      });
+  // Task modal handlers - using separate components now
+  onTaskModalClosed(refresh: boolean = false): void {
+    this.closeAddTaskModal();
+    this.closeEditTaskModal();
+    if (refresh) {
+      this.loadTasks();
     }
   }
 

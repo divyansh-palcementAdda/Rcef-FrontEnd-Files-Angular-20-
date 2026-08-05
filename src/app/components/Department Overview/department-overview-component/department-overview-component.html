@@ -208,10 +208,13 @@
           <div class="col-md-6">
             <select class="form-select" id="taskStatusFilter" [(ngModel)]="statusFilter" (change)="onStatusFilterChange()">
               <option value="">All Status</option>
-              <option value="IN_PROGRESS">Active</option>
+              <option value="IN_PROGRESS">In Progress</option>
               <option value="PENDING">Pending</option>
               <option value="CLOSED">Completed</option>
               <option value="DELAYED">Delayed</option>
+              <option value="EXTENDED">Extended</option>
+              <option value="REQ_CLOUSER">Req.Clouser</option>
+              <option value="REQ_EXTENSION">Req.Extension</option>
             </select>
           </div>
         </div>
@@ -715,246 +718,6 @@
   </div>
 </div>
 
-<!-- Add Task Modal -->
-<div *ngIf="showAddTaskModal" class="modal-backdrop" (click)="closeAddTaskModal()"></div>
-<div *ngIf="showAddTaskModal" class="modal d-block" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-xl">
-    <div class="modal-content rounded-4 shadow-lg border-0 overflow-hidden">
-      <div class="modal-header bg-light border-bottom py-3">
-        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-dark fs-5">
-          <i class="bi bi-list-task text-primary"></i>
-          {{ isEditMode ? 'Edit Task' : 'Add Task' }}
-        </h5>
-        <button type="button" class="btn-close-custom" (click)="closeAddTaskModal()">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <div class="modal-body p-4">
-        <!-- Task Type Switcher -->
-        <div class="mb-4">
-          <label class="form-label">Task Type <span class="text-danger">*</span></label>
-          <div class="task-type-container">
-            <input type="radio" class="btn-check" id="taskTypeGeneral" [value]="false" [(ngModel)]="newTask.isTemplateTask" (change)="onTaskTypeChange()">
-            <label class="task-type-btn" [class.active]="!newTask.isTemplateTask" for="taskTypeGeneral">
-              <i class="bi bi-file-earmark-text"></i> General Task
-            </label>
-            <input type="radio" class="btn-check" id="taskTypeTemplate" [value]="true" [(ngModel)]="newTask.isTemplateTask" (change)="onTaskTypeChange()">
-            <label class="task-type-btn" [class.active]="newTask.isTemplateTask" for="taskTypeTemplate">
-              <i class="bi bi-ui-checks-grid"></i> Template-Based Task
-            </label>
-          </div>
-        </div>
-
-        <div class="row g-4">
-          <!-- Left Column -->
-          <div class="col-md-6 d-flex flex-column gap-3">
-            <!-- Template Category (only if template task) -->
-            <div *ngIf="newTask.isTemplateTask">
-              <label class="form-label">Template Category <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-folder2"></i></span>
-                <select class="form-select" [(ngModel)]="newTask.templateCategoryId" (change)="onTemplateCategoryChange()">
-                  <option [ngValue]="null" disabled>Select Category</option>
-                  <option *ngFor="let cat of templateCategories" [ngValue]="cat.id">
-                    {{ cat.name }} <span *ngIf="cat.subcategory">({{ cat.subcategory }})</span>
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Task Title -->
-            <div>
-              <label class="form-label">Task Title <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-pencil"></i></span>
-                <input type="text" class="form-control" [(ngModel)]="newTask.title" 
-                  [disabled]="newTask.isTemplateTask && selectedTemplate?.title !== 'Others'"
-                  [placeholder]="newTask.isTemplateTask && selectedTemplate?.title !== 'Others' ? 'Auto-populated from template' : 'e.g., Monthly Progress Report'">
-              </div>
-            </div>
-
-            <!-- Status -->
-            <div>
-              <label class="form-label">Status <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-tag"></i></span>
-                <select class="form-select" [(ngModel)]="newTask.status" (change)="onStatusChange()">
-                  <option [ngValue]="null" disabled>Select Status</option>
-                  <option [ngValue]="'PENDING'">Pending</option>
-                  <option [ngValue]="'UPCOMING'">Upcoming</option>
-                  <option [ngValue]="'IN_PROGRESS'">In Progress</option>
-                  <option [ngValue]="'CLOSED'">Closed</option>
-                </select>
-              </div>
-              <small class="text-muted" *ngIf="newTask.status === 'UPCOMING'">Requires start date</small>
-            </div>
-
-            <!-- Responsible Department -->
-            <div>
-              <label class="form-label">Responsible Department <span class="text-danger">*</span></label>
-              <div class="card p-3 bg-light border-0 rounded-3 shadow-sm">
-                <div class="d-flex align-items-center gap-2">
-                  <i class="bi bi-building-lock text-primary fs-5"></i>
-                  <strong class="text-dark">{{ departmentName || 'Loading...' }}</strong>
-                </div>
-                <small class="text-muted">Pre-filled from Department context</small>
-              </div>
-            </div>
-
-            <!-- Assign Users -->
-            <div>
-              <label class="form-label">Assign Users</label>
-              <div class="accordion mb-2" id="userAccordion">
-                <div class="accordion-item rounded-3 mb-2 overflow-hidden border">
-                  <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-users">
-                      Department Users
-                      <span class="badge bg-light text-primary ms-2">{{ departmentUsers.length }} members</span>
-                    </button>
-                  </h2>
-                  <div id="collapse-users" class="accordion-collapse collapse show" data-bs-parent="#userAccordion">
-                    <div class="accordion-body p-3">
-                      <div class="directory-search mb-2">
-                        <i class="bi bi-search"></i>
-                        <input type="text" class="form-control w-100" placeholder="Search members..." 
-                          [(ngModel)]="taskUserSearchTerm" (ngModelChange)="onTaskUserSearch()">
-                      </div>
-                      <div class="max-h-48 overflow-y-auto pr-1 d-flex flex-column gap-2">
-                        <div *ngFor="let user of filteredDepartmentUsers" class="form-check">
-                          <input type="checkbox" class="form-check-input custom-checkbox" [id]="'user-' + user.userId"
-                            [checked]="newTask.assignedToIds?.includes(user.userId)"
-                            (change)="toggleUserSelection(user.userId, $event.target.checked)" />
-                          <label class="form-check-label" [for]="'user-' + user.userId">
-                            {{ user.fullName }}
-                            <small class="text-muted ms-1">({{ user.role }})</small>
-                          </label>
-                        </div>
-                        <div *ngIf="!filteredDepartmentUsers.length" class="text-muted small text-center py-2">
-                          No members found.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="form-check mt-2">
-                <input type="checkbox" class="form-check-input custom-checkbox" id="assignToSelf" [(ngModel)]="newTask.assignToSelf" (change)="onAssignToSelfChange()">
-                <label class="form-check-label" for="assignToSelf">Assign to Myself</label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column -->
-          <div class="col-md-6 d-flex flex-column gap-3">
-            <!-- Task Template (only if template task) -->
-            <div *ngIf="newTask.isTemplateTask">
-              <label class="form-label">Task Template <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-file-earmark-ruled"></i></span>
-                <select class="form-select" [(ngModel)]="newTask.templateId" (change)="onTemplateChange()">
-                  <option [ngValue]="null" disabled>Select Template</option>
-                  <option *ngFor="let temp of filteredTemplates" [ngValue]="temp.id">
-                    {{ temp.title }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Description -->
-            <div>
-              <label class="form-label">Description <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-chat-dots"></i></span>
-                <textarea class="form-control" rows="3" [(ngModel)]="newTask.description" 
-                  [disabled]="newTask.isTemplateTask && selectedTemplate?.title !== 'Others'"
-                  placeholder="Describe scope, deliverables, and instructions..."></textarea>
-              </div>
-            </div>
-
-            <!-- Due Date -->
-            <div>
-              <label class="form-label">Due Date <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
-                <input type="date" class="form-control" [(ngModel)]="newTask.dueDate" [min]="minDate">
-              </div>
-              <small class="text-danger" *ngIf="dueDateError">{{ dueDateError }}</small>
-            </div>
-
-            <!-- Start Date (Upcoming only) -->
-            <div *ngIf="newTask.status === 'UPCOMING'">
-              <label class="form-label">Start Date <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-calendar-plus"></i></span>
-                <input type="date" class="form-control" [(ngModel)]="newTask.startDate" [min]="minDate">
-              </div>
-              <small class="text-danger" *ngIf="startDateError">{{ startDateError }}</small>
-            </div>
-
-            <!-- Sub-Department Selection -->
-            <div>
-              <label class="form-label">Sub-Department (Optional)</label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-diagram-2"></i></span>
-                <select class="form-select" [(ngModel)]="newTask.subDepartmentId" (change)="onSubDepartmentChange()">
-                  <option [ngValue]="null">Select Sub-Department</option>
-                  <option *ngFor="let sub of filteredSubDepartments" [ngValue]="sub.id">
-                    {{ sub.name }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Subject Selection -->
-            <div *ngIf="newTask.subDepartmentId">
-              <label class="form-label">Subject (Optional)</label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-book"></i></span>
-                <select class="form-select" [(ngModel)]="newTask.subjectId">
-                  <option [ngValue]="null">Select Subject</option>
-                  <option *ngFor="let sub of subjects" [ngValue]="sub.id">
-                    {{ sub.subjectName }} ({{ sub.subjectCode }})
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Dynamic Field: Target Count -->
-            <div *ngIf="newTask.isTemplateTask && hasCountField">
-              <label class="form-label">Target Count <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-hash"></i></span>
-                <input type="number" class="form-control" [(ngModel)]="newTask.targetCount" placeholder="e.g., 50" min="1">
-              </div>
-            </div>
-
-            <!-- Dynamic Field: Target Progress -->
-            <div *ngIf="newTask.isTemplateTask && hasProgressField">
-              <label class="form-label">Target Progress <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-percent"></i></span>
-                <select class="form-select" [(ngModel)]="newTask.targetPercentage">
-                  <option [ngValue]="null" disabled>Select Target Progress</option>
-                  <option *ngFor="let opt of progressOptions" [value]="opt">
-                    {{ opt }}
-                  </option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer bg-light border-top">
-        <button type="button" class="btn btn-light border rounded-3 px-4" (click)="closeAddTaskModal()">Cancel</button>
-        <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold" (click)="submitAddTask()" [disabled]="isSubmitting">
-          <i class="bi {{ isEditMode ? 'bi-pencil-square' : 'bi-plus-circle' }} me-1.5"></i>
-          <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update Task' : 'Create Task' }}</span>
-          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Approve Request Dialog -->
 <div class="modal-backdrop-custom" *ngIf="approveDialog.isOpen" (click)="closeApproveDialog()"></div>
@@ -1228,8 +991,8 @@
               <label class="form-label">Subjects</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-book"></i></span>
-                <select class="form-select" [(ngModel)]="editUser.subjectId" multiple>
-                  <option *ngFor="let subject of availableSubjects" [value]="subject.id">{{ subject.subjectName }} ({{ subject.subjectCode }})</option>
+                <select class="form-select" [(ngModel)]="editUser.subjectId" multiple disabled>
+                  <option value="">No subjects available</option>
                 </select>
               </div>
             </div>
@@ -1243,6 +1006,28 @@
           <i class="bi bi-pencil-square me-1.5"></i>Update User
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal-backdrop-custom" *ngIf="showAddTaskModal" (click)="closeAddTaskModal()"></div>
+<div class="modal fade" [class.show]="showAddTaskModal" [style.display]="showAddTaskModal ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="addTaskModalLabel" [attr.aria-hidden]="!showAddTaskModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <app-add-task *ngIf="showAddTaskModal" [isModal]="true" [initialDepartmentId]="departmentId" (closed)="onTaskModalClosed($event)"></app-add-task>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal-backdrop-custom" *ngIf="showEditTaskModal" (click)="closeEditTaskModal()"></div>
+<div class="modal fade" [class.show]="showEditTaskModal" [style.display]="showEditTaskModal ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="editTaskModalLabel" [attr.aria-hidden]="!showEditTaskModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <app-update-task *ngIf="showEditTaskModal && selectedTaskId" [isModal]="true" [taskId]="selectedTaskId" (closed)="onTaskModalClosed($event)"></app-update-task>
     </div>
   </div>
 </div>
