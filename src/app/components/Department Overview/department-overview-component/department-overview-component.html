@@ -50,7 +50,7 @@
           <div class="col-md-6">
             <div class="d-flex align-items-center gap-2">
               <div class="text-muted small fw-semibold">Status:</div>
-              <div class="fw-semibold" style="color: var(--text-main);">{{ departmentData?.departmentStatus || '-' }}</div>
+              <div class="fw-semibold" style="color: var(--text-main);">{{ departmentData?.status || departmentData?.departmentStatus || '-' }}</div>
             </div>
           </div>
           <div class="col-md-6">
@@ -318,7 +318,7 @@
 
 
   <!-- All Users Table Section -->
-  <div class="table-section mt-4">
+  <div class="table-section users-section mt-4">
     <div class="card border-0 shadow-sm">
       <div class="card-body p-4">
         <h5 class="fw-bold mb-4" style="color: var(--text-main);">

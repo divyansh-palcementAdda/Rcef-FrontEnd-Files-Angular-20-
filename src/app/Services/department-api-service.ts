@@ -29,7 +29,22 @@ export class DepartmentApiService {
   // ---------------- Department APIs ----------------
   getAllDepartments(): Observable<Department[]> {
     console.log('Fetching departments from:', this.apiUrl);
-    return this.http.get<Department[]>(this.apiUrl).pipe(
+    return this.http.get<any[]>(this.apiUrl).pipe(
+      map((response: any) => {
+        const items = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.data)
+            ? response.data
+            : Array.isArray(response?.result)
+              ? response.result
+              : [];
+
+        return items.map((item: any) => ({
+          ...item,
+          departmentId: item.id || item.departmentId,
+          departmentStatus: item.status || item.departmentStatus
+        }));
+      }),
       catchError(err => this.handleError(err, 'fetch all departments'))
     );
   }
@@ -46,9 +61,9 @@ export class DepartmentApiService {
               : [];
 
         return items.map((item: any) => ({
-          departmentId: item.departmentId,
-          name: item.departmentName || item.name || `Department #${item.departmentId}`,
-          departmentStatus: item.departmentStatus || 'ACTIVE'
+          departmentId: item.id || item.departmentId,
+          name: item.departmentName || item.name || `Department #${item.id || item.departmentId}`,
+          departmentStatus: item.status || item.departmentStatus || 'ACTIVE'
         }));
       }),
       catchError(err => this.handleError(err, 'fetch authorized departments'))
@@ -56,8 +71,24 @@ export class DepartmentApiService {
   }
 
  getZeroDueDepartmentsAsObjects(): Observable<Department[]> {
-  return this.http.get<Department[]>(`${this.apiUrl}/zero-due`)
-    .pipe(catchError(err => this.handleError(err, 'fetch zero due departments')));
+  return this.http.get<any[]>(`${this.apiUrl}/zero-due`).pipe(
+    map((response: any) => {
+      const items = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.data)
+          ? response.data
+          : Array.isArray(response?.result)
+            ? response.result
+            : [];
+
+      return items.map((item: any) => ({
+        ...item,
+        departmentId: item.id || item.departmentId,
+        departmentStatus: item.status || item.departmentStatus
+      }));
+    }),
+    catchError(err => this.handleError(err, 'fetch zero due departments'))
+  );
 }
   createDepartment(payload: Department): Observable<any> {
     console.log('Creating department with payload:', payload);
@@ -85,12 +116,40 @@ export class DepartmentApiService {
     if (!ids || ids.length === 0) {
       return throwError(() => new Error('No department IDs provided'));
     }
-    return this.http.post<Department[]>(`${this.apiUrl}/by-ids`, { ids }).pipe(
+    return this.http.post<any[]>(`${this.apiUrl}/by-ids`, { ids }).pipe(
+      map((response: any) => {
+        const items = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.data)
+            ? response.data
+            : Array.isArray(response?.result)
+              ? response.result
+              : [];
+
+        return items.map((item: any) => ({
+          ...item,
+          departmentId: item.id || item.departmentId,
+          departmentStatus: item.status || item.departmentStatus
+        }));
+      }),
       catchError(err => this.handleError(err, 'fetch departments by IDs'))
     );
   }
   getDepartmentById(id: number): Observable<Department> {
-    return this.http.get<Department>(`${this.apiUrl}/${id}`);
+    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+      map((response: any) => {
+        // Map API response to Department interface
+        return {
+          ...response,
+          departmentId: response.id || response.departmentId,
+          departmentStatus: response.status || response.departmentStatus
+        };
+      })
+    );
+  }
+
+  getDepartmentStatistics(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
   /** GET /api/department/{departmentId}/template-task-summary */

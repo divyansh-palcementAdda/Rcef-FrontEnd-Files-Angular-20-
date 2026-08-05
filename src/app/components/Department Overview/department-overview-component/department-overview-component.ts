@@ -41,6 +41,7 @@ export class DepartmentOverviewComponent implements OnInit {
   departmentId: number = 0;
   departmentName: string = '';
   departmentData: Department = {} as Department;
+  departmentStatistics: any = null;
   currentPage: number = 0;
   pageSize: number = 12;
   totalResults: number = 0;
@@ -194,6 +195,7 @@ export class DepartmentOverviewComponent implements OnInit {
 
       // Load data after getting departmentId
       this.loadDepartmentName();
+      this.loadDepartmentStatistics();
       this.setupSearchSubjects();
       this.loadTasks();
       this.loadUsers();
@@ -214,6 +216,19 @@ export class DepartmentOverviewComponent implements OnInit {
         console.error('Error fetching department name:', err);
         this.departmentName = '';
         this.departmentData = {} as Department;
+      }
+    });
+  }
+
+  loadDepartmentStatistics(): void {
+    this.departmentApiService.getDepartmentStatistics(this.departmentId).subscribe({
+      next: (response) => {
+        console.log('Department statistics loaded:', response);
+        this.departmentStatistics = response;
+      },
+      error: (err) => {
+        console.error('Error fetching department statistics:', err);
+        this.departmentStatistics = null;
       }
     });
   }
@@ -792,37 +807,36 @@ export class DepartmentOverviewComponent implements OnInit {
   statCards() {
     const c = (color: string) => color;
 
-    // Calculate values from component data
-    const allTasks = this.tasksData?.content || [];
-    const allUsers = this.usersData?.content || [];
-    const allApprovals = this.approvalsData?.content || [];
-    const allSubDepartments = this.subDepartmentsData?.content || [];
+    // Use department statistics from API response
+    const stats = this.departmentStatistics?.statistics || {};
+    const taskBreakdown = stats.taskBreakdown || {};
+    const roleCounts = stats.roleCounts || {};
 
-    // Use total results from pagination for overall counts
-    const totalTasks = this.totalResults || 0;
-    const totalSubDepartments = this.subDeptTotalResults || 0;
-    const totalUsers = this.userTotalResults || 0;
-    const totalApprovals = this.approvalTotalResults || 0;
+    // Calculate values from API statistics
+    const totalTasks = stats.totalTasks || 0;
+    const totalSubDepartments = stats.totalSubDepartments || 0;
+    const totalUsers = stats.totalUsers || 0;
 
-    // Calculate task counts by status (from current page content)
-    const activeTasks = allTasks.filter((t: any) => t.status === 'IN_PROGRESS').length;
-    const pendingTasks = allTasks.filter((t: any) => t.status === 'PENDING').length;
-    const upcomingTasks = allTasks.filter((t: any) => t.status === 'UPCOMING').length;
-    const completedTasks = allTasks.filter((t: any) => t.status === 'CLOSED').length;
-    const delayedTasks = allTasks.filter((t: any) => t.status === 'DELAYED').length;
+    // Task counts from API breakdown
+    const activeTasks = taskBreakdown.inProgress || 0;
+    const pendingTasks = taskBreakdown.pending || 0;
+    const upcomingTasks = taskBreakdown.upcoming || 0;
+    const completedTasks = taskBreakdown.completed || 0;
+    const closedTasks = taskBreakdown.closed || 0;
+    const delayedTasks = taskBreakdown.delayed || 0;
 
-    // Calculate request counts (from current page content)
-    const extensionRequests = allApprovals.filter((a: any) => a.requestType === 'EXTENSION').length;
-    const closureRequests = allApprovals.filter((a: any) => a.requestType === 'CLOSURE').length;
+    // Request counts from API breakdown
+    const extensionRequests = taskBreakdown.requestForExtension || 0;
+    const closureRequests = taskBreakdown.requestForClosure || 0;
+    const extendedTasks = taskBreakdown.extended || 0;
 
-    // Calculate other counts (from current page content)
-    const activeUsers = allUsers.filter((u: any) => u.status === 'ACTIVE').length;
-    
-    // Calculate departments with zero due tasks (tasks that are not delayed)
-    const zeroDueTasks = allTasks.filter((t: any) => t.status !== 'DELAYED').length;
-    
-    // My department tasks (all tasks for this department)
-    const myDepartmentTasks = totalTasks;
+    // Active users from role counts (sum of all roles)
+    const activeUsers = totalUsers;
+
+    // Role breakdown cards
+    const admins = roleCounts.admins || 0;
+    const hods = roleCounts.hods || 0;
+    const teachers = roleCounts.teachers || 0;
 
     const cards = [
       /* =======================
@@ -935,27 +949,47 @@ export class DepartmentOverviewComponent implements OnInit {
         delta: closureRequests
       },
 
+      {
+        title: 'Extended Tasks',
+        value: extendedTasks,
+        color: c('info'),
+        icon: 'bi-arrow-repeat',
+        route: '/view-tasks',
+        queryParams: { status: 'EXTENDED' },
+        delta: extendedTasks
+      },
+
       /* =======================
-         DEPARTMENTAL INSIGHTS
+         ROLE BREAKDOWN
       ======================= */
       {
-        title: 'Departments with Zero Due Tasks',
-        value: zeroDueTasks,
-        color: c('success'),
-        icon: 'bi-shield-check',
-        route: '/departments',
-        queryParams: { filter: 'ZERO_DUE' },
-        delta: zeroDueTasks
+        title: 'Admins',
+        value: admins,
+        color: c('primary'),
+        icon: 'bi-person-badge-fill',
+        route: '/viewAllUsers',
+        queryParams: { role: 'ADMIN' },
+        delta: admins
       },
 
       {
-        title: 'My Department Tasks',
-        value: myDepartmentTasks,
-        color: c('primary'),
-        icon: 'bi-diagram-3-fill',
-        route: '/view-tasks',
-        queryParams: { status: 'MY_DEPARTMENT' },
-        delta: myDepartmentTasks
+        title: 'HODs',
+        value: hods,
+        color: c('warning'),
+        icon: 'bi-person-workspace',
+        route: '/viewAllUsers',
+        queryParams: { role: 'HOD' },
+        delta: hods
+      },
+
+      {
+        title: 'Teachers',
+        value: teachers,
+        color: c('success'),
+        icon: 'bi-person-video3',
+        route: '/viewAllUsers',
+        queryParams: { role: 'TEACHER' },
+        delta: teachers
       }
 
     ];
@@ -964,13 +998,13 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   isCardClickable(card: any): boolean {
-    const nonNavigableCards = ['Total Tasks', 'Total Sub-Departments', 'Departments with Zero Due Tasks'];
+    const nonNavigableCards = ['Total Tasks', 'Total Sub-Departments'];
     return !nonNavigableCards.includes(card.title);
   }
 
   onCardClick(card: any): void {
     // Check if this is a card that should not navigate
-    const nonNavigableCards = ['Total Tasks', 'Total Sub-Departments', 'Departments with Zero Due Tasks'];
+    const nonNavigableCards = ['Total Tasks', 'Total Sub-Departments'];
     if (nonNavigableCards.includes(card.title)) {
       return; // Do nothing for these cards
     }
@@ -987,6 +1021,19 @@ export class DepartmentOverviewComponent implements OnInit {
         const taskTableSection = document.querySelector('.table-section');
         if (taskTableSection) {
           taskTableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    } else if (card.queryParams && card.queryParams.role) {
+      // For role-based user cards, navigate to users page with role filter
+      this.userRoleFilter = card.queryParams.role;
+      this.userCurrentPage = 0; // Reset to first page
+      this.loadUsers();
+      
+      // Scroll to the users table
+      setTimeout(() => {
+        const userTableSection = document.querySelector('.users-section');
+        if (userTableSection) {
+          userTableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }, 100);
     } else {
