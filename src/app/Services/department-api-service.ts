@@ -113,8 +113,8 @@ export class DepartmentApiService {
     );
   }
 
-  getSubDepartmentsByDepartment(deptId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/sub-departments/department/${deptId}`).pipe(
+  getSubDepartmentsByDepartment(deptId: number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/department/${deptId}`).pipe(
       catchError(err => this.handleError(err, 'fetch sub-departments by department'))
     );
   }

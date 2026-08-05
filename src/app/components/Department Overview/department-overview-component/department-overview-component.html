@@ -38,25 +38,25 @@
           <div class="col-md-6">
             <div class="d-flex align-items-center gap-2">
               <div class="text-muted small fw-semibold">Department Name:</div>
-              <div class="fw-semibold" style="color: var(--text-main);">-</div>
+              <div class="fw-semibold" style="color: var(--text-main);">{{ departmentData?.departmentName || departmentData?.name || '-' }}</div>
             </div>
           </div>
-          <div class="col-md-6">
+          <!-- <div class="col-md-6">
             <div class="d-flex align-items-center gap-2">
-              <div class="text-muted small fw-semibold">Department Code:</div>
-              <div class="fw-semibold" style="color: var(--text-main);">-</div>
+              <div class="text-muted small fw-semibold">Department ID:</div>
+              <div class="fw-semibold" style="color: var(--text-main);">{{ departmentData?.departmentId || '-' }}</div>
             </div>
-          </div>
+          </div> -->
           <div class="col-md-6">
             <div class="d-flex align-items-center gap-2">
               <div class="text-muted small fw-semibold">Status:</div>
-              <div class="fw-semibold" style="color: var(--text-main);">-</div>
+              <div class="fw-semibold" style="color: var(--text-main);">{{ departmentData?.departmentStatus || '-' }}</div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="d-flex align-items-center gap-2">
-              <div class="text-muted small fw-semibold">Created Date:</div>
-              <div class="fw-semibold" style="color: var(--text-main);">-</div>
+              <div class="text-muted small fw-semibold">Description:</div>
+              <div class="fw-semibold" style="color: var(--text-main);">{{ departmentData?.description || '-' }}</div>
             </div>
           </div>
         </div>
@@ -99,13 +99,6 @@
               </span>
               <input type="text" class="form-control" placeholder="Search sub-departments..." id="searchSubDeptInput" [(ngModel)]="subDeptSearchTerm" (input)="onSubDeptSearch()">
             </div>
-          </div>
-          <div class="col-md-6">
-            <select class="form-select" id="subDeptStatusFilter" [(ngModel)]="subDeptStatusFilter" (change)="onSubDeptStatusFilterChange()">
-              <option value="">All Status</option>
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
-            </select>
           </div>
         </div>
 
@@ -181,10 +174,10 @@
             <button class="stitch-pag-btn" [class.active]="subDeptCurrentPage === page" *ngFor="let page of getSubDeptPageNumbers()" (click)="onSubDeptPageChange(page)">
               {{ page + 1 }}
             </button>
-            <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === subDepartmentsData?.totalPages - 1" (click)="onSubDeptNextPage()" title="Next Page">
+            <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === subDepartmentsData?.pagination?.totalPages - 1" (click)="onSubDeptNextPage()" title="Next Page">
               <i class="bi bi-chevron-right"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === subDepartmentsData?.totalPages - 1" (click)="onSubDeptLastPage()" title="Last Page">
+            <button class="stitch-pag-btn" [disabled]="subDeptCurrentPage === subDepartmentsData?.pagination?.totalPages - 1" (click)="onSubDeptLastPage()" title="Last Page">
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </div>
@@ -308,10 +301,10 @@
             <button class="stitch-pag-btn" [class.active]="currentPage === page" *ngFor="let page of getPageNumbers()" (click)="onPageChange(page)">
               {{ page + 1 }}
             </button>
-            <button class="stitch-pag-btn" [disabled]="currentPage === tasksData?.totalPages - 1" (click)="onNextPage()" title="Next Page">
+            <button class="stitch-pag-btn" [disabled]="currentPage === tasksData?.pagination?.totalPages - 1" (click)="onNextPage()" title="Next Page">
               <i class="bi bi-chevron-right"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="currentPage === tasksData?.totalPages - 1" (click)="onLastPage()" title="Last Page">
+            <button class="stitch-pag-btn" [disabled]="currentPage === tasksData?.pagination?.totalPages - 1" (click)="onLastPage()" title="Last Page">
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </div>
@@ -343,8 +336,8 @@
             <select class="form-select" id="userRoleFilter" [(ngModel)]="userRoleFilter" (change)="onUserRoleFilterChange()">
               <option value="">All Roles</option>
               <option value="ADMIN">Admin</option>
-              <option value="MANAGER">Manager</option>
-              <option value="EMPLOYEE">Employee</option>
+              <option value="TEACHER">Teacher</option>
+              <option value="HOD">Hod</option>
             </select>
           </div>
         </div>
@@ -383,7 +376,7 @@
                 <td class="fw-bold" style="color: var(--text-main);" data-label="User Name">{{ user.fullName || '-' }}</td>
                 <td class="text-muted" data-label="Email"><small>{{ user.email || '-' }}</small></td>
                 <td data-label="Role"><span class="badge bg-primary fw-semibold">{{ user.role || '-' }}</span></td>
-                <td data-label="Department"><span class="badge bg-light text-dark fw-semibold">{{ user.departmentName || '-' }}</span></td>
+                <td data-label="Department"><span class="badge bg-light text-dark fw-semibold">{{ user.subDepartmentNames?.join(', ') || '-' }}</span></td>
                 <td data-label="Status">
                   <span class="badge rounded-pill status-active">{{ user.status || '-' }}</span>
                 </td>
@@ -408,8 +401,8 @@
             <span>Rows per page:</span>
             <select class="stitch-pag-size-selector" [(ngModel)]="userPageSize" (change)="onUserPageSizeChange()">
               <option value="5">5</option>
-              <option value="10" selected>10</option>
-              <option value="20">20</option>
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
             </select>
             <span class="stitch-pag-label">
               {{ (userCurrentPage * userPageSize) + 1 }}-{{ getUserPaginationEnd() }} of {{ userTotalResults }} results
@@ -426,10 +419,10 @@
             <button class="stitch-pag-btn" [class.active]="userCurrentPage === page" *ngFor="let page of getUserPageNumbers()" (click)="onUserPageChange(page)">
               {{ page + 1 }}
             </button>
-            <button class="stitch-pag-btn" [disabled]="userCurrentPage === usersData?.totalPages - 1" (click)="onUserNextPage()" title="Next Page">
+            <button class="stitch-pag-btn" [disabled]="!usersData || userCurrentPage === usersData?.pagination?.totalPages - 1" (click)="onUserNextPage()" title="Next Page">
               <i class="bi bi-chevron-right"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="userCurrentPage === usersData?.totalPages - 1" (click)="onUserLastPage()" title="Last Page">
+            <button class="stitch-pag-btn" [disabled]="!usersData || userCurrentPage === usersData?.pagination?.totalPages - 1" (click)="onUserLastPage()" title="Last Page">
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </div>
@@ -546,10 +539,10 @@
             <button class="stitch-pag-btn" [class.active]="approvalCurrentPage === page" *ngFor="let page of getApprovalPageNumbers()" (click)="onApprovalPageChange(page)">
               {{ page + 1 }}
             </button>
-            <button class="stitch-pag-btn" [disabled]="approvalCurrentPage === approvalsData?.totalPages - 1" (click)="onApprovalNextPage()" title="Next Page">
+            <button class="stitch-pag-btn" [disabled]="approvalCurrentPage === approvalsData?.pagination?.totalPages - 1" (click)="onApprovalNextPage()" title="Next Page">
               <i class="bi bi-chevron-right"></i>
             </button>
-            <button class="stitch-pag-btn" [disabled]="approvalCurrentPage === approvalsData?.totalPages - 1" (click)="onApprovalLastPage()" title="Last Page">
+            <button class="stitch-pag-btn" [disabled]="approvalCurrentPage === approvalsData?.pagination?.totalPages - 1" (click)="onApprovalLastPage()" title="Last Page">
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </div>
@@ -903,7 +896,7 @@
               <label class="form-label">Sub-Department (Optional)</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-diagram-2"></i></span>
-                <select class="form-select" [(ngModel)]="newTask.subDepartmentId">
+                <select class="form-select" [(ngModel)]="newTask.subDepartmentId" (change)="onSubDepartmentChange()">
                   <option [ngValue]="null">Select Sub-Department</option>
                   <option *ngFor="let sub of filteredSubDepartments" [ngValue]="sub.id">
                     {{ sub.name }}

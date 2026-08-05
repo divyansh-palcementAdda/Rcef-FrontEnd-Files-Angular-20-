@@ -12,6 +12,7 @@ import { JwtService } from '../../../Services/jwt-service';
 import { RequestApiService } from '../../../Services/request-api-service';
 import { DashboardDto } from '../../../Model/DashboardDto';
 import { userDto } from '../../../Model/userDto';
+import { Department } from '../../../Model/department';
 import { Subscription } from 'rxjs';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -42,6 +43,7 @@ export class DepartmentOverviewComponent implements OnInit {
   subDepartmentsData: any;
   departmentId: number = 0;
   departmentName: string = '';
+  departmentData: Department = {} as Department;
   currentPage: number = 0;
   pageSize: number = 12;
   totalResults: number = 0;
@@ -50,7 +52,7 @@ export class DepartmentOverviewComponent implements OnInit {
   userSearchTerm: string = '';
   userRoleFilter: string = '';
   userCurrentPage: number = 0;
-  userPageSize: number = 10;
+  userPageSize: number = 20;
   userTotalResults: number = 0;
   approvalSearchTerm: string = '';
   approvalTypeFilter: string = '';
@@ -260,12 +262,14 @@ export class DepartmentOverviewComponent implements OnInit {
   loadDepartmentName(): void {
     this.departmentApiService.getDepartmentById(this.departmentId).subscribe({
       next: (department) => {
-        this.departmentName = department.name || '';
-        console.log('Department name loaded:', this.departmentName);
+        this.departmentData = department;
+        this.departmentName = department.name || department.departmentName || '';
+        console.log('Department data loaded:', this.departmentData);
       },
       error: (err) => {
         console.error('Error fetching department name:', err);
         this.departmentName = '';
+        this.departmentData = {} as Department;
       }
     });
   }
@@ -331,7 +335,7 @@ export class DepartmentOverviewComponent implements OnInit {
       next: (response) => {
         console.log('Full API response:', response);
         this.tasksData = response.data;
-        this.totalResults = response.data.totalElements || 0;
+        this.totalResults = response.data.pagination?.totalElements || 0;
         console.log('Tasks content:', response.data.content);
         console.log('Total results:', this.totalResults);
       },
@@ -341,7 +345,7 @@ export class DepartmentOverviewComponent implements OnInit {
 
   loadUsers(): void {
     const params: any = {
-      page: this.userCurrentPage,
+      page: isNaN(this.userCurrentPage) ? 0 : this.userCurrentPage,
       size: this.userPageSize,
       sortBy: this.userSortBy,
       sortDirection: this.userSortDirection,
@@ -362,7 +366,7 @@ export class DepartmentOverviewComponent implements OnInit {
       next: (response) => {
         console.log('Full User API response:', response);
         this.usersData = response.data;
-        this.userTotalResults = response.data.totalElements || 0;
+        this.userTotalResults = response.data.pagination?.totalElements || 0;
         console.log('Users content:', response.data.content);
         console.log('Total users:', this.userTotalResults);
       },
@@ -394,7 +398,7 @@ export class DepartmentOverviewComponent implements OnInit {
       next: (response) => {
         console.log('Full Approval API response:', response);
         this.approvalsData = response.data;
-        this.approvalTotalResults = response.data.totalElements || 0;
+        this.approvalTotalResults = response.data.pagination?.totalElements || 0;
         console.log('Approvals content:', response.data.content);
         console.log('Total approvals:', this.approvalTotalResults);
       },
@@ -403,44 +407,30 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   loadSubDepartments(): void {
-    const params: any = {
-      page: this.subDeptCurrentPage,
-      size: this.subDeptPageSize,
-      sortBy: this.subDeptSortBy,
-      sortDirection: this.subDeptSortDirection,
-      departmentId: this.departmentId
-    };
+    console.log('Loading sub-departments for department ID:', this.departmentId);
 
-    if (this.subDeptSearchTerm && this.subDeptSearchTerm.trim()) {
-      params.search = this.subDeptSearchTerm.trim();
-    }
-
-    if (this.subDeptStatusFilter) {
-      params.status = this.subDeptStatusFilter;
-    }
-
-    console.log('Sub-Departments API params:', params);
-
-    this.subDepartmentsSub = this.apiService.getSubDepartments(params).subscribe({
+    this.subDepartmentsSub = this.departmentApiService.getSubDepartmentsByDepartment(this.departmentId).subscribe({
       next: (response) => {
         console.log('Full Sub-Departments API response:', response);
         
         let allSubDepartments: any[] = [];
-        
+
         // Handle both paginated response and direct array response
-        if (response.data && Array.isArray(response.data.content)) {
-          // Paginated response structure
-          this.subDepartmentsData = response.data;
-          this.subDeptTotalResults = response.data.totalElements || 0;
-          console.log('Sub-Departments content:', this.subDepartmentsData);
-          console.log('Total sub-departments:', this.subDeptTotalResults);
-          return;
-        } else if (Array.isArray(response.data)) {
-          // Direct array response wrapped in data property
-          allSubDepartments = response.data;
-        } else if (Array.isArray(response)) {
+        if (Array.isArray(response)) {
           // Direct array response without data wrapper
           allSubDepartments = response;
+        } else if (response && typeof response === 'object' && 'data' in response) {
+          if (Array.isArray(response.data.content)) {
+            // Paginated response structure
+            this.subDepartmentsData = response.data;
+            this.subDeptTotalResults = response.data.pagination?.totalElements || 0;
+            console.log('Sub-Departments content:', this.subDepartmentsData);
+            console.log('Total sub-departments:', this.subDeptTotalResults);
+            return;
+          } else if (Array.isArray(response.data)) {
+            // Direct array response wrapped in data property
+            allSubDepartments = response.data;
+          }
         } else {
           // Fallback
           this.subDepartmentsData = {
@@ -524,7 +514,7 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onSubDeptNextPage(): void {
-    if (this.subDepartmentsData && this.subDeptCurrentPage < this.subDepartmentsData.totalPages - 1) {
+    if (this.subDepartmentsData && this.subDeptCurrentPage < this.subDepartmentsData.pagination?.totalPages - 1) {
       this.subDeptCurrentPage++;
       this.loadSubDepartments();
     }
@@ -544,7 +534,7 @@ export class DepartmentOverviewComponent implements OnInit {
 
   onSubDeptLastPage(): void {
     if (this.subDepartmentsData) {
-      this.subDeptCurrentPage = this.subDepartmentsData.totalPages - 1;
+      this.subDeptCurrentPage = this.subDepartmentsData.pagination?.totalPages - 1;
       this.loadSubDepartments();
     }
   }
@@ -603,7 +593,7 @@ export class DepartmentOverviewComponent implements OnInit {
 
   getSubDeptPageNumbers(): number[] {
     if (!this.subDepartmentsData) return [];
-    const totalPages = this.subDepartmentsData.totalPages || 1;
+    const totalPages = this.subDepartmentsData.pagination?.totalPages || 1;
     const pages: number[] = [];
     const maxVisiblePages = 5;
 
@@ -641,7 +631,7 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onApprovalNextPage(): void {
-    if (this.approvalCurrentPage < this.approvalsData.totalPages - 1) {
+    if (this.approvalCurrentPage < this.approvalsData.pagination?.totalPages - 1) {
       this.approvalCurrentPage++;
       this.loadApprovals();
     }
@@ -660,13 +650,13 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onApprovalLastPage(): void {
-    this.approvalCurrentPage = this.approvalsData.totalPages - 1;
+    this.approvalCurrentPage = this.approvalsData.pagination?.totalPages - 1;
     this.loadApprovals();
   }
 
   getApprovalPageNumbers(): number[] {
     if (!this.approvalsData) return [];
-    const totalPages = this.approvalsData.totalPages;
+    const totalPages = this.approvalsData.pagination?.totalPages || 0;
     const pages: number[] = [];
     const maxVisiblePages = 5;
 
@@ -704,7 +694,7 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onUserNextPage(): void {
-    if (this.userCurrentPage < this.usersData.totalPages - 1) {
+    if (this.usersData && this.usersData.pagination?.totalPages && this.userCurrentPage < this.usersData.pagination.totalPages - 1) {
       this.userCurrentPage++;
       this.loadUsers();
     }
@@ -723,13 +713,15 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onUserLastPage(): void {
-    this.userCurrentPage = this.usersData.totalPages - 1;
-    this.loadUsers();
+    if (this.usersData && this.usersData.pagination?.totalPages) {
+      this.userCurrentPage = this.usersData.pagination.totalPages - 1;
+      this.loadUsers();
+    }
   }
 
   getUserPageNumbers(): number[] {
     if (!this.usersData) return [];
-    const totalPages = this.usersData.totalPages;
+    const totalPages = this.usersData.pagination?.totalPages || 0;
     const pages: number[] = [];
     const maxVisiblePages = 5;
 
@@ -767,7 +759,7 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onNextPage(): void {
-    if (this.currentPage < this.tasksData.totalPages - 1) {
+    if (this.currentPage < this.tasksData.pagination?.totalPages - 1) {
       this.currentPage++;
       this.loadTasks();
     }
@@ -786,13 +778,13 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onLastPage(): void {
-    this.currentPage = this.tasksData.totalPages - 1;
+    this.currentPage = this.tasksData.pagination?.totalPages - 1;
     this.loadTasks();
   }
 
   getPageNumbers(): number[] {
     if (!this.tasksData) return [];
-    const totalPages = this.tasksData.totalPages;
+    const totalPages = this.tasksData.pagination?.totalPages || 0;
     const pages: number[] = [];
     const maxVisiblePages = 5;
 
@@ -1412,13 +1404,8 @@ export class DepartmentOverviewComponent implements OnInit {
       error: (err) => console.error('Failed to load templates:', err)
     });
 
-    // Load subjects
-    this.subjectApiService.getAllSubjects().subscribe({
-      next: (subs) => {
-        this.subjects = subs || [];
-      },
-      error: (err) => console.error('Failed to load subjects:', err)
-    });
+    // Don't load all subjects initially - they will be loaded based on sub-department selection
+    this.subjects = [];
   }
 
   openAddTaskModal(task?: any): void {
@@ -1446,6 +1433,22 @@ export class DepartmentOverviewComponent implements OnInit {
         startDate: task.startDate || '',
         dueDate: task.dueDate || ''
       };
+      
+      // Load subjects for the existing sub-department if editing
+      if (this.newTask.subDepartmentId) {
+        this.subjectApiService.getSubjects(null, this.newTask.subDepartmentId.toString()).subscribe({
+          next: (subjects) => {
+            this.subjects = subjects || [];
+            console.log('Subjects loaded for sub-department (edit mode):', this.newTask.subDepartmentId, subjects);
+          },
+          error: (err) => {
+            console.error('Error loading subjects for sub-department:', err);
+            this.subjects = [];
+          }
+        });
+      } else {
+        this.subjects = [];
+      }
       
       // Handle template selection if editing a template task
       if (task.isTemplateTask && task.templateId) {
@@ -1491,6 +1494,8 @@ export class DepartmentOverviewComponent implements OnInit {
       this.hasCountField = false;
       this.hasProgressField = false;
       this.progressOptions = [];
+      // Reset subjects for add mode
+      this.subjects = [];
     }
     
     this.dueDateError = '';
@@ -1684,9 +1689,24 @@ export class DepartmentOverviewComponent implements OnInit {
 
   // Sub-department and subject handlers
   onSubDepartmentChange(): void {
+    // Reset subject selection when sub-department changes
+    this.newTask.subjectId = null;
+    
     if (this.newTask.subDepartmentId) {
-      // Load subjects for this sub-department if needed
-      this.newTask.subjectId = null;
+      // Load subjects for this sub-department using query parameter approach
+      this.subjectApiService.getSubjects(null, this.newTask.subDepartmentId.toString()).subscribe({
+        next: (subjects) => {
+          this.subjects = subjects || [];
+          console.log('Subjects loaded for sub-department:', this.newTask.subDepartmentId, subjects);
+        },
+        error: (err) => {
+          console.error('Error loading subjects for sub-department:', err);
+          this.subjects = [];
+        }
+      });
+    } else {
+      // Clear subjects if no sub-department selected
+      this.subjects = [];
     }
   }
 
