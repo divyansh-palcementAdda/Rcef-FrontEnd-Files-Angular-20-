@@ -259,7 +259,7 @@
                 <td data-label="Department"><span class="badge bg-light text-dark fw-semibold">{{ task.departmentName || '-' }}</span></td>
                 <td class="text-muted" data-label="Due Date"><small>{{ task.dueDate ? (task.dueDate | date:'yyyy-MM-dd') : '-' }}</small></td>
                 <td data-label="Status">
-                  <span class="badge rounded-pill status-active">{{ task.status || '-' }}</span>
+                  <span class="badge rounded-pill" [ngClass]="getTaskStatusClass(task.status)">{{ task.status || '-' }}</span>
                 </td>
                 <td data-label="Priority">
                   <span class="badge rounded-pill bg-danger">{{ task.priority || '-' }}</span>
@@ -379,9 +379,9 @@
                 <td class="fw-bold" style="color: var(--text-main);" data-label="User Name">{{ user.fullName || '-' }}</td>
                 <td class="text-muted" data-label="Email"><small>{{ user.email || '-' }}</small></td>
                 <td data-label="Role"><span class="badge bg-primary fw-semibold">{{ user.role || '-' }}</span></td>
-                <td data-label="Department"><span class="badge bg-light text-dark fw-semibold">{{ user.subDepartmentNames?.join(', ') || '-' }}</span></td>
+                <td data-label="Department"><span class="badge bg-light text-dark fw-semibold">{{ truncateDepartmentNames(user.subDepartmentNames) }}</span></td>
                 <td data-label="Status">
-                  <span class="badge rounded-pill status-active">{{ user.status || '-' }}</span>
+                  <span class="badge rounded-pill" [ngClass]="getTaskStatusClass(user.status)">{{ user.status || '-' }}</span>
                 </td>
                 <td class="text-end" data-label="Actions">
                   <div class="row-actions">

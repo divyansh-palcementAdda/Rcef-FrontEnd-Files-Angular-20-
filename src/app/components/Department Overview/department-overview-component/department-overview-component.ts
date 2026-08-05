@@ -860,7 +860,7 @@ export class DepartmentOverviewComponent implements OnInit {
          TASK STATUS
       ======================= */
       {
-        title: 'Active Tasks',
+        title: 'In Progress',
         value: activeTasks,
         color: c('primary'),
         icon: 'bi-play-circle-fill',
@@ -1536,5 +1536,42 @@ export class DepartmentOverviewComponent implements OnInit {
       'dark': '#374151'
     };
     return colorMap[color] || '#374151';
+  }
+
+  getTaskStatusClass(status: string): string {
+    if (!status) return 'status-active';
+    
+    const statusLower = status.toLowerCase();
+    
+    if (statusLower === 'active' || statusLower === 'completed' || statusLower === 'closed') {
+      return 'status-active';
+    } else if (statusLower === 'inactive') {
+      return 'status-inactive';
+    } else if (statusLower === 'in_progress' || statusLower === 'in progress') {
+      return 'status-in-progress';
+    } else if (statusLower === 'pending') {
+      return 'status-pending';
+    } else if (statusLower === 'delay' || statusLower === 'delayed') {
+      return 'status-delay';
+    } else if (statusLower === 'on_hold' || statusLower === 'on hold') {
+      return 'status-on-hold';
+    }
+    
+    return 'status-active';
+  }
+
+  truncateDepartmentNames(departmentNames: string[] | undefined): string {
+    if (!departmentNames || departmentNames.length === 0) {
+      return '-';
+    }
+    
+    const limitedNames = departmentNames.slice(0, 2);
+    let result = limitedNames.join(', ');
+    
+    if (departmentNames.length > 2) {
+      result += ` +${departmentNames.length - 2}`;
+    }
+    
+    return result;
   }
 }

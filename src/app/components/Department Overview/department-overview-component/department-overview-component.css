@@ -123,6 +123,41 @@
   font-weight: 600;
 }
 
+.status-in-progress {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  border: 1px solid #3b82f6;
+  font-weight: 600;
+}
+
+.status-pending {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #f59e0b;
+  font-weight: 600;
+}
+
+.status-delay {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #ef4444;
+  font-weight: 600;
+}
+
+.status-completed {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border: 1px solid #10b981;
+  font-weight: 600;
+}
+
+.status-on-hold {
+  background-color: #f3e8ff !important;
+  color: #6b21a8 !important;
+  border: 1px solid #a855f7;
+  font-weight: 600;
+}
+
 /* Action Buttons */
 .row-actions {
   display: inline-flex;
