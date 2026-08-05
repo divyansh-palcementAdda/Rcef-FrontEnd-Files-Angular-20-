@@ -998,15 +998,32 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   isCardClickable(card: any): boolean {
-    const nonNavigableCards = ['Total Tasks', 'Total Sub-Departments'];
+    const nonNavigableCards = ['Total Sub-Departments'];
     return !nonNavigableCards.includes(card.title);
   }
 
   onCardClick(card: any): void {
     // Check if this is a card that should not navigate
-    const nonNavigableCards = ['Total Tasks', 'Total Sub-Departments'];
+    const nonNavigableCards = ['Total Sub-Departments'];
     if (nonNavigableCards.includes(card.title)) {
       return; // Do nothing for these cards
+    }
+
+    // Check if this is the "Total Tasks" card
+    if (card.title === 'Total Tasks') {
+      // Clear status filter to show all tasks
+      this.statusFilter = '';
+      this.currentPage = 0; // Reset to first page
+      this.loadTasks();
+      
+      // Scroll to the tasks table
+      setTimeout(() => {
+        const taskTableSection = document.querySelector('.table-section');
+        if (taskTableSection) {
+          taskTableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      return;
     }
 
     // Check if this is a task-related card with status filter
