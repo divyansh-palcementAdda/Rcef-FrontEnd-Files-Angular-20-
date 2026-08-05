@@ -8,7 +8,6 @@ import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { JwtService } from '../../../Services/jwt-service';
 import { RequestApiService } from '../../../Services/request-api-service';
-import { DashboardDto } from '../../../Model/DashboardDto';
 import { userDto } from '../../../Model/userDto';
 import { Department } from '../../../Model/department';
 import { Subscription } from 'rxjs';
@@ -27,7 +26,6 @@ import { UpdateTaskComponent } from '../../Tasks/update-task/update-task';
  
 
 export class DepartmentOverviewComponent implements OnInit {
-  private dataSub?: Subscription;
   private tasksSub?: Subscription;
   private usersSub?: Subscription;
   private approvalsSub?: Subscription;
@@ -36,7 +34,6 @@ export class DepartmentOverviewComponent implements OnInit {
   private userSearchSubject = new Subject<string>();
   private approvalSearchSubject = new Subject<string>();
   private subDeptSearchSubject = new Subject<string>();
-  dashboardData?: DashboardDto;
   tasksData: any;
   usersData: any;
   approvalsData: any;
@@ -197,25 +194,12 @@ export class DepartmentOverviewComponent implements OnInit {
 
       // Load data after getting departmentId
       this.loadDepartmentName();
-      this.loadDashboardData();
       this.setupSearchSubjects();
       this.loadTasks();
       this.loadUsers();
       this.loadApprovals();
       this.loadSubDepartments();
       this.loadCurrentUser();
-    });
-  }
-
-  loadDashboardData(): void {
-    this.dataSub = this.apiService.getDashboardData().subscribe({
-      next: (data) => {
-        if (data) {
-          this.dashboardData = data;
-          console.log('Dashboard data received:', data);
-        }
-      },
-      error: (err) => console.error('Error fetching dashboard data:', err)
     });
   }
 
@@ -297,6 +281,13 @@ export class DepartmentOverviewComponent implements OnInit {
         this.tasksData = response.data;
         // Task API has direct totalElements
         this.totalResults = response.data.totalElements || 0;
+        // Add pagination object for consistency
+        if (this.tasksData && !this.tasksData.pagination) {
+          this.tasksData.pagination = {
+            totalPages: this.tasksData.totalPages || 0,
+            totalElements: this.tasksData.totalElements || 0
+          };
+        }
         console.log('Tasks content:', response.data.content);
         console.log('Total results:', this.totalResults);
       },
@@ -362,6 +353,13 @@ export class DepartmentOverviewComponent implements OnInit {
         this.approvalsData = response.data;
         // Handle both pagination structures
         this.approvalTotalResults = response.data.pagination?.totalElements || response.data.totalElements || 0;
+        // Add pagination object for consistency
+        if (this.approvalsData && !this.approvalsData.pagination) {
+          this.approvalsData.pagination = {
+            totalPages: this.approvalsData.totalPages || 0,
+            totalElements: this.approvalsData.totalElements || 0
+          };
+        }
         console.log('Approvals content:', response.data.content);
         console.log('Total approvals:', this.approvalTotalResults);
       },
@@ -436,7 +434,11 @@ export class DepartmentOverviewComponent implements OnInit {
         this.subDepartmentsData = {
           content: paginatedContent,
           totalElements: filteredSubDepartments.length,
-          totalPages: totalPages
+          totalPages: totalPages,
+          pagination: {
+            totalPages: totalPages,
+            totalElements: filteredSubDepartments.length
+          }
         };
         
         console.log('Sub-Departments content:', this.subDepartmentsData);
@@ -595,7 +597,7 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onApprovalNextPage(): void {
-    if (this.approvalCurrentPage < this.approvalsData.pagination?.totalPages - 1) {
+    if (this.approvalsData && this.approvalCurrentPage < this.approvalsData.pagination?.totalPages - 1) {
       this.approvalCurrentPage++;
       this.loadApprovals();
     }
@@ -614,13 +616,16 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onApprovalLastPage(): void {
-    this.approvalCurrentPage = this.approvalsData.pagination?.totalPages - 1;
-    this.loadApprovals();
+    if (this.approvalsData) {
+      this.approvalCurrentPage = this.approvalsData.pagination?.totalPages - 1 || 0;
+      this.loadApprovals();
+    }
   }
 
   getApprovalPageNumbers(): number[] {
     if (!this.approvalsData) return [];
     const totalPages = this.approvalsData.pagination?.totalPages || 0;
+    if (totalPages <= 1) return [];
     const pages: number[] = [];
     const maxVisiblePages = 5;
 
@@ -723,7 +728,7 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onNextPage(): void {
-    if (this.currentPage < this.tasksData.pagination?.totalPages - 1) {
+    if (this.tasksData && this.currentPage < this.tasksData.pagination?.totalPages - 1) {
       this.currentPage++;
       this.loadTasks();
     }
@@ -742,13 +747,16 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   onLastPage(): void {
-    this.currentPage = this.tasksData.pagination?.totalPages - 1;
-    this.loadTasks();
+    if (this.tasksData) {
+      this.currentPage = this.tasksData.pagination?.totalPages - 1 || 0;
+      this.loadTasks();
+    }
   }
 
   getPageNumbers(): number[] {
     if (!this.tasksData) return [];
     const totalPages = this.tasksData.pagination?.totalPages || 0;
+    if (totalPages <= 1) return [];
     const pages: number[] = [];
     const maxVisiblePages = 5;
 
@@ -771,7 +779,6 @@ export class DepartmentOverviewComponent implements OnInit {
   }
 
   ngOnDestroy(): void {
-    this.dataSub?.unsubscribe();
     this.tasksSub?.unsubscribe();
     this.usersSub?.unsubscribe();
     this.approvalsSub?.unsubscribe();
@@ -782,8 +789,40 @@ export class DepartmentOverviewComponent implements OnInit {
     this.subDeptSearchSubject.complete();
   }
 
-  statCards(d: DashboardDto) {
+  statCards() {
     const c = (color: string) => color;
+
+    // Calculate values from component data
+    const allTasks = this.tasksData?.content || [];
+    const allUsers = this.usersData?.content || [];
+    const allApprovals = this.approvalsData?.content || [];
+    const allSubDepartments = this.subDepartmentsData?.content || [];
+
+    // Use total results from pagination for overall counts
+    const totalTasks = this.totalResults || 0;
+    const totalSubDepartments = this.subDeptTotalResults || 0;
+    const totalUsers = this.userTotalResults || 0;
+    const totalApprovals = this.approvalTotalResults || 0;
+
+    // Calculate task counts by status (from current page content)
+    const activeTasks = allTasks.filter((t: any) => t.status === 'IN_PROGRESS').length;
+    const pendingTasks = allTasks.filter((t: any) => t.status === 'PENDING').length;
+    const upcomingTasks = allTasks.filter((t: any) => t.status === 'UPCOMING').length;
+    const completedTasks = allTasks.filter((t: any) => t.status === 'CLOSED').length;
+    const delayedTasks = allTasks.filter((t: any) => t.status === 'DELAYED').length;
+
+    // Calculate request counts (from current page content)
+    const extensionRequests = allApprovals.filter((a: any) => a.requestType === 'EXTENSION').length;
+    const closureRequests = allApprovals.filter((a: any) => a.requestType === 'CLOSURE').length;
+
+    // Calculate other counts (from current page content)
+    const activeUsers = allUsers.filter((u: any) => u.status === 'ACTIVE').length;
+    
+    // Calculate departments with zero due tasks (tasks that are not delayed)
+    const zeroDueTasks = allTasks.filter((t: any) => t.status !== 'DELAYED').length;
+    
+    // My department tasks (all tasks for this department)
+    const myDepartmentTasks = totalTasks;
 
     const cards = [
       /* =======================
@@ -791,147 +830,169 @@ export class DepartmentOverviewComponent implements OnInit {
       ======================= */
       {
         title: 'Total Tasks',
-        value: d.totalTask,
+        value: totalTasks,
         color: c('dark'),
         icon: 'bi-clipboard-check',
         route: '/view-tasks',
-        delta: d.totalTask ?? 0
+        delta: totalTasks
       },
-
-
 
       {
         title: 'Total Sub-Departments',
-        value: d.activeSubDepartments,
+        value: totalSubDepartments,
         color: c('dark'),
         icon: 'bi-building',
         route: '/departments',
-        delta: d.activeSubDepartments ?? 0
+        delta: totalSubDepartments
       },
 
       {
         title: 'Active Users',
-        value: d.activeUsers,
+        value: activeUsers,
         color: c('info'),
         icon: 'bi-person-check-fill',
         route: '/viewAllUsers',
         queryParams: { status: 'ACTIVE' },
-        delta: d.activeUsers ?? 0
+        delta: activeUsers
       },
-
 
       /* =======================
          TASK STATUS
       ======================= */
       {
         title: 'Active Tasks',
-        value: d.activeTask,
+        value: activeTasks,
         color: c('primary'),
         icon: 'bi-play-circle-fill',
         route: '/view-tasks',
         queryParams: { status: 'IN_PROGRESS' },
-        delta: d.activeTask ?? 0
+        delta: activeTasks
       },
 
       {
         title: 'Pending Tasks',
-        value: d.pendingTask,
+        value: pendingTasks,
         color: c('warning'),
         icon: 'bi-hourglass-split',
         route: '/view-tasks',
         queryParams: { status: 'PENDING' },
-        delta: d.pendingTask ?? 0
+        delta: pendingTasks
       },
 
       {
         title: 'Upcoming Tasks',
-        value: d.upcomingTask,
+        value: upcomingTasks,
         color: c('info'),
         icon: 'bi-calendar-event',
         route: '/view-tasks',
         queryParams: { status: 'UPCOMING' },
-        delta: d.upcomingTask ?? 0
+        delta: upcomingTasks
       },
 
       {
         title: 'Completed Tasks',
-        value: d.completedTask,
+        value: completedTasks,
         color: c('success'),
         icon: 'bi-check-circle-fill',
         route: '/view-tasks',
         queryParams: { status: 'CLOSED' },
-        delta: d.completedTask ?? 0
+        delta: completedTasks
       },
-
 
       /* =======================
          RISK / EXCEPTIONS
       ======================= */
       {
         title: 'Delayed Tasks',
-        value: d.delayedTask,
+        value: delayedTasks,
         color: c('danger'),
         icon: 'bi-exclamation-triangle-fill',
         route: '/view-tasks',
         queryParams: { status: 'DELAYED' },
-        delta: d.delayedTask ?? 0
+        delta: delayedTasks
       },
-
-
 
       /* =======================
          REQUESTS
       ======================= */
       {
         title: 'Extension Requests',
-        value: d.requestForExtension,
+        value: extensionRequests,
         color: c('secondary'),
         icon: 'bi-clock-history',
         route: '/view-tasks',
         queryParams: { status: 'REQUEST_FOR_EXTENSION' },
-        delta: d.requestForExtension ?? 0
+        delta: extensionRequests
       },
 
       {
         title: 'Closure Requests',
-        value: d.requestForClosure,
+        value: closureRequests,
         color: c('secondary'),
         icon: 'bi-lock-fill',
         route: '/view-tasks',
         queryParams: { status: 'REQUEST_FOR_CLOSURE' },
-        delta: d.requestForClosure ?? 0
+        delta: closureRequests
       },
-
-
-
-
 
       /* =======================
          DEPARTMENTAL INSIGHTS
       ======================= */
       {
         title: 'Departments with Zero Due Tasks',
-        value: d.zeroDueDepartments,
+        value: zeroDueTasks,
         color: c('success'),
         icon: 'bi-shield-check',
         route: '/departments',
         queryParams: { filter: 'ZERO_DUE' },
-        delta: d.zeroDueDepartments ?? 0
+        delta: zeroDueTasks
       },
 
       {
         title: 'My Department Tasks',
-        value: d.myDepartmentTasks,
+        value: myDepartmentTasks,
         color: c('primary'),
         icon: 'bi-diagram-3-fill',
         route: '/view-tasks',
         queryParams: { status: 'MY_DEPARTMENT' },
-        delta: d.myDepartmentTasks ?? 0
+        delta: myDepartmentTasks
       }
 
     ];
 
     return cards;
+  }
+
+  isCardClickable(card: any): boolean {
+    const nonNavigableCards = ['Total Tasks', 'Total Sub-Departments', 'Departments with Zero Due Tasks'];
+    return !nonNavigableCards.includes(card.title);
+  }
+
+  onCardClick(card: any): void {
+    // Check if this is a card that should not navigate
+    const nonNavigableCards = ['Total Tasks', 'Total Sub-Departments', 'Departments with Zero Due Tasks'];
+    if (nonNavigableCards.includes(card.title)) {
+      return; // Do nothing for these cards
+    }
+
+    // Check if this is a task-related card with status filter
+    if (card.queryParams && card.queryParams.status) {
+      // Set the status filter and reload tasks
+      this.statusFilter = card.queryParams.status;
+      this.currentPage = 0; // Reset to first page
+      this.loadTasks();
+      
+      // Scroll to the tasks table
+      setTimeout(() => {
+        const taskTableSection = document.querySelector('.table-section');
+        if (taskTableSection) {
+          taskTableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    } else {
+      // For non-task cards, use original navigation behavior
+      this.router.navigate([card.route], { queryParams: card.queryParams || {} });
+    }
   }
 
   goToTaskPage(card: any): void {
