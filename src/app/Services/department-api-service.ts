@@ -166,6 +166,29 @@ export class DepartmentApiService {
     );
   }
   // ---------------- SubDepartment APIs ----------------
+  getAuthorizedSubDepartments(): Observable<any[]> {
+    return this.http.get<any>(`${environment.apiUrl}/sub-departments/authorized`).pipe(
+      map((response: any) => {
+        const items = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.data)
+            ? response.data
+            : Array.isArray(response?.result)
+              ? response.result
+              : [];
+        return items.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          code: item.code,
+          description: item.description,
+          departmentId: item.department?.departmentId || item.departmentId,
+          departmentName: item.department?.name || item.departmentName
+        }));
+      }),
+      catchError(err => this.handleError(err, 'fetch authorized sub-departments'))
+    );
+  }
+
   getAllSubDepartments(): Observable<any[]> {
     return this.http.get<any[]>(`${environment.apiUrl}/sub-departments`).pipe(
       catchError(err => this.handleError(err, 'fetch all sub-departments'))

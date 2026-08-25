@@ -75,6 +75,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
   // Dynamic dropdown option lists
   departmentsList: Department[] = [];
+  authorizedSubDepartments: Array<{ id: string; name: string; code?: string; description?: string; departmentId?: number; departmentName?: string }> = [];
   templatesList: TaskTemplateDto[] = [];
   subjectsList: SubjectDto[] = [];
   usersList: userDto[] = [];
@@ -83,6 +84,9 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   filterFields: FilterFieldConfig[] = [];
   isDrawerOpen = false;
 
+  // Multi Sub-Department segregation for HOD/Teacher
+  isMultiSubDeptUser = false;
+  subDepartmentIdFilter = '';
 
   // Filter Bindings for dynamic synchronization
   departmentIdFilter: number | '' = '';
@@ -176,6 +180,15 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       error: (err) => console.error('Failed to load authorized departments', err)
     });
 
+    this.departmentService.getAuthorizedSubDepartments().subscribe({
+      next: (subDepts) => {
+        this.authorizedSubDepartments = subDepts || [];
+        this.updateMultiSubDeptStatus();
+        this.initializeFilterFields();
+      },
+      error: (err) => console.error('Failed to load authorized sub-departments', err)
+    });
+
     this.templateService.getAllTemplates().subscribe({
       next: (res) => {
         if (res && res.success && res.data) {
@@ -203,8 +216,13 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     });
   }
 
+  updateMultiSubDeptStatus(): void {
+    const role = (this.currentUserRole || '').toUpperCase();
+    this.isMultiSubDeptUser = (role === 'HOD' || role === 'TEACHER') && this.authorizedSubDepartments.length > 1;
+  }
+
   initializeFilterFields(): void {
-    this.filterFields = [
+    const fields: FilterFieldConfig[] = [
       { key: 'searchTerm', label: 'Search Keyword', type: 'text', section: 'general', placeholder: 'Enter keywords...' },
       {
         key: 'statusFilter',
@@ -251,7 +269,20 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         type: 'select',
         section: 'organization',
         options: this.departmentsList.map(d => ({ value: d.departmentId, label: d.name }))
-      },
+      }
+    ];
+
+    if (this.authorizedSubDepartments && this.authorizedSubDepartments.length > 0) {
+      fields.push({
+        key: 'subDepartmentIdFilter',
+        label: 'Sub-Department',
+        type: 'select',
+        section: 'organization',
+        options: this.authorizedSubDepartments.map(sd => ({ value: sd.id, label: sd.name }))
+      });
+    }
+
+    fields.push(
       {
         key: 'templateIdFilter',
         label: 'Task Template',
@@ -273,7 +304,9 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         section: 'organization',
         options: this.usersList.map(u => ({ value: u.userId, label: u.fullName }))
       }
-    ];
+    );
+
+    this.filterFields = fields;
   }
 
   get filterValues(): { [key: string]: any } {
@@ -283,6 +316,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       taskTypeFilter: this.taskTypeFilter,
       priorityFilter: this.priorityFilter,
       departmentIdFilter: this.departmentIdFilter,
+      subDepartmentIdFilter: this.subDepartmentIdFilter,
       templateIdFilter: this.templateIdFilter,
       subjectIdFilter: this.subjectIdFilter,
       userIdFilter: this.userIdFilter
@@ -295,6 +329,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.taskTypeFilter = newValues['taskTypeFilter'] || '';
     this.priorityFilter = newValues['priorityFilter'] || '';
     this.departmentIdFilter = newValues['departmentIdFilter'] || '';
+    this.subDepartmentIdFilter = newValues['subDepartmentIdFilter'] || '';
     this.templateIdFilter = newValues['templateIdFilter'] || '';
     this.subjectIdFilter = newValues['subjectIdFilter'] || '';
     this.userIdFilter = newValues['userIdFilter'] || '';
@@ -404,6 +439,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         next: (user: userDto) => {
           this.currentUserRole = user.role;
           this.currentUserDeptIds = user.departmentIds || [];
+          this.updateMultiSubDeptStatus();
           this.loadTasksFromServer();
           this.loadAnalyticsFromServer();
         },
@@ -420,6 +456,10 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     const params: any = {
       search: this.searchTerm
     };
+
+    if (this.subDepartmentIdFilter) {
+      params.subDepartmentId = this.subDepartmentIdFilter;
+    }
 
     if (this.departmentIdFilter) {
       params.departmentId = this.departmentIdFilter;
@@ -576,6 +616,10 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     if (this.statusFilter) {
       chips.push({ key: 'status', label: `Status/Type: ${this.getFilterDisplayName(this.statusFilter)}` });
     }
+    if (this.subDepartmentIdFilter) {
+      const sd = this.authorizedSubDepartments.find(s => s.id === this.subDepartmentIdFilter);
+      chips.push({ key: 'subDepartment', label: `Sub-Dept: ${sd ? sd.name : this.subDepartmentIdFilter}` });
+    }
     if (this.departmentIdFilter) {
       const dept = this.departmentsList.find(d => d.departmentId === Number(this.departmentIdFilter));
       chips.push({ key: 'department', label: `Dept: ${dept ? dept.name : this.departmentIdFilter}` });
@@ -611,6 +655,9 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         this.statusFilter = '';
         this.selectedCard = 'total';
         break;
+      case 'subDepartment':
+        this.subDepartmentIdFilter = '';
+        break;
       case 'department':
         this.departmentIdFilter = '';
         this.departmentFilter = '';
@@ -632,6 +679,10 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         this.taskTypeFilter = '';
         break;
     }
+    this.applyFilters();
+  }
+
+  onSubDepartmentChange(): void {
     this.applyFilters();
   }
 
@@ -917,6 +968,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.categoryFilter = '';
     this.templateFilter = '';
     this.selectedCard = 'total';
+    this.subDepartmentIdFilter = '';
     this.departmentIdFilter = '';
     this.templateIdFilter = '';
     this.subjectIdFilter = '';

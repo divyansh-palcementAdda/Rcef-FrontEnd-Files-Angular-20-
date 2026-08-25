@@ -225,378 +225,300 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Section 3: Template vs General Comparison -->
-        <div class="col-lg-4">
-          <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
-            <h4 class="card-title mb-3"><i class="bi bi-pie-chart-fill me-2 text-primary"></i> Template vs General</h4>
-            <div class="d-flex flex-column gap-3">
-              <!-- Template Tasks Card -->
-              <div class="type-breakdown-box p-4 rounded border position-relative"
-                [class.selected]="taskTypeFilter === 'TEMPLATE'" (click)="selectTaskType('TEMPLATE')">
-                <div *ngIf="taskTypeFilter === 'TEMPLATE'"
-                  class="card-selected-indicator card-selected-indicator--mini">
-                  <i class="bi bi-check-lg text-white"></i>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                  <span class="fw-bold text-info"><i class="bi bi-layers me-1"></i> Templates</span>
-                  <span class="badge bg-info fs-6">{{ analyticsData.templateVsGeneral.templateTasks.total }}</span>
-                </div>
-                <div class="d-flex flex-wrap gap-2 text-muted small">
-                  <span>Pending: {{ analyticsData.templateVsGeneral.templateTasks.pending }}</span>
-                  <span>Completed: {{ analyticsData.templateVsGeneral.templateTasks.completed }}</span>
-                  <span class="text-danger">Delayed: {{ analyticsData.templateVsGeneral.templateTasks.delayed }}</span>
-                </div>
-              </div>
-
-              <!-- General Tasks Card -->
-              <div class="type-breakdown-box p-4 rounded border position-relative"
-                [class.selected]="taskTypeFilter === 'GENERAL'" (click)="selectTaskType('GENERAL')">
-                <div *ngIf="taskTypeFilter === 'GENERAL'" class="card-selected-indicator card-selected-indicator--mini">
-                  <i class="bi bi-check-lg text-white"></i>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                  <span class="fw-bold text-secondary"><i class="bi bi-file-earmark-text me-1"></i> General</span>
-                  <span class="badge bg-secondary fs-6">{{ analyticsData.templateVsGeneral.generalTasks.total }}</span>
-                </div>
-                <div class="d-flex flex-wrap gap-2 text-muted small">
-                  <span>Pending: {{ analyticsData.templateVsGeneral.generalTasks.pending }}</span>
-                  <span>Completed: {{ analyticsData.templateVsGeneral.generalTasks.completed }}</span>
-                  <span class="text-danger">Delayed: {{ analyticsData.templateVsGeneral.generalTasks.delayed }}</span>
-                </div>
-              </div>
+      <!-- ==========================================
+       2.5. SUB-DEPARTMENT SEGREGATION BAR (HOD / Teacher with Multi Sub-Depts)
+       ========================================== -->
+      <div *ngIf="isMultiSubDeptUser" class="subdept-segregation-container mb-3">
+        <div class="subdept-segregation-card">
+          <div class="subdept-segregation-left">
+            <div class="subdept-icon-box">
+              <i class="bi bi-diagram-3-fill"></i>
             </div>
+            <div class="subdept-label-group">
+              <span class="subdept-title">Sub-Department Scope</span>
+              <span class="subdept-subtitle">Segregate tasks by your assigned sub-departments</span>
+            </div>
+          </div>
+          <div class="subdept-segregation-right">
+            <div class="subdept-select-wrapper">
+              <label for="subDeptFilterSelect" class="visually-hidden">Sub-Department</label>
+              <select
+                id="subDeptFilterSelect"
+                class="form-select subdept-select"
+                [(ngModel)]="subDepartmentIdFilter"
+                (change)="onSubDepartmentChange()">
+                <option value="">All My Sub-Departments</option>
+                <option *ngFor="let sd of authorizedSubDepartments" [value]="sd.id">
+                  {{ sd.name }}
+                </option>
+              </select>
+            </div>
+            <span *ngIf="subDepartmentIdFilter" class="subdept-active-badge">
+              <i class="bi bi-funnel-fill me-1"></i> Active
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- Section 4: Template Breakdown & Section 5: Subject Breakdown -->
-      <div class="row g-4 mb-4">
-        <!-- Section 4: Template-wise Performance -->
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
-            <h4 class="card-title mb-3"><i class="bi bi-file-earmark-spreadsheet me-2 text-primary"></i> Template
-              Breakdown</h4>
-            <div class="template-list-container scrollable-y">
-              <div *ngFor="let t of analyticsData.templateBreakdown"
-                class="template-item p-3 mb-2 rounded border position-relative"
-                [class.selected]="templateIdFilter === t.templateId"
-                (click)="selectTemplate(t.templateId, t.templateName)">
-                <div *ngIf="templateIdFilter === t.templateId"
-                  class="card-selected-indicator card-selected-indicator--mini">
-                  <i class="bi bi-check-lg text-white"></i>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="fw-bold text-truncate" style="max-width: 70%;">{{ t.templateName }}</span>
-                  <span class="badge bg-success small">{{ t.achievement }}% Achievement</span>
-                </div>
-                <div class="progress mb-2" style="height: 4px;">
-                  <div class="progress-bar bg-success" role="progressbar" [style.width]="t.achievement + '%'"></div>
-                </div>
-                <div class="d-flex gap-3 text-muted small">
-                  <span>Total: {{ t.totalTasks }}</span>
-                  <span>Pending: {{ t.pending }}</span>
-                  <span>Completed: {{ t.completed }}</span>
-                  <span class="text-danger">Delayed: {{ t.delayed }}</span>
-                </div>
-              </div>
-              <div *ngIf="analyticsData.templateBreakdown.length === 0"
-                class="empty-state-illustration p-4 text-center">
-                <div class="empty-icon-circle bg-light mx-auto mb-2 d-flex align-items-center justify-content-center">
-                  <i class="bi bi-file-earmark-spreadsheet text-muted fs-3"></i>
-                </div>
-                <p class="text-muted small fw-medium mb-0">No template performance metrics available.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 5: Subject Breakdown -->
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
-            <h4 class="card-title mb-3"><i class="bi bi-book-half me-2 text-primary"></i> Subject Breakdown</h4>
-            <div class="subject-list-container scrollable-y">
-              <div *ngFor="let s of analyticsData.subjectBreakdown"
-                class="subject-item p-3 mb-2 rounded border position-relative"
-                [class.selected]="subjectIdFilter === s.subjectId" (click)="selectSubject(s.subjectId)">
-                <div *ngIf="subjectIdFilter === s.subjectId"
-                  class="card-selected-indicator card-selected-indicator--mini">
-                  <i class="bi bi-check-lg text-white"></i>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="fw-bold">{{ s.subjectName }}</span>
-                  <span class="badge bg-secondary">{{ s.totalTasks }} Tasks</span>
-                </div>
-                <div class="d-flex justify-content-between text-muted small">
-                  <span>Pending: {{ s.pending }}</span>
-                  <span>Completed: {{ s.completed }}</span>
-                  <span class="text-danger">Delayed: {{ s.delayed }}</span>
-                </div>
-              </div>
-              <div *ngIf="analyticsData.subjectBreakdown.length === 0" class="empty-state-illustration p-4 text-center">
-                <div class="empty-icon-circle bg-light mx-auto mb-2 d-flex align-items-center justify-content-center">
-                  <i class="bi bi-book text-muted fs-3"></i>
-                </div>
-                <p class="text-muted small fw-medium mb-0">No academic subjects configured or mapped to tasks.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ==========================================
+      <!-- ==========================================
        3. REUSABLE MODERN ACTION TOOLBAR
        ========================================== -->
-    <app-page-toolbar [searchPlaceholder]="'Search by Task Name, ID, Assignee...'" [searchValue]="searchTerm"
-      [activeChips]="activeChips" [refreshLoading]="loading && !isInitialLoad" [showExport]="false" [showUpload]="false"
-      [showAdd]="false" (searchChange)="onToolbarSearch($event)" (searchClear)="onToolbarSearchClear()"
-      (filterClick)="isDrawerOpen = true" (clearFilters)="resetFilters()" (removeChip)="removeChip($event)"
-      (refreshClick)="loadCurrentUserAndTasks()">
-    </app-page-toolbar>
+      <app-page-toolbar [searchPlaceholder]="'Search by Task Name, ID, Assignee...'" [searchValue]="searchTerm"
+        [activeChips]="activeChips" [refreshLoading]="loading && !isInitialLoad" [showExport]="false"
+        [showUpload]="false" [showAdd]="false" (searchChange)="onToolbarSearch($event)"
+        (searchClear)="onToolbarSearchClear()" (filterClick)="isDrawerOpen = true" (clearFilters)="resetFilters()"
+        (removeChip)="removeChip($event)" (refreshClick)="loadCurrentUserAndTasks()">
+      </app-page-toolbar>
 
-    <!-- Filter Drawer Component -->
-    <app-filter-drawer [(isOpen)]="isDrawerOpen" [fields]="filterFields" [values]="filterValues"
-      (apply)="onApplyDrawerFilters($event)" (reset)="resetFilters()">
-    </app-filter-drawer>
+      <!-- Filter Drawer Component -->
+      <app-filter-drawer [(isOpen)]="isDrawerOpen" [fields]="filterFields" [values]="filterValues"
+        (apply)="onApplyDrawerFilters($event)" (reset)="resetFilters()">
+      </app-filter-drawer>
 
 
-    <!-- ==========================================
+      <!-- ==========================================
        5. DATA GRID TABLE SECTION
        ========================================== -->
-    <div *ngIf="!isEmpty && filteredTasks.length > 0" class="stitch-grid-container">
-      <div class="table-responsive" appDragScroll>
-        <table class="stitch-table align-middle">
-          <thead>
-            <tr>
-              <th style="width: 60px; position: sticky; left: 0; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">S.No</th>
-              <th (click)="setSort('title')" style="cursor: pointer; position: sticky; left: 60px; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">
-                <span style="white-space: nowrap;">
-                  Task Details
-                  <i class="bi" [ngClass]="{
+      <div *ngIf="!isEmpty && filteredTasks.length > 0" class="stitch-grid-container">
+        <div class="table-responsive" appDragScroll>
+          <table class="stitch-table align-middle">
+            <thead>
+              <tr>
+                <th
+                  style="width: 60px; position: sticky; left: 0; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">
+                  S.No</th>
+                <th (click)="setSort('title')"
+                  style="cursor: pointer; position: sticky; left: 60px; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">
+                  <span style="white-space: nowrap;">
+                    Task Details
+                    <i class="bi" [ngClass]="{
                     'bi-arrow-up text-primary': sortBy === 'title' && sortDirection === 'asc',
                     'bi-arrow-down text-primary': sortBy === 'title' && sortDirection === 'desc',
                     'bi-arrow-down-up text-muted opacity-50': sortBy !== 'title'
                   }"></i>
-                </span>
-              </th>
-              <th (click)="setSort('department.name')" style="cursor: pointer;">
-                <span style="white-space: nowrap;">
-                  Department
-                  <i class="bi" [ngClass]="{
+                  </span>
+                </th>
+                <th (click)="setSort('department.name')" style="cursor: pointer;">
+                  <span style="white-space: nowrap;">
+                    Department
+                    <i class="bi" [ngClass]="{
                     'bi-arrow-up text-primary': sortBy === 'department.name' && sortDirection === 'asc',
                     'bi-arrow-down text-primary': sortBy === 'department.name' && sortDirection === 'desc',
                     'bi-arrow-down-up text-muted opacity-50': sortBy !== 'department.name'
                   }"></i>
-                </span>
-              </th>
-              <th>Assignee</th>
-              <th (click)="setSort('dueDate')" style="cursor: pointer;">
-                <span style="white-space: nowrap;">
-                  Timeline
-                  <i class="bi" [ngClass]="{
+                  </span>
+                </th>
+                <th>Assignee</th>
+                <th (click)="setSort('dueDate')" style="cursor: pointer;">
+                  <span style="white-space: nowrap;">
+                    Timeline
+                    <i class="bi" [ngClass]="{
                     'bi-arrow-up text-primary': sortBy === 'dueDate' && sortDirection === 'asc',
                     'bi-arrow-down text-primary': sortBy === 'dueDate' && sortDirection === 'desc',
                     'bi-arrow-down-up text-muted opacity-50': sortBy !== 'dueDate'
                   }"></i>
-                </span>
-              </th>
-              <th (click)="setSort('status')" style="cursor: pointer;">
-                <span style="white-space: nowrap;">
-                  Status
-                  <i class="bi" [ngClass]="{
+                  </span>
+                </th>
+                <th (click)="setSort('status')" style="cursor: pointer;">
+                  <span style="white-space: nowrap;">
+                    Status
+                    <i class="bi" [ngClass]="{
                     'bi-arrow-up text-primary': sortBy === 'status' && sortDirection === 'asc',
                     'bi-arrow-down text-primary': sortBy === 'status' && sortDirection === 'desc',
                     'bi-arrow-down-up text-muted opacity-50': sortBy !== 'status'
                   }"></i>
-                </span>
-              </th>
-              <th class="text-end" style="width: 140px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let task of paginatedTasks; let i = index; trackBy: trackByTaskId"
-              (click)="viewTaskDetails(task.taskId)" style="cursor: pointer;">
+                  </span>
+                </th>
+                <th class="text-end" style="width: 140px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let task of paginatedTasks; let i = index; trackBy: trackByTaskId"
+                (click)="viewTaskDetails(task.taskId)" style="cursor: pointer;">
 
-              <!-- S.No -->
-              <td data-label="S.No" style="position: sticky; left: 0; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
-                <span class="fw-semibold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
-              </td>
+                <!-- S.No -->
+                <td data-label="S.No"
+                  style="position: sticky; left: 0; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
+                  <span class="fw-semibold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
+                </td>
 
-              <!-- Task Details -->
-              <td data-label="Task Details" style="position: sticky; left: 60px; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
-                <div class="stitch-task-title-area">
-                  <div class="stitch-task-title-row">
-                    <span class="stitch-task-title">
-                      {{
-                      task.title +
-                      (task.targetCount != null ? ' || ' + task.targetCount + ' Count' : '') +
-                      (task.targetPercentage != null ? ' || ' + task.targetPercentage + '%' : '')
-                      }}
-                    </span>
-                    <!-- <span *ngIf="isOverdue(task)" class="stitch-tag-badge tag-priority-high">High</span> -->
+                <!-- Task Details -->
+                <td data-label="Task Details"
+                  style="position: sticky; left: 60px; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
+                  <div class="stitch-task-title-area">
+                    <div class="stitch-task-title-row">
+                      <span class="stitch-task-title">
+                        {{
+                        task.title +
+                        (task.targetCount != null ? ' || ' + task.targetCount + ' Count' : '') +
+                        (task.targetPercentage != null ? ' || ' + task.targetPercentage + '%' : '')
+                        }}
+                      </span>
+                      <!-- <span *ngIf="isOverdue(task)" class="stitch-tag-badge tag-priority-high">High</span> -->
+                    </div>
+                    <p class="stitch-task-desc" *ngIf="task.description">{{ task.description }}</p>
                   </div>
-                  <p class="stitch-task-desc" *ngIf="task.description">{{ task.description }}</p>
-                </div>
-              </td>
+                </td>
 
-              <!-- Department -->
-              <td data-label="Department">
-                <div class="stitch-dept-area">
-                  <span class="stitch-dept-badge" *ngIf="task.departmentNames && task.departmentNames.length > 0">
-                    {{ task.departmentNames[0] }}
-                  </span>
-                  <span class="stitch-subdept-label" *ngIf="task.departmentNames && task.departmentNames.length > 1">
-                    {{ task.departmentNames[1] }}
-                  </span>
+                <!-- Department -->
+                <td data-label="Department">
+                  <div class="stitch-dept-area">
+                    <span class="stitch-dept-badge" *ngIf="task.departmentNames && task.departmentNames.length > 0">
+                      {{ task.departmentNames[0] }}
+                    </span>
+                    <span class="stitch-subdept-label" *ngIf="task.departmentNames && task.departmentNames.length > 1">
+                      {{ task.departmentNames[1] }}
+                    </span>
+                    <span class="text-muted small"
+                      *ngIf="!task.departmentNames || task.departmentNames.length === 0">—</span>
+                  </div>
+                </td>
+
+                <!-- Assignee -->
+                <td data-label="Assignee">
+                  <div class="stitch-assignee-layout" *ngIf="task.assignedToNames && task.assignedToNames.length > 0">
+                    <div class="stitch-assignee-info">
+                      <span class="stitch-assignee-name">{{ task.assignedToNames[0] }}</span>
+                    </div>
+                  </div>
                   <span class="text-muted small"
-                    *ngIf="!task.departmentNames || task.departmentNames.length === 0">—</span>
-                </div>
-              </td>
+                    *ngIf="!task.assignedToNames || task.assignedToNames.length === 0">—</span>
+                </td>
 
-              <!-- Assignee -->
-              <td data-label="Assignee">
-                <div class="stitch-assignee-layout" *ngIf="task.assignedToNames && task.assignedToNames.length > 0">
-                  <div class="stitch-assignee-info">
-                    <span class="stitch-assignee-name">{{ task.assignedToNames[0] }}</span>
+                <!-- Timeline -->
+                <td data-label="Timeline">
+                  <div class="stitch-timeline-wrapper" [class.timeline-urgent]="isOverdue(task)">
+                    <div class="stitch-timeline-info">
+                      <span class="stitch-timeline-date">{{ formatDate(task.dueDate).split(' (')[0] }}</span>
+                      <span class="stitch-timeline-relative"
+                        [ngClass]="isOverdue(task) ? 'timeline-urgent' : 'timeline-normal'">
+                        {{ formatDate(task.dueDate).includes(' (') ? formatDate(task.dueDate).split('
+                        (')[1].replace(')',
+                        '') : '' }}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <span class="text-muted small"
-                  *ngIf="!task.assignedToNames || task.assignedToNames.length === 0">—</span>
-              </td>
+                </td>
 
-              <!-- Timeline -->
-              <td data-label="Timeline">
-                <div class="stitch-timeline-wrapper" [class.timeline-urgent]="isOverdue(task)">
-                  <div class="stitch-timeline-info">
-                    <span class="stitch-timeline-date">{{ formatDate(task.dueDate).split(' (')[0] }}</span>
-                    <span class="stitch-timeline-relative"
-                      [ngClass]="isOverdue(task) ? 'timeline-urgent' : 'timeline-normal'">
-                      {{ formatDate(task.dueDate).includes(' (') ? formatDate(task.dueDate).split(' (')[1].replace(')',
-                      '') : '' }}
-                    </span>
-                  </div>
-                </div>
-              </td>
-
-              <!-- Status -->
-              <td data-label="Status">
-                <span class="stitch-status-pill" [ngClass]="{
+                <!-- Status -->
+                <td data-label="Status">
+                  <span class="stitch-status-pill" [ngClass]="{
                         'pill-in-progress': task.status === 'IN_PROGRESS',
                         'pill-pending': task.status === 'PENDING' || task.status === 'UPCOMING',
                         'pill-approval': task.status === 'REQUEST_FOR_CLOSURE' || task.status === 'REQUEST_FOR_EXTENSION',
                         'pill-completed': task.status === 'CLOSED',
                         'pill-overdue' :task.status === 'DELAYED'
                       }">
-                  {{task.status}}
-                </span>
-              </td>
+                    {{task.status}}
+                  </span>
+                </td>
 
-              <!-- Actions -->
-              <td class="text-end actions-td" (click)="$event.stopPropagation()">
-                <div class="row-actions">
-                  <button class="action-icon-btn" (click)="viewTaskDetails(task.taskId)" title="View Details">
-                    <i class="bi bi-eye"></i>
-                  </button>
-                  <button *ngIf="canEditTask(task)" class="action-icon-btn" (click)="editTask(task.taskId)"
-                    title="Edit Task">
-                    <i class="bi bi-pencil-square"></i>
-                  </button>
-                  <button
-                    *ngIf="canDeleteTask(task) && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"
-                    class="action-icon-btn text-danger" (click)="deleteTask($event, task.taskId)" title="Delete Task">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
-              </td>
+                <!-- Actions -->
+                <td class="text-end actions-td" (click)="$event.stopPropagation()">
+                  <div class="row-actions">
+                    <button class="action-icon-btn" (click)="viewTaskDetails(task.taskId)" title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button *ngIf="canEditTask(task)" class="action-icon-btn" (click)="editTask(task.taskId)"
+                      title="Edit Task">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button
+                      *ngIf="canDeleteTask(task) && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"
+                      class="action-icon-btn text-danger" (click)="deleteTask($event, task.taskId)" title="Delete Task">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
 
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination Footer -->
-      <div class="stitch-pagination">
-        <div class="stitch-pag-left">
-          <span>Rows per page:</span>
-          <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="currentPage = 1; applyFilters()">
-            <option [value]="5">5</option>
-            <option [value]="8">8</option>
-            <option [value]="10">10</option>
-            <option [value]="12">12</option>
-            <option [value]="20">20</option>
-          </select>
-          <span class="stitch-pag-label">
-            {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalTasks) }} of {{ totalTasks
-            }} results
-          </span>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="stitch-pag-controls">
-          <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(1)" title="First Page">
-            <i class="bi bi-chevron-double-left"></i>
-          </button>
-          <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)"
-            title="Previous Page">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button *ngFor="let page of getPageNumbers()" class="stitch-pag-btn" [class.active]="page === currentPage"
-            (click)="changePage(page)">
-            {{ page }}
-          </button>
-          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)"
-            title="Next Page">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-          <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)"
-            title="Last Page">
-            <i class="bi bi-chevron-double-right"></i>
-          </button>
+        <!-- Pagination Footer -->
+        <div class="stitch-pagination">
+          <div class="stitch-pag-left">
+            <span>Rows per page:</span>
+            <select class="stitch-pag-size-selector" [(ngModel)]="pageSize" (change)="currentPage = 1; applyFilters()">
+              <option [value]="5">5</option>
+              <option [value]="8">8</option>
+              <option [value]="10">10</option>
+              <option [value]="12">12</option>
+              <option [value]="20">20</option>
+            </select>
+            <span class="stitch-pag-label">
+              {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalTasks) }} of {{ totalTasks
+              }} results
+            </span>
+          </div>
+
+          <div class="stitch-pag-controls">
+            <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(1)" title="First Page">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)"
+              title="Previous Page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button *ngFor="let page of getPageNumbers()" class="stitch-pag-btn" [class.active]="page === currentPage"
+              (click)="changePage(page)">
+              {{ page }}
+            </button>
+            <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)"
+              title="Next Page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="stitch-pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(totalPages)"
+              title="Last Page">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Empty State -->
-    <div *ngIf="isEmpty || filteredTasks.length === 0"
-      class="empty-state-illustration p-5 text-center bg-white rounded-4 border my-4">
-      <div class="empty-icon-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center"
-        style="width: 60px; height: 60px; border-radius: 50%;">
-        <i class="bi bi-clipboard text-muted fs-2"></i>
-      </div>
-      <h4 class="fw-bold text-dark mb-2">No Tasks Found</h4>
-      <p class="text-muted mb-4 small">
-        {{ (searchTerm || statusFilter || departmentIdFilter || templateIdFilter || subjectIdFilter || userIdFilter ||
-        priorityFilter || taskTypeFilter) ? 'We couldn\'t find any assignments matching your current search or active
-        filter options.' : 'There are currently no tasks assigned.' }}
-      </p>
-      <button
-        *ngIf="searchTerm || statusFilter || departmentIdFilter || templateIdFilter || subjectIdFilter || userIdFilter || priorityFilter || taskTypeFilter"
-        class="btn btn-primary d-inline-flex align-items-center gap-2 mx-auto" (click)="resetFilters()">
-        <i class="bi bi-x-circle-fill"></i> Clear All Filters
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ===================== Bulk Upload Modal ===================== -->
-<div class="modal-backdrop-overlay" *ngIf="showBulkUploadModal" (click)="closeBulkUploadModal()">
-  <div class="modal-window-wrapper modal-size-large" (click)="$event.stopPropagation()">
-    <div class="modal-form-layout">
-      <!-- Modal Header -->
-      <div class="modal-form-header d-flex justify-content-between align-items-center">
-        <div>
-          <h5 class="modal-title fw-bold mb-0" id="bulkUploadModalLabel">
-            <i class="bi bi-file-earmark-excel-fill me-2 text-primary"></i>Bulk Upload Tasks
-          </h5>
-          <p class="text-muted small mb-0">Upload a CSV/Excel file to import tasks in bulk</p>
+      <!-- Empty State -->
+      <div *ngIf="isEmpty || filteredTasks.length === 0"
+        class="empty-state-illustration p-5 text-center bg-white rounded-4 border my-4">
+        <div class="empty-icon-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center"
+          style="width: 60px; height: 60px; border-radius: 50%;">
+          <i class="bi bi-clipboard text-muted fs-2"></i>
         </div>
-        <button type="button" class="btn-close" (click)="closeBulkUploadModal()" aria-label="Close"></button>
-      </div>
-      <!-- Modal Body -->
-      <div class="modal-form-body p-0">
-        <app-tasks-import *ngIf="showBulkUploadModal"></app-tasks-import>
+        <h4 class="fw-bold text-dark mb-2">No Tasks Found</h4>
+        <p class="text-muted mb-4 small">
+          {{ (searchTerm || statusFilter || departmentIdFilter || templateIdFilter || subjectIdFilter || userIdFilter ||
+          priorityFilter || taskTypeFilter) ? 'We couldn\'t find any assignments matching your current search or active
+          filter options.' : 'There are currently no tasks assigned.' }}
+        </p>
+        <button
+          *ngIf="searchTerm || statusFilter || departmentIdFilter || templateIdFilter || subjectIdFilter || userIdFilter || priorityFilter || taskTypeFilter"
+          class="btn btn-primary d-inline-flex align-items-center gap-2 mx-auto" (click)="resetFilters()">
+          <i class="bi bi-x-circle-fill"></i> Clear All Filters
+        </button>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- ===================== Bulk Upload Modal ===================== -->
+  <div class="modal-backdrop-overlay" *ngIf="showBulkUploadModal" (click)="closeBulkUploadModal()">
+    <div class="modal-window-wrapper modal-size-large" (click)="$event.stopPropagation()">
+      <div class="modal-form-layout">
+        <!-- Modal Header -->
+        <div class="modal-form-header d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="modal-title fw-bold mb-0" id="bulkUploadModalLabel">
+              <i class="bi bi-file-earmark-excel-fill me-2 text-primary"></i>Bulk Upload Tasks
+            </h5>
+            <p class="text-muted small mb-0">Upload a CSV/Excel file to import tasks in bulk</p>
+          </div>
+          <button type="button" class="btn-close" (click)="closeBulkUploadModal()" aria-label="Close"></button>
+        </div>
+        <!-- Modal Body -->
+        <div class="modal-form-body p-0">
+          <app-tasks-import *ngIf="showBulkUploadModal"></app-tasks-import>
+        </div>
+      </div>
+    </div>
+  </div>
