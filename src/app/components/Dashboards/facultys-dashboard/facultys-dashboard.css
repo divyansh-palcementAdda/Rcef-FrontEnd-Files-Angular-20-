@@ -60,6 +60,28 @@
 }
 .fd-hero__tag i { font-size:0.68rem; }
 
+.fd-hero__subdeps {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+.fd-hero__subdep-item {
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.22rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.fd-hero__subdep-item i { font-size: 0.68rem; }
+
 /* KPI trio */
 .fd-hero__kpis {
   display:flex; align-items:center; flex-shrink:0;

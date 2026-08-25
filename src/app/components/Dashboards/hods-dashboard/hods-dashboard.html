@@ -24,6 +24,11 @@
           <span class="mx-2">•</span>
           <i class="bi bi-building me-2"></i> {{ dashboardData.departmentName }}
         </p>
+        <div class="subdeps-column" *ngIf="dashboardData.subDepartments && dashboardData.subDepartments.length > 0" style="color: rgba(255, 255, 255, 0.9) !important;">
+          <div class="subdep-item" *ngFor="let sub of dashboardData.subDepartments">
+            <i class="bi bi-diagram-3 me-2"></i>{{ sub.name }}
+          </div>
+        </div>
       </div>
       
       <div class="d-flex flex-column align-items-md-end gap-2">

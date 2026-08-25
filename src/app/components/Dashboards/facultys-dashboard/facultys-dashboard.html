@@ -22,6 +22,11 @@
         <div class="fd-hero__meta">
           <span class="fd-hero__tag"><i class="bi bi-person-workspace"></i> Faculty Member</span>
           <span class="fd-hero__tag"><i class="bi bi-building"></i> {{ dashboardData.departmentName || '—' }}</span>
+          <div class="fd-hero__subdeps" *ngIf="dashboardData.subDepartments && dashboardData.subDepartments.length > 0">
+            <span class="fd-hero__subdep-item" *ngFor="let sub of dashboardData.subDepartments">
+              <i class="bi bi-diagram-3"></i> {{ sub.name }}
+            </span>
+          </div>
           <span class="fd-hero__tag fd-hero__tag--date"><i class="bi bi-calendar3"></i> {{ currentDate | date:'EEE, d MMM y' }}</span>
         </div>
       </div>

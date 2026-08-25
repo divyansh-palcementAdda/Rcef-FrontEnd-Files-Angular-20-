@@ -1,3 +1,11 @@
+export interface SubDepartment {
+  id: string;
+  name: string;
+  code: string;
+  departmentId: number;
+  departmentName: string;
+}
+
 export interface DashboardDto {
   activeSubDepartments: any;
   recurringParentTask: any;
@@ -30,5 +38,6 @@ export interface DashboardDto {
   academicCount?: number;
   completionPercentages?: number;
   templateWiseCounts?: Record<string, number>;
+  subDepartments?: SubDepartment[];
 }
 
