@@ -183,17 +183,21 @@
         </app-analytics-stat-card>
       </div>
 
-      <!-- Section 2: Department Breakdown & Section 3: Template vs General -->
-      <div class="row g-4 mb-4">
-        <!-- Section 2: Department Breakdown -->
-        <div class="col-lg-8">
-          <div class="card border-0 shadow-sm p-4 h-100 breakdown-card">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-              <h4 class="card-title m-0"><i class="bi bi-building me-2 text-primary"></i> Department Breakdown</h4>
+      <!-- Section 2: Department Breakdown (For Admin / SuperAdmin or multi-department views) -->
+      <div class="row g-4 mb-4"
+        *ngIf="analyticsData.departmentBreakdown.length > 1 || (!showSubDepartmentSection && analyticsData.departmentBreakdown.length > 0)">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm p-4 breakdown-card">
+            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+              <h4 class="card-title m-0 fw-bold"><i class="bi bi-building me-2 text-primary"></i> Department Breakdown
+              </h4>
+              <span class="badge bg-light text-primary border border-primary-subtle rounded-pill">
+                {{ analyticsData.departmentBreakdown.length }} Departments
+              </span>
             </div>
-            <div class="department-list-container scrollable-y">
+            <div class="department-cards-grid">
               <div *ngFor="let d of analyticsData.departmentBreakdown"
-                class="department-item p-3 mb-2 rounded border position-relative"
+                class="department-item-card p-3 rounded-3 border position-relative"
                 [class.selected]="departmentIdFilter === d.departmentId"
                 (click)="selectDepartment(d.departmentId, d.departmentName)">
                 <div *ngIf="departmentIdFilter === d.departmentId"
@@ -201,64 +205,136 @@
                   <i class="bi bi-check-lg text-white"></i>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="fw-bold">{{ d.departmentName }}</span>
-                  <span class="badge bg-primary rounded-pill">{{ d.totalTasks }} Tasks</span>
+                  <span class="fw-bold fs-6 text-truncate pe-2" [title]="d.departmentName">{{ d.departmentName }}</span>
+                  <span class="badge bg-primary rounded-pill flex-shrink-0">{{ d.totalTasks }} Tasks</span>
                 </div>
                 <div class="progress mb-2" style="height: 6px;">
-                  <div class="progress-bar bg-success" role="progressbar"
+                  <div class="progress-bar bg-success" role="progressbar" title="Completed"
                     [style.width]="(d.completed / (d.totalTasks || 1) * 100) + '%'"></div>
-                  <div class="progress-bar bg-warning" role="progressbar"
+                  <div class="progress-bar bg-warning" role="progressbar" title="In Progress"
                     [style.width]="(d.inProgress / (d.totalTasks || 1) * 100) + '%'"></div>
-                  <div class="progress-bar bg-danger" role="progressbar"
+                  <div class="progress-bar bg-danger" role="progressbar" title="Delayed"
                     [style.width]="(d.delayed / (d.totalTasks || 1) * 100) + '%'"></div>
                 </div>
-                <div class="d-flex gap-3 text-muted small flex-wrap">
-                  <span>Pending: {{ d.pending }}</span>
-                  <span>In Progress: {{ d.inProgress }}</span>
-                  <span>Completed: {{ d.completed }}</span>
-                  <span class="text-danger">Delayed: {{ d.delayed }}</span>
+                <div class="d-flex gap-2 text-muted small flex-wrap justify-content-between">
+                  <span>Pending: <strong class="text-dark">{{ d.pending }}</strong></span>
+                  <span>In Progress: <strong class="text-dark">{{ d.inProgress }}</strong></span>
+                  <span>Completed: <strong class="text-dark">{{ d.completed }}</strong></span>
+                  <span class="text-danger">Delayed: <strong>{{ d.delayed }}</strong></span>
                 </div>
               </div>
-              <div *ngIf="analyticsData.departmentBreakdown.length === 0" class="text-center py-4 text-muted">
-                <i class="bi bi-building fs-1 mb-2 d-block"></i> No department analytics available.
-              </div>
+            </div>
+            <div *ngIf="analyticsData.departmentBreakdown.length === 0" class="text-center py-4 text-muted">
+              <i class="bi bi-building fs-1 mb-2 d-block"></i> No department analytics available.
             </div>
           </div>
         </div>
       </div>
 
       <!-- ==========================================
-       2.5. SUB-DEPARTMENT SEGREGATION BAR (HOD / Teacher with Multi Sub-Depts)
+       2.5. SUB-DEPARTMENT PERFORMANCE BREAKDOWN & SCOPE
        ========================================== -->
-      <div *ngIf="isMultiSubDeptUser" class="subdept-segregation-container mb-3">
-        <div class="subdept-segregation-card">
-          <div class="subdept-segregation-left">
-            <div class="subdept-icon-box">
-              <i class="bi bi-diagram-3-fill"></i>
+      <div *ngIf="showSubDepartmentSection" class="subdept-breakdown-section mb-4">
+        <div class="card border-0 shadow-sm p-4 breakdown-card subdept-main-card">
+
+          <!-- Section Header: Title + Scope Controls -->
+          <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-2">
+              <div class="subdept-header-icon-box">
+                <i class="bi bi-diagram-3-fill"></i>
+              </div>
+              <div>
+                <h4 class="card-title m-0 fw-bold d-flex align-items-center gap-2">
+                  Sub-Department Breakdown
+                  <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle fs-xs">
+                    {{ subDepartmentBreakdownList.length }} Accessible
+                  </span>
+                </h4>
+                <p class="text-muted small mb-0">Workload distribution and performance across assigned sub-departments
+                </p>
+              </div>
             </div>
-            <div class="subdept-label-group">
-              <span class="subdept-title">Sub-Department Scope</span>
-              <span class="subdept-subtitle">Segregate tasks by your assigned sub-departments</span>
+
+            <!-- Scope Selector (All vs Specific) -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <button class="btn btn-sm"
+                [ngClass]="!subDepartmentIdFilter ? 'btn-primary shadow-sm' : 'btn-outline-secondary'"
+                (click)="selectSubDepartment('')">
+                <i class="bi bi-collection-fill me-1"></i> All My Sub-Departments
+              </button>
             </div>
           </div>
-          <div class="subdept-segregation-right">
-            <div class="subdept-select-wrapper">
-              <label for="subDeptFilterSelect" class="visually-hidden">Sub-Department</label>
-              <select
-                id="subDeptFilterSelect"
-                class="form-select subdept-select"
-                [(ngModel)]="subDepartmentIdFilter"
-                (change)="onSubDepartmentChange()">
-                <option value="">All My Sub-Departments</option>
-                <option *ngFor="let sd of authorizedSubDepartments" [value]="sd.id">
-                  {{ sd.name }}
-                </option>
-              </select>
+
+          <!-- Sub-Department Cards Grid -->
+          <div class="subdept-cards-grid">
+            <div *ngFor="let sd of subDepartmentBreakdownList"
+              class="subdept-item-card p-3 rounded-3 border position-relative"
+              [class.active-scope]="subDepartmentIdFilter === sd.subDepartmentId"
+              (click)="selectSubDepartment(sd.subDepartmentId)">
+
+              <!-- Active Badge & Checkmark Indicator -->
+              <div *ngIf="subDepartmentIdFilter === sd.subDepartmentId" class="subdept-active-indicator">
+                <i class="bi bi-check-circle-fill text-primary me-1"></i>
+                <span class="fw-bold">Active Scope</span>
+              </div>
+
+              <!-- Top Row: Name, Dept, Total Badge -->
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="subdept-card-info pe-2">
+                  <h5 class="subdept-card-title fw-bold mb-0 text-truncate" [title]="sd.subDepartmentName">
+                    {{ sd.subDepartmentName }}
+                  </h5>
+                  <span class="subdept-card-dept text-muted small" *ngIf="sd.departmentName">
+                    <i class="bi bi-building me-1"></i>{{ sd.departmentName }}
+                  </span>
+                </div>
+                <span class="badge rounded-pill bg-primary-subtle text-primary fw-bold px-2 py-1 flex-shrink-0">
+                  {{ sd.totalTasks }} Tasks
+                </span>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="progress mb-3" style="height: 6px; background-color: #f1f5f9;">
+                <div class="progress-bar bg-success" role="progressbar" title="Completed"
+                  [style.width]="(sd.completed / (sd.totalTasks || 1) * 100) + '%'"></div>
+                <div class="progress-bar bg-warning" role="progressbar" title="In Progress"
+                  [style.width]="(sd.inProgress / (sd.totalTasks || 1) * 100) + '%'"></div>
+                <div class="progress-bar bg-danger" role="progressbar" title="Delayed"
+                  [style.width]="(sd.delayed / (sd.totalTasks || 1) * 100) + '%'"></div>
+              </div>
+
+              <!-- Metrics Stats Grid -->
+              <div class="subdept-metrics-grid">
+                <div class="metric-pill metric-pending">
+                  <span class="metric-dot bg-amber"></span>
+                  <span class="metric-label">Pending:</span>
+                  <span class="metric-value">{{ sd.pending }}</span>
+                </div>
+                <div class="metric-pill metric-inprogress">
+                  <span class="metric-dot bg-indigo"></span>
+                  <span class="metric-label">In Progress:</span>
+                  <span class="metric-value">{{ sd.inProgress }}</span>
+                </div>
+                <div class="metric-pill metric-completed">
+                  <span class="metric-dot bg-green"></span>
+                  <span class="metric-label">Completed:</span>
+                  <span class="metric-value">{{ sd.completed }}</span>
+                </div>
+                <div class="metric-pill metric-delayed">
+                  <span class="metric-dot bg-red"></span>
+                  <span class="metric-label">Delayed:</span>
+                  <span class="metric-value text-danger fw-bold">{{ sd.delayed }}</span>
+                </div>
+              </div>
             </div>
-            <span *ngIf="subDepartmentIdFilter" class="subdept-active-badge">
-              <i class="bi bi-funnel-fill me-1"></i> Active
-            </span>
+
+            <!-- Empty State for Sub-departments -->
+            <div *ngIf="subDepartmentBreakdownList.length === 0" class="text-center py-4 text-muted w-100">
+              <i class="bi bi-diagram-3 fs-1 mb-2 d-block opacity-50"></i>
+              <span>No sub-department analytics available.</span>
+            </div>
           </div>
+
         </div>
       </div>
 
@@ -310,6 +386,8 @@
                   }"></i>
                   </span>
                 </th>
+                <th>Sub-Department</th>
+
                 <th>Assignee</th>
                 <th (click)="setSort('dueDate')" style="cursor: pointer;">
                   <span style="white-space: nowrap;">
@@ -374,6 +452,18 @@
                     <span class="text-muted small"
                       *ngIf="!task.departmentNames || task.departmentNames.length === 0">—</span>
                   </div>
+                </td>
+
+                <!-- Sub-Department -->
+                <td data-label="Sub-Department">
+                  <div class="stitch-dept-area" *ngIf="getSubDepartmentNames(task).length > 0; else noSubDept">
+                    <span class="stitch-subdept-badge" *ngFor="let sd of getSubDepartmentNames(task)">
+                      {{ sd }}
+                    </span>
+                  </div>
+                  <ng-template #noSubDept>
+                    <span class="text-muted small">—</span>
+                  </ng-template>
                 </td>
 
                 <!-- Assignee -->

@@ -63,6 +63,22 @@ export interface TaskDashboardAnalyticsDto {
     closed: number;
     delayed: number;
   }>;
+  subDepartmentBreakdown?: Array<{
+    subDepartmentId: string;
+    subDepartmentName: string;
+    departmentId?: number;
+    departmentName?: string;
+    totalTasks: number;
+    pendingTasks?: number;
+    inProgressTasks?: number;
+    completedTasks?: number;
+    delayedTasks?: number;
+    pending: number;
+    inProgress: number;
+    completed: number;
+    closed?: number;
+    delayed: number;
+  }>;
   templateVsGeneral: {
     templateTasks: {
       total: number;

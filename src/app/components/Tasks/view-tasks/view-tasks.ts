@@ -114,6 +114,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   analyticsData: TaskDashboardAnalyticsDto = {
     overview: { totalTasks: 0, templateTasks: 0, generalTasks: 0, pending: 0, upcoming: 0, inProgress: 0, completed: 0, closed: 0, delayed: 0, extended: 0, requestForClosure: 0, requestForExtension: 0 },
     departmentBreakdown: [],
+    subDepartmentBreakdown: [],
     templateVsGeneral: {
       templateTasks: { total: 0, pending: 0, inProgress: 0, completed: 0, closed: 0, delayed: 0, extended: 0 },
       generalTasks: { total: 0, pending: 0, inProgress: 0, completed: 0, closed: 0, delayed: 0, extended: 0 }
@@ -216,9 +217,17 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateMultiSubDeptStatus(): void {
+  get isHodOrTeacher(): boolean {
     const role = (this.currentUserRole || '').toUpperCase();
-    this.isMultiSubDeptUser = (role === 'HOD' || role === 'TEACHER') && this.authorizedSubDepartments.length > 1;
+    return role === 'HOD' || role === 'TEACHER' || role.includes('HOD') || role.includes('TEACHER');
+  }
+
+  updateMultiSubDeptStatus(): void {
+    const count = Math.max(
+      this.authorizedSubDepartments ? this.authorizedSubDepartments.length : 0,
+      this.analyticsData?.subDepartmentBreakdown ? this.analyticsData.subDepartmentBreakdown.length : 0
+    );
+    this.isMultiSubDeptUser = this.isHodOrTeacher && count > 1;
   }
 
   initializeFilterFields(): void {
@@ -867,9 +876,82 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
+  selectSubDepartment(subDeptId: string): void {
+    if (this.subDepartmentIdFilter === subDeptId) {
+      this.subDepartmentIdFilter = '';
+    } else {
+      this.subDepartmentIdFilter = subDeptId || '';
+    }
+    this.onSubDepartmentChange();
+  }
+
+  get subDepartmentBreakdownList(): Array<{
+    subDepartmentId: string;
+    subDepartmentName: string;
+    departmentId?: number;
+    departmentName?: string;
+    totalTasks: number;
+    pending: number;
+    inProgress: number;
+    completed: number;
+    delayed: number;
+  }> {
+    if (this.analyticsData?.subDepartmentBreakdown && this.analyticsData.subDepartmentBreakdown.length > 0) {
+      return this.analyticsData.subDepartmentBreakdown.map(sd => ({
+        subDepartmentId: String(sd.subDepartmentId),
+        subDepartmentName: sd.subDepartmentName,
+        departmentId: sd.departmentId,
+        departmentName: sd.departmentName,
+        totalTasks: sd.totalTasks || 0,
+        pending: sd.pending != null ? sd.pending : (sd.pendingTasks || 0),
+        inProgress: sd.inProgress != null ? sd.inProgress : (sd.inProgressTasks || 0),
+        completed: sd.completed != null ? sd.completed : (sd.completedTasks || 0),
+        delayed: sd.delayed != null ? sd.delayed : (sd.delayedTasks || 0)
+      }));
+    }
+    if (this.authorizedSubDepartments && this.authorizedSubDepartments.length > 0) {
+      return this.authorizedSubDepartments.map(sd => ({
+        subDepartmentId: sd.id,
+        subDepartmentName: sd.name,
+        departmentId: sd.departmentId,
+        departmentName: sd.departmentName,
+        totalTasks: 0,
+        pending: 0,
+        inProgress: 0,
+        completed: 0,
+        delayed: 0
+      }));
+    }
+    return [];
+  }
+
+  get showSubDepartmentSection(): boolean {
+    if (!this.isHodOrTeacher) {
+      return false;
+    }
+    const count = Math.max(
+      this.authorizedSubDepartments ? this.authorizedSubDepartments.length : 0,
+      this.analyticsData?.subDepartmentBreakdown ? this.analyticsData.subDepartmentBreakdown.length : 0
+    );
+    return count > 1;
+  }
+
   applyFilters(): void {
     this.currentPage = 1;
     this.loadTasksFromServer();
+    this.loadAnalyticsFromServer();
+  }
+
+  getSubDepartmentNames(task: TaskDto): string[] {
+    if (!task) return [];
+    if (Array.isArray(task.subDepartmentNames) && task.subDepartmentNames.length > 0) {
+      return task.subDepartmentNames.filter(n => !!n && typeof n === 'string' && n.trim() !== '');
+    }
+    const singleName = (task as any).subDepartmentName || (typeof task.subDepartmentNames === 'string' ? task.subDepartmentNames : null);
+    if (singleName && typeof singleName === 'string' && singleName.trim() !== '') {
+      return [singleName.trim()];
+    }
+    return [];
   }
 
 
@@ -915,6 +997,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
             'Title',
             'Description',
             'Department',
+            'Sub-Department',
             'Assignee',
             'Due Date',
             'Status',
@@ -932,6 +1015,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
             task.title,
             task.description || '',
             task.departmentNames?.join(' / ') || (task as any)?.department?.name || '',
+            this.getSubDepartmentNames(task).join(' / ') || '',
             task.assignedToNames?.join(' / ') || '',
             task.dueDate ? this.formatDate(task.dueDate).split(' (')[0] : '',
             task.status || '',
