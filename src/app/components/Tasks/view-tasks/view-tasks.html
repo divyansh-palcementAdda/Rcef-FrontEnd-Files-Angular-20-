@@ -163,10 +163,10 @@
           [subtitle]="'Past due date'" (cardClick)="selectStatus('DELAYED')">
         </app-analytics-stat-card>
 
-        <!-- Extended -->
-        <app-analytics-stat-card [title]="'Extended'" [value]="analyticsData.overview.extended"
-          [iconClass]="'bi bi-calendar-plus'" [theme]="'orange'" [selected]="statusFilter === 'EXTENDED'"
-          [subtitle]="'Granted extensions'" (cardClick)="selectStatus('EXTENDED')">
+        <!-- UPCOMMING -->
+        <app-analytics-stat-card [title]="'UpComing'" [value]="analyticsData.overview.upcoming"
+          [iconClass]="'bi bi-calendar-plus'" [theme]="'orange'" [selected]="statusFilter === 'UPCOMING'"
+          [subtitle]="'Upcoming tasks'" (cardClick)="selectStatus('UPCOMING')">
         </app-analytics-stat-card>
 
         <!-- Request For Closure -->
