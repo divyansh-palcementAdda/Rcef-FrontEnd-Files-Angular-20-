@@ -905,16 +905,6 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
       finalAssigned.push(this.currentUser.userId);
     }
 
-    const selectedUsers = this.getSelectedUsersList();
-    if (selectedUsers.length > 1) {
-      const firstRole = selectedUsers[0].role;
-      const inconsistent = selectedUsers.some(u => u.role !== firstRole);
-      if (inconsistent) {
-        this.errorMessage = 'All selected users must belong to the same role.';
-        return;
-      }
-    }
-
     let targetPercentageVal = null;
     if (targetPercentage) {
       const rawPct = targetPercentage.toString();
