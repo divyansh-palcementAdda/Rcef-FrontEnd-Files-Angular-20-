@@ -133,11 +133,7 @@ export class AddUserComponent implements OnInit {
     this.userForm.get('role')?.valueChanges.subscribe(role => {
       this.onRoleChange(role);
       const parentControl = this.userForm.get('reportingManagerIds');
-      if (role && role !== 'SUPER_ADMIN') {
-        parentControl?.setValidators([Validators.required, Validators.minLength(1)]);
-      } else {
-        parentControl?.clearValidators();
-      }
+      parentControl?.clearValidators();
       parentControl?.updateValueAndValidity();
 
       const deptControl = this.userForm.get('departmentIds');

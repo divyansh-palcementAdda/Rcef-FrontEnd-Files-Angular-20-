@@ -175,11 +175,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       this.onRoleChange(role);
 
       const parentControl = this.editForm.get('reportingManagerIds');
-      if (role && role !== 'SUPER_ADMIN') {
-        parentControl?.setValidators([Validators.required, Validators.minLength(1)]);
-      } else {
-        parentControl?.clearValidators();
-      }
+      parentControl?.clearValidators();
       parentControl?.updateValueAndValidity();
 
       const deptControl = this.editForm.get('departmentIds');
@@ -466,9 +462,6 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
 
       if (this.f['role'].errors?.['required']) errors.push('System role must be selected.');
 
-      if (this.editForm.get('reportingManagerIds')?.errors?.['required'] ||
-          this.editForm.get('reportingManagerIds')?.errors?.['minlength'])
-        errors.push('At least one reporting manager must be selected.');
 
       if (this.f['departmentIds'].errors?.['required']) errors.push('At least one department must be selected.');
 

@@ -59,9 +59,6 @@
             characters.
           </li>
           <li *ngIf="f['role'].invalid && f['role'].dirty">System role must be selected.</li>
-          <li *ngIf="editForm.get('reportingManagerIds')?.invalid && editForm.get('reportingManagerIds')?.dirty">
-            At least one reporting manager must be selected.
-          </li>
           <li *ngIf="f['departmentIds'].invalid && f['departmentIds'].dirty">
             At least one department must be selected.
           </li>
@@ -234,7 +231,6 @@
             <div class="col-md-6" *ngIf="editForm.get('role')?.value && editForm.get('role')?.value !== 'SUPER_ADMIN'">
               <label class="form-label">
                 Reporting Managers
-                <span class="text-danger">*</span>
               </label>
               <div class="custom-multiselect-container manager-multiselect-container position-relative">
                 <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3"
@@ -270,11 +266,7 @@
                   No matching managers found.
                 </div>
               </div>
-              <div *ngIf="editForm.get('reportingManagerIds')?.touched && editForm.get('reportingManagerIds')?.invalid"
-                class="text-danger small mt-1">
-                <small>At least one reporting manager is required.</small>
-              </div>
-              <div class="field-hint">Teacher → HOD → SubAdmin → Admin → SuperAdmin.</div>
+              <div class="field-hint">Optional — Teacher → HOD → SubAdmin → Admin → SuperAdmin.</div>
             </div>
 
           </div>
