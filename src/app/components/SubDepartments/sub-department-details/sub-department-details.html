@@ -551,13 +551,16 @@
               <option *ngFor="let name of filterUsers" [value]="name">{{ name }}</option>
             </select>
 
-            <select [(ngModel)]="subjectFilter" (change)="applyTaskFilters()">
+            <!-- <select [(ngModel)]="subjectFilter" (change)="applyTaskFilters()">
               <option value="">Subject: All</option>
               <option *ngFor="let name of filterSubjects" [value]="name">{{ name }}</option>
-            </select>
+            </select> -->
 
             <button class="btn-reset-filters" (click)="resetAllFilters()">
               <i class="bi bi-x-circle me-1"></i>Reset
+            </button>
+            <button class="btn-delete-selected" (click)="deleteSelectedTasks()" [disabled]="selectedTaskIds.size === 0">
+              <i class="bi bi-trash me-1"></i>Delete Selected ({{ selectedTaskIds.size }})
             </button>
           </div>
         </div>
@@ -567,12 +570,13 @@
           <div class="table-responsive" appDragScroll *ngIf="paginatedTasks.length > 0">
             <table class="dashboard-table">
               <colgroup>
+                <col class="col-checkbox">
                 <col class="col-taskid">
                 <col class="col-title">
+                <col class="col-description">
                 <col class="col-template">
                 <col class="col-type">
                 <col class="col-assigned">
-                <col class="col-subject">
                 <col class="col-status">
                 <col class="col-duedate">
                 <col class="col-created">
@@ -580,16 +584,19 @@
               </colgroup>
               <thead>
                 <tr>
+                  <th class="checkbox-th">
+                    <input type="checkbox" [(ngModel)]="allTasksSelected" (change)="toggleSelectAll()">
+                  </th>
                   <th>
                     S. No.
                   </th>
                   <th (click)="toggleSort('title')">
                     Title&nbsp;<i class="bi bi-arrow-down-up"></i>
                   </th>
+                  <th>Description</th>
                   <th>Template</th>
                   <th>Type</th>
                   <th>Assigned To</th>
-                  <th>Subject</th>
                   <th>Status</th>
                   <th (click)="toggleSort('dueDate')">
                     Due Date&nbsp;<i class="bi bi-arrow-down-up"></i>
@@ -602,6 +609,9 @@
               </thead>
               <tbody>
                 <tr *ngFor="let task of paginatedTasks; let i = index">
+                  <td class="col-checkbox">
+                    <input type="checkbox" [(ngModel)]="task.selected" (change)="onTaskSelectionChange()">
+                  </td>
                   <td class="col-taskid">
                     <span class="task-id-badge">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
                   </td>
@@ -615,6 +625,9 @@
                       : '')
                       }}
                     </a>
+                  </td>
+                  <td class="col-description cell-muted">
+                    {{ task.description || '—' }}
                   </td>
                   <td class="col-template cell-muted">
                     {{ task.templateTitle || '—' }}
@@ -632,9 +645,6 @@
                       <span class="user-pill">{{ task.assignedToName || 'Unassigned' }}</span>
                     </ng-template>
                   </td>
-                  <td class="col-subject">
-                    <span class="subject-pill">{{ task.subjectName || '—' }}</span>
-                  </td>
                   <td class="col-status">
                     <span class="status-pill" [ngClass]="task.status.toLowerCase()">
                       {{ task.status | titlecase }}
@@ -646,6 +656,9 @@
                     <button class="action-icon-btn view-task-btn" (click)="viewTaskDetails(task.taskId)"
                       title="View Task Details">
                       <i class="bi bi-eye me-1"></i>View
+                    </button>
+                    <button class="action-icon-btn text-primary" (click)="editTask(task.taskId)" title="Edit Task">
+                      <i class="bi bi-pencil"></i>
                     </button>
                     <button
                       *ngIf="canDeleteTask(task) && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"
@@ -1192,6 +1205,23 @@
           {{ userActionLoading ? (hodAssignmentMode === 'ASSIGN' ? 'Assigning...' : 'Swapping...') : (hodAssignmentMode
           === 'ASSIGN' ? 'Assign Selected HOD(s)' : 'Confirm Replacement') }}
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit Task Modal ── -->
+<div *ngIf="showEditTaskModal" class="modal-backdrop fade show" (click)="closeEditTaskModal()"></div>
+<div *ngIf="showEditTaskModal" class="modal d-block" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold">Edit Task</h5>
+        <button type="button" class="btn-close" (click)="closeEditTaskModal()"></button>
+      </div>
+      <div class="modal-body">
+        <app-update-task [isModal]="true" [taskId]="editingTaskId" (closed)="closeEditTaskModal($event)">
+        </app-update-task>
       </div>
     </div>
   </div>

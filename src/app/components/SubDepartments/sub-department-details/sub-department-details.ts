@@ -23,6 +23,7 @@ import { EditUser } from '../../Users/edit-user/edit-user';
 import { AddUserComponent } from '../../Auth/add-user/add-user';
 import { DragScrollDirective } from '../../Shared/directives/drag-scroll.directive';
 import { EnterpriseUserPickerComponent } from '../../Shared/enterprise-user-picker/enterprise-user-picker.component';
+import { UpdateTaskComponent } from '../../Tasks/update-task/update-task';
 
 Chart.register(...registerables);
 
@@ -127,7 +128,7 @@ interface SubDepartmentDetail {
 @Component({
   selector: 'app-sub-department-details',
   standalone: true,
-  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective, AddUserComponent, EditUser, DragScrollDirective, EnterpriseUserPickerComponent],
+  imports: [CommonModule, MatSnackBarModule, FormsModule, BaseChartDirective, AddUserComponent, EditUser, DragScrollDirective, EnterpriseUserPickerComponent, UpdateTaskComponent],
   templateUrl: './sub-department-details.html',
   styleUrls: ['./sub-department-details.css']
 })
@@ -328,6 +329,14 @@ export class SubDepartmentDetailsComponent implements OnInit {
   showSwapHodModal = false;
   showEditUserModal = false;
   editingUserId: number | null = null;
+
+  // Task Management States
+  showEditTaskModal = false;
+  editingTaskId: number | undefined = undefined;
+
+  // Task Selection for Bulk Delete
+  selectedTaskIds = new Set<number>();
+  allTasksSelected = false;
 
   assignableUsers: userDto[] = [];
   assignableUsersLoading = false;
@@ -990,6 +999,59 @@ export class SubDepartmentDetailsComponent implements OnInit {
 
   viewTaskDetails(taskId: number): void {
     this.router.navigate(['/task', taskId]);
+  }
+
+  editTask(taskId: number): void {
+    this.editingTaskId = taskId;
+    this.showEditTaskModal = true;
+  }
+
+  closeEditTaskModal(success?: boolean | any): void {
+    this.showEditTaskModal = false;
+    this.editingTaskId = undefined;
+    if (success) {
+      this.fetchTasks(); // Reload tasks if edit was successful
+      this.loadAnalyticsSummary();
+    }
+  }
+
+  // Task Selection Methods
+  onTaskSelectionChange(): void {
+    this.selectedTaskIds.clear();
+    this.paginatedTasks.forEach(task => {
+      if (task.selected && task.taskId) {
+        this.selectedTaskIds.add(task.taskId);
+      }
+    });
+    this.allTasksSelected = this.paginatedTasks.length > 0 && this.selectedTaskIds.size === this.paginatedTasks.length;
+  }
+
+  toggleSelectAll(): void {
+    this.paginatedTasks.forEach(task => {
+      task.selected = this.allTasksSelected;
+    });
+    this.onTaskSelectionChange();
+  }
+
+  deleteSelectedTasks(): void {
+    if (this.selectedTaskIds.size === 0) {
+      this.snackBar.open('Please select at least one task to delete', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const count = this.selectedTaskIds.size;
+    this.confirmDialog.confirm({
+      title: 'Delete Selected Tasks?',
+      message: `Are you sure you want to delete ${count} selected task${count > 1 ? 's' : ''}? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      // API not available yet - just show message
+      this.snackBar.open('Bulk delete API not implemented yet', 'Close', { duration: 3000 });
+    });
   }
 
   viewUserDetails(userId: number): void {
