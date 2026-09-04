@@ -585,7 +585,7 @@
               <thead>
                 <tr>
                   <th class="checkbox-th">
-                    <input type="checkbox" [(ngModel)]="allTasksSelected" (change)="toggleSelectAll()">
+                    <input type="checkbox" [checked]="allTasksSelected" (click)="toggleSelectAll()">
                   </th>
                   <th>
                     S. No.

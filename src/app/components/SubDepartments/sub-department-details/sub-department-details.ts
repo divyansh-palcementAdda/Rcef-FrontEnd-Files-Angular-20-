@@ -337,6 +337,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   // Task Selection for Bulk Delete
   selectedTaskIds = new Set<number>();
   allTasksSelected = false;
+  allTasks: any[] = []; // Store all tasks for select all functionality
 
   assignableUsers: userDto[] = [];
   assignableUsersLoading = false;
@@ -754,6 +755,12 @@ export class SubDepartmentDetailsComponent implements OnInit {
         this.totalElements = res?.page?.totalElements || 0;
         this.pageSize = res?.page?.size || this.pageSize;
         this.currentPage = (res?.page?.number ?? (this.currentPage - 1)) + 1;
+
+        // Sync selection state with paginated tasks
+        this.paginatedTasks.forEach(task => {
+          task.selected = this.selectedTaskIds.has(task.taskId);
+        });
+
         this.tasksLoading = false;
       },
       error: (err: any) => {
@@ -1023,14 +1030,52 @@ export class SubDepartmentDetailsComponent implements OnInit {
         this.selectedTaskIds.add(task.taskId);
       }
     });
-    this.allTasksSelected = this.paginatedTasks.length > 0 && this.selectedTaskIds.size === this.paginatedTasks.length;
+    this.allTasksSelected = this.selectedTaskIds.size > 0 && this.selectedTaskIds.size === this.totalElements;
   }
 
   toggleSelectAll(): void {
-    this.paginatedTasks.forEach(task => {
-      task.selected = this.allTasksSelected;
-    });
-    this.onTaskSelectionChange();
+    if (this.allTasksSelected) {
+      // Deselect all
+      this.selectedTaskIds.clear();
+      this.paginatedTasks.forEach(task => {
+        task.selected = false;
+      });
+      this.allTasksSelected = false;
+    } else {
+      // Select all tasks across all pages
+      this.tasksLoading = true;
+      const params = {
+        page: 0,
+        size: this.totalElements || 10000, // Fetch all tasks
+        search: this.searchTerm,
+        status: this.statusFilter,
+        priority: this.priorityFilter,
+        taskType: this.typeFilter,
+        sortBy: this.sortColumn,
+        sortDir: this.sortDirection
+      };
+      this.deptApiService.getSubDepartmentTasks(this.subDeptId, params).subscribe({
+        next: (res: any) => {
+          this.allTasks = res?.content || [];
+          this.selectedTaskIds.clear();
+          this.allTasks.forEach(task => {
+            if (task.taskId) {
+              this.selectedTaskIds.add(task.taskId);
+            }
+          });
+          // Update current page checkboxes
+          this.paginatedTasks.forEach(task => {
+            task.selected = true;
+          });
+          this.allTasksSelected = true;
+          this.tasksLoading = false;
+        },
+        error: (err: any) => {
+          this.showError('Failed to load all tasks: ' + err.message);
+          this.tasksLoading = false;
+        }
+      });
+    }
   }
 
   deleteSelectedTasks(): void {
