@@ -357,16 +357,51 @@
       <!-- ==========================================
        5. DATA GRID TABLE SECTION
        ========================================== -->
+      <!-- Bulk Actions Bar -->
+      <div *ngIf="canBulkDelete() && !isEmpty && filteredTasks.length > 0" class="bulk-actions-bar d-flex align-items-center justify-content-between p-2 px-3 mb-3 rounded-3 border bg-white shadow-sm flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-semibold">
+            <i class="bi bi-check2-square me-1"></i> {{ selectedTaskIds.size }} Selected
+          </span>
+          <button *ngIf="selectedTaskIds.size > 0" class="btn btn-sm btn-outline-secondary" (click)="clearSelection()">
+            <i class="bi bi-x-circle me-1"></i> Clear Selection
+          </button>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button class="btn btn-sm btn-danger d-flex align-items-center gap-1 shadow-sm"
+            [disabled]="selectedTaskIds.size === 0"
+            (click)="deleteSelectedTasks()"
+            title="Delete selected tasks">
+            <i class="bi bi-trash-fill"></i>
+            <span>Delete Selected ({{ selectedTaskIds.size }})</span>
+          </button>
+          <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+            [disabled]="totalTasks === 0"
+            (click)="deleteAllMatchingTasks()"
+            title="Delete all active tasks matching current filters and scope">
+            <i class="bi bi-trash"></i>
+            <span>Delete All Matching ({{ totalTasks }})</span>
+          </button>
+        </div>
+      </div>
+
       <div *ngIf="!isEmpty && filteredTasks.length > 0" class="stitch-grid-container">
         <div class="table-responsive" appDragScroll>
           <table class="stitch-table align-middle">
             <thead>
               <tr>
+                <th *ngIf="canBulkDelete()"
+                  style="width: 44px; position: sticky; left: 0; z-index: 3; background-color: var(--table-header-bg, #f8f9fa); text-align: center;">
+                  <input type="checkbox" class="form-check-input" [checked]="isAllCurrentPageSelected()"
+                    (click)="$event.stopPropagation()" (change)="toggleSelectAllCurrentPage($event)" title="Select all on this page">
+                </th>
                 <th
-                  style="width: 60px; position: sticky; left: 0; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">
+                  [style.left]="canBulkDelete() ? '44px' : '0px'"
+                  style="width: 60px; position: sticky; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">
                   S.No</th>
                 <th (click)="setSort('title')"
-                  style="cursor: pointer; position: sticky; left: 60px; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">
+                  [style.left]="canBulkDelete() ? '104px' : '60px'"
+                  style="cursor: pointer; position: sticky; z-index: 2; background-color: var(--table-header-bg, #f8f9fa);">
                   <span style="white-space: nowrap;">
                     Task Details
                     <i class="bi" [ngClass]="{
@@ -414,17 +449,29 @@
             </thead>
             <tbody>
               <tr *ngFor="let task of paginatedTasks; let i = index; trackBy: trackByTaskId"
-                (click)="viewTaskDetails(task.taskId)" style="cursor: pointer;">
+                (click)="viewTaskDetails(task.taskId)" style="cursor: pointer;"
+                [class.table-active]="isTaskSelected(task.taskId)">
+
+                <!-- Checkbox -->
+                <td *ngIf="canBulkDelete()" data-label="Select"
+                  style="width: 44px; position: sticky; left: 0; z-index: 1; background-color: var(--table-row-bg, #ffffff); text-align: center;"
+                  (click)="$event.stopPropagation()">
+                  <input type="checkbox" class="form-check-input" [checked]="isTaskSelected(task.taskId)"
+                    (click)="$event.stopPropagation()" (change)="toggleTaskSelection(task.taskId, $event)"
+                    [disabled]="!canDeleteTask(task)" [title]="!canDeleteTask(task) ? 'You are not authorized to delete this task' : 'Select task'">
+                </td>
 
                 <!-- S.No -->
                 <td data-label="S.No"
-                  style="position: sticky; left: 0; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
+                  [style.left]="canBulkDelete() ? '44px' : '0px'"
+                  style="position: sticky; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
                   <span class="fw-semibold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
                 </td>
 
                 <!-- Task Details -->
                 <td data-label="Task Details"
-                  style="position: sticky; left: 60px; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
+                  [style.left]="canBulkDelete() ? '104px' : '60px'"
+                  style="position: sticky; z-index: 1; background-color: var(--table-row-bg, #ffffff);">
                   <div class="stitch-task-title-area">
                     <div class="stitch-task-title-row">
                       <span class="stitch-task-title">

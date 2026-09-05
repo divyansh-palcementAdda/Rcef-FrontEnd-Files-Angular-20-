@@ -1078,6 +1078,10 @@ export class SubDepartmentDetailsComponent implements OnInit {
     }
   }
 
+  get canBulkDelete(): boolean {
+    return this.authorizationService.canBulkDeleteTasks();
+  }
+
   deleteSelectedTasks(): void {
     if (this.selectedTaskIds.size === 0) {
       this.snackBar.open('Please select at least one task to delete', 'Close', { duration: 3000 });
@@ -1086,16 +1090,92 @@ export class SubDepartmentDetailsComponent implements OnInit {
 
     const count = this.selectedTaskIds.size;
     this.confirmDialog.confirm({
-      title: 'Delete Selected Tasks?',
-      message: `Are you sure you want to delete ${count} selected task${count > 1 ? 's' : ''}? This action cannot be undone.`,
-      confirmText: 'Delete',
+      title: `Delete ${count} Selected Task${count > 1 ? 's' : ''}?`,
+      message: `Are you sure you want to delete ${count} selected task${count > 1 ? 's' : ''}? These tasks will be marked inactive and removed from active views.`,
+      confirmText: `Delete ${count} Task${count > 1 ? 's' : ''}`,
       cancelText: 'Cancel',
       type: 'danger'
     }).then(confirmed => {
       if (!confirmed) return;
 
-      // API not available yet - just show message
-      this.snackBar.open('Bulk delete API not implemented yet', 'Close', { duration: 3000 });
+      this.tasksLoading = true;
+      this.taskApiService.bulkDeleteTasks({
+        mode: 'SELECTED',
+        taskIds: Array.from(this.selectedTaskIds)
+      }).subscribe({
+        next: (res) => {
+          this.tasksLoading = false;
+          if (res && res.success) {
+            const deleted = res.data?.deletedCount ?? count;
+            this.snackBar.open(res.data?.message || `Successfully deleted ${deleted} task(s)`, 'Close', { duration: 4000 });
+            this.selectedTaskIds.clear();
+            this.allTasksSelected = false;
+            this.fetchTasks();
+            this.loadAnalyticsSummary();
+          } else {
+            this.showError(res?.message || 'Failed to delete selected tasks');
+          }
+        },
+        error: (err) => {
+          this.tasksLoading = false;
+          this.showError(err?.error?.message || err?.message || 'Failed to delete selected tasks');
+        }
+      });
+    });
+  }
+
+  deleteAllSubDepartmentTasks(): void {
+    const count = this.totalElements;
+    if (count === 0) {
+      this.snackBar.open('There are no matching tasks in the current sub-department scope to delete.', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const subDeptName = this.subDeptDetail?.name || 'this sub-department';
+    const filters: string[] = [`Sub-Department: ${subDeptName}`];
+    if (this.statusFilter) filters.push(`Status: ${this.statusFilter}`);
+    if (this.priorityFilter) filters.push(`Priority: ${this.priorityFilter}`);
+    if (this.typeFilter) filters.push(`Type: ${this.typeFilter}`);
+    if (this.searchTerm) filters.push(`Search: "${this.searchTerm}"`);
+    const filterText = `\n\nActive Scope / Filters:\n• ` + filters.join('\n• ');
+
+    this.confirmDialog.confirm({
+      title: `Delete All ${count} Matching Tasks?`,
+      message: `You are about to delete all ${count} active tasks for ${subDeptName} matching the current filters.${filterText}\n\nThis will mark all matching tasks inactive and remove them from active views. This action cannot be undone.`,
+      confirmText: `Delete All ${count} Tasks`,
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.tasksLoading = true;
+      this.taskApiService.bulkDeleteTasks({
+        mode: 'ALL',
+        subDepartmentId: this.subDeptId,
+        search: this.searchTerm,
+        status: this.statusFilter,
+        priority: this.priorityFilter,
+        taskType: this.typeFilter
+      }).subscribe({
+        next: (res) => {
+          this.tasksLoading = false;
+          if (res && res.success) {
+            const deleted = res.data?.deletedCount ?? count;
+            this.snackBar.open(res.data?.message || `Successfully deleted ${deleted} task(s)`, 'Close', { duration: 4000 });
+            this.selectedTaskIds.clear();
+            this.allTasksSelected = false;
+            this.currentPage = 1;
+            this.fetchTasks();
+            this.loadAnalyticsSummary();
+          } else {
+            this.showError(res?.message || 'Failed to delete matching tasks');
+          }
+        },
+        error: (err) => {
+          this.tasksLoading = false;
+          this.showError(err?.error?.message || err?.message || 'Failed to delete matching tasks');
+        }
+      });
     });
   }
 

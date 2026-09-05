@@ -559,8 +559,11 @@
             <button class="btn-reset-filters" (click)="resetAllFilters()">
               <i class="bi bi-x-circle me-1"></i>Reset
             </button>
-            <button class="btn-delete-selected" (click)="deleteSelectedTasks()" [disabled]="selectedTaskIds.size === 0">
+            <button *ngIf="canBulkDelete" class="btn-delete-selected" (click)="deleteSelectedTasks()" [disabled]="selectedTaskIds.size === 0">
               <i class="bi bi-trash me-1"></i>Delete Selected ({{ selectedTaskIds.size }})
+            </button>
+            <button *ngIf="canBulkDelete" class="btn-delete-selected btn-delete-all-subdept" (click)="deleteAllSubDepartmentTasks()" [disabled]="totalElements === 0" title="Delete all tasks matching current filter for this sub-department">
+              <i class="bi bi-trash-fill me-1"></i>Delete All Matching ({{ totalElements }})
             </button>
           </div>
         </div>

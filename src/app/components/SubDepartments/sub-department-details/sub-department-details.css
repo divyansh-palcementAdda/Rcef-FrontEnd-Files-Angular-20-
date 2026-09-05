@@ -825,6 +825,17 @@
   cursor: not-allowed;
 }
 
+.btn-delete-all-subdept {
+  background: var(--danger-color);
+  color: #ffffff;
+  border-color: var(--danger-color);
+}
+
+.btn-delete-all-subdept:hover:not(:disabled) {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
 /* ── Tasks Table ── */
 .table-card {
   padding: 0 !important;
