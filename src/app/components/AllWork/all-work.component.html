@@ -251,34 +251,40 @@
                     <i class="bi ms-1" [ngClass]="getSortIcon('totalAssignedTasks')"></i>
                   </div>
                 </th>
-                <th class="text-center">
+                <th class="sortable-th text-center" (click)="sortSubDeptBy('pending')">
                   <div class="th-inner justify-content-center">
                     Pending
+                    <i class="bi ms-1" [ngClass]="getSortIcon('pending')"></i>
                   </div>
                 </th>
-                <th class="text-center">
+                <th class="sortable-th text-center" (click)="sortSubDeptBy('inProgress')">
                   <div class="th-inner justify-content-center">
                     In Progress
+                    <i class="bi ms-1" [ngClass]="getSortIcon('inProgress')"></i>
                   </div>
                 </th>
-                <th class="text-center">
+                <th class="sortable-th text-center" (click)="sortSubDeptBy('completed')">
                   <div class="th-inner justify-content-center">
                     Completed
+                    <i class="bi ms-1" [ngClass]="getSortIcon('completed')"></i>
                   </div>
                 </th>
-                <th class="text-center">
+                <th class="sortable-th text-center" (click)="sortSubDeptBy('delayed')">
                   <div class="th-inner justify-content-center">
                     Delayed
+                    <i class="bi ms-1" [ngClass]="getSortIcon('delayed')"></i>
                   </div>
                 </th>
-                <th class="text-center">
+                <th class="sortable-th text-center" (click)="sortSubDeptBy('upcoming')">
                   <div class="th-inner justify-content-center">
                     Upcoming
+                    <i class="bi ms-1" [ngClass]="getSortIcon('upcoming')"></i>
                   </div>
                 </th>
-                <th class="text-center" title="Request for Closure / Request for Extension">
+                <th class="sortable-th text-center" (click)="sortSubDeptBy('rfcRfe')" title="Request for Closure / Request for Extension">
                   <div class="th-inner justify-content-center">
                     RFC / RFE
+                    <i class="bi ms-1" [ngClass]="getSortIcon('rfcRfe')"></i>
                   </div>
                 </th>
                 <!-- <th class="sortable-th" (click)="sortSubDeptBy('completionPercentage')">
