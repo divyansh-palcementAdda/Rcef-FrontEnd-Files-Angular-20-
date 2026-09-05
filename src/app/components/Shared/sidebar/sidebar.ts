@@ -310,9 +310,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     // }
 
     // 8. Recurring Task
-    if (this.hasPermission('TASK_CREATE') && this.hasPermission('AUDIT_LOG_VIEW') && currentRole !== 'TEACHER' && currentRole !== 'HOD') {
-      localLinks.push({ label: 'Recurring Task', route: '/createRecurring', icon: 'bi-arrow-repeat' });
-    }
+    // if (this.hasPermission('TASK_CREATE') && this.hasPermission('AUDIT_LOG_VIEW') && currentRole !== 'TEACHER' && currentRole !== 'HOD') {
+    //   localLinks.push({ label: 'Recurring Task', route: '/createRecurring', icon: 'bi-arrow-repeat' });
+    // }
 
     // Commented out: Import Users
     // if (this.hasPermission('USER_CREATE')) {
@@ -328,7 +328,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (this.role === 'SUPER_ADMIN') {
       const settingsChildren: SidebarLink[] = [];
 
-      settingsChildren.push({ label: 'Task Template', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' });
+      // settingsChildren.push({ label: 'Task Template', route: '/task-templates', icon: 'bi-file-earmark-ruled-fill' });
 
       settingsChildren.push({ label: 'Role and Permission', route: '/roles-permissions', icon: 'bi-shield-lock-fill' });
 
