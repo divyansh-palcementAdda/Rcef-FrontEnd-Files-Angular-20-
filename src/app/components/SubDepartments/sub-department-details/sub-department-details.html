@@ -657,18 +657,20 @@
                   <td class="col-duedate cell-muted">{{ formatDate(task.dueDate) }}</td>
                   <td class="col-created cell-muted">{{ formatDate(task.createdAt) }}</td>
                   <td class="col-action">
-                    <button class="action-icon-btn view-task-btn" (click)="viewTaskDetails(task.taskId)"
-                      title="View Task Details">
-                      <i class="bi bi-eye me-1"></i>View
-                    </button>
-                    <button class="action-icon-btn text-primary" (click)="editTask(task.taskId)" title="Edit Task">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button
-                      *ngIf="canDeleteTask(task) && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"
-                      class="action-icon-btn text-danger" (click)="deleteTask($event, task.taskId)" title="Delete Task">
-                      <i class="bi bi-trash"></i>
-                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                      <button class="action-icon-btn" (click)="viewTaskDetails(task.taskId)"
+                        title="View Task Details">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="action-icon-btn" (click)="editTask(task.taskId)" title="Edit Task">
+                        <i class="bi bi-pencil-square"></i>
+                      </button>
+                      <button
+                        *ngIf="canDeleteTask(task) && task.status !== 'REQUEST_FOR_CLOSURE' && task.status !== 'REQUEST_FOR_EXTENSION'"
+                        class="action-icon-btn text-danger" (click)="deleteTask($event, task.taskId)" title="Delete Task">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
