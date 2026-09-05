@@ -518,6 +518,7 @@
             <i class="bi bi-search"></i>
             <input type="text" [(ngModel)]="searchTerm" (input)="onSearchInput()"
               placeholder="Search task ID or title...">
+            <span *ngIf="tasksRefreshing" class="spinner-border spinner-border-sm text-secondary ms-1" role="status" style="width:14px;height:14px;border-width:2px;"></span>
           </div>
 
           <div class="dropdowns-group">
@@ -566,7 +567,7 @@
         </div>
 
         <!-- Tasks Table -->
-        <div class="card table-card">
+        <div class="card table-card" [style.opacity]="tasksRefreshing ? '0.6' : '1'" [style.pointer-events]="tasksRefreshing ? 'none' : 'auto'" style="transition: opacity 0.2s;">
           <div class="table-responsive" appDragScroll *ngIf="paginatedTasks.length > 0">
             <table class="dashboard-table">
               <colgroup>

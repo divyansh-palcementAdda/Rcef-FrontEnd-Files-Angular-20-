@@ -396,6 +396,13 @@ export class SubDepartmentManagementComponent implements OnInit {
   }
 
   // -------------------------------------------------------------
+  // TrackBy Functions (prevent DOM re-creation on search)
+  // -------------------------------------------------------------
+  trackByUserId(_index: number, user: userDto): number {
+    return user.userId;
+  }
+
+  // -------------------------------------------------------------
   // Helpers
   // -------------------------------------------------------------
   goBack(): void {

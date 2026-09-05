@@ -201,7 +201,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let u of paginatedUsers">
+            <tr *ngFor="let u of paginatedUsers; trackBy: trackByUserId">
               
               <!-- Non-Edit standard row -->
               <ng-container *ngIf="editingUserId !== u.userId">

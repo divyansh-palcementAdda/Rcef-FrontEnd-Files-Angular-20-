@@ -145,6 +145,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
   basicLoading = false;
   analyticsLoading = false;
   tasksLoading = false;
+  tasksRefreshing = false;
   usersLoading = false;
   subjectsLoading = false;
   activityLoading = false;
@@ -246,7 +247,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
       .subscribe(() => {
         if (this.activeTab === 'tasks') {
           this.currentPage = 1;
-          this.fetchTasks();
+          this.fetchTasks(false);
         }
       });
 
@@ -736,8 +737,12 @@ export class SubDepartmentDetailsComponent implements OnInit {
     }
   }
 
-  fetchTasks(): void {
-    this.tasksLoading = true;
+  fetchTasks(showFullLoader = true): void {
+    if (showFullLoader) {
+      this.tasksLoading = true;
+    } else {
+      this.tasksRefreshing = true;
+    }
     const params = {
       page: this.currentPage - 1,
       size: this.pageSize,
@@ -762,10 +767,12 @@ export class SubDepartmentDetailsComponent implements OnInit {
         });
 
         this.tasksLoading = false;
+        this.tasksRefreshing = false;
       },
       error: (err: any) => {
         this.showError('Failed to load tasks: ' + err.message);
         this.tasksLoading = false;
+        this.tasksRefreshing = false;
       }
     });
   }
@@ -840,7 +847,7 @@ export class SubDepartmentDetailsComponent implements OnInit {
 
   applyTaskFilters(): void {
     this.currentPage = 1;
-    this.fetchTasks();
+    this.fetchTasks(false);
   }
 
   onSearchInput(): void {
