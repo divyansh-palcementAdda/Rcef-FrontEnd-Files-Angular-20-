@@ -50,7 +50,7 @@
       </div>
       <div *ngIf="canManageUsers" class="d-flex gap-2">
         <button class="btn btn-sm btn-outline-primary rounded-pill px-3" (click)="openSwapHodModal()" title="Swap HOD">
-          <i class="bi bi-arrow-repeat me-1"></i>Swap HOD
+          <i class="bi bi-arrow-repeat me-1"></i>Add HOD
         </button>
       </div>
     </div>
@@ -630,8 +630,8 @@
                       }}
                     </a>
                   </td>
-                  <td class="col-description cell-muted">
-                    {{ task.description || '—' }}
+                  <td class="col-description cell-muted" [title]="task.description || ''">
+                    {{ truncateWords(task.description) }}
                   </td>
                   <td class="col-template cell-muted">
                     {{ task.templateTitle || '—' }}
