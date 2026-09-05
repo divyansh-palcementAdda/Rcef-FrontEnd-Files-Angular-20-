@@ -41,6 +41,7 @@ export class ViewAllUserss implements OnInit {
   // Filter values
   searchTerm = '';
   private _searchTerm$ = new Subject<string>();
+  private _pendingFocusEl: HTMLElement | null = null;
   roleFilter = '';
   departmentIdFilter: number | '' = '';
   subDepartmentIdFilter = '';
@@ -285,6 +286,8 @@ export class ViewAllUserss implements OnInit {
           console.log('[ViewAllUserss] Triggering search API call, setting loading = true');
           this.loading = true;
           this.errorMessage = null;
+          // Save focused element right before API fires
+          this._pendingFocusEl = document.activeElement as HTMLElement;
         }),
         switchMap(requestParams =>
           this.apiService.searchUsers(requestParams).pipe(
@@ -315,11 +318,13 @@ export class ViewAllUserss implements OnInit {
           }
           this.loading = false;
           console.log('[ViewAllUserss] User data loaded successfully. loading = false');
+          setTimeout(() => { this._pendingFocusEl?.focus(); }, 0);
         },
         error: err => {
           console.error('[ViewAllUserss] Unexpected pipeline error:', err);
           this.errorMessage = err?.message || 'Failed to load users.';
           this.loading = false;
+          setTimeout(() => { this._pendingFocusEl?.focus(); }, 0);
         }
       });
   }
@@ -467,6 +472,9 @@ export class ViewAllUserss implements OnInit {
     this.loading = true;
     this.errorMessage = null;
 
+    // Save focused element before API call — restore after DOM settles
+    const focusedEl = document.activeElement as HTMLElement;
+
     const params: any = {
       page: this.currentPage - 1,
       size: this.pageSize,
@@ -503,10 +511,13 @@ export class ViewAllUserss implements OnInit {
           this.subjectBreakdown = data.subjectBreakdown || [];
         }
         this.loading = false;
+        // Restore focus after Angular re-renders the DOM
+        setTimeout(() => { focusedEl?.focus(); }, 0);
       },
       error: (err: any) => {
         this.errorMessage = err?.message || 'Failed to search users.';
         this.loading = false;
+        setTimeout(() => { focusedEl?.focus(); }, 0);
       }
     });
   }

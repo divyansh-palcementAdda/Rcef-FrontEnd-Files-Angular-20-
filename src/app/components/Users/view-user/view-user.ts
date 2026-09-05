@@ -11,7 +11,8 @@ import { userDto } from '../../../Model/userDto';
 import { TaskDto } from '../../../Model/TaskDto';
 import { Department } from '../../../Model/department';
 import { AuditLog } from '../../../Model/audit-log';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TaskStatus } from '../../../Model/TaskStatus';
 import { JwtService } from '../../../Services/jwt-service';
 import { DatePipe } from '@angular/common';
@@ -135,6 +136,15 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   subjectPage = 1;
   subjectPageSize = 10;
   subjectTotal = 0;
+
+  // Debounce subjects — prevent focus-loss on rapid keystrokes
+  private _deptSearch$ = new Subject<string>();
+  private _subDeptSearch$ = new Subject<string>();
+  private _subjectSearch$ = new Subject<string>();
+  private _modalSearch$ = new Subject<string>();
+
+  // Flag to skip overwriting search terms from queryParams after first load
+  private _searchParamsInitialized = false;
 
   modalStatusTabs = [
     { label: 'All', value: 'ALL' },
@@ -283,6 +293,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.restoreSidebarZIndex();
     document.body.style.overflow = '';
+    this._deptSearch$.complete();
+    this._subDeptSearch$.complete();
+    this._subjectSearch$.complete();
+    this._modalSearch$.complete();
+    this._searchParamsInitialized = false;
   }
 
   ngOnInit(): void {
@@ -294,6 +309,29 @@ export class ViewUserComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // ── Debounced search pipes — keep focus alive during API reload ──
+    this._deptSearch$.pipe(debounceTime(400), distinctUntilChanged()).subscribe(val => {
+      this.departmentSearch = val;
+      this.deptPage = 1;
+      this.updateQueryParams();
+    });
+    this._subDeptSearch$.pipe(debounceTime(400), distinctUntilChanged()).subscribe(val => {
+      this.subDepartmentSearch = val;
+      this.subDeptPage = 1;
+      this.updateQueryParams();
+    });
+    this._subjectSearch$.pipe(debounceTime(400), distinctUntilChanged()).subscribe(val => {
+      this.subjectSearch = val;
+      this.subjectPage = 1;
+      this.updateQueryParams();
+    });
+    this._modalSearch$.pipe(debounceTime(400), distinctUntilChanged()).subscribe(val => {
+      this.modalSearch = val;
+      this.modalPage = 1;
+      this.updateQueryParams();
+    });
+    // ────────────────────────────────────────────────────────────────
+
     this.route.queryParams.subscribe(params => {
       // Restore modal states
       if (params['modalType'] && params['modalId']) {
@@ -301,7 +339,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.modalTargetId = Number(params['modalId']) || params['modalId'];
         this.modalTargetName = params['modalName'] || '';
         this.modalStatus = params['modalStatus'] || 'ALL';
-        this.modalSearch = params['modalSearch'] || '';
+        // Only restore modalSearch from params on initial load — after that the
+        // debounce subject owns it so we never clobber the live input value
+        if (!this._searchParamsInitialized) {
+          this.modalSearch = params['modalSearch'] || '';
+        }
         this.modalPage = params['modalPage'] ? Number(params['modalPage']) : 1;
         this.modalSortBy = params['modalSortBy'] || 'createdAt';
         this.modalSortDir = params['modalSortDir'] || 'desc';
@@ -313,19 +355,26 @@ export class ViewUserComponent implements OnInit, OnDestroy {
       // Restore distribution table states
       this.selectedDistributionStatus = params['distStatus'] || 'ALL';
 
-      this.departmentSearch = params['deptSearch'] || '';
+      // Only restore search terms from URL on the very first load.
+      // After that the debounce subjects own these values — overwriting them
+      // from queryParams would re-trigger [value] binding → DOM update → focus lost.
+      if (!this._searchParamsInitialized) {
+        this.departmentSearch = params['deptSearch'] || '';
+        this.subDepartmentSearch = params['subDeptSearch'] || '';
+        this.subjectSearch = params['subjectSearch'] || '';
+        this._searchParamsInitialized = true;
+      }
+
       this.departmentSortBy = params['deptSortBy'] || 'departmentName';
       this.departmentSortDir = params['deptSortDir'] || 'asc';
       this.deptPage = params['deptPage'] ? Number(params['deptPage']) : 1;
       this.deptPageSize = params['deptPageSize'] ? Number(params['deptPageSize']) : 10;
 
-      this.subDepartmentSearch = params['subDeptSearch'] || '';
       this.subDepartmentSortBy = params['subDeptSortBy'] || 'subDepartmentName';
       this.subDepartmentSortDir = params['subDeptSortDir'] || 'asc';
       this.subDeptPage = params['subDeptPage'] ? Number(params['subDeptPage']) : 1;
       this.subDeptPageSize = params['subDeptPageSize'] ? Number(params['subDeptPageSize']) : 10;
 
-      this.subjectSearch = params['subjectSearch'] || '';
       this.subjectSortBy = params['subjectSortBy'] || 'subjectName';
       this.subjectSortDir = params['subjectSortDir'] || 'asc';
       this.subjectPage = params['subjectPage'] ? Number(params['subjectPage']) : 1;
@@ -869,6 +918,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
   loadTaskDistribution(): void {
     this.loadingDistribution = true;
+
+    // Save focused element — restore after DOM settles post-API
+    const focusedEl = document.activeElement as HTMLElement;
+
     const params = {
       departmentSearch: this.departmentSearch,
       subDepartmentSearch: this.subDepartmentSearch,
@@ -896,11 +949,14 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.subDeptTotal = res.subDepartmentTotalElements || 0;
         this.subjectTotal = res.subjectTotalElements || 0;
         this.updateDistributionStatsCards();
+        // Restore focus after Angular re-renders
+        setTimeout(() => { focusedEl?.focus(); }, 50);
       },
       error: (err) => {
         console.warn('Failed to load user task distribution:', err);
         this.hasDistributionAccess = false;
         this.loadingDistribution = false;
+        setTimeout(() => { focusedEl?.focus(); }, 50);
       }
     });
   }
@@ -1025,6 +1081,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   loadModalTasks(): void {
     if (!this.modalTargetType || !this.modalTargetId) return;
     this.modalLoading = true;
+
+    // Save focused element — restore after DOM settles post-API
+    const focusedEl = document.activeElement as HTMLElement;
+
     const params = {
       page: this.modalPage - 1,
       size: this.modalPageSize,
@@ -1047,17 +1107,19 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.modalTasks = res.content || [];
         this.modalTotalTasks = res.totalElements || 0;
         this.modalLoading = false;
+        // Restore focus after Angular re-renders
+        setTimeout(() => { focusedEl?.focus(); }, 50);
       },
       error: (err) => {
         console.error('Error loading modal tasks', err);
         this.modalLoading = false;
+        setTimeout(() => { focusedEl?.focus(); }, 50);
       }
     });
   }
 
-  onModalSearchChange(): void {
-    this.modalPage = 1;
-    this.updateQueryParams();
+  onModalSearchChange(value: string): void {
+    this._modalSearch$.next(value);
   }
 
   onModalStatusChange(status: string): void {
@@ -1142,7 +1204,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
     Object.keys(queryParams).forEach(key => {
       if (queryParams[key] === null || queryParams[key] === undefined || queryParams[key] === '') {
-        delete queryParams[key];
+        // Set to undefined so Angular's merge mode removes the param from the URL
+        queryParams[key] = undefined;
       }
     });
 
@@ -1154,9 +1217,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     });
   }
 
-  onDepartmentSearch(): void {
-    this.deptPage = 1;
-    this.updateQueryParams();
+  onDepartmentSearch(value: string): void {
+    this._deptSearch$.next(value);
   }
 
   sortDepartment(column: string): void {
@@ -1175,9 +1237,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     this.updateQueryParams();
   }
 
-  onSubDepartmentSearch(): void {
-    this.subDeptPage = 1;
-    this.updateQueryParams();
+  onSubDepartmentSearch(value: string): void {
+    this._subDeptSearch$.next(value);
   }
 
   sortSubDepartment(column: string): void {
@@ -1196,9 +1257,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     this.updateQueryParams();
   }
 
-  onSubjectSearch(): void {
-    this.subjectPage = 1;
-    this.updateQueryParams();
+  onSubjectSearch(value: string): void {
+    this._subjectSearch$.next(value);
   }
 
   sortSubject(column: string): void {

@@ -198,7 +198,7 @@
     <!-- ==================== Task Distribution Section ==================== -->
 
     <!-- 1. Skeleton Loader for Task Distribution Section -->
-    <div *ngIf="loadingDistribution" class="panel-card mb-4 animate__animated animate__fadeIn">
+    <div [hidden]="!loadingDistribution" class="panel-card mb-4">
       <div class="panel-header d-flex justify-content-between align-items-center mb-3">
         <div class="skeleton-shimmer-box skeleton-table-header" style="width: 250px; height: 28px;"></div>
         <div class="skeleton-shimmer-box skeleton-table-header" style="width: 160px; height: 24px;"></div>
@@ -221,8 +221,8 @@
     </div>
 
     <!-- 2. Main Distribution Section (Loaded) -->
-    <div *ngIf="hasDistributionAccess && !loadingDistribution && taskDistribution"
-      class="panel-card mb-4 animate__animated animate__fadeIn">
+    <div [hidden]="!hasDistributionAccess || loadingDistribution || !taskDistribution"
+      class="panel-card mb-4">
       <div class="panel-header d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h5 class="panel-title mb-0">
           <i class="bi bi-pie-chart-fill text-primary me-2"></i>Task Distribution Analytics
@@ -267,8 +267,10 @@
           <div class="analytics-toolbar-search">
             <div class="input-group input-group-sm">
               <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
-              <input type="text" class="form-control form-control-sm border-start-0" placeholder="Search department..."
-                [(ngModel)]="departmentSearch" (input)="onDepartmentSearch()">
+              <input #deptSearchInput type="text" class="form-control form-control-sm border-start-0"
+                placeholder="Search department..."
+                [value]="departmentSearch"
+                (input)="onDepartmentSearch(deptSearchInput.value)">
             </div>
           </div>
           <div class="analytics-toolbar-actions">
@@ -596,9 +598,10 @@
           <div class="analytics-toolbar-search">
             <div class="input-group input-group-sm">
               <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
-              <input type="text" class="form-control form-control-sm border-start-0"
-                placeholder="Search subdepartment..." [(ngModel)]="subDepartmentSearch"
-                (input)="onSubDepartmentSearch()">
+              <input #subDeptSearchInput type="text" class="form-control form-control-sm border-start-0"
+                placeholder="Search subdepartment..."
+                [value]="subDepartmentSearch"
+                (input)="onSubDepartmentSearch(subDeptSearchInput.value)">
             </div>
           </div>
           <div class="analytics-toolbar-actions">
@@ -931,8 +934,10 @@
           <div class="analytics-toolbar-search">
             <div class="input-group input-group-sm">
               <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
-              <input type="text" class="form-control form-control-sm border-start-0" placeholder="Search subject..."
-                [(ngModel)]="subjectSearch" (input)="onSubjectSearch()">
+              <input #subjectSearchInput type="text" class="form-control form-control-sm border-start-0"
+                placeholder="Search subject..."
+                [value]="subjectSearch"
+                (input)="onSubjectSearch(subjectSearchInput.value)">
             </div>
           </div>
           <div class="analytics-toolbar-actions">
@@ -1498,8 +1503,10 @@
               <span class="input-group-text bg-transparent border-end-0">
                 <i class="bi bi-search text-muted"></i>
               </span>
-              <input type="text" class="form-control border-start-0" placeholder="Search tasks by title…"
-                [(ngModel)]="modalSearch" (ngModelChange)="onModalSearchChange()">
+              <input #modalSearchInput type="text" class="form-control border-start-0"
+                placeholder="Search tasks by title…"
+                [value]="modalSearch"
+                (input)="onModalSearchChange(modalSearchInput.value)">
             </div>
 
             <!-- Priority -->
@@ -1531,13 +1538,13 @@
           </div>
 
           <!-- Loading state -->
-          <div *ngIf="modalLoading" class="text-center py-5">
+          <div [hidden]="!modalLoading" class="text-center py-5">
             <div class="loading-spinner mx-auto"></div>
             <p class="text-muted small mt-2">Loading tasks…</p>
           </div>
 
           <!-- Tasks table -->
-          <div *ngIf="!modalLoading" class="position-relative">
+          <div [hidden]="modalLoading" class="position-relative">
             <!-- Scroll hint for wide tables -->
             <div class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-2 mb-3 py-2 px-3"
               role="alert" style="font-size: 0.8rem; border-left: 4px solid var(--primary-color);">

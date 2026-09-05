@@ -275,24 +275,26 @@
         <p class="text-muted small">Loading user list…</p>
       </div>
 
-      <!-- Search & Filters Toolbar -->
-      <div class="row g-2 mb-4" *ngIf="!loading">
+      <!-- Search & Filters Toolbar — always rendered so focus is never lost on debounce/reload -->
+      <div class="row g-2 mb-4">
         <div class="col-md-6">
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" placeholder="Search by name, email, or role..."
-              [ngModel]="searchTerm" (ngModelChange)="onSearchInput($event)">
+            <input #searchInput type="text" class="form-control"
+              placeholder="Search by name, email, or role..."
+              [value]="searchTerm"
+              (input)="onSearchInput(searchInput.value)">
           </div>
         </div>
         <div class="col-md-3">
-          <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()" [disabled]="loading">
             <option value="">All Statuses</option>
             <option value="ACTIVE">Active</option>
             <option value="INACTIVE">Inactive</option>
           </select>
         </div>
         <div class="col-md-3">
-          <button class="btn btn-secondary w-100" (click)="resetFilters()">
+          <button class="btn btn-secondary w-100" (click)="resetFilters()" [disabled]="loading">
             <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Filters
           </button>
         </div>
