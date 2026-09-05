@@ -98,6 +98,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     } else {
       this.selectedSubDepartmentIds = [...this.selectedSubDepartmentIds, id];
     }
+    this.saveStateToSession();
     this.onFilterChange();
   }
 
@@ -106,6 +107,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
       event.stopPropagation();
     }
     this.selectedSubDepartmentIds = [];
+    this.saveStateToSession();
     this.onFilterChange();
   }
 
@@ -191,9 +193,73 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     private router: Router
   ) { }
 
+  // ── Filter persistence ────────────────────────────────────────────────────
+  private static readonly FILTER_SESSION_KEY = 'user_task_analytics_filters';
+
+  private saveStateToSession(): void {
+    const state = {
+      selectedDepartmentId:     this.selectedDepartmentId,
+      selectedSubDepartmentCardId: this.selectedSubDepartmentCardId,
+      selectedSubDepartmentId:  this.selectedSubDepartmentId,
+      selectedSubDepartmentIds: this.selectedSubDepartmentIds,
+      selectedRole:             this.selectedRole,
+      selectedStatus:           this.selectedStatus,
+      selectedPriority:         this.selectedPriority,
+      startDate:                this.startDate,
+      endDate:                  this.endDate,
+      isRecurring:              this.isRecurring,
+      activeUsersOnly:          this.activeUsersOnly,
+      search:                   this.search,
+      sortField:                this.sortField,
+      sortDir:                  this.sortDir,
+      currentPage:              this.currentPage,
+      pageSize:                 this.pageSize
+    };
+    sessionStorage.setItem(UserTaskAnalyticsComponent.FILTER_SESSION_KEY, JSON.stringify(state));
+  }
+
+  private restoreStateFromSession(): boolean {
+    const raw = sessionStorage.getItem(UserTaskAnalyticsComponent.FILTER_SESSION_KEY);
+    if (!raw) return false;
+    try {
+      const s = JSON.parse(raw);
+      this.selectedDepartmentId      = s.selectedDepartmentId     ?? null;
+      this.selectedSubDepartmentCardId = s.selectedSubDepartmentCardId ?? '';
+      this.selectedSubDepartmentId   = s.selectedSubDepartmentId  ?? '';
+      this.selectedSubDepartmentIds  = s.selectedSubDepartmentIds ?? [];
+      this.selectedRole              = s.selectedRole             ?? '';
+      this.selectedStatus            = s.selectedStatus           ?? 'ALL';
+      this.selectedPriority          = s.selectedPriority         ?? 'ALL';
+      this.startDate                 = s.startDate                ?? '';
+      this.endDate                   = s.endDate                  ?? '';
+      this.isRecurring               = s.isRecurring              ?? null;
+      this.activeUsersOnly           = s.activeUsersOnly          ?? true;
+      this.search                    = s.search                   ?? '';
+      this.sortField                 = s.sortField                ?? 'fullName';
+      this.sortDir                   = s.sortDir                  ?? 'asc';
+      this.currentPage               = s.currentPage              ?? 0;
+      this.pageSize                  = s.pageSize                 ?? 10;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   ngOnInit(): void {
-    this.loadDepartmentCards();
-    this.loadSubDepartmentsForSelectedDept();
+    // If returning from user detail (back navigation), restore saved state
+    const restored = this.restoreStateFromSession();
+
+    if (restored) {
+      // State restored — reload table with saved filters (skip auto-select first card)
+      this.loadSubDepartmentsForSelectedDept();
+      this.loadDepartmentCards_NoAutoSelect();
+      this.loadAnalyticsTable();
+    } else {
+      this.loadDepartmentCards();
+      this.loadSubDepartmentsForSelectedDept();
+    }
+
     // Debounced search
     this.searchSubject.pipe(
       debounceTime(500),
@@ -201,7 +267,23 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(() => {
       this.currentPage = 0;
+      this.saveStateToSession();
       this.loadAnalyticsTable();
+    });
+  }
+
+  /** Load department cards WITHOUT auto-selecting the first one (used on back-navigation restore) */
+  private loadDepartmentCards_NoAutoSelect(): void {
+    this.loadingCards = true;
+    this.analyticsService.getDepartmentCards(this.startDate, this.endDate).subscribe({
+      next: (cards) => {
+        this.departmentCards = cards || [];
+        this.loadingCards = false;
+      },
+      error: (err) => {
+        console.error('Error fetching department/sub-department cards:', err);
+        this.loadingCards = false;
+      }
     });
   }
 
@@ -290,6 +372,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   /** Called when user clicks a card (department card or sub-department card). */
   selectCard(card: UserTaskDepartmentCardDTO | null): void {
     this.applyCardSelection(card);
+    this.saveStateToSession();
   }
 
   /** Legacy method kept for any residual template references. */
@@ -346,11 +429,13 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
 
   onFilterChange(): void {
     this.currentPage = 0;
+    this.saveStateToSession();
     this.loadAnalyticsTable();
   }
 
   onDateFilterChange(): void {
     this.currentPage = 0;
+    this.saveStateToSession();
     this.loadAnalyticsTable();
     this.loadDepartmentCards();
   }
@@ -370,6 +455,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     this.activeUsersOnly = true;
     this.search = '';
     this.currentPage = 0;
+    sessionStorage.removeItem(UserTaskAnalyticsComponent.FILTER_SESSION_KEY);
     this.loadSubDepartmentsForSelectedDept();
     this.loadAnalyticsTable();
     this.loadDepartmentCards();
@@ -382,18 +468,21 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
       this.sortField = field;
       this.sortDir = 'asc';
     }
+    this.saveStateToSession();
     this.loadAnalyticsTable();
   }
 
   onPageChange(page: number): void {
     if (page >= 0 && page < this.totalPages) {
       this.currentPage = page;
+      this.saveStateToSession();
       this.loadAnalyticsTable();
     }
   }
 
   onPageSizeChange(): void {
     this.currentPage = 0;
+    this.saveStateToSession();
     this.loadAnalyticsTable();
   }
 
@@ -455,11 +544,13 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   navigateToUserDetail(userId: number): void {
+    this.saveStateToSession();
     this.router.navigate(['/user', userId]);
   }
 
   navigateToTaskDetail(taskId: number): void {
     this.closeTaskModal();
+    this.saveStateToSession();
     this.router.navigate(['/task', taskId]);
   }
 

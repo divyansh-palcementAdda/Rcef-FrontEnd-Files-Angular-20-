@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService, TemplateTaskSummaryDto } from '../../../Services/UserApiService';
@@ -179,6 +180,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private jwtService: JwtService,
     private userService: UserApiService,
     private taskService: TaskApiService,
@@ -795,7 +797,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/viewAllUsers']);
+    this.location.back();
   }
 
   assignNewTask(): void {

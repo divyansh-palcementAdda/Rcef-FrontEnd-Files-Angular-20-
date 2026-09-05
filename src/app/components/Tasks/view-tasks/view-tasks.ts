@@ -158,6 +158,62 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   taskTemplateBreakdown: TaskAnalyticsItemDto[] = [];
   taskCategoryBreakdown: TaskAnalyticsItemDto[] = [];
 
+  private static readonly FILTER_SESSION_KEY = 'view_tasks_filters';
+
+  /** Save all current filter + pagination + sort state to sessionStorage. */
+  private saveFiltersToSession(): void {
+    const state = {
+      searchTerm:           this.searchTerm,
+      statusFilter:         this.statusFilter,
+      taskTypeFilter:       this.taskTypeFilter,
+      departmentFilter:     this.departmentFilter,
+      departmentIdFilter:   this.departmentIdFilter,
+      subDepartmentIdFilter:this.subDepartmentIdFilter,
+      categoryFilter:       this.categoryFilter,
+      templateFilter:       this.templateFilter,
+      templateIdFilter:     this.templateIdFilter,
+      subjectIdFilter:      this.subjectIdFilter,
+      userIdFilter:         this.userIdFilter,
+      priorityFilter:       this.priorityFilter,
+      selectedCard:         this.selectedCard,
+      sortBy:               this.sortBy,
+      sortDirection:        this.sortDirection,
+      currentPage:          this.currentPage,
+      pageSize:             this.pageSize
+    };
+    sessionStorage.setItem(ViewTasksComponent.FILTER_SESSION_KEY, JSON.stringify(state));
+  }
+
+  /** Restore filter + pagination + sort state from sessionStorage.
+   *  Returns true if a saved state was found and applied. */
+  private restoreFiltersFromSession(): boolean {
+    const raw = sessionStorage.getItem(ViewTasksComponent.FILTER_SESSION_KEY);
+    if (!raw) return false;
+    try {
+      const s = JSON.parse(raw);
+      this.searchTerm           = s.searchTerm           || '';
+      this.statusFilter         = s.statusFilter         || '';
+      this.taskTypeFilter       = s.taskTypeFilter       || '';
+      this.departmentFilter     = s.departmentFilter     || '';
+      this.departmentIdFilter   = s.departmentIdFilter   || '';
+      this.subDepartmentIdFilter= s.subDepartmentIdFilter|| '';
+      this.categoryFilter       = s.categoryFilter       || '';
+      this.templateFilter       = s.templateFilter       || '';
+      this.templateIdFilter     = s.templateIdFilter     || '';
+      this.subjectIdFilter      = s.subjectIdFilter      || '';
+      this.userIdFilter         = s.userIdFilter         || '';
+      this.priorityFilter       = s.priorityFilter       || '';
+      this.selectedCard         = s.selectedCard         || 'total';
+      this.sortBy               = s.sortBy               || 'createdAt';
+      this.sortDirection        = s.sortDirection        || 'desc';
+      this.currentPage          = s.currentPage          || 1;
+      this.pageSize             = s.pageSize             || 12;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   private subscriptions = new Subscription();
   private searchSubject = new Subject<string>();
 
@@ -363,7 +419,6 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
-
     this.initializeFilterFields();
     this.loadDropdownOptions();
     // Subscribe to queryParams (not snapshot) so it re-fires on every navigation
@@ -371,27 +426,36 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     // links navigate to /view-tasks with different or no query params.
     this.subscriptions.add(
       this.route.queryParams.subscribe(params => {
-        const status = params['status'];
-        this.statusFilter = status ? status.toUpperCase() : '';
+        const hasExternalParam = params['status'] || params['category'] || params['template'] || params['templateTitle'];
 
+        if (hasExternalParam) {
+          // External navigation (from dashboard, sidebar etc.) — apply those params
+          // and clear any stale session so they take precedence
+          const status = params['status'];
+          this.statusFilter = status ? status.toUpperCase() : '';
 
-        if (this.statusFilter === 'IN_PROGRESS') {
-          this.selectedCard = 'active';
-        } else if (this.statusFilter === 'PENDING') {
-          this.selectedCard = 'pending';
-        } else if (this.statusFilter === 'CLOSED') {
-          this.selectedCard = 'completed';
+          if (this.statusFilter === 'IN_PROGRESS') {
+            this.selectedCard = 'active';
+          } else if (this.statusFilter === 'PENDING') {
+            this.selectedCard = 'pending';
+          } else if (this.statusFilter === 'CLOSED') {
+            this.selectedCard = 'completed';
+          } else {
+            this.selectedCard = 'total';
+          }
+
+          this.categoryFilter = params['category'] || '';
+          this.templateFilter = params['template'] || params['templateTitle'] || '';
+          this.searchTerm = '';
+          this.departmentFilter = '';
+          this.currentPage = 1;
+
+          // Clear session so back-navigation within the new context starts fresh
+          sessionStorage.removeItem(ViewTasksComponent.FILTER_SESSION_KEY);
         } else {
-          this.selectedCard = 'total';
+          // No external params — try to restore from sessionStorage (back navigation)
+          this.restoreFiltersFromSession();
         }
-
-        this.categoryFilter = params['category'] || '';
-        this.templateFilter = params['template'] || params['templateTitle'] || '';
-
-        // Reset user-driven filters on every navigation
-        this.searchTerm = '';
-        this.departmentFilter = '';
-        this.currentPage = 1;
 
         this.loadCurrentUserAndTasks();
       })
@@ -404,6 +468,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         distinctUntilChanged()
       ).subscribe(() => {
         this.currentPage = 1;
+        this.saveFiltersToSession();
         this.loadTasksFromServer();
       })
     );
@@ -864,6 +929,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       this.sortDirection = 'desc';
     }
     this.currentPage = 1;
+    this.saveFiltersToSession();
     this.loadTasksFromServer();
   }
 
@@ -939,6 +1005,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
   applyFilters(): void {
     this.currentPage = 1;
+    this.saveFiltersToSession();
     this.loadTasksFromServer();
     this.loadAnalyticsFromServer();
   }
@@ -1061,6 +1128,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     this.priorityFilter = '';
     this.taskTypeFilter = '';
     this.currentPage = 1;
+    sessionStorage.removeItem(ViewTasksComponent.FILTER_SESSION_KEY);
     this.applyFilters();
   }
 
@@ -1085,6 +1153,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      this.saveFiltersToSession();
       this.loadTasksFromServer();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -1119,12 +1188,14 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
   viewTaskDetails(taskId?: number): void {
     if (taskId) {
+      this.saveFiltersToSession();
       this.router.navigate(['/task', taskId]);
     }
   }
 
   editTask(taskId?: number): void {
     if (taskId) {
+      this.saveFiltersToSession();
       this.router.navigate(['/edit-task'], { queryParams: { taskId: taskId } });
     }
   }

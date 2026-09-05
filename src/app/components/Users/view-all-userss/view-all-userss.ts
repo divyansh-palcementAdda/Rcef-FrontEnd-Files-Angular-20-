@@ -84,6 +84,49 @@ export class ViewAllUserss implements OnInit {
 
   selectedCard = 'total';
 
+  // ── Filter persistence key ───────────────────────────────────
+  private static readonly FILTER_SESSION_KEY = 'view_all_users_filters';
+
+  private saveFiltersToSession(): void {
+    const state = {
+      searchTerm:           this.searchTerm,
+      statusFilter:         this.statusFilter,
+      roleFilter:           this.roleFilter,
+      departmentIdFilter:   this.departmentIdFilter,
+      subDepartmentIdFilter:this.subDepartmentIdFilter,
+      subjectIdFilter:      this.subjectIdFilter,
+      selectedCard:         this.selectedCard,
+      sortBy:               this.sortBy,
+      sortDirection:        this.sortDirection,
+      currentPage:          this.currentPage,
+      pageSize:             this.pageSize
+    };
+    sessionStorage.setItem(ViewAllUserss.FILTER_SESSION_KEY, JSON.stringify(state));
+  }
+
+  private restoreFiltersFromSession(): boolean {
+    const raw = sessionStorage.getItem(ViewAllUserss.FILTER_SESSION_KEY);
+    if (!raw) return false;
+    try {
+      const s = JSON.parse(raw);
+      this.searchTerm           = s.searchTerm           || '';
+      this.statusFilter         = s.statusFilter         || '';
+      this.roleFilter           = s.roleFilter           || '';
+      this.departmentIdFilter   = s.departmentIdFilter   || '';
+      this.subDepartmentIdFilter= s.subDepartmentIdFilter|| '';
+      this.subjectIdFilter      = s.subjectIdFilter      || '';
+      this.selectedCard         = s.selectedCard         || 'total';
+      this.sortBy               = s.sortBy               || 'fullName';
+      this.sortDirection        = s.sortDirection        || 'asc';
+      this.currentPage          = s.currentPage          || 1;
+      this.pageSize             = s.pageSize             || 10;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  // ────────────────────────────────────────────────────────────
+
   // ── Access Control ──────────────────────────────────────────
   showAccessDeniedModal = false;
   // ────────────────────────────────────────────────────────────
@@ -226,6 +269,7 @@ export class ViewAllUserss implements OnInit {
       console.log('[ViewAllUserss] Search term changed via input:', term);
       this.searchTerm = term;
       this.currentPage = 1;
+      this.saveFiltersToSession();
       this.loadUsersForRole();
     });
 
@@ -246,17 +290,27 @@ export class ViewAllUserss implements OnInit {
             return null; // Teacher blocked — skip data load
           }
 
-          this.currentPage = params['page'] ? Number(params['page']) : 1;
-          this.pageSize = params['pageSize'] ? Number(params['pageSize']) : 10;
-          this.sortBy = params['sortBy'] || 'fullName';
-          this.sortDirection = params['sortDirection'] || 'asc';
-          this.searchTerm = params['search'] || '';
-          this.roleFilter = params['role'] || '';
-          this.departmentIdFilter = params['department'] ? Number(params['department']) : '';
-          this.subDepartmentIdFilter = params['subDepartment'] || '';
-          this.subjectIdFilter = params['subject'] ? Number(params['subject']) : '';
-          this.statusFilter = params['status'] ? params['status'].toUpperCase() : '';
-          this.selectedCard = params['card'] || 'total';
+          // If URL has no filter params at all, try restoring from sessionStorage
+          // (this handles the back-button scenario from user detail page)
+          const hasUrlFilters = params['search'] || params['role'] || params['department'] ||
+            params['subDepartment'] || params['subject'] || params['status'] || params['card'];
+
+          if (!hasUrlFilters) {
+            this.restoreFiltersFromSession();
+          } else {
+            // External / fresh navigation — read from URL and clear stale session
+            this.currentPage = params['page'] ? Number(params['page']) : 1;
+            this.pageSize = params['pageSize'] ? Number(params['pageSize']) : 10;
+            this.sortBy = params['sortBy'] || 'fullName';
+            this.sortDirection = params['sortDirection'] || 'asc';
+            this.searchTerm = params['search'] || '';
+            this.roleFilter = params['role'] || '';
+            this.departmentIdFilter = params['department'] ? Number(params['department']) : '';
+            this.subDepartmentIdFilter = params['subDepartment'] || '';
+            this.subjectIdFilter = params['subject'] ? Number(params['subject']) : '';
+            this.statusFilter = params['status'] ? params['status'].toUpperCase() : '';
+            this.selectedCard = params['card'] || 'total';
+          }
 
           const requestParams: any = {
             page: this.currentPage - 1,
@@ -542,6 +596,7 @@ export class ViewAllUserss implements OnInit {
   /** Apply filters immediately (status, role, dept changes) */
   applyFilters(): void {
     this.currentPage = 1;
+    this.saveFiltersToSession();
     this.updateQueryParams();
   }
 
@@ -555,6 +610,7 @@ export class ViewAllUserss implements OnInit {
     this.statusFilter = '';
     this.selectedCard = 'total';
     this.currentPage = 1;
+    sessionStorage.removeItem(ViewAllUserss.FILTER_SESSION_KEY);
     this.updateQueryParams();
   }
 
@@ -581,6 +637,7 @@ export class ViewAllUserss implements OnInit {
       this.statusFilter = 'INACTIVE';
     }
 
+    this.saveFiltersToSession();
     this.updateQueryParams();
   }
 
@@ -588,6 +645,7 @@ export class ViewAllUserss implements OnInit {
   selectDepartment(deptId: number): void {
     this.departmentIdFilter = deptId;
     this.currentPage = 1;
+    this.saveFiltersToSession();
     this.updateQueryParams();
   }
 
@@ -600,6 +658,7 @@ export class ViewAllUserss implements OnInit {
       this.sortDirection = 'asc';
     }
     this.currentPage = 1;
+    this.saveFiltersToSession();
     this.updateQueryParams();
   }
 
@@ -712,6 +771,7 @@ export class ViewAllUserss implements OnInit {
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      this.saveFiltersToSession();
       this.updateQueryParams();
     }
   }
@@ -809,6 +869,7 @@ export class ViewAllUserss implements OnInit {
   }
 
   goToUser(userId: number): void {
+    this.saveFiltersToSession();
     const user = this.users.find(u => u.userId === userId);
     if (user?.subDepartmentId) {
       this.router.navigate(['/sub-department-details', user.subDepartmentId], {
@@ -821,6 +882,7 @@ export class ViewAllUserss implements OnInit {
 
   viewUser(event: Event, userId: number): void {
     event.stopPropagation();
+    this.saveFiltersToSession();
     const user = this.users.find(u => u.userId === userId);
     if (user?.subDepartmentId) {
       this.router.navigate(['/sub-department-details', user.subDepartmentId], {
