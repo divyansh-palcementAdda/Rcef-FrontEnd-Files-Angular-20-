@@ -942,11 +942,17 @@ export class ViewTask implements OnInit, OnDestroy {
       }
     }
 
+    const submittedType = this.newRequest.requestType;
+
     this.requestService.createRequestWithProofs(this.taskId, formData).pipe(
       finalize(() => this.isAddingReq = false)
     ).subscribe({
       next: (res) => {
         if (res.success) {
+          this.toastService.show({
+            title: 'Request Submitted',
+            message: res.message || 'Request created successfully.'
+          });
           this.addRequestModal?.hide();
           this.reloadTask();
         } else {
@@ -954,8 +960,38 @@ export class ViewTask implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || err.message || 'Server error. Please try again.';
         console.error('Error adding request:', err);
+        if (err.status === 409) {
+          this.errorMessage = err.error?.message || 'A pending request already exists for this task.';
+          this.toastService.show({
+            title: 'Pending Request Exists',
+            message: this.errorMessage
+          });
+          this.addRequestModal?.hide();
+          this.reloadTask();
+        } else if (err.status === 0 || err.status === 504) {
+          // Reconcile state in case backend completed after client timeout
+          this.requestService.getRequestsForTask(this.taskId).subscribe({
+            next: (checkRes) => {
+              const hasPending = checkRes?.data?.some(r => r.status === 'PENDING' && r.requestType === submittedType);
+              if (hasPending) {
+                this.toastService.show({
+                  title: 'Request Verified',
+                  message: 'Your request was processed and is currently pending.'
+                });
+                this.addRequestModal?.hide();
+                this.reloadTask();
+              } else {
+                this.errorMessage = 'Request timed out. Please check your connection and retry if needed.';
+              }
+            },
+            error: () => {
+              this.errorMessage = 'Network connection issue. Please verify task state before submitting again.';
+            }
+          });
+        } else {
+          this.errorMessage = err.error?.message || err.message || 'Server error. Please try again.';
+        }
       }
     });
   }
