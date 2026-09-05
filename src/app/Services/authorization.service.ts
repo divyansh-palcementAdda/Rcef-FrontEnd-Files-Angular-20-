@@ -255,4 +255,24 @@ export class AuthorizationService {
 
     return false;
   }
+
+  /**
+   * Returns true if the user has permission to initiate bulk task deletion operations.
+   */
+  canBulkDeleteTasks(): boolean {
+    const rawRole = this.authService.getCurrentRole();
+    const role = rawRole ? rawRole.toUpperCase() : '';
+    if (role === 'SUPER_ADMIN' || role === 'SUPERADMIN') return true;
+    if (role === 'SUB_ADMIN' || role === 'TEACHER') return false;
+
+    if (role === 'ADMIN') {
+      return this.hasPermission('TASK_DELETE') || this.hasPermission('SUPER_ADMIN');
+    }
+
+    if (role === 'HOD') {
+      return this.hasAnyPermission(['TASK_DELETE', 'SUB_DEPARTMENT_TASK_DELETE']);
+    }
+
+    return false;
+  }
 }

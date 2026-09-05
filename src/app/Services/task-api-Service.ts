@@ -38,6 +38,41 @@ export interface TaskSearchResponse {
   stats: TaskStatsDto;
 }
 
+export interface BulkTaskDeletePayload {
+  mode: 'SELECTED' | 'ALL';
+  taskIds?: number[];
+  search?: string;
+  status?: string;
+  departmentId?: number;
+  departmentName?: string;
+  subDepartmentId?: string;
+  priority?: string;
+  taskType?: string;
+  overdue?: boolean;
+  upcoming?: boolean;
+  hasExtensionRequest?: boolean;
+  hasClosureRequest?: boolean;
+  assignedUserId?: number;
+  createdById?: number;
+  requiresApproval?: boolean;
+  approved?: boolean;
+  isRecurringParent?: boolean;
+  isRecurredInstance?: boolean;
+  category?: string;
+  templateTitle?: string;
+  template?: string;
+  subjectId?: number;
+}
+
+export interface BulkTaskDeleteResponse {
+  requestedCount: number;
+  deletedCount: number;
+  skippedCount: number;
+  deletedTaskIds: number[];
+  skippedTaskIds: number[];
+  message: string;
+}
+
 export interface TaskDashboardAnalyticsDto {
   overview: {
     totalTasks: number;
@@ -284,6 +319,13 @@ getRecurredInstancesByParent(parentTaskId: number): Observable<ApiResponse<TaskD
   deleteTask(taskId: number): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/${taskId}`).pipe(
       catchError(err => this.handleError(err, 'delete task'))
+    );
+  }
+
+  // 15b. Bulk Delete Tasks (SELECTED or ALL scope)
+  bulkDeleteTasks(payload: BulkTaskDeletePayload): Observable<ApiResponse<BulkTaskDeleteResponse>> {
+    return this.http.post<ApiResponse<BulkTaskDeleteResponse>>(`${this.baseUrl}/bulk-delete`, payload).pipe(
+      catchError(err => this.handleError(err, 'bulk delete tasks'))
     );
   }
 

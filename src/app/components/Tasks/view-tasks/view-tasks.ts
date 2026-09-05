@@ -52,6 +52,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   // Task Data
   tasks: TaskDto[] = [];
   filteredTasks: TaskDto[] = [];
+  selectedTaskIds: Set<number> = new Set<number>();
   readonly Math = Math;
 
   // UI States
@@ -1282,6 +1283,180 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     return this.authorizationService.canDeleteTask(task);
   }
 
+  canBulkDelete(): boolean {
+    return this.authorizationService.canBulkDeleteTasks();
+  }
+
+  isTaskSelected(taskId?: number): boolean {
+    return !!taskId && this.selectedTaskIds.has(taskId);
+  }
+
+  toggleTaskSelection(taskId?: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!taskId) return;
+    if (this.selectedTaskIds.has(taskId)) {
+      this.selectedTaskIds.delete(taskId);
+    } else {
+      this.selectedTaskIds.add(taskId);
+    }
+  }
+
+  isAllCurrentPageSelected(): boolean {
+    const deletableTasks = this.tasks.filter(t => this.canDeleteTask(t));
+    if (deletableTasks.length === 0) return false;
+    return deletableTasks.every(t => t.taskId && this.selectedTaskIds.has(t.taskId));
+  }
+
+  toggleSelectAllCurrentPage(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (this.isAllCurrentPageSelected()) {
+      this.tasks.forEach(t => {
+        if (t.taskId) this.selectedTaskIds.delete(t.taskId);
+      });
+    } else {
+      this.tasks.forEach(t => {
+        if (t.taskId && this.canDeleteTask(t)) {
+          this.selectedTaskIds.add(t.taskId);
+        }
+      });
+    }
+  }
+
+  clearSelection(): void {
+    this.selectedTaskIds.clear();
+  }
+
+  deleteSelectedTasks(): void {
+    if (this.selectedTaskIds.size === 0) {
+      this.toastService.show({
+        title: 'No Tasks Selected',
+        message: 'Please select at least one task to delete.'
+      });
+      return;
+    }
+
+    const count = this.selectedTaskIds.size;
+    this.confirmDialog.confirm({
+      title: `Delete ${count} Selected Task${count > 1 ? 's' : ''}?`,
+      message: `Are you sure you want to delete ${count} selected task${count > 1 ? 's' : ''}? These tasks will be marked inactive and removed from active views.`,
+      confirmText: `Delete ${count} Task${count > 1 ? 's' : ''}`,
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.loading = true;
+      this.loadingMessage = `Deleting ${count} selected task(s)...`;
+
+      this.subscriptions.add(
+        this.apiService.bulkDeleteTasks({
+          mode: 'SELECTED',
+          taskIds: Array.from(this.selectedTaskIds)
+        }).pipe(
+          finalize(() => this.loading = false),
+          catchError(err => {
+            this.toastService.show({
+              title: 'Bulk Delete Failed',
+              message: err?.error?.message || err?.message || 'Failed to delete selected tasks.'
+            });
+            return of({ success: false, data: null, message: err?.message } as any);
+          })
+        ).subscribe(res => {
+          if (res?.success) {
+            const deleted = res.data?.deletedCount ?? 0;
+            this.toastService.show({
+              title: 'Tasks Deleted',
+              message: res.data?.message || `Successfully deleted ${deleted} task(s).`
+            });
+            this.clearSelection();
+            if (this.tasks.length <= deleted && this.currentPage > 1) {
+              this.currentPage = Math.max(1, this.currentPage - 1);
+            }
+            this.loadTasksFromServer();
+            this.loadAnalyticsFromServer();
+          }
+        })
+      );
+    });
+  }
+
+  deleteAllMatchingTasks(): void {
+    const filterParams = this.buildFilterParams();
+    const count = this.totalTasks;
+    if (count === 0) {
+      this.toastService.show({
+        title: 'No Tasks',
+        message: 'There are no matching tasks in the current scope to delete.'
+      });
+      return;
+    }
+
+    const scopeDetails: string[] = [];
+    if (this.subDepartmentIdFilter) {
+      const sd = this.authorizedSubDepartments.find(s => s.id === this.subDepartmentIdFilter);
+      scopeDetails.push(`Sub-Department: ${sd ? sd.name : this.subDepartmentIdFilter}`);
+    }
+    if (this.departmentFilter) {
+      scopeDetails.push(`Department: ${this.departmentFilter}`);
+    }
+    if (this.statusFilter) {
+      scopeDetails.push(`Status: ${this.statusFilter}`);
+    }
+    if (this.priorityFilter) {
+      scopeDetails.push(`Priority: ${this.priorityFilter}`);
+    }
+    if (this.searchTerm) {
+      scopeDetails.push(`Search: "${this.searchTerm}"`);
+    }
+    const scopeText = scopeDetails.length > 0
+      ? `\n\nActive Scope / Filters:\n• ` + scopeDetails.join('\n• ')
+      : '\n\nScope: All Authorized Tasks';
+
+    this.confirmDialog.confirm({
+      title: `Delete All ${count} Matching Tasks?`,
+      message: `You are about to delete all ${count} active tasks matching the current filter scope.${scopeText}\n\nThis will mark all matching tasks inactive and remove them from active views. This action cannot be undone.`,
+      confirmText: `Delete All ${count} Tasks`,
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.loading = true;
+      this.loadingMessage = `Deleting all ${count} matching tasks...`;
+
+      this.subscriptions.add(
+        this.apiService.bulkDeleteTasks({
+          mode: 'ALL',
+          ...filterParams
+        }).pipe(
+          finalize(() => this.loading = false),
+          catchError(err => {
+            this.toastService.show({
+              title: 'Bulk Delete Failed',
+              message: err?.error?.message || err?.message || 'Failed to delete matching tasks.'
+            });
+            return of({ success: false, data: null, message: err?.message } as any);
+          })
+        ).subscribe(res => {
+          if (res?.success) {
+            const deleted = res.data?.deletedCount ?? 0;
+            this.toastService.show({
+              title: 'Bulk Delete Complete',
+              message: res.data?.message || `Successfully deleted ${deleted} task(s).`
+            });
+            this.clearSelection();
+            this.currentPage = 1;
+            this.loadTasksFromServer();
+            this.loadAnalyticsFromServer();
+          }
+        })
+      );
+    });
+  }
 
   canEditTask(task: TaskDto): boolean {
     return this.authorizationService.canEditTask(task);
