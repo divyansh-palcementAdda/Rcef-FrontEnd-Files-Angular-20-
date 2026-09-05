@@ -8,8 +8,8 @@ import { ConfirmDialogService } from '../../../Services/confirm-dialog.service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { JwtService } from '../../../Services/jwt-service';
-import { of, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { of, Subscription, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalService } from '../../../Services/modal-service';
 
@@ -89,6 +89,10 @@ export class ViewDepartmentsComponent implements OnInit {
   private subscriptions = new Subscription();
   private confirmDialogService = inject(ConfirmDialogService);
 
+  // search debounce subjects
+  private allSubDeptsSearch$ = new Subject<string>();
+  private subDeptsSearch$ = new Subject<string>();
+
   constructor(
     private apiService: DepartmentApiService,
     public router: Router,
@@ -105,6 +109,51 @@ export class ViewDepartmentsComponent implements OnInit {
           this.loadAllDepartments();
         }
       }
+    });
+
+    // Debounced API search — All Sub-Departments panel
+    this.allSubDeptsSearch$.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      switchMap(term => {
+        this.allSubDeptsLoading = true;
+        this.allSubDeptsError = null;
+        return this.apiService.getAllSubDepartments(term).pipe(
+          catchError(err => {
+            this.allSubDeptsError = err?.message || 'Failed to load sub-departments.';
+            return of([]);
+          })
+        );
+      })
+    ).subscribe((res: any[]) => {
+      this.allSubDepts = res || [];
+      this.filteredAllSubDepts = [...this.allSubDepts];
+      this.allSubDeptsTotalPages = Math.ceil(this.filteredAllSubDepts.length / this.allSubDeptsPageSize) || 1;
+      this.allSubDeptsCurrentPage = 1;
+      this.allSubDeptsLoading = false;
+    });
+
+    // Debounced API search — per-Department Sub-Departments panel
+    this.subDeptsSearch$.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      switchMap(term => {
+        if (!this.selectedDept) return of([]);
+        this.subDeptLoading = true;
+        this.subDeptError = null;
+        return this.apiService.getSubDepartmentsByDepartment(this.selectedDept.departmentId, term).pipe(
+          catchError(err => {
+            this.subDeptError = err?.message || 'Failed to load sub-departments.';
+            return of([]);
+          })
+        );
+      })
+    ).subscribe((res: any[]) => {
+      this.subDepts = res || [];
+      this.filteredSubDepts = [...this.subDepts];
+      this.subDeptTotalPages = Math.ceil(this.filteredSubDepts.length / this.subDeptPageSize) || 1;
+      this.subDeptCurrentPage = 1;
+      this.subDeptLoading = false;
     });
   }
 
@@ -147,32 +196,29 @@ export class ViewDepartmentsComponent implements OnInit {
     this.subDeptLoading = true;
     this.subDepts = [];
     this.filteredSubDepts = [];
+    this.subDeptSearchTerm = '';
 
     this.apiService.getSubDepartmentsByDepartment(deptId).pipe(
       catchError(err => {
         this.subDeptError = err?.message || 'Failed to load sub-departments.';
         return of([]);
       })
-    ).subscribe((res: SubDepartmentResponse[]) => {
+    ).subscribe((res: any[]) => {
       this.subDepts = res || [];
-      this.applySubDeptFilters();
+      this.filteredSubDepts = [...this.subDepts];
+      this.subDeptTotalPages  = Math.ceil(this.filteredSubDepts.length / this.subDeptPageSize) || 1;
+      this.subDeptCurrentPage = 1;
       this.subDeptLoading = false;
     });
   }
 
   applySubDeptFilters(): void {
-    this.filteredSubDepts = this.subDepts.filter(sd =>
-      !this.subDeptSearchTerm ||
-      sd.name?.toLowerCase().includes(this.subDeptSearchTerm.toLowerCase()) ||
-      sd.code?.toLowerCase().includes(this.subDeptSearchTerm.toLowerCase())
-    );
-    this.subDeptTotalPages  = Math.ceil(this.filteredSubDepts.length / this.subDeptPageSize) || 1;
-    this.subDeptCurrentPage = 1;
+    this.subDeptsSearch$.next(this.subDeptSearchTerm);
   }
 
   resetSubDeptFilters(): void {
     this.subDeptSearchTerm = '';
-    this.applySubDeptFilters();
+    this.subDeptsSearch$.next('');
   }
 
   changeSubDeptPage(page: number): void {
@@ -201,11 +247,7 @@ export class ViewDepartmentsComponent implements OnInit {
     this.filteredSubDepts = [];
     this.allSubDeptsSearchTerm = '';
     this.allSubDeptsError = null;
-    if (this.allSubDepts.length === 0) {
-      this.loadAllSubDepts();
-    } else {
-      this.applyAllSubDeptsFilters();
-    }
+    this.loadAllSubDepts();
   }
 
   closeAllSubDepts(): void {
@@ -214,33 +256,28 @@ export class ViewDepartmentsComponent implements OnInit {
 
   loadAllSubDepts(): void {
     this.allSubDeptsLoading = true;
+    this.allSubDeptsSearchTerm = '';
     this.apiService.getAllSubDepartments().pipe(
       catchError(err => {
         this.allSubDeptsError = err?.message || 'Failed to load sub-departments.';
         return of([]);
       })
-    ).subscribe((res: SubDepartmentResponse[]) => {
+    ).subscribe((res: any[]) => {
       this.allSubDepts = res || [];
-      this.applyAllSubDeptsFilters();
+      this.filteredAllSubDepts = [...this.allSubDepts];
+      this.allSubDeptsTotalPages  = Math.ceil(this.filteredAllSubDepts.length / this.allSubDeptsPageSize) || 1;
+      this.allSubDeptsCurrentPage = 1;
       this.allSubDeptsLoading = false;
     });
   }
 
   applyAllSubDeptsFilters(): void {
-    const term = this.allSubDeptsSearchTerm.toLowerCase();
-    this.filteredAllSubDepts = this.allSubDepts.filter(sd =>
-      !term ||
-      sd.name?.toLowerCase().includes(term) ||
-      sd.code?.toLowerCase().includes(term) ||
-      sd.department?.name?.toLowerCase().includes(term)
-    );
-    this.allSubDeptsTotalPages  = Math.ceil(this.filteredAllSubDepts.length / this.allSubDeptsPageSize) || 1;
-    this.allSubDeptsCurrentPage = 1;
+    this.allSubDeptsSearch$.next(this.allSubDeptsSearchTerm);
   }
 
   resetAllSubDeptsFilters(): void {
     this.allSubDeptsSearchTerm = '';
-    this.applyAllSubDeptsFilters();
+    this.allSubDeptsSearch$.next('');
   }
 
   changeAllSubDeptsPage(page: number): void {
@@ -521,6 +558,11 @@ export class ViewDepartmentsComponent implements OnInit {
     if (id) {
       this.router.navigate(['/sub-department-details', id]);
     }
+  }
+
+  // trackBy for *ngFor — prevents DOM re-creation on filter, keeps focus intact
+  trackBySubDeptId(_index: number, sd: SubDepartmentResponse): string {
+    return sd.id;
   }
 
   editDepartment(event: Event, departmentId?: number): void {

@@ -143,7 +143,7 @@
           <div class="search-input-wrapper">
             <i class="bi bi-search search-icon"></i>
             <input type="text" class="form-control search-input" placeholder="Search by name, code or department..."
-              [(ngModel)]="allSubDeptsSearchTerm" (input)="applyAllSubDeptsFilters()">
+              [(ngModel)]="allSubDeptsSearchTerm" (ngModelChange)="applyAllSubDeptsFilters()">
           </div>
         </div>
         <div class="col-md-3">
@@ -167,7 +167,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sd of paginatedAllSubDepts; let i = index" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
+            <tr *ngFor="let sd of paginatedAllSubDepts; let i = index; trackBy: trackBySubDeptId" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
               <td class="text-muted fw-semibold">{{ (allSubDeptsCurrentPage - 1) * allSubDeptsPageSize + i + 1 }}</td>
               <td><span class="badge bg-light text-dark fw-semibold">{{ sd.code || '—' }}</span></td>
               <td class="fw-bold" style="color: var(--text-main);">{{ sd.name }}</td>
@@ -194,7 +194,7 @@
 
       <!-- Mobile Cards -->
       <div class="d-md-none" *ngIf="!allSubDeptsLoading && paginatedAllSubDepts.length">
-        <div class="mobile-dept-card" *ngFor="let sd of paginatedAllSubDepts" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
+        <div class="mobile-dept-card" *ngFor="let sd of paginatedAllSubDepts; trackBy: trackBySubDeptId" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ sd.name }}</h6>
             <span class="badge bg-light text-dark">{{ sd.code || '—' }}</span>
@@ -282,7 +282,7 @@
           <div class="search-input-wrapper">
             <i class="bi bi-search search-icon"></i>
             <input type="text" class="form-control search-input" placeholder="Search by name or code..."
-              [(ngModel)]="subDeptSearchTerm" (input)="applySubDeptFilters()">
+              [(ngModel)]="subDeptSearchTerm" (ngModelChange)="applySubDeptFilters()">
           </div>
         </div>
         <div class="col-md-3">
@@ -305,7 +305,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sd of paginatedSubDepts; let i = index" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
+            <tr *ngFor="let sd of paginatedSubDepts; let i = index; trackBy: trackBySubDeptId" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
               <td class="text-muted fw-semibold">{{ (subDeptCurrentPage - 1) * subDeptPageSize + i + 1 }}</td>
               <td><span class="badge bg-light text-dark fw-semibold">{{ sd.code || '—' }}</span></td>
               <td class="fw-bold" style="color: var(--text-main);">{{ sd.name }}</td>
@@ -327,7 +327,7 @@
 
       <!-- Sub-dept mobile cards -->
       <div class="d-md-none" *ngIf="!subDeptLoading && paginatedSubDepts.length">
-        <div class="mobile-dept-card" *ngFor="let sd of paginatedSubDepts" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
+        <div class="mobile-dept-card" *ngFor="let sd of paginatedSubDepts; trackBy: trackBySubDeptId" (click)="viewSubDepartmentDetails(sd.id)" style="cursor: pointer;">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ sd.name }}</h6>
             <span class="badge bg-light text-dark">{{ sd.code || '—' }}</span>

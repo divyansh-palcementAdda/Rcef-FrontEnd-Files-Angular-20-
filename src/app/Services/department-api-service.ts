@@ -189,14 +189,20 @@ export class DepartmentApiService {
     );
   }
 
-  getAllSubDepartments(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/sub-departments`).pipe(
+  getAllSubDepartments(search?: string): Observable<any[]> {
+    const url = search?.trim()
+      ? `${environment.apiUrl}/sub-departments?search=${encodeURIComponent(search.trim())}`
+      : `${environment.apiUrl}/sub-departments`;
+    return this.http.get<any[]>(url).pipe(
       catchError(err => this.handleError(err, 'fetch all sub-departments'))
     );
   }
 
-  getSubDepartmentsByDepartment(deptId: number): Observable<any> {
-    return this.http.get<any>(`${environment.apiUrl}/sub-departments/department/${deptId}`).pipe(
+  getSubDepartmentsByDepartment(deptId: number, search?: string): Observable<any> {
+    const url = search?.trim()
+      ? `${environment.apiUrl}/sub-departments/department/${deptId}?search=${encodeURIComponent(search.trim())}`
+      : `${environment.apiUrl}/sub-departments/department/${deptId}`;
+    return this.http.get<any>(url).pipe(
       catchError(err => this.handleError(err, 'fetch sub-departments by department'))
     );
   }

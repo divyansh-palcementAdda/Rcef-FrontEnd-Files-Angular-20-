@@ -358,7 +358,8 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     // When there is no active modal we must explicitly include the modal-related keys
     // (set to null) so that `queryParamsHandling: 'merge'` will remove any stale modal
     // flags from the URL. For other keys, remove empty/null values to keep the URL clean.
-    const modalKeys = ['modal', 'subDeptId', 'userId'];
+    // These keys must always be present (even as null) so that 'merge' clears stale values
+    const alwaysClearKeys = ['modal', 'subDeptId', 'userId', 'subDeptSearch'];
     if (!currentModal) {
       queryParams.modal = null;
       queryParams.subDeptId = null;
@@ -366,7 +367,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     }
 
     Object.keys(queryParams).forEach(key => {
-      if (modalKeys.includes(key)) return; // keep modal keys even if null
+      if (alwaysClearKeys.includes(key)) return; // keep these keys even if null so stale URL values get cleared
       if (queryParams[key] === null || queryParams[key] === undefined || queryParams[key] === '') {
         delete queryParams[key];
       }
