@@ -39,6 +39,10 @@
       <h1 class="fw-bold tracking-tight mb-0" style="color: var(--text-main); font-size: 1.75rem;">Users Directory</h1>
     </div>
     <div class="d-flex gap-2">
+      <button *ngIf="searchTerm || statusFilter || departmentIdFilter || (selectedCard && selectedCard !== 'total')"
+        class="btn btn-outline-danger" (click)="resetFilters()" title="Clear all active filters">
+        <i class="bi bi-x-circle me-1"></i>Reset Filters
+      </button>
       <button class="btn btn-outline-primary" (click)="goToBulkImport()" *ngIf="hasPermission('USER_CREATE')">
         <i class="bi bi-file-earmark-excel-fill me-1"></i>Bulk Upload
       </button>

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { StudentApiService, StudentReportingDto } from '../../../Services/student-api.service';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { DepartmentApiService } from '../../../Services/department-api-service';
@@ -256,6 +257,7 @@ export class ViewTask implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private taskService: TaskApiService,
     private deptService: DepartmentApiService,
     private userService: UserApiService,
@@ -1319,7 +1321,7 @@ export class ViewTask implements OnInit, OnDestroy {
   // --- NAVIGATION METHODS ---
 
   goBack(): void {
-    this.router.navigate(['/view-tasks']);
+    this.location.back();
   }
 
   scrollToTabs(): void {

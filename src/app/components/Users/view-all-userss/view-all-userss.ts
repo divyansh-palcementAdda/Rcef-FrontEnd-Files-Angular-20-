@@ -611,7 +611,12 @@ export class ViewAllUserss implements OnInit {
     this.selectedCard = 'total';
     this.currentPage = 1;
     sessionStorage.removeItem(ViewAllUserss.FILTER_SESSION_KEY);
-    this.updateQueryParams();
+    // Navigate with clean params (no merge) so all filters are cleared, then reload
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: 1, pageSize: this.pageSize, sortBy: this.sortBy, sortDirection: this.sortDirection },
+      replaceUrl: true
+    }).then(() => this.loadUsersForRole());
   }
 
   // Handle click on stats card to filter the list
