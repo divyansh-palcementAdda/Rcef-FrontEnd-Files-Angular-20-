@@ -13,6 +13,32 @@ export interface DeptTemplateTaskSummary {
   statusBreakdown?: Record<string, number>;
 }
 
+export type DepartmentDeletionStrategy = 'DELETE_ALL' | 'REMOVE_MAPPINGS' | 'SELECTIVE';
+export type DepartmentEntityType = 'USERS' | 'SUB_DEPARTMENTS' | 'TASKS' | 'SUBJECTS';
+
+export interface DepartmentDeleteRequest {
+  strategy: DepartmentDeletionStrategy;
+  deleteEntities?: DepartmentEntityType[];
+}
+
+export interface DepartmentDeleteResponse {
+  departmentId: number;
+  departmentName: string;
+  strategy: DepartmentDeletionStrategy;
+  deletedCounts: {
+    departments?: number;
+    subDepartments?: number;
+    tasks?: number;
+    users?: number;
+    subjects?: number;
+  };
+  unmappedCounts: {
+    tasks?: number;
+    users?: number;
+  };
+  message: string;
+}
+
 interface AuthorizedDepartmentDto {
   departmentId: number;
   departmentName: string;
@@ -104,9 +130,10 @@ export class DepartmentApiService {
     );
   }
 
-  deleteDepartment(departmentId: number): Observable<any> {
-    console.log(`Deleting department with id ${departmentId}`);
-    return this.http.delete(`${this.apiUrl}/${departmentId}`).pipe(
+  deleteDepartment(departmentId: number, payload?: DepartmentDeleteRequest): Observable<any> {
+    console.log(`Deleting department with id ${departmentId}, payload:`, payload);
+    const options = payload ? { body: payload } : {};
+    return this.http.delete<any>(`${this.apiUrl}/${departmentId}`, options).pipe(
       catchError(err => this.handleError(err, 'delete department'))
     );
   }

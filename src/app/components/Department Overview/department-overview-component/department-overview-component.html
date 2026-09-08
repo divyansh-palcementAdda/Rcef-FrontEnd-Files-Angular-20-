@@ -24,6 +24,9 @@
       <button class="btn btn-primary" (click)="openAddTaskModal()">
         <i class="bi bi-list-task me-1"></i>Add Task
       </button>
+      <button class="btn btn-outline-danger" (click)="openDeleteDepartmentModal()" id="deleteDeptBtn">
+        <i class="bi bi-trash3 me-1"></i>Delete Department
+      </button>
     </div>
   </div>
 
@@ -1027,6 +1030,219 @@
   <div class="modal-dialog modal-xl modal-dialog-centered" (click)="$event.stopPropagation()">
     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
       <app-update-task *ngIf="showEditTaskModal && selectedTaskId" [isModal]="true" [taskId]="selectedTaskId" (closed)="onTaskModalClosed($event)"></app-update-task>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Department Modal -->
+<div class="modal-backdrop-custom" *ngIf="showDeleteDepartmentModal" (click)="closeDeleteDepartmentModal()"></div>
+<div class="modal fade" [class.show]="showDeleteDepartmentModal" [style.display]="showDeleteDepartmentModal ? 'block' : 'none'"
+  tabindex="-1" aria-labelledby="deleteDeptModalLabel" [attr.aria-hidden]="!showDeleteDepartmentModal">
+  <div class="modal-dialog modal-lg modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <!-- Modal Header -->
+      <div class="modal-header border-bottom px-4 py-3 bg-danger-subtle d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <div class="p-2 rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-danger mb-0" id="deleteDeptModalLabel">Delete Department</h5>
+            <small class="text-muted">{{ departmentData.name || departmentData.departmentName || 'Department' }} (ID: {{ departmentId }})</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeDeleteDepartmentModal()" [disabled]="isDeletingDepartment"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-4">
+        <!-- Enterprise Warning Alert -->
+        <div class="alert alert-warning border-0 d-flex gap-3 align-items-start rounded-3 mb-4 shadow-sm" style="background-color: #fff8e1; border-left: 4px solid #f59e0b !important;">
+          <i class="bi bi-shield-exclamation fs-4 text-warning flex-shrink-0 mt-1"></i>
+          <div>
+            <div class="fw-bold text-dark mb-1">Irreversible Business Action</div>
+            <div class="text-muted small">
+              This action cannot be undone from the normal user workflow. The selected department and related data will be removed from active records according to the chosen deletion strategy.
+            </div>
+          </div>
+        </div>
+
+        <h6 class="fw-bold text-dark mb-3">
+          <i class="bi bi-list-check me-2 text-primary"></i>Choose Deletion Strategy
+        </h6>
+
+        <!-- Strategy Options Cards -->
+        <div class="d-flex flex-column gap-3 mb-4">
+          <!-- Option 1: DELETE_ALL -->
+          <div class="strategy-card p-3 rounded-3 border transition-all"
+               [class.selected-strategy]="deleteStrategy === 'DELETE_ALL'"
+               (click)="setDeleteStrategy('DELETE_ALL')">
+            <div class="form-check d-flex align-items-start gap-3">
+              <input class="form-check-input mt-1" type="radio" name="deleteStrategyRadio" id="strategyDeleteAll"
+                     [checked]="deleteStrategy === 'DELETE_ALL'" (change)="setDeleteStrategy('DELETE_ALL')">
+              <div class="flex-grow-1">
+                <label class="form-check-label fw-bold d-block text-dark cursor-pointer" for="strategyDeleteAll">
+                  Delete department and all related data
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2">Cascade Soft-Delete</span>
+                </label>
+                <div class="text-muted small mt-1">
+                  Soft-deletes the department, all sub-departments, subjects, tasks (including task proofs, requests, and activities), and exclusively owned users. Shared entities remain active and are safely unmapped.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Option 2: REMOVE_MAPPINGS -->
+          <div class="strategy-card p-3 rounded-3 border transition-all"
+               [class.selected-strategy]="deleteStrategy === 'REMOVE_MAPPINGS'"
+               (click)="setDeleteStrategy('REMOVE_MAPPINGS')">
+            <div class="form-check d-flex align-items-start gap-3">
+              <input class="form-check-input mt-1" type="radio" name="deleteStrategyRadio" id="strategyRemoveMappings"
+                     [checked]="deleteStrategy === 'REMOVE_MAPPINGS'" (change)="setDeleteStrategy('REMOVE_MAPPINGS')">
+              <div class="flex-grow-1">
+                <label class="form-check-label fw-bold d-block text-dark cursor-pointer" for="strategyRemoveMappings">
+                  Remove mappings and delete department only
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2">Preserve Data</span>
+                </label>
+                <div class="text-muted small mt-1">
+                  Removes department associations and junction mappings from related records. Users, tasks, proofs, requests, and history are preserved in active state.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Option 3: SELECTIVE -->
+          <div class="strategy-card p-3 rounded-3 border transition-all"
+               [class.selected-strategy]="deleteStrategy === 'SELECTIVE'"
+               (click)="setDeleteStrategy('SELECTIVE')">
+            <div class="form-check d-flex align-items-start gap-3">
+              <input class="form-check-input mt-1" type="radio" name="deleteStrategyRadio" id="strategySelective"
+                     [checked]="deleteStrategy === 'SELECTIVE'" (change)="setDeleteStrategy('SELECTIVE')">
+              <div class="flex-grow-1">
+                <label class="form-check-label fw-bold d-block text-dark cursor-pointer" for="strategySelective">
+                  Select related data to delete
+                  <span class="badge bg-warning-subtle text-dark border border-warning ms-2">Custom Selection</span>
+                </label>
+                <div class="text-muted small mt-1">
+                  Selectively specify which department-related data categories to soft-delete. Unselected categories are preserved and their department mappings are removed.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section for Option 3 Entity Selection -->
+        <div *ngIf="deleteStrategy === 'SELECTIVE'" class="selective-entities-box p-3 rounded-3 bg-light border mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="fw-bold text-dark mb-0">
+              <i class="bi bi-check2-square me-2 text-primary"></i>Select Entity Categories to Deactivate:
+            </h6>
+            <span class="text-muted small">Checked = Soft-Delete | Unchecked = Preserve & Unlink</span>
+          </div>
+
+          <div class="row g-3">
+            <!-- Sub Departments -->
+            <div class="col-md-6">
+              <div class="entity-choice-card p-3 rounded-3 border bg-white"
+                   [class.active-choice]="isEntitySelected('SUB_DEPARTMENTS')"
+                   (click)="toggleSelectiveEntity('SUB_DEPARTMENTS')">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="entitySubDept"
+                         [checked]="isEntitySelected('SUB_DEPARTMENTS')"
+                         (change)="toggleSelectiveEntity('SUB_DEPARTMENTS')">
+                  <label class="form-check-label fw-semibold text-dark cursor-pointer" for="entitySubDept">
+                    <i class="bi bi-diagram-3 me-1 text-primary"></i> Sub-Departments
+                  </label>
+                  <div class="text-muted small mt-1">
+                    Deactivates child sub-departments of this department.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tasks & Proofs -->
+            <div class="col-md-6">
+              <div class="entity-choice-card p-3 rounded-3 border bg-white"
+                   [class.active-choice]="isEntitySelected('TASKS')"
+                   (click)="toggleSelectiveEntity('TASKS')">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="entityTasks"
+                         [checked]="isEntitySelected('TASKS')"
+                         (change)="toggleSelectiveEntity('TASKS')">
+                  <label class="form-check-label fw-semibold text-dark cursor-pointer" for="entityTasks">
+                    <i class="bi bi-list-task me-1 text-success"></i> Tasks & Proofs
+                  </label>
+                  <div class="text-muted small mt-1">
+                    Soft-deletes exclusive tasks, proofs, requests & activities.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Users -->
+            <div class="col-md-6">
+              <div class="entity-choice-card p-3 rounded-3 border bg-white"
+                   [class.active-choice]="isEntitySelected('USERS')"
+                   (click)="toggleSelectiveEntity('USERS')">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="entityUsers"
+                         [checked]="isEntitySelected('USERS')"
+                         (change)="toggleSelectiveEntity('USERS')">
+                  <label class="form-check-label fw-semibold text-dark cursor-pointer" for="entityUsers">
+                    <i class="bi bi-people me-1 text-info"></i> Department Users
+                  </label>
+                  <div class="text-muted small mt-1">
+                    Soft-deletes users exclusively owned by this department.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subjects -->
+            <div class="col-md-6">
+              <div class="entity-choice-card p-3 rounded-3 border bg-white"
+                   [class.active-choice]="isEntitySelected('SUBJECTS')"
+                   (click)="toggleSelectiveEntity('SUBJECTS')">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="entitySubjects"
+                         [checked]="isEntitySelected('SUBJECTS')"
+                         (change)="toggleSelectiveEntity('SUBJECTS')">
+                  <label class="form-check-label fw-semibold text-dark cursor-pointer" for="entitySubjects">
+                    <i class="bi bi-book me-1 text-warning"></i> Academic Subjects
+                  </label>
+                  <div class="text-muted small mt-1">
+                    Soft-deletes subjects belonging to this department/sub-depts.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strategy Summary Callout -->
+        <div class="p-3 rounded-3 bg-secondary-subtle border d-flex align-items-center gap-2">
+          <i class="bi bi-info-circle text-primary fs-5 flex-shrink-0"></i>
+          <span class="small text-dark">
+            <strong>Impact: </strong>
+            <span *ngIf="deleteStrategy === 'DELETE_ALL'">Department and all exclusive dependent data will be soft-deleted. Shared records will be unmapped.</span>
+            <span *ngIf="deleteStrategy === 'REMOVE_MAPPINGS'">Department will be soft-deleted. All users, tasks, and historical data will be preserved and unlinked.</span>
+            <span *ngIf="deleteStrategy === 'SELECTIVE'">Selected categories will be soft-deleted. Unselected categories will remain active and unmapped.</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer bg-light border-top px-4 py-3 d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary px-4 rounded-3" (click)="closeDeleteDepartmentModal()" [disabled]="isDeletingDepartment">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger px-4 rounded-3 d-flex align-items-center gap-2 fw-semibold"
+                (click)="confirmDeleteDepartment()" [disabled]="isDeletingDepartment">
+          <span *ngIf="isDeletingDepartment" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          <i *ngIf="!isDeletingDepartment" class="bi bi-trash3-fill"></i>
+          <span>{{ isDeletingDepartment ? 'Deleting...' : 'Confirm Deletion' }}</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

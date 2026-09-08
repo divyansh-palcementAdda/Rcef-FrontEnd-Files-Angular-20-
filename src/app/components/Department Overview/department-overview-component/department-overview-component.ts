@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../Services/api-service';
-import { DepartmentApiService } from '../../../Services/department-api-service';
+import { DepartmentApiService, DepartmentDeletionStrategy, DepartmentEntityType, DepartmentDeleteRequest } from '../../../Services/department-api-service';
 import { TaskApiService } from '../../../Services/task-api-Service';
 import { UserApiService } from '../../../Services/UserApiService';
 import { JwtService } from '../../../Services/jwt-service';
@@ -81,6 +81,10 @@ export class DepartmentOverviewComponent implements OnInit {
   showEditTaskModal: boolean = false;
   showEditSubDepartmentModal: boolean = false;
   showEditUserModal: boolean = false;
+  showDeleteDepartmentModal: boolean = false;
+  deleteStrategy: DepartmentDeletionStrategy = 'REMOVE_MAPPINGS';
+  selectedEntityTypes: DepartmentEntityType[] = ['SUB_DEPARTMENTS', 'TASKS', 'USERS', 'SUBJECTS'];
+  isDeletingDepartment: boolean = false;
   
   // Task related state
   selectedTaskId: number | null = null;
@@ -1637,5 +1641,69 @@ export class DepartmentOverviewComponent implements OnInit {
     }
     
     return result;
+  }
+
+  // ==========================================================
+  // Department Deletion Strategy Methods
+  // ==========================================================
+  openDeleteDepartmentModal(): void {
+    this.showDeleteDepartmentModal = true;
+    this.deleteStrategy = 'REMOVE_MAPPINGS';
+    this.selectedEntityTypes = ['SUB_DEPARTMENTS', 'TASKS', 'USERS', 'SUBJECTS'];
+    this.isDeletingDepartment = false;
+  }
+
+  closeDeleteDepartmentModal(): void {
+    if (this.isDeletingDepartment) return;
+    this.showDeleteDepartmentModal = false;
+  }
+
+  setDeleteStrategy(strategy: DepartmentDeletionStrategy): void {
+    this.deleteStrategy = strategy;
+  }
+
+  toggleSelectiveEntity(entity: DepartmentEntityType): void {
+    const idx = this.selectedEntityTypes.indexOf(entity);
+    if (idx > -1) {
+      this.selectedEntityTypes.splice(idx, 1);
+    } else {
+      this.selectedEntityTypes.push(entity);
+    }
+  }
+
+  isEntitySelected(entity: DepartmentEntityType): boolean {
+    return this.selectedEntityTypes.includes(entity);
+  }
+
+  confirmDeleteDepartment(): void {
+    if (this.isDeletingDepartment || !this.departmentId) return;
+
+    if (this.deleteStrategy === 'SELECTIVE' && this.selectedEntityTypes.length === 0) {
+      alert('Please select at least one entity category to delete, or choose "Remove mappings" strategy.');
+      return;
+    }
+
+    this.isDeletingDepartment = true;
+
+    const payload: DepartmentDeleteRequest = {
+      strategy: this.deleteStrategy,
+      deleteEntities: this.deleteStrategy === 'SELECTIVE' ? [...this.selectedEntityTypes] : undefined
+    };
+
+    this.departmentApiService.deleteDepartment(this.departmentId, payload).subscribe({
+      next: (response: any) => {
+        this.isDeletingDepartment = false;
+        this.showDeleteDepartmentModal = false;
+        const msg = response?.message || response?.data?.message || 'Department deleted successfully';
+        alert(msg);
+        this.router.navigate(['/departments']);
+      },
+      error: (err: any) => {
+        this.isDeletingDepartment = false;
+        console.error('Failed to delete department:', err);
+        const errMsg = err?.error?.message || err?.message || 'Failed to delete department.';
+        alert('Error: ' + errMsg);
+      }
+    });
   }
 }
