@@ -203,14 +203,26 @@ export class DepartmentApiService {
             : Array.isArray(response?.result)
               ? response.result
               : [];
-        return items.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          code: item.code,
-          description: item.description,
-          departmentId: item.department?.departmentId || item.departmentId,
-          departmentName: item.department?.name || item.departmentName
-        }));
+        return items.map((item: any) => {
+          const deptId = item.department?.departmentId ?? item.departmentId;
+          const deptName = item.department?.name ?? item.department?.departmentName ?? item.departmentName;
+          return {
+            id: item.id,
+            name: item.name,
+            code: item.code,
+            description: item.description,
+            departmentId: deptId,
+            departmentName: deptName,
+            department: item.department ? {
+              departmentId: deptId,
+              name: deptName,
+              departmentName: deptName,
+              departmentCode: item.department.departmentCode ?? item.department.code ?? item.code,
+              description: item.department.description,
+              departmentStatus: item.department.departmentStatus
+            } : (deptId ? { departmentId: deptId, name: deptName, departmentName: deptName } : undefined)
+          };
+        });
       }),
       catchError(err => this.handleError(err, 'fetch authorized sub-departments'))
     );
