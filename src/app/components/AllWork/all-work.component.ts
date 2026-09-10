@@ -719,6 +719,13 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   }
 
   closeAllModals(): void {
+    // Teacher ke liye modal close karne par dashboard pe navigate karo
+    // kyunki unke liye All Work page pe koi content nahi hota
+    if (this.role === 'TEACHER') {
+      this.modalWrapperService.clear();
+      this.router.navigate(['/teacher']);
+      return;
+    }
     this.modalWrapperService.clear();
     // ignore quick clicks after closing modal to avoid accidental re-open
     this.ignoreClicksUntil = Date.now() + 300;
