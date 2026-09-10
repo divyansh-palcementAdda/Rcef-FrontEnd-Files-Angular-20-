@@ -680,3 +680,50 @@
 .clickable:hover .input-group-text {
   background-color: #e9ecef;
 }
+
+/* ==========================================================
+   Department Deletion Modal Styles
+   ========================================================== */
+.strategy-card {
+  background-color: #ffffff;
+  cursor: pointer;
+  border-color: #e5e7eb !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.strategy-card:hover {
+  border-color: #93c5fd !important;
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.strategy-card.selected-strategy {
+  border-color: #3b82f6 !important;
+  background-color: #eff6ff;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.selective-entities-box {
+  border-color: #e2e8f0 !important;
+}
+
+.entity-choice-card {
+  cursor: pointer;
+  border-color: #e2e8f0 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.entity-choice-card:hover {
+  border-color: #cbd5e1 !important;
+  background-color: #f8fafc !important;
+}
+
+.entity-choice-card.active-choice {
+  border-color: #3b82f6 !important;
+  background-color: #f0fdf4 !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}

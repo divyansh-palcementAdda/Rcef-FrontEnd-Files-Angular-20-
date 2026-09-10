@@ -163,8 +163,8 @@
         <td colspan="6" class="aw-empty-state">
           <div class="aw-empty-inner">
             <i class="bi bi-people aw-empty-icon"></i>
-            <div class="aw-empty-title">No users found</div>
-            <div class="aw-empty-sub">Try adjusting your search.</div>
+            <div class="aw-empty-title">{{ zeroTasksOnly ? 'No users with zero active tasks found' : 'No users found' }}</div>
+            <div class="aw-empty-sub">{{ userSearch ? 'Try adjusting your search.' : (zeroTasksOnly ? 'All users in this subdepartment currently have active tasks assigned.' : 'No users exist in this subdepartment.') }}</div>
           </div>
         </td>
       </tr>

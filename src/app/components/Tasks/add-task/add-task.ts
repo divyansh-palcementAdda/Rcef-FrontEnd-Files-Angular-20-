@@ -147,7 +147,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
       this.loadDepartments();
     }
 
-    this.departmentService.getAllSubDepartments().subscribe({
+    this.departmentService.getAuthorizedSubDepartments().subscribe({
       next: (subs) => {
         this.subDepartments = subs;
         this.filterSubDepartments();
@@ -492,7 +492,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
 
   filterSubDepartments(): void {
     const raw = this.taskForm ? this.taskForm.getRawValue() : {};
-    const selectedDeptIds = raw.departmentIds || [];
+    const selectedDeptIds = (raw.departmentIds || []).map((id: any) => Number(id));
     const isSuperAdmin = this.currentUser?.role === 'SUPER_ADMIN';
     if (!selectedDeptIds.length) {
       if (isSuperAdmin) {
@@ -504,7 +504,7 @@ export class AddTaskComponent implements OnInit, AfterViewInit {
       return;
     }
     this.filteredSubDepartments = this.subDepartments.filter(sub => {
-      const deptId = sub.department?.departmentId;
+      const deptId = Number(sub.department?.departmentId ?? sub.departmentId);
       return deptId && selectedDeptIds.includes(deptId);
     });
 

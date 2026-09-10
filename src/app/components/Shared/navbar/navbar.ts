@@ -22,7 +22,6 @@ import { NgOptimizedImage } from '@angular/common';
     CommonModule,
     NotificationBellComponent,   // ✅
     ToastContainerComponent,
-    NgOptimizedImage
   ]
 })
 export class Navbar {
@@ -37,7 +36,7 @@ export class Navbar {
   ) {
     this.isLoggedIn$ = this.authService.isLoggedIn$;
     this.authService.isLoggedIn$.subscribe(val => this.isLoggedIn = val);
-    
+
     this.isLoginPage$ = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       map((event: NavigationEnd) => event.url === '/login' || event.urlAfterRedirects === '/login')
@@ -66,12 +65,12 @@ export class Navbar {
     this.isMenuOpen = false;
   }
 
- // In your logout button handler
-logout(): void {
-  const refreshToken = this.authService.getRefreshToken() ?? undefined; // normalize null to undefined
-  this.authService.logout(refreshToken).subscribe({
-    next: () => this.router.navigate(['/login']),
-    error: () => this.router.navigate(['/login']) // still redirect
-  });
-}
+  // In your logout button handler
+  logout(): void {
+    const refreshToken = this.authService.getRefreshToken() ?? undefined; // normalize null to undefined
+    this.authService.logout(refreshToken).subscribe({
+      next: () => this.router.navigate(['/login']),
+      error: () => this.router.navigate(['/login']) // still redirect
+    });
+  }
 }

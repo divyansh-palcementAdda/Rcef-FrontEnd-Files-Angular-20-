@@ -37,7 +37,7 @@ interface ApiResponse<T> {
 @Component({
   selector: 'app-view-tasks',
   standalone: true,
-  imports: [CommonModule, FormsModule, FilterDrawerComponent, PageToolbarComponent, AnalyticsStatCardComponent, TasksImportComponent, DragScrollDirective],
+  imports: [CommonModule, FormsModule, PageToolbarComponent, AnalyticsStatCardComponent, TasksImportComponent, DragScrollDirective],
 
   templateUrl: './view-tasks.html',
   styleUrls: ['./view-tasks.css']
@@ -163,23 +163,23 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   /** Save all current filter + pagination + sort state to sessionStorage. */
   private saveFiltersToSession(): void {
     const state = {
-      searchTerm:           this.searchTerm,
-      statusFilter:         this.statusFilter,
-      taskTypeFilter:       this.taskTypeFilter,
-      departmentFilter:     this.departmentFilter,
-      departmentIdFilter:   this.departmentIdFilter,
-      subDepartmentIdFilter:this.subDepartmentIdFilter,
-      categoryFilter:       this.categoryFilter,
-      templateFilter:       this.templateFilter,
-      templateIdFilter:     this.templateIdFilter,
-      subjectIdFilter:      this.subjectIdFilter,
-      userIdFilter:         this.userIdFilter,
-      priorityFilter:       this.priorityFilter,
-      selectedCard:         this.selectedCard,
-      sortBy:               this.sortBy,
-      sortDirection:        this.sortDirection,
-      currentPage:          this.currentPage,
-      pageSize:             this.pageSize
+      searchTerm: this.searchTerm,
+      statusFilter: this.statusFilter,
+      taskTypeFilter: this.taskTypeFilter,
+      departmentFilter: this.departmentFilter,
+      departmentIdFilter: this.departmentIdFilter,
+      subDepartmentIdFilter: this.subDepartmentIdFilter,
+      categoryFilter: this.categoryFilter,
+      templateFilter: this.templateFilter,
+      templateIdFilter: this.templateIdFilter,
+      subjectIdFilter: this.subjectIdFilter,
+      userIdFilter: this.userIdFilter,
+      priorityFilter: this.priorityFilter,
+      selectedCard: this.selectedCard,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection,
+      currentPage: this.currentPage,
+      pageSize: this.pageSize
     };
     sessionStorage.setItem(ViewTasksComponent.FILTER_SESSION_KEY, JSON.stringify(state));
   }
@@ -191,23 +191,23 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     if (!raw) return false;
     try {
       const s = JSON.parse(raw);
-      this.searchTerm           = s.searchTerm           || '';
-      this.statusFilter         = s.statusFilter         || '';
-      this.taskTypeFilter       = s.taskTypeFilter       || '';
-      this.departmentFilter     = s.departmentFilter     || '';
-      this.departmentIdFilter   = s.departmentIdFilter   || '';
-      this.subDepartmentIdFilter= s.subDepartmentIdFilter|| '';
-      this.categoryFilter       = s.categoryFilter       || '';
-      this.templateFilter       = s.templateFilter       || '';
-      this.templateIdFilter     = s.templateIdFilter     || '';
-      this.subjectIdFilter      = s.subjectIdFilter      || '';
-      this.userIdFilter         = s.userIdFilter         || '';
-      this.priorityFilter       = s.priorityFilter       || '';
-      this.selectedCard         = s.selectedCard         || 'total';
-      this.sortBy               = s.sortBy               || 'createdAt';
-      this.sortDirection        = s.sortDirection        || 'desc';
-      this.currentPage          = s.currentPage          || 1;
-      this.pageSize             = s.pageSize             || 12;
+      this.searchTerm = s.searchTerm || '';
+      this.statusFilter = s.statusFilter || '';
+      this.taskTypeFilter = s.taskTypeFilter || '';
+      this.departmentFilter = s.departmentFilter || '';
+      this.departmentIdFilter = s.departmentIdFilter || '';
+      this.subDepartmentIdFilter = s.subDepartmentIdFilter || '';
+      this.categoryFilter = s.categoryFilter || '';
+      this.templateFilter = s.templateFilter || '';
+      this.templateIdFilter = s.templateIdFilter || '';
+      this.subjectIdFilter = s.subjectIdFilter || '';
+      this.userIdFilter = s.userIdFilter || '';
+      this.priorityFilter = s.priorityFilter || '';
+      this.selectedCard = s.selectedCard || 'total';
+      this.sortBy = s.sortBy || 'createdAt';
+      this.sortDirection = s.sortDirection || 'desc';
+      this.currentPage = s.currentPage || 1;
+      this.pageSize = s.pageSize || 12;
       return true;
     } catch {
       return false;

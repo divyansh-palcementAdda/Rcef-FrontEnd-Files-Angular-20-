@@ -2,15 +2,14 @@
   <div class="container d-flex justify-content-between align-items-center">
 
     <!-- Brand -->
-    <a class="navbar-brand fw-bold fs-3 d-flex align-items-center" routerLink="/" (click)="closeMenu()">
-      <img
-  ngSrc="/assets/images/renaissance-logo.png"
-  width="1080"
-  height="1350"
-  alt="RCEF Logo"
-  class="me-2 rounded shadow-sm pulse-logo"
-  priority>
- <span class="gradient-text">AreYouReporting</span>
+    <a class="navbar-brand d-flex align-items-center" routerLink="/" (click)="closeMenu()">
+      <div class="brand-logo-container">
+        <img
+          src="assets/images/logo.png"
+          alt="AreYouReporting Logo"
+          class="brand-logo-img">
+      </div>
+      <span class="gradient-text">AreYouReporting</span>
     </a>
 
     <!-- Mobile toggle -->

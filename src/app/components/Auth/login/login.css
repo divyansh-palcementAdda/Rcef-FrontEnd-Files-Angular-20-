@@ -27,7 +27,7 @@
 /* Login Card */
 .login-card-container {
   z-index: 10;
-  max-width: 420px;
+  max-width: 440px;
   width: 100%;
 }
 
@@ -35,13 +35,29 @@
   background: var(--card-bg) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: 20px !important;
-  padding: 3rem 2.5rem;
+  padding: 2.75rem 2.25rem;
   box-shadow: var(--shadow-lg) !important;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .login-card:hover {
   transform: translateY(-2px);
+}
+
+/* View Panel - smooth instant transition */
+.view-panel {
+  animation: viewFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes viewFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Logo */
@@ -52,18 +68,19 @@
 }
 
 .login-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 16px;
-  padding: 12px;
+  width: 78px;
+  height: 78px;
+  border-radius: 18px;
+  padding: 6px;
   background: white;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-color);
-  transition: transform 0.4s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+  object-fit: contain;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .login-logo:hover {
-  transform: scale(1.1) rotate(8deg);
+  transform: scale(1.06) rotate(2deg);
 }
 
 /* Gradient Title */
@@ -77,6 +94,11 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.text-accent {
+  color: var(--primary-color);
+  word-break: break-all;
 }
 
 /* Badge */
@@ -128,11 +150,12 @@
   color: var(--text-muted);
   font-size: 1.1rem;
   z-index: 2;
+  pointer-events: none;
 }
 
 .password-toggle-btn {
   position: absolute;
-  right: 14px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
@@ -154,57 +177,278 @@
   color: var(--primary-color) !important;
 }
 
-/* Support PrimeIcons CSS class mapping for Bootstrap Icons */
-.pi {
-  font-family: 'bootstrap-icons' !important;
-  speak: none;
-  font-style: normal;
-  font-weight: normal;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  display: inline-block;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-size: 1.25rem;
+.password-toggle-btn i {
+  font-size: 1.2rem;
 }
 
-.pi-eye::before {
-  content: "\F341"; /* bi-eye */
+/* ============================================= */
+/* 6 SEGMENTED OTP INPUT BOXES                   */
+/* ============================================= */
+.otp-boxes-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
-.pi-eye-slash::before {
-  content: "\F340"; /* bi-eye-slash */
+.otp-boxes-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.otp-cell {
+  flex: 1;
+  min-width: 44px;
+  max-width: 52px;
+  height: 58px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-main);
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  caret-color: var(--primary-color);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+}
+
+.otp-cell:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: var(--card-bg);
+  box-shadow: 0 0 0 3px var(--primary-subtle);
+  transform: translateY(-2px);
+}
+
+.otp-cell.filled {
+  border-color: var(--primary-color);
+  background: var(--bg-hover, rgba(99, 102, 241, 0.04));
+}
+
+/* LINKS & BUTTONS */
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+  color: var(--primary-dark, #4f46e5);
+}
+
+.back-link-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.back-link-btn:hover {
+  color: var(--text-main);
+  background: var(--bg-hover, rgba(0,0,0,0.05));
+}
+
+/* RESEND ROW */
+.resend-row {
+  padding: 0 4px;
+}
+
+.resend-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.resend-btn:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.resend-btn:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* PASSWORD POLICY HINTS */
+.password-hints {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hint-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.hint-item.hint-valid {
+  color: var(--success-color, #16a34a);
+  font-weight: 500;
+}
+
+/* SUCCESS VIEW */
+.success-icon-container {
+  display: flex;
+  justify-content: center;
+}
+
+.success-icon-circle {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2.2rem;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+  animation: pulse-success 2s infinite;
+}
+
+@keyframes pulse-success {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.success-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 /* GRADIENT BUTTON */
 .btn-gradient {
   position: relative;
   width: 100%;
-  padding: 14px;
-  margin-top: 1rem;
+  min-height: 50px;
+  padding: 0 1.5rem;
+  margin-top: 0.5rem;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color, #4f46e5) 0%, var(--info-color, #06b6d4) 100%);
+  color: #ffffff !important;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px var(--primary-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  user-select: none;
+  -webkit-user-select: none;
   z-index: 5;
 }
 
 .btn-gradient:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px var(--primary-subtle);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.45);
+}
+
+.btn-gradient:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-gradient:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: not-allowed;
   transform: none !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-gradient.btn-loading {
+  opacity: 0.92;
+  cursor: wait;
+}
+
+/* Button Internal Flex Container */
+.btn-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 1rem;
+  width: 100%;
+  z-index: 2;
+  position: relative;
+}
+
+.btn-content i {
+  font-size: 1.15rem;
+  line-height: 1;
+  color: #ffffff !important;
+}
+
+.btn-content span {
+  color: #ffffff !important;
+  letter-spacing: 0.01em;
+}
+
+/* Dedicated High-Performance Spinner */
+.btn-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top: 2.5px solid #ffffff;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: btnSpin 0.7s cubic-bezier(0.6, 0.2, 0.4, 0.9) infinite;
+  flex-shrink: 0;
+}
+
+@keyframes btnSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Resend Button Spinner */
+.resend-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(79, 70, 229, 0.25);
+  border-top: 2px solid var(--primary-color, #4f46e5);
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: btnSpin 0.7s linear infinite;
+  vertical-align: middle;
 }
 
 .shine {
@@ -216,24 +460,14 @@
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   transform: skewX(-20deg);
   transition: 0.8s;
+  pointer-events: none;
 }
 
 .btn-gradient:hover .shine {
   left: 130%;
 }
 
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Alerts */
+/* ALERTS */
 .error-alert {
   background: var(--danger-subtle);
   border: 1px solid var(--danger-color);
@@ -260,13 +494,25 @@
   margin-bottom: 1.5rem;
 }
 
+/* FORM SHAKE */
+.shake {
+  animation: shakeAnimation 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shakeAnimation {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
 @media (max-width: 480px) {
   .login-wrapper {
     padding: 12px;
   }
 
   .login-card {
-    padding: 1.75rem 1.25rem;
+    padding: 2rem 1.25rem;
     border-radius: 16px !important;
   }
 
@@ -285,6 +531,16 @@
     font-size: 0.9rem;
   }
 
+  .otp-boxes-container {
+    gap: 6px;
+  }
+
+  .otp-cell {
+    min-width: 38px;
+    height: 50px;
+    font-size: 1.35rem;
+  }
+
   .btn-gradient {
     padding: 12px;
     font-size: 0.95rem;
@@ -293,32 +549,5 @@
   .error-alert,
   .success-alert {
     padding: 0.65rem 1rem;
-  }
-}
-
-@media (max-width: 360px) {
-  .login-wrapper {
-    padding: 8px;
-  }
-
-  .login-card {
-    padding: 1.5rem 1rem;
-  }
-
-  .brand-title {
-    font-size: 1.55rem;
-  }
-
-  .badge-glass {
-    font-size: 0.75rem;
-    padding: 0.45rem 0.8rem;
-  }
-
-  .input-icon {
-    left: 14px;
-  }
-
-  .password-toggle-btn {
-    right: 10px;
   }
 }

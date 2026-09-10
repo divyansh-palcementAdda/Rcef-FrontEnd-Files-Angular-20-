@@ -167,16 +167,18 @@ export class AllWorkComponent implements OnInit, OnDestroy {
           const user = userId ? ({ userId } as UserRowDTO) : null;
 
           if (modal === 'users' && subDept) {
+            const isZeroTasks = params['zeroTasksOnly'] === 'true' || params['zeroTasksOnly'] === true;
             this.modalWrapperService.setStack([
               {
                 component: AllWorkUsersComponent,
                 config: {
-                  title: `Users in ${subDept.name || ''}`,
-                  subtitle: 'Manage, search, and monitor user workloads.',
+                  title: isZeroTasks ? `Users With Zero Tasks in ${subDept.name || ''}` : `Users in ${subDept.name || ''}`,
+                  subtitle: isZeroTasks ? 'Users with zero pending, delayed, in-progress, or extended tasks.' : 'Manage, search, and monitor user workloads.',
                   sizeClass: 'modal-xl',
                   data: {
                     subDept: subDept,
                     dashboardData: this.dashboardData,
+                    zeroTasksOnly: isZeroTasks,
                     onOpenUserTasks: (u: UserRowDTO) => this.openUserTasks(u),
                     onOpenUserAnalytics: (u: UserRowDTO) => this.openUserAnalytics(u),
                     onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
@@ -352,18 +354,20 @@ export class AllWorkComponent implements OnInit, OnDestroy {
 
       modal: currentModal ? (currentModal.component === AllWorkUsersComponent ? 'users' : currentModal.component === AllWorkTasksComponent ? 'tasks' : 'analytics') : null,
       subDeptId: currentModal?.config.data?.subDept?.id || null,
-      userId: currentModal?.config.data?.user?.userId || null
+      userId: currentModal?.config.data?.user?.userId || null,
+      zeroTasksOnly: currentModal?.config.data?.zeroTasksOnly ? 'true' : null
     };
 
     // When there is no active modal we must explicitly include the modal-related keys
     // (set to null) so that `queryParamsHandling: 'merge'` will remove any stale modal
     // flags from the URL. For other keys, remove empty/null values to keep the URL clean.
     // These keys must always be present (even as null) so that 'merge' clears stale values
-    const alwaysClearKeys = ['modal', 'subDeptId', 'userId', 'subDeptSearch'];
+    const alwaysClearKeys = ['modal', 'subDeptId', 'userId', 'subDeptSearch', 'zeroTasksOnly'];
     if (!currentModal) {
       queryParams.modal = null;
       queryParams.subDeptId = null;
       queryParams.userId = null;
+      queryParams.zeroTasksOnly = null;
     }
 
     Object.keys(queryParams).forEach(key => {
@@ -604,6 +608,23 @@ export class AllWorkComponent implements OnInit, OnDestroy {
       data: {
         subDept: subDept,
         dashboardData: this.dashboardData,
+        onOpenUserTasks: (u: UserRowDTO) => this.openUserTasks(u),
+        onOpenUserAnalytics: (u: UserRowDTO) => this.openUserAnalytics(u),
+        onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)
+      }
+    });
+    this.updateQueryParams();
+  }
+
+  openZeroTaskUsers(subDept: SubDepartmentRowDTO): void {
+    this.modalWrapperService.open(AllWorkUsersComponent, {
+      title: 'Users With Zero Tasks in ' + subDept.name,
+      subtitle: 'Users with zero pending, delayed, in-progress, or extended tasks.',
+      sizeClass: 'modal-xl',
+      data: {
+        subDept: subDept,
+        dashboardData: this.dashboardData,
+        zeroTasksOnly: true,
         onOpenUserTasks: (u: UserRowDTO) => this.openUserTasks(u),
         onOpenUserAnalytics: (u: UserRowDTO) => this.openUserAnalytics(u),
         onNavigateEntity: (type: string, id: any, event?: Event) => this.navigateToEntity(type, id, event)

@@ -133,6 +133,42 @@ export class AuthApiService {
   }
 
   /* ----------------------------------------------------------------- */
+  /* FORGOT & RESET PASSWORD                                           */
+  /* ----------------------------------------------------------------- */
+  forgotPassword(email: string): Observable<ApiResult<void>> {
+    return this.http
+      .post<ApiResult<void>>(`${this.apiUrl}/forgot-password`, { email })
+      .pipe(
+        catchError(this.handleHttpError('Forgot password'))
+      );
+  }
+
+  verifyResetOtp(email: string, otp: string): Observable<{ resetToken: string }> {
+    return this.http
+      .post<ApiResult<{ resetToken: string }>>(`${this.apiUrl}/verify-reset-otp`, { email, otp })
+      .pipe(
+        map(res => this.unwrapResult(res, 'OTP verification failed')),
+        catchError(this.handleHttpError('Verify OTP'))
+      );
+  }
+
+  resendResetOtp(email: string): Observable<ApiResult<void>> {
+    return this.http
+      .post<ApiResult<void>>(`${this.apiUrl}/resend-reset-otp`, { email })
+      .pipe(
+        catchError(this.handleHttpError('Resend OTP'))
+      );
+  }
+
+  resetPassword(payload: { resetToken: string; newPassword: string; confirmPassword: string }): Observable<ApiResult<void>> {
+    return this.http
+      .post<ApiResult<void>>(`${this.apiUrl}/reset-password`, payload)
+      .pipe(
+        catchError(this.handleHttpError('Reset password'))
+      );
+  }
+
+  /* ----------------------------------------------------------------- */
   /* LOGOUT (per device)                                               */
   /* ----------------------------------------------------------------- */
   logout(refreshToken?: string): Observable<void> {

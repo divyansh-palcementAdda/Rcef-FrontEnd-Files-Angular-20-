@@ -196,7 +196,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       error: (err) => console.error('Failed to load templates', err)
     });
 
-    this.departmentService.getAllSubDepartments().subscribe({
+    this.departmentService.getAuthorizedSubDepartments().subscribe({
       next: (subs) => {
         this.subDepartments = subs;
         this.filterSubDepartments();
@@ -368,7 +368,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
   }
 
   filterSubDepartments(): void {
-    const selectedDeptIds = this.taskForm.value.departmentIds || [];
+    const selectedDeptIds = (this.taskForm.value.departmentIds || []).map((id: any) => Number(id));
     const isSuperAdmin = this.currentUser?.role === 'SUPER_ADMIN';
     if (!selectedDeptIds.length) {
       if (isSuperAdmin) {
@@ -380,7 +380,7 @@ export class UpdateTaskComponent implements OnInit, AfterViewInit {
       return;
     }
     this.filteredSubDepartments = this.subDepartments.filter(sub => {
-      const deptId = sub.department?.departmentId;
+      const deptId = Number(sub.department?.departmentId ?? sub.departmentId);
       return deptId && selectedDeptIds.includes(deptId);
     });
 
