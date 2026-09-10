@@ -695,6 +695,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     const chips: Array<{ key: string, label: string }> = [];
 
     if (this.searchTerm) {
+      
       chips.push({ key: 'search', label: `Search: "${this.searchTerm}"` });
     }
     if (this.statusFilter) {
