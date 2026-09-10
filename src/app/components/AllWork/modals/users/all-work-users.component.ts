@@ -21,6 +21,7 @@ export class AllWorkUsersComponent implements OnInit, OnDestroy {
   @Input() onOpenUserTasks!: (user: UserRowDTO) => void;
   @Input() onOpenUserAnalytics!: (user: UserRowDTO) => void;
   @Input() onNavigateEntity!: (type: string, id: any, event?: Event) => void;
+  @Input() zeroTasksOnly: boolean = false;
 
   users: UserRowDTO[] = [];
   totalUsers = 0;
@@ -44,6 +45,7 @@ export class AllWorkUsersComponent implements OnInit, OnDestroy {
     if (params['userPage'] !== undefined) this.userPage = parseInt(params['userPage'], 10) || 0;
     if (params['userSize'] !== undefined) this.userSize = parseInt(params['userSize'], 10) || 10;
     if (params['userSort'] !== undefined) this.userSort = params['userSort'] || 'fullName,asc';
+    if (params['zeroTasksOnly'] !== undefined) this.zeroTasksOnly = params['zeroTasksOnly'] === 'true' || params['zeroTasksOnly'] === true;
 
     this.loadUsers();
   }
@@ -55,8 +57,12 @@ export class AllWorkUsersComponent implements OnInit, OnDestroy {
   loadUsers(): void {
     if (!this.subDept) return;
     this.loadingUsers = true;
+    const fetch$ = this.zeroTasksOnly
+      ? this.apiService.getSubDepartmentZeroTaskUsers(this.subDept.id, this.userSearch, this.userPage, this.userSize, this.userSort)
+      : this.apiService.getSubDepartmentUsers(this.subDept.id, this.userSearch, this.userPage, this.userSize, this.userSort);
+
     this.subscriptions.add(
-      this.apiService.getSubDepartmentUsers(this.subDept.id, this.userSearch, this.userPage, this.userSize, this.userSort)
+      fetch$
         .pipe(finalize(() => {
           this.loadingUsers = false;
         }))
@@ -97,7 +103,8 @@ export class AllWorkUsersComponent implements OnInit, OnDestroy {
         userSearch: this.userSearch || null,
         userPage: this.userPage || null,
         userSize: this.userSize || null,
-        userSort: this.userSort || null
+        userSort: this.userSort || null,
+        zeroTasksOnly: this.zeroTasksOnly ? 'true' : null
       },
       queryParamsHandling: 'merge',
       replaceUrl: true

@@ -238,7 +238,12 @@
                     <i class="bi ms-1" [ngClass]="getSortIcon('totalUsers')"></i>
                   </div>
                 </th>
-                <th class="sortable-th">User With Zero Task</th>
+                <th class="sortable-th text-center" (click)="sortSubDeptBy('usersWithZeroTasks')">
+                  <div class="th-inner justify-content-center">
+                    Users With Zero Tasks
+                    <i class="bi ms-1" [ngClass]="getSortIcon('usersWithZeroTasks')"></i>
+                  </div>
+                </th>
                 <!-- <th class="sortable-th" (click)="sortSubDeptBy('totalSubjects')">
                   <div class="th-inner">
                     Subjects
@@ -374,10 +379,20 @@
                     </div>
                   </td>
 
-                  <td [attr.data-label]="'User With Zero Task'">
-                    <div class="metric-chip metric-chip--orange">
-                      <!-- <i class="bi bi-person-x-fill"></i> -->
-                      {{ $any(sd).usersWithZeroTask ?? "-" }}
+                  <td class="text-center" [attr.data-label]="'Users With Zero Tasks'">
+                    <div *ngIf="(sd.usersWithZeroTasks || 0) > 0"
+                      class="metric-chip metric-chip--orange metric-chip--clickable"
+                      (click)="openZeroTaskUsers(sd); $event.stopPropagation()"
+                      title="View users with zero active tasks"
+                      role="button"
+                      tabindex="0">
+                      <i class="bi bi-person-x-fill"></i>
+                      {{ sd.usersWithZeroTasks }}
+                    </div>
+                    <div *ngIf="(sd.usersWithZeroTasks || 0) === 0"
+                      class="metric-chip metric-chip--muted"
+                      title="No users with zero active tasks">
+                      0
                     </div>
                   </td>
 

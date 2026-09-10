@@ -1346,6 +1346,25 @@ thead.table-head-sticky {
 .metric-chip--rfe {
   background: #fff7ed;
   color: #c2410c;
+  border: 1px solid #ffedd5;
+}
+
+.metric-chip--muted {
+  background: #f8fafc;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+}
+
+.metric-chip--clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.metric-chip--clickable:hover {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 3px 8px rgba(194, 65, 12, 0.2);
+  background: #ffedd5;
 }
 
 .metric-chip--blue {

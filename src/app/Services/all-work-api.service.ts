@@ -150,6 +150,22 @@ export class AllWorkApiService {
     return this.http.get<any>(`${this.apiUrl}/subdepartments/${subDeptId}/users`, { params });
   }
 
+  getSubDepartmentZeroTaskUsers(
+    subDeptId: string,
+    search: string = '',
+    page: number = 0,
+    size: number = 10,
+    sort: string = 'fullName,asc'
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('search', search)
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', sort);
+
+    return this.http.get<any>(`${this.apiUrl}/subdepartments/${subDeptId}/users/zero-tasks`, { params });
+  }
+
   getSubDepartmentTasks(
     subDeptId: string,
     search: string = '',
