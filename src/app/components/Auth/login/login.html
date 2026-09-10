@@ -1,83 +1,333 @@
 <div class="login-wrapper" @fadeIn>
-  <!-- Login Card -->
+  <!-- Main Auth Card Container -->
   <div class="login-card-container" @slideUp>
-    <div class="login-card">
+    <div class="login-card" #loginFormElement>
 
-      <!-- Logo -->
+      <!-- Header / Logo & Titles -->
       <div class="text-center mb-4">
         <div class="logo-wrapper">
-          <img src="assets/images/lucid-origin_Prompt_Create_a_minimal_modern_icon-only_logo_for_a_SaaS_platform_called_AreYouR-0-removebg-preview.png" alt="AreYouReporting" class="login-logo">
+          <img src="assets/images/logo.png" alt="AreYouReporting" class="login-logo">
           <div class="logo-glow"></div>
         </div>
-        <!-- Gradient Title -->
-        <h1 class="brand-title">AreYouReporting</h1>
-        <p class="text-muted mb-3">Sign in to access your premium dashboard</p>
 
-        <!-- Badge -->
+        <h1 class="brand-title">AreYouReporting</h1>
+
+        <!-- Dynamic Subtitles per View -->
+        <p *ngIf="currentView === 'LOGIN'" class="text-muted mb-3">
+          Sign in to access your premium dashboard
+        </p>
+        <p *ngIf="currentView === 'FORGOT_PASSWORD'" class="text-muted mb-3">
+          Enter your registered email to receive a password reset OTP
+        </p>
+        <p *ngIf="currentView === 'OTP_SENT'" class="text-muted mb-3">
+          We sent a 6-digit code to <br><strong class="text-accent">{{ resetEmail }}</strong>
+        </p>
+        <p *ngIf="currentView === 'RESET_PASSWORD'" class="text-muted mb-3">
+          Choose a strong new password for your account
+        </p>
+        <p *ngIf="currentView === 'SUCCESS'" class="text-muted mb-3">
+          Your credentials have been securely updated
+        </p>
+
+        <!-- Dynamic Security Badge -->
         <div class="badge-glass">
           <i class="bi bi-shield-lock me-2"></i>
-          Secure Task Management Portal
+          <span *ngIf="currentView === 'LOGIN'">Secure Task Management Portal</span>
+          <span *ngIf="currentView === 'FORGOT_PASSWORD'">Account Recovery</span>
+          <span *ngIf="currentView === 'OTP_SENT'">Two-Factor Verification</span>
+          <span *ngIf="currentView === 'RESET_PASSWORD'">Password Update</span>
+          <span *ngIf="currentView === 'SUCCESS'">Verification Complete</span>
         </div>
       </div>
-      <div>
-        <!-- Error Alert -->
-        <div *ngIf="validationErrors.length > 0" class="error-alert" @slideDown>
-          <div class="d-flex align-items-start">
-            <i class="bi bi-exclamation-triangle-fill me-3 mt-1"></i>
-            <ul class="mb-0 ps-0">
-              <li *ngFor="let err of validationErrors">{{ err }}</li>
-            </ul>
+
+      <!-- Error Alert Box -->
+      <div *ngIf="validationErrors.length > 0" class="error-alert" @slideDown>
+        <div class="d-flex align-items-start">
+          <i class="bi bi-exclamation-triangle-fill me-3 mt-1"></i>
+          <ul class="mb-0 ps-0">
+            <li *ngFor="let err of validationErrors">{{ err }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Success Alert Box -->
+      <div *ngIf="successMessage" class="success-alert d-flex align-items-center" @slideDown>
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span>{{ successMessage }}</span>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 1: LOGIN                                                  -->
+      <!-- ============================================================== -->
+      <div *ngIf="currentView === 'LOGIN'" class="view-panel">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="mt-4">
+
+          <!-- Email or Username -->
+          <div class="input-group mb-4">
+            <i class="bi bi-person input-icon"></i>
+            <input type="text" 
+                   formControlName="emailOrUsername"
+                   class="form-input"
+                   placeholder="Enter your email or username"
+                   [class.error]="f['emailOrUsername'].touched && f['emailOrUsername'].invalid">
+            <div class="input-line"></div>
+          </div>
+
+          <!-- Password -->
+          <div class="input-group mb-3">
+            <i class="bi bi-lock input-icon"></i>
+            <input [type]="showPassword ? 'text' : 'password'"
+                   formControlName="password"
+                   class="form-input"
+                   placeholder="Enter your password"
+                   [class.error]="f['password'].touched && f['password'].invalid">
+            <button type="button"
+                    class="password-toggle-btn"
+                    (click)="togglePasswordVisibility()"
+                    [attr.aria-label]="showPassword ? 'Hide Password' : 'Show Password'">
+              <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+            <div class="input-line"></div>
+          </div>
+
+          <!-- Forgot Password Link -->
+          <div class="d-flex justify-content-end mb-4">
+            <button type="button" 
+                    class="link-btn" 
+                    (click)="switchView('FORGOT_PASSWORD')" 
+                    id="forgotPasswordLink">
+              Forgot Password?
+            </button>
+          </div>
+
+          <!-- Sign In Button -->
+          <button type="submit" 
+                  class="btn-gradient" 
+                  [class.btn-loading]="isLoading"
+                  [disabled]="isLoading || loginForm.invalid" 
+                  id="loginSubmitBtn">
+            <div class="btn-content" *ngIf="!isLoading">
+              <i class="bi bi-box-arrow-in-right"></i>
+              <span>Sign In</span>
+            </div>
+            <div class="btn-content btn-loading-content" *ngIf="isLoading">
+              <span class="btn-spinner"></span>
+              <span>Signing in...</span>
+            </div>
+            <div class="shine"></div>
+          </button>
+        </form>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 2: FORGOT PASSWORD (ENTER EMAIL)                          -->
+      <!-- ============================================================== -->
+      <div *ngIf="currentView === 'FORGOT_PASSWORD'" class="view-panel">
+        <form [formGroup]="forgotPasswordForm" (ngSubmit)="onForgotPasswordSubmit()" class="mt-4">
+
+          <div class="input-group mb-4">
+            <i class="bi bi-envelope input-icon"></i>
+            <input type="email" 
+                   formControlName="email"
+                   class="form-input"
+                   placeholder="Enter your registered email"
+                   [class.error]="fp['email'].touched && fp['email'].invalid"
+                   autofocus>
+            <div class="input-line"></div>
+          </div>
+
+          <button type="submit" 
+                  class="btn-gradient mb-3" 
+                  [class.btn-loading]="isLoading"
+                  [disabled]="isLoading || forgotPasswordForm.invalid" 
+                  id="sendOtpBtn">
+            <div class="btn-content" *ngIf="!isLoading">
+              <i class="bi bi-send-fill"></i>
+              <span>Send OTP</span>
+            </div>
+            <div class="btn-content btn-loading-content" *ngIf="isLoading">
+              <span class="btn-spinner"></span>
+              <span>Sending OTP...</span>
+            </div>
+            <div class="shine"></div>
+          </button>
+
+          <div class="text-center mt-3">
+            <button type="button" class="back-link-btn" (click)="backToLogin()">
+              <i class="bi bi-arrow-left me-1"></i> Back to Sign In
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 3: OTP VERIFICATION (6 SEGMENTED BOXES)                   -->
+      <!-- ============================================================== -->
+      <div *ngIf="currentView === 'OTP_SENT'" class="view-panel">
+        <form [formGroup]="otpForm" (ngSubmit)="onVerifyOtpSubmit()" class="mt-4">
+
+          <!-- 6 Segmented OTP Input Boxes -->
+          <div class="otp-boxes-wrapper mb-4">
+            <div class="otp-boxes-container">
+              <input *ngFor="let digit of [0, 1, 2, 3, 4, 5]; let i = index"
+                     [id]="'otp-cell-' + i"
+                     type="text"
+                     class="otp-cell"
+                     maxlength="1"
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     autocomplete="one-time-code"
+                     [value]="otpDigits[i]"
+                     (input)="onOtpInput(i, $event)"
+                     (keydown)="onOtpKeyDown(i, $event)"
+                     (paste)="onOtpPaste($event)"
+                     [class.filled]="otpDigits[i]">
+            </div>
+          </div>
+
+          <!-- Resend Row -->
+          <div class="resend-row d-flex justify-content-between align-items-center mb-4">
+            <span class="text-muted small">Didn't receive OTP?</span>
+            <button type="button" 
+                    class="resend-btn" 
+                    (click)="onResendOtp()" 
+                    [disabled]="resendCooldown > 0 || isLoading">
+              <span *ngIf="isLoading" class="d-inline-flex align-items-center gap-1">
+                <span class="resend-spinner"></span> Sending...
+              </span>
+              <span *ngIf="!isLoading && resendCooldown > 0">
+                <i class="bi bi-clock-history me-1"></i> Resend in {{ resendCooldown }}s
+              </span>
+              <span *ngIf="!isLoading && resendCooldown === 0">
+                <i class="bi bi-arrow-clockwise me-1"></i> Resend OTP
+              </span>
+            </button>
+          </div>
+
+          <button type="submit" 
+                  class="btn-gradient mb-3" 
+                  [class.btn-loading]="isLoading"
+                  [disabled]="isLoading || (otpDigits.join('').length < 6)" 
+                  id="verifyOtpBtn">
+            <div class="btn-content" *ngIf="!isLoading">
+              <i class="bi bi-shield-check"></i>
+              <span>Verify OTP</span>
+            </div>
+            <div class="btn-content btn-loading-content" *ngIf="isLoading">
+              <span class="btn-spinner"></span>
+              <span>Verifying OTP...</span>
+            </div>
+            <div class="shine"></div>
+          </button>
+
+          <div class="text-center mt-3">
+            <button type="button" class="back-link-btn" (click)="switchView('FORGOT_PASSWORD')">
+              <i class="bi bi-arrow-left me-1"></i> Change Email
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 4: RESET PASSWORD (SET NEW PASSWORD)                      -->
+      <!-- ============================================================== -->
+      <div *ngIf="currentView === 'RESET_PASSWORD'" class="view-panel">
+        <form [formGroup]="resetPasswordForm" (ngSubmit)="onResetPasswordSubmit()" class="mt-4">
+
+          <!-- New Password -->
+          <div class="input-group mb-3">
+            <i class="bi bi-lock input-icon"></i>
+            <input [type]="showNewPassword ? 'text' : 'password'"
+                   formControlName="newPassword"
+                   class="form-input"
+                   placeholder="New Password (min 8 chars)"
+                   [class.error]="rp['newPassword'].touched && rp['newPassword'].invalid">
+            <button type="button"
+                    class="password-toggle-btn"
+                    (click)="toggleNewPasswordVisibility()"
+                    [attr.aria-label]="showNewPassword ? 'Hide Password' : 'Show Password'">
+              <i class="bi" [ngClass]="showNewPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+            <div class="input-line"></div>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="input-group mb-3">
+            <i class="bi bi-lock-fill input-icon"></i>
+            <input [type]="showConfirmPassword ? 'text' : 'password'"
+                   formControlName="confirmPassword"
+                   class="form-input"
+                   placeholder="Confirm New Password"
+                   [class.error]="(rp['confirmPassword'].touched && rp['confirmPassword'].invalid) || resetPasswordForm.hasError('passwordMismatch')">
+            <button type="button"
+                    class="password-toggle-btn"
+                    (click)="toggleConfirmPasswordVisibility()"
+                    [attr.aria-label]="showConfirmPassword ? 'Hide Password' : 'Show Password'">
+              <i class="bi" [ngClass]="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+            <div class="input-line"></div>
+          </div>
+
+          <!-- Password Policy Hint -->
+          <div class="password-hints mb-4">
+            <div class="hint-item" [class.hint-valid]="(rp['newPassword'].value?.length || 0) >= 8">
+              <i class="bi" [ngClass]="(rp['newPassword'].value?.length || 0) >= 8 ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted'"></i>
+              <span>At least 8 characters</span>
+            </div>
+            <div class="hint-item" [class.hint-valid]="rp['newPassword'].value && rp['confirmPassword'].value && rp['newPassword'].value === rp['confirmPassword'].value">
+              <i class="bi" [ngClass]="rp['newPassword'].value && rp['confirmPassword'].value && rp['newPassword'].value === rp['confirmPassword'].value ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted'"></i>
+              <span>Passwords match</span>
+            </div>
+          </div>
+
+          <button type="submit" 
+                  class="btn-gradient mb-3" 
+                  [class.btn-loading]="isLoading"
+                  [disabled]="isLoading || resetPasswordForm.invalid" 
+                  id="resetPasswordBtn">
+            <div class="btn-content" *ngIf="!isLoading">
+              <i class="bi bi-check2-circle"></i>
+              <span>Reset Password</span>
+            </div>
+            <div class="btn-content btn-loading-content" *ngIf="isLoading">
+              <span class="btn-spinner"></span>
+              <span>Updating Password...</span>
+            </div>
+            <div class="shine"></div>
+          </button>
+
+          <div class="text-center mt-3">
+            <button type="button" class="back-link-btn" (click)="backToLogin()">
+              <i class="bi bi-arrow-left me-1"></i> Cancel & Back to Sign In
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 5: SUCCESS STATE                                          -->
+      <!-- ============================================================== -->
+      <div *ngIf="currentView === 'SUCCESS'" class="view-panel text-center py-3">
+        <div class="success-icon-container mb-3">
+          <div class="success-icon-circle">
+            <i class="bi bi-check-lg"></i>
           </div>
         </div>
-        <!-- Success Alert -->
-        <div *ngIf="successMessage" class="success-alert d-flex align-items-center" @slideDown>
-          <i class="bi bi-check-circle-fill me-2"></i>
-          {{ successMessage }}
-        </div>
 
-      <!-- Form -->
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="mt-5">
+        <h3 class="success-title mb-2">Password Reset Successful!</h3>
+        <p class="text-muted mb-4">
+          Your password has been updated. You can now log in to AreYouReporting with your new password.
+        </p>
 
-        <!-- Username -->
-        <div class="input-group mb-4">
-          <i class="bi bi-person input-icon"></i>
-          <input type="text" 
-                 formControlName="emailOrUsername"
-                 class="form-input"
-                 placeholder="Enter your email or username"
-                 [class.error]="f['emailOrUsername'].touched && f['emailOrUsername'].invalid">
-          <div class="input-line"></div>
-        </div>
-
-        <!-- Password -->
-        <div class="input-group mb-4">
-          <i class="bi bi-lock input-icon"></i>
-          <input [type]="showPassword ? 'text' : 'password'"
-                 formControlName="password"
-                 class="form-input"
-                 placeholder="Enter your password"
-                 [class.error]="f['password'].touched && f['password'].invalid">
-          <button type="button"
-                  class="password-toggle-btn"
-                  (click)="togglePasswordVisibility()"
-                  [attr.aria-label]="showPassword ? 'Hide Password' : 'Show Password'">
-            <i class="pi" [ngClass]="showPassword ? 'pi-eye-slash' : 'pi-eye'"></i>
-          </button>
-          <div class="input-line"></div>
-        </div>
-
-        <!-- Gradient Login Button - NOW VISIBLE & GORGEOUS -->
-        <button type="submit" class="btn-gradient" [disabled]="isLoading || loginForm.invalid">
-          <span *ngIf="!isLoading">
-            <i class="bi bi-box-arrow-in-right me-2"></i>
-            Sign In
-          </span>
-          <span *ngIf="isLoading" class="d-flex align-items-center">
-            <span class="spinner me-2"></span> Signing in...
-          </span>
+        <button type="button" class="btn-gradient" (click)="backToLogin()" id="returnToLoginBtn">
+          <div class="btn-content">
+            <i class="bi bi-box-arrow-in-right"></i>
+            <span>Return to Sign In</span>
+          </div>
           <div class="shine"></div>
         </button>
-      </form>
+      </div>
+
     </div>
   </div>
 </div>
