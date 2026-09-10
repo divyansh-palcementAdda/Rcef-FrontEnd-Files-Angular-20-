@@ -114,7 +114,7 @@
     </div>
 
     <!-- Bottom Row: Filter chips summary -->
-    <div *ngIf="activeChips.length > 0" class="toolbar-chips-row animate__animated animate__fadeIn">
+    <div *ngIf="activeChips.length > 0" class="toolbar-chips-row">
       <div class="chips-container">
         <span class="chips-label">
           <i class="bi bi-funnel-fill"></i>
@@ -123,8 +123,8 @@
         
         <div class="chips-list">
           <span 
-            *ngFor="let chip of visibleChips" 
-            class="toolbar-chip animate__animated animate__fadeIn"
+            *ngFor="let chip of visibleChips; trackBy: trackByChipKey" 
+            class="toolbar-chip"
           >
             <span class="chip-label">{{ chip.label }}</span>
             <button 

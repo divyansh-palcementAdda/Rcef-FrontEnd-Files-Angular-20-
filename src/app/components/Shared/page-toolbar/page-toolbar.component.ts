@@ -60,6 +60,11 @@ export class PageToolbarComponent {
     return this.activeChips.slice(0, 3);
   }
 
+  // TrackBy for chips to prevent unnecessary DOM re-creation
+  trackByChipKey(_index: number, chip: { key: string; label: string }): string {
+    return chip.key;
+  }
+
   // Trigger search change
   onSearchInput(value: string): void {
     this.searchChange.emit(value);

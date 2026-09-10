@@ -457,6 +457,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
           this.restoreFiltersFromSession();
         }
 
+        this.updateActiveChips();
         this.loadCurrentUserAndTasks();
       })
     );
@@ -469,6 +470,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       ).subscribe(() => {
         this.currentPage = 1;
         this.saveFiltersToSession();
+        this.updateActiveChips();
         this.loadTasksFromServer();
       })
     );
@@ -682,7 +684,14 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     );
   }
 
+  // Cached chips array — updated only when filters change, not on every change-detection cycle
+  _activeChips: Array<{ key: string, label: string }> = [];
+
   get activeChips(): Array<{ key: string, label: string }> {
+    return this._activeChips;
+  }
+
+  private updateActiveChips(): void {
     const chips: Array<{ key: string, label: string }> = [];
 
     if (this.searchTerm) {
@@ -718,7 +727,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       chips.push({ key: 'taskType', label: `Task Type: ${this.taskTypeFilter}` });
     }
 
-    return chips;
+    this._activeChips = chips;
   }
 
   removeChip(key: string): void {
@@ -1006,6 +1015,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   applyFilters(): void {
     this.currentPage = 1;
     this.saveFiltersToSession();
+    this.updateActiveChips();
     this.loadTasksFromServer();
     this.loadAnalyticsFromServer();
   }
