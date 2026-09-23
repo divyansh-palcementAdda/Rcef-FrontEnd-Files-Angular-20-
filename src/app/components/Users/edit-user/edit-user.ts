@@ -35,6 +35,13 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
   get isEdit(): boolean {
     return !this.isCreateMode && !!this.userId && this.userId > 0;
   }
+  /**
+   * TEMPORARY TOGGLE: Allow promoting a user to SUPER_ADMIN.
+   * - Set to `true` to enable selecting 'SUPER_ADMIN' when logged in as SUPER_ADMIN.
+   * - Set back to `false` to revert/disable this option after updating the user.
+   */
+  readonly ALLOW_SUPER_ADMIN_OPTION: boolean = false;
+
   /** Form */
   editForm!: FormGroup;
   /** Current user info */
@@ -80,7 +87,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     private deptApi: DepartmentApiService,
     private authService: AuthApiService,
     private subjectApi: SubjectApiService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // Get current user info
@@ -108,7 +115,12 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     const currentRole = this.authService.getCurrentRole() || '';
     const allRolesList = ['SUPER_ADMIN', 'ADMIN', 'SUB_ADMIN', 'HOD', 'TEACHER'];
     const currentIdx = allRolesList.indexOf(currentRole);
-    this.roles = currentIdx !== -1 ? allRolesList.slice(currentIdx + 1) : ['HOD', 'TEACHER'];
+
+    if (currentRole === 'SUPER_ADMIN' && this.ALLOW_SUPER_ADMIN_OPTION) {
+      this.roles = allRolesList;
+    } else {
+      this.roles = currentIdx !== -1 ? allRolesList.slice(currentIdx + 1) : ['HOD', 'TEACHER'];
+    }
   }
 
   ngOnDestroy(): void {
@@ -182,6 +194,12 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       if (role === 'SUPER_ADMIN') {
         deptControl?.clearValidators();
         deptControl?.setValue([]);
+        this.selectedDepartments = [];
+        this.editForm.get('parentUserId')?.setValue(null);
+        this.editForm.get('reportingManagerIds')?.setValue([]);
+        this.editForm.get('subDepartmentId')?.setValue(null);
+        this.editForm.get('subDepartmentIds')?.setValue([]);
+        this.editForm.get('subjectIds')?.setValue([]);
       } else {
         deptControl?.setValidators([Validators.required]);
       }
@@ -314,6 +332,11 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       next: (user) => {
         this.originalRole = user.role;
 
+        // Ensure user's current role is included in the roles list so select binding works correctly
+        if (user.role && !this.roles.includes(user.role)) {
+          this.roles = [user.role, ...this.roles];
+        }
+
         const deptIds: number[] = Array.isArray(user.departmentIds)
           ? user.departmentIds
           : [];
@@ -373,6 +396,8 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       if (this.selectedDepartments.length > 1) {
         this.selectedDepartments = [this.selectedDepartments[0]];
       }
+    } else if (role === 'SUPER_ADMIN') {
+      this.selectedDepartments = [];
     }
     this.editForm.get('departmentIds')?.setValue(this.selectedDepartments);
     this.onDepartmentChange();
@@ -407,13 +432,13 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
 
   isDeptDisabled(dept: Department): boolean {
     const role = this.editForm.get('role')?.value || this.originalRole;
-    
+
     if (role === 'HOD' || role === 'SUB_ADMIN') {
       // HOD and SUB_ADMIN can only select one department
-      return this.selectedDepartments.length >= 1 && 
-             !this.selectedDepartments.includes(dept.departmentId);
+      return this.selectedDepartments.length >= 1 &&
+        !this.selectedDepartments.includes(dept.departmentId);
     }
-    
+
     return false;
   }
 
@@ -423,7 +448,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
 
   evaluatePasswordStrength(pwd: string) {
     if (!pwd) return { score: 0, label: 'None', color: '#6c757d' };
-    
+
     let score = 0;
     if (pwd.length >= 8) score += 20;
     if (/[A-Z]/.test(pwd)) score += 20;
@@ -463,7 +488,9 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       if (this.f['role'].errors?.['required']) errors.push('System role must be selected.');
 
 
-      if (this.f['departmentIds'].errors?.['required']) errors.push('At least one department must be selected.');
+      if (this.f['role'].value !== 'SUPER_ADMIN' && this.f['departmentIds'].errors?.['required']) {
+        errors.push('At least one department must be selected.');
+      }
 
       if (this.f['subDepartmentIds']?.errors?.['required']) errors.push('Sub-department is required for HOD and Teacher roles.');
 
@@ -478,19 +505,20 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     }
 
     const formValue = this.editForm.getRawValue();
-    
+    const isSuperAdminRole = formValue.role === 'SUPER_ADMIN';
+
     // Prepare payload
     const payload: any = {
       fullName: formValue.fullName.trim(),
       username: formValue.username.trim(),
       email: formValue.email ? formValue.email.trim() : undefined,
       role: formValue.role,
-      departmentIds: this.selectedDepartments,
-      parentUserId: formValue.parentUserId,
-      reportingManagerIds: formValue.reportingManagerIds || [],
-      subDepartmentId: formValue.subDepartmentId,
-      subDepartmentIds: formValue.subDepartmentIds || [],
-      subjectIds: formValue.subjectIds || []
+      departmentIds: isSuperAdminRole ? [] : this.selectedDepartments,
+      parentUserId: isSuperAdminRole ? null : formValue.parentUserId,
+      reportingManagerIds: isSuperAdminRole ? [] : (formValue.reportingManagerIds || []),
+      subDepartmentId: isSuperAdminRole ? null : formValue.subDepartmentId,
+      subDepartmentIds: isSuperAdminRole ? [] : (formValue.subDepartmentIds || []),
+      subjectIds: isSuperAdminRole ? [] : (formValue.subjectIds || [])
     };
 
     // Only include password if provided
@@ -504,7 +532,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         next: (response) => {
           this.isSubmitting = false;
           this.successMessage = 'User updated successfully!';
-          
+
           // Show success message for 2 seconds then redirect/close
           setTimeout(() => {
             if (this.isModal) {
@@ -516,7 +544,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         },
         error: (err) => {
           this.isSubmitting = false;
-          
+
           if (err.status === 409) {
             this.errorMessage = 'Username already exists. Please choose a different username.';
           } else if (err.status === 403) {
@@ -524,7 +552,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
           } else {
             this.errorMessage = err.error?.message || 'Failed to update user. Please try again.';
           }
-          
+
           window.scrollTo({ top: 0, behavior: 'smooth' });
         },
       });
@@ -533,7 +561,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         next: (response) => {
           this.isSubmitting = false;
           this.successMessage = 'User created successfully!';
-          
+
           setTimeout(() => {
             if (this.isModal) {
               this.closed.emit(true);
@@ -544,7 +572,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         },
         error: (err) => {
           this.isSubmitting = false;
-          
+
           if (err.status === 409) {
             this.errorMessage = 'Username or email already exists. Please choose a different one.';
           } else if (err.status === 403) {
@@ -552,7 +580,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
           } else {
             this.errorMessage = err.error?.message || 'Failed to create user. Please try again.';
           }
-          
+
           window.scrollTo({ top: 0, behavior: 'smooth' });
         },
       });

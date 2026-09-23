@@ -227,6 +227,15 @@
               </div>
             </div>
 
+            <!-- Super Admin Notice -->
+            <div class="col-md-6" *ngIf="editForm.get('role')?.value === 'SUPER_ADMIN'">
+              <label class="form-label text-muted">Access Privileges</label>
+              <div class="alert alert-info d-flex align-items-center mb-0 py-2 px-3 border-0 bg-info-subtle text-info-emphasis rounded-3" style="min-height: 48px;">
+                <i class="bi bi-shield-check fs-5 me-2 text-primary"></i>
+                <span class="small">Super Admin has global access across all departments without supervisor or department hierarchy restrictions.</span>
+              </div>
+            </div>
+
             <!-- Reporting Managers Searchable Multiselect -->
             <div class="col-md-6" *ngIf="editForm.get('role')?.value && editForm.get('role')?.value !== 'SUPER_ADMIN'">
               <label class="form-label">
