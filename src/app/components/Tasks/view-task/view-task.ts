@@ -544,11 +544,21 @@ export class ViewTask implements OnInit, OnDestroy {
     }
   }
 
+  private showModalById(id: string): Modal | undefined {
+    const modalEl = document.getElementById(id);
+    if (!modalEl) return undefined;
+    if (modalEl.parentElement !== document.body) {
+      document.body.appendChild(modalEl);
+    }
+    const instance = Modal.getOrCreateInstance(modalEl);
+    instance.show();
+    return instance;
+  }
+
   private openViewInstanceModal(): void {
     if (!this.selectedInstance) return;
 
-    this.viewInstanceModal = new Modal(document.getElementById('viewInstanceModal')!);
-    this.viewInstanceModal.show();
+    this.viewInstanceModal = this.showModalById('viewInstanceModal');
   }
 
   viewTaskById(taskId: number): void {
@@ -654,8 +664,7 @@ export class ViewTask implements OnInit, OnDestroy {
     this.hasMoreStudents = true;
     this.studentSearchError = null;
 
-    this.addRequestModal = new Modal(document.getElementById('addRequestModal')!);
-    this.addRequestModal.show();
+    this.addRequestModal = this.showModalById('addRequestModal');
 
     // Fetch initial list of students if template is STUDENT_SELECTION
     if (this.isStudentSelectionRequirement()) {
@@ -1114,14 +1123,12 @@ export class ViewTask implements OnInit, OnDestroy {
     this.selectedRequestProofs = request.proofs || [];
     this.selectedRequestStructuredProof = request.structuredProof || null;
     this.selectedRequestRemarks = request.remarks || '';
-    this.proofsModal = new Modal(document.getElementById('proofsModal')!);
-    this.proofsModal.show();
+    this.proofsModal = this.showModalById('proofsModal');
   }
 
   openRequestDetailModal(request: TaskRequestDto): void {
     this.selectedRequest = request;
-    this.requestDetailModal = new Modal(document.getElementById('requestDetailModal')!);
-    this.requestDetailModal.show();
+    this.requestDetailModal = this.showModalById('requestDetailModal');
   }
 
   approveFromModal(requestId: number): void {
@@ -1246,8 +1253,7 @@ export class ViewTask implements OnInit, OnDestroy {
     this.extensionRequestId = request.requestId;
     this.extensionDueDate = this.todayDate;
 
-    this.extensionModal = new Modal(document.getElementById('extensionApprovalModal')!);
-    this.extensionModal.show();
+    this.extensionModal = this.showModalById('extensionApprovalModal');
   }
 
   confirmExtensionApproval(): void {
@@ -1287,8 +1293,7 @@ export class ViewTask implements OnInit, OnDestroy {
     this.rejectionRequestId = request.requestId;
     this.rejectionReason = '';
 
-    this.rejectionModal = new Modal(document.getElementById('rejectionModal')!);
-    this.rejectionModal.show();
+    this.rejectionModal = this.showModalById('rejectionModal');
   }
 
   confirmRejection(): void {

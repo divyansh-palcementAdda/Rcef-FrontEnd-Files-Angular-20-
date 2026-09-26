@@ -37,7 +37,8 @@
   </div>
 
   <!-- ==================== Main Content Layout ==================== -->
-  <div *ngIf="task && !isLoading && !isForbidden" class="animate__animated animate__fadeIn">
+  <ng-container *ngIf="task && !isLoading && !isForbidden">
+    <div class="animate__animated animate__fadeIn">
 
     <!-- SECTION 1: Premium Task Header (Direct Page Layout, borderless matching Figma) -->
     <div class="task-header-section mb-4">
@@ -1108,13 +1109,12 @@
     </div>
     <!-- ==================== End Info Cards Row ==================== -->
   </div>
-</div>
 
 <!-- ==================== MODALS ==================== -->
 
 <!-- 1. View Request Proofs Modal -->
 <div class="modal fade custom-modern-modal" id="proofsModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
@@ -1636,7 +1636,7 @@
   </div>
 </div>
 <div class="modal fade custom-modern-modal" id="rejectionModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-danger">
@@ -1665,7 +1665,7 @@
 
 <!-- 3. Extension Approval Modal -->
 <div class="modal fade custom-modern-modal" id="extensionApprovalModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
@@ -1699,7 +1699,7 @@
 
 <!-- 4. Add Request Modal -->
 <div class="modal fade custom-modern-modal" id="addRequestModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
@@ -2141,7 +2141,7 @@
 
 <!-- 5. View Instance Details Modal -->
 <div class="modal fade custom-modern-modal" id="viewInstanceModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
@@ -2238,3 +2238,4 @@
     </div>
   </div>
 </div>
+</ng-container>
