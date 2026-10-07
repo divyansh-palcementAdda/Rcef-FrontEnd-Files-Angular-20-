@@ -51,8 +51,10 @@
       </button>
       <div class="dropdown d-inline-block export-dropdown-wrap position-relative">
         <button class="btn btn-outline-success dropdown-toggle" type="button" id="exportDropdown" aria-expanded="false"
-          (click)="toggleExportDropdown($event)">
-          <i class="bi bi-file-earmark-arrow-down-fill me-1"></i>Export
+          (click)="toggleExportDropdown($event)" [disabled]="isExportLoading">
+          <span *ngIf="isExportLoading" class="spinner-border spinner-border-sm me-1" role="status"></span>
+          <i *ngIf="!isExportLoading" class="bi bi-file-earmark-arrow-down-fill me-1"></i>
+          {{ isExportLoading ? 'Exporting…' : 'Export' }}
         </button>
         <ul class="dropdown-menu dropdown-menu-end shadow border-0" [class.show]="isExportDropdownOpen"
           [style.display]="isExportDropdownOpen ? 'block' : 'none'" aria-labelledby="exportDropdown">

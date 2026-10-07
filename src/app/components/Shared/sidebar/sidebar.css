@@ -217,3 +217,38 @@
     left: -260px;
   }
 }
+
+/* Switch to DDS Button */
+.dds-switch-container {
+  border-top: 1px solid var(--sidebar-border);
+  padding-top: 0.75rem;
+}
+
+.dds-switch-btn {
+  padding: 0.65rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--primary-color) !important;
+  background-color: var(--primary-subtle);
+  border: 1.5px solid var(--primary-color);
+  transition: all 0.2s ease;
+}
+
+.dds-switch-btn:hover {
+  background-color: var(--primary-color);
+  color: #ffffff !important;
+}
+
+.dds-switch-btn i {
+  transition: transform 0.2s ease;
+}
+
+.dds-switch-btn:hover i {
+  transform: translateX(3px);
+}
+
+.sidebar-wrapper.collapsed .dds-switch-btn {
+  justify-content: center;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}

@@ -31,6 +31,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   isCollapsed = false;
   links: SidebarLink[] = [];
   settingsOpen = false;
+  isAcademicsDepartment = false;
 
   // Tracks which sidebar link was last explicitly clicked by the user
   private lastClickedRoute: string | null = null;
@@ -124,6 +125,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
           next: (user) => {
             if (user && user.fullName) {
               this.fullName = user.fullName;
+            }
+            if (user && user.departmentNames) {
+              this.isAcademicsDepartment = user.departmentNames
+                .some(name => name.trim().toLowerCase() === 'admissions');
             }
           },
           error: (err) => console.warn('Failed to load user profile in sidebar:', err)

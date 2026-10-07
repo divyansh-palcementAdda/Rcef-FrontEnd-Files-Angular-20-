@@ -565,6 +565,68 @@ export class ViewDepartmentsComponent implements OnInit {
     return sd.id;
   }
 
+  // ── CSV Download helpers ──────────────────────────────────────────────────
+
+  /**
+   * Downloads currently-filtered sub-departments (per-dept panel) as CSV.
+   * Uses filteredSubDepts so whatever search term is active, only those rows are exported.
+   */
+  downloadFilteredSubDepts(): void {
+    const deptName = this.selectedDept?.name ?? 'SubDepartments';
+    const rows = this.filteredSubDepts;
+
+    const headers = ['S.No', 'Code', 'Name', 'Department', 'Description'];
+    const csvRows = rows.map((sd, i) => [
+      i + 1,
+      sd.code || '',
+      sd.name || '',
+      sd.department?.name || '',
+      sd.description || ''
+    ]);
+
+    this.triggerCsvDownload(headers, csvRows, `SubDepartments_${deptName}`);
+  }
+
+  /**
+   * Downloads currently-filtered sub-departments (all-subdepts panel) as CSV.
+   * Uses filteredAllSubDepts so search term is respected.
+   */
+  downloadFilteredAllSubDepts(): void {
+    const rows = this.filteredAllSubDepts;
+
+    const headers = ['S.No', 'Code', 'Name', 'Department', 'Description'];
+    const csvRows = rows.map((sd, i) => [
+      i + 1,
+      sd.code || '',
+      sd.name || '',
+      sd.department?.name || '',
+      sd.description || ''
+    ]);
+
+    this.triggerCsvDownload(headers, csvRows, 'AllSubDepartments');
+  }
+
+  /** Shared utility — builds CSV string and triggers browser download. */
+  private triggerCsvDownload(headers: string[], rows: (string | number)[][], filename: string): void {
+    const escape = (val: string | number): string => {
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const csvContent = [
+      headers.map(escape).join(','),
+      ...rows.map(row => row.map(escape).join(','))
+    ].join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   editDepartment(event: Event, departmentId?: number): void {
     event.stopPropagation();
     if (departmentId) this.router.navigate(['/edit-department', departmentId]);

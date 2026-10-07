@@ -59,6 +59,7 @@ export class ViewAllUserss implements OnInit {
   isDrawerOpen = false;
 
   showBulkUploadModal = false;
+  isExportLoading = false;
   isExportDropdownOpen = false;
 
   // Stats & breakdown responses
@@ -812,34 +813,115 @@ export class ViewAllUserss implements OnInit {
 
   exportUsers(format: string): void {
     this.closeExportDropdown();
-    const params = {
-      format,
-      sortBy: this.sortBy,
-      sortDirection: this.sortDirection,
-      search: this.searchTerm,
-      role: this.roleFilter,
-      departmentId: this.departmentIdFilter,
-      subDepartmentId: this.subDepartmentIdFilter,
-      subjectId: this.subjectIdFilter,
-      status: this.statusFilter
-    };
 
-    this.apiService.downloadExportUsers(params).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const today = new Date().toISOString().split('T')[0];
-        a.href = url;
-        a.download = `users-export-${today}.${format === 'CSV' ? 'csv' : 'xlsx'}`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
+    if (this.isExportLoading) return;
+    this.isExportLoading = true;
+    this.errorMessage = null;
+
+    // Fetch ALL users (no pagination) with current active filters
+    const params: any = {
+      page: 0,
+      size: this.totalElements > 0 ? this.totalElements : 10000,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection
+    };
+    if (this.searchTerm)          params.search         = this.searchTerm;
+    if (this.roleFilter)          params.role           = this.roleFilter;
+    if (this.departmentIdFilter)  params.departmentId   = this.departmentIdFilter.toString();
+    if (this.subDepartmentIdFilter) params.subDepartmentId = this.subDepartmentIdFilter;
+    if (this.subjectIdFilter)     params.subjectId      = this.subjectIdFilter.toString();
+    if (this.statusFilter)        params.status         = this.statusFilter;
+    // HOD restriction
+    if (this.currentRole === 'HOD' && this.hodSubDepartmentId) {
+      params.subDepartmentId = this.hodSubDepartmentId;
+    }
+
+    this.apiService.searchUsers(params).subscribe({
+      next: (res) => {
+        this.isExportLoading = false;
+        const allUsers: userDto[] = res?.data?.content ?? [];
+        if (!allUsers.length) {
+          this.errorMessage = 'No users to export.';
+          return;
+        }
+        this._buildAndDownload(allUsers, format);
       },
       error: (err: any) => {
-        this.errorMessage = err?.message || err?.error?.message || 'Failed to export users.';
+        this.isExportLoading = false;
+        this.errorMessage = err?.message || 'Failed to fetch users for export.';
       }
     });
+  }
+
+  private _buildAndDownload(data: userDto[], format: string): void {
+    const today = new Date().toISOString().split('T')[0];
+    const filename = `users-export-${today}`;
+
+    const headers = [
+      'S.No', 'Full Name', 'Username', 'Email', 'Role', 'Status',
+      'Department(s)', 'Sub-Department(s)', 'Subject(s)',
+      'Reporting Manager', 'Email Verified',
+      'Pending Tasks', 'Upcoming Tasks', 'Delayed Tasks', 'Closed Tasks',
+      'Created At'
+    ];
+
+    const rows = data.map((u, i) => [
+      i + 1,
+      u.fullName ?? '',
+      u.username ?? '',
+      u.email ?? '',
+      u.role ?? '',
+      u.status ?? '',
+      (u.departmentNames  ?? []).join('; '),
+      (u.subDepartmentNames ?? []).join('; '),
+      (u.subjectNames     ?? []).join('; '),
+      (u.reportingManagerNames ?? []).join('; '),
+      u.emailVerified ? 'Yes' : 'No',
+      u.pendingTasks  ?? 0,
+      u.upcomingTasks ?? 0,
+      u.delayedTasks  ?? 0,
+      u.closedTasks   ?? 0,
+      u.createdAt ? new Date(u.createdAt).toLocaleDateString() : ''
+    ]);
+
+    if (format === 'CSV') {
+      const escape = (v: any) => {
+        const s = String(v ?? '');
+        return s.includes(',') || s.includes('"') || s.includes('\n')
+          ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const csvContent = [headers, ...rows].map(r => r.map(escape).join(',')).join('\r\n');
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      this._triggerDownload(blob, `${filename}.csv`);
+
+    } else {
+      import('xlsx').then(XLSX => {
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        ws['!cols'] = headers.map((h, i) => ({
+          wch: Math.min(Math.max(h.length, ...rows.map(r => String(r[i] ?? '').length)) + 4, 50)
+        }));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Users');
+        const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([buf], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        this._triggerDownload(blob, `${filename}.xlsx`);
+      }).catch(() => {
+        this.errorMessage = 'Excel export failed. Please try CSV instead.';
+      });
+    }
+  }
+
+  private _triggerDownload(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   /** Handle page click with type safety */

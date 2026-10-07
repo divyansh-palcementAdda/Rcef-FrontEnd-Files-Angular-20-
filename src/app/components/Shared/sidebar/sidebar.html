@@ -73,6 +73,16 @@
     </ul>
   </div>
 
+  <!-- Switch to DDS (only for Academics department users) -->
+  <div class="dds-switch-container px-3 pb-3" *ngIf="isAcademicsDepartment">
+    <a href="https://dds.areyoureporting.com/" target="_blank" rel="noopener noreferrer"
+       class="dds-switch-btn d-flex align-items-center gap-2 rounded-3 w-100 text-decoration-none"
+       [title]="isCollapsed ? 'Switch to DDS' : ''">
+      <i class="bi bi-arrow-left-right fs-5 flex-shrink-0"></i>
+      <span class="link-label" *ngIf="!isCollapsed">Switch to DDS</span>
+    </a>
+  </div>
+
   <!-- User profile footer -->
   <div class="sidebar-footer p-3 border-top mt-auto">
     <div class="d-flex align-items-center justify-content-between gap-2" *ngIf="!isCollapsed">
