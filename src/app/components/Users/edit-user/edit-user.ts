@@ -15,6 +15,7 @@ import { Department } from '../../../Model/department';
 import { AuthApiService } from '../../../Services/auth-api-service';
 import { SubjectApiService } from '../../../Services/subject-api.service';
 import { SubjectDto } from '../../../Model/subject';
+import { UserRoleAssignmentDTO, ScopedRoleAssignment } from '../../../Model/user-role-assignment-dto';
 
 @Component({
   selector: 'app-edit-user',
@@ -56,9 +57,21 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
 
   /** Data */
   originalRole = '';
+  primaryRole: string | null = null;
+  existingAssignments: UserRoleAssignmentDTO[] = [];
   roles: string[] = [];
   departments: Department[] = [];
   selectedDepartments: number[] = [];
+
+  // Scoped Role Assignments (Multi-Role System)
+  scopedAssignments: ScopedRoleAssignment[] = [];
+  newAssignmentDeptId: number | null = null;
+  newAssignmentSubDeptId: string | null = null;
+  newAssignmentRole: 'HOD' | 'TEACHER' = 'TEACHER';
+  availableSubDeptsForNewAssignment: any[] = [];
+  assignmentError: string | null = null;
+  legacyConflictDetected: boolean = false;
+  legacyConflictMessage: string = '';
 
   // Hierarchy additions
   allUsers: any[] = [];
@@ -271,10 +284,36 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
           this.subDepartments = merged.filter((sub, index, self) =>
             index === self.findIndex(t => t.id === sub.id)
           );
-          const currentSubDeptIds = this.getSelectedSubDeptIds();
-          const validSubDeptIds = currentSubDeptIds.filter(id => this.subDepartments.some(s => s.id === id));
-          this.editForm.get('subDepartmentIds')?.setValue(validSubDeptIds);
-          this.editForm.get('subDepartmentId')?.setValue(validSubDeptIds.length > 0 ? validSubDeptIds[0] : null);
+
+          // Populate subDepartmentName and departmentName in scopedAssignments if missing
+          for (const sa of this.scopedAssignments) {
+            if (!sa.subDepartmentName) {
+              const sd = this.subDepartments.find(s => s.id === sa.subDepartmentId);
+              if (sd) sa.subDepartmentName = sd.name;
+            }
+            if (!sa.departmentName) {
+              const d = this.departments.find(dept => dept.departmentId === sa.departmentId);
+              if (d) sa.departmentName = d.name;
+            }
+          }
+
+          if (this.scopedAssignments.length > 0) {
+            const currentSubDeptIds = this.scopedAssignments.map(a => a.subDepartmentId);
+            this.editForm.get('subDepartmentIds')?.setValue(currentSubDeptIds);
+            this.editForm.get('subDepartmentId')?.setValue(currentSubDeptIds.length > 0 ? currentSubDeptIds[0] : null);
+          } else {
+            const currentSubDeptIds = this.getSelectedSubDeptIds();
+            const validSubDeptIds = currentSubDeptIds.filter(id => this.subDepartments.some(s => s.id === id));
+            this.editForm.get('subDepartmentIds')?.setValue(validSubDeptIds);
+            this.editForm.get('subDepartmentId')?.setValue(validSubDeptIds.length > 0 ? validSubDeptIds[0] : null);
+          }
+
+          if (this.newAssignmentDeptId) {
+            this.availableSubDeptsForNewAssignment = this.subDepartments.filter(
+              s => (s.department?.departmentId === this.newAssignmentDeptId || s.departmentId === this.newAssignmentDeptId)
+            );
+          }
+
           this.reloadSubjects();
         },
         error: (err) => console.error('Failed to load sub-departments', err)
@@ -293,6 +332,13 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
       next: (data) => {
         this.departments = data;
         this.isLoading = false;
+        // Enrich any scoped assignments with department names
+        for (const sa of this.scopedAssignments) {
+          if (!sa.departmentName) {
+            const d = this.departments.find(dept => dept.departmentId === sa.departmentId);
+            if (d) sa.departmentName = d.name;
+          }
+        }
       },
       error: () => {
         this.isLoading = false;
@@ -312,6 +358,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     if (this.preselectedDepartmentId) {
       this.selectedDepartments = [this.preselectedDepartmentId];
       this.editForm.patchValue({ departmentIds: [this.preselectedDepartmentId] });
+      this.newAssignmentDeptId = this.preselectedDepartmentId;
       this.onDepartmentChange();
     }
     if (this.preselectedSubDepartmentId) {
@@ -319,6 +366,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
         subDepartmentId: this.preselectedSubDepartmentId,
         subDepartmentIds: [this.preselectedSubDepartmentId]
       });
+      this.newAssignmentSubDeptId = this.preselectedSubDepartmentId;
       this.reloadSubjects();
     }
     if (this.isCurrentUserAdmin) {
@@ -331,15 +379,83 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     this.userApi.getUserById(this.userId).subscribe({
       next: (user) => {
         this.originalRole = user.role;
+        this.primaryRole = user.primaryRole || user.role;
+        this.existingAssignments = user.roleAssignments || [];
+
+        const deptIds: number[] = Array.isArray(user.departmentIds)
+          ? user.departmentIds
+          : [];
+
+        // Helper to check if assignment is active (handles both 'active' and 'isActive' boolean properties)
+        const isAssignmentActive = (a: any) => {
+          if (a.active !== undefined) return Boolean(a.active);
+          if (a.isActive !== undefined) return Boolean(a.isActive);
+          return true;
+        };
+
+        // Parse scoped role assignments and detect conflicts
+        const activeSubDeptAssignments = (user.roleAssignments || []).filter(
+          a => isAssignmentActive(a) && Boolean(a.subDepartmentId)
+        );
+        const map = new Map<string, ScopedRoleAssignment>();
+        const conflicts: string[] = [];
+
+        for (const a of activeSubDeptAssignments) {
+          const subId = a.subDepartmentId!;
+          const rawRole = (a.roleName || (a as any).role || '').toString().trim().toUpperCase();
+          const roleName: 'HOD' | 'TEACHER' = rawRole === 'HOD' ? 'HOD' : 'TEACHER';
+
+          if (map.has(subId)) {
+            const existing = map.get(subId)!;
+            conflicts.push(`${a.subDepartmentName || subId} (${existing.role} & ${roleName})`);
+            if (roleName === 'HOD') {
+              map.set(subId, {
+                id: a.id,
+                departmentId: a.departmentId || existing.departmentId,
+                departmentName: a.departmentName || existing.departmentName,
+                subDepartmentId: subId,
+                subDepartmentName: a.subDepartmentName || existing.subDepartmentName,
+                role: 'HOD'
+              });
+            }
+          } else {
+            map.set(subId, {
+              id: a.id,
+              departmentId: a.departmentId || (deptIds.length > 0 ? deptIds[0] : 0),
+              departmentName: a.departmentName || '',
+              subDepartmentId: subId,
+              subDepartmentName: a.subDepartmentName || '',
+              role: roleName
+            });
+          }
+        }
+
+        if (conflicts.length > 0) {
+          this.legacyConflictDetected = true;
+          this.legacyConflictMessage = `Multiple active roles were found for: ${conflicts.join(', ')}. Automatically resolved to the higher role. You may adjust or save.`;
+        } else {
+          this.legacyConflictDetected = false;
+          this.legacyConflictMessage = '';
+        }
+
+        this.scopedAssignments = Array.from(map.values());
+
+        // Fallback ONLY for legacy users who had subDepartmentIds with zero roleAssignments
+        if (this.scopedAssignments.length === 0 && user.subDepartmentIds && user.subDepartmentIds.length > 0) {
+          const defaultRole = (user.role === 'HOD' ? 'HOD' : 'TEACHER') as 'HOD' | 'TEACHER';
+          this.scopedAssignments = user.subDepartmentIds.map(sdId => ({
+            departmentId: deptIds.length > 0 ? deptIds[0] : 0,
+            subDepartmentId: sdId,
+            role: defaultRole
+          }));
+        }
+
+        this.recalculatePrimaryRole();
 
         // Ensure user's current role is included in the roles list so select binding works correctly
         if (user.role && !this.roles.includes(user.role)) {
           this.roles = [user.role, ...this.roles];
         }
-
-        const deptIds: number[] = Array.isArray(user.departmentIds)
-          ? user.departmentIds
-          : [];
 
         // Enable role field if current user is admin
         if (this.isCurrentUserAdmin) {
@@ -352,7 +468,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
           username: user.username,
           email: user.email || '',
           password: '',
-          role: user.role,
+          role: this.primaryRole || user.role,
           departmentIds: deptIds,
           parentUserId: user.parentUserId || null,
           reportingManagerIds: managerIds,
@@ -392,7 +508,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
   }
 
   updateDepartmentSelectionBasedOnRole(role: string): void {
-    if (role === 'HOD' || role === 'SUB_ADMIN') {
+    if (role === 'SUB_ADMIN') {
       if (this.selectedDepartments.length > 1) {
         this.selectedDepartments = [this.selectedDepartments[0]];
       }
@@ -408,7 +524,7 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     const checked = (event.target as HTMLInputElement).checked;
     const role = this.editForm.get('role')?.value || this.originalRole;
 
-    if (role === 'HOD' || role === 'SUB_ADMIN') {
+    if (role === 'SUB_ADMIN') {
       if (checked) {
         this.selectedDepartments = [deptId];
       } else {
@@ -433,13 +549,133 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
   isDeptDisabled(dept: Department): boolean {
     const role = this.editForm.get('role')?.value || this.originalRole;
 
-    if (role === 'HOD' || role === 'SUB_ADMIN') {
-      // HOD and SUB_ADMIN can only select one department
+    if (role === 'SUB_ADMIN') {
       return this.selectedDepartments.length >= 1 &&
         !this.selectedDepartments.includes(dept.departmentId);
     }
 
     return false;
+  }
+
+  /* --------------------------------------------------------------- */
+  /* Scoped Role Assignments & Primary Role Helpers                  */
+  /* --------------------------------------------------------------- */
+  recalculatePrimaryRole(): void {
+    const roleHierarchy = ['SUPER_ADMIN', 'ADMIN', 'SUB_ADMIN', 'HOD', 'TEACHER'];
+    const currentTopRole = this.editForm?.get('role')?.value;
+
+    if (currentTopRole === 'SUPER_ADMIN' || currentTopRole === 'ADMIN' || currentTopRole === 'SUB_ADMIN') {
+      this.primaryRole = currentTopRole;
+      return;
+    }
+
+    if (this.scopedAssignments && this.scopedAssignments.length > 0) {
+      let highestRole = 'TEACHER';
+      let highestRank = 999;
+      for (const a of this.scopedAssignments) {
+        const rank = roleHierarchy.indexOf(a.role);
+        if (rank !== -1 && rank < highestRank) {
+          highestRank = rank;
+          highestRole = a.role;
+        }
+      }
+      this.primaryRole = highestRole;
+      if (this.editForm && this.editForm.get('role')?.value !== highestRole) {
+        this.editForm.get('role')?.setValue(highestRole, { emitEvent: false });
+      }
+    } else {
+      this.primaryRole = currentTopRole || this.originalRole || 'TEACHER';
+    }
+  }
+
+  onNewAssignmentDeptChange(): void {
+    this.newAssignmentSubDeptId = null;
+    this.assignmentError = null;
+    if (this.newAssignmentDeptId) {
+      this.deptApi.getSubDepartmentsByDepartment(this.newAssignmentDeptId).subscribe({
+        next: (subs) => {
+          this.availableSubDeptsForNewAssignment = Array.isArray(subs) ? subs : (subs?.data || []);
+        },
+        error: (err) => console.error('Failed to load subdepartments for department', err)
+      });
+    } else {
+      this.availableSubDeptsForNewAssignment = [];
+    }
+  }
+
+  getFilteredSubDeptsForNewAssignment(): any[] {
+    return this.availableSubDeptsForNewAssignment.filter(
+      sd => !this.scopedAssignments.some(a => a.subDepartmentId === sd.id)
+    );
+  }
+
+  addScopedAssignment(): void {
+    this.assignmentError = null;
+    if (!this.newAssignmentDeptId) {
+      this.assignmentError = 'Please select a department.';
+      return;
+    }
+    if (!this.newAssignmentSubDeptId) {
+      this.assignmentError = 'Please select a sub-department.';
+      return;
+    }
+    if (!this.newAssignmentRole) {
+      this.assignmentError = 'Please choose a role for this sub-department.';
+      return;
+    }
+
+    if (this.scopedAssignments.some(a => a.subDepartmentId === this.newAssignmentSubDeptId)) {
+      this.assignmentError = 'This sub-department already has an assigned role. You can modify its role in the table below.';
+      return;
+    }
+
+    const dept = this.departments.find(d => d.departmentId === +this.newAssignmentDeptId!);
+    const subDept = this.availableSubDeptsForNewAssignment.find(s => s.id === this.newAssignmentSubDeptId)
+      || this.subDepartments.find(s => s.id === this.newAssignmentSubDeptId);
+
+    this.scopedAssignments.push({
+      departmentId: +this.newAssignmentDeptId!,
+      departmentName: dept?.name || '',
+      subDepartmentId: this.newAssignmentSubDeptId,
+      subDepartmentName: subDept?.name || '',
+      role: this.newAssignmentRole
+    });
+
+    this.newAssignmentSubDeptId = null;
+    this.newAssignmentRole = 'TEACHER';
+    this.syncFormWithScopedAssignments();
+  }
+
+  removeScopedAssignment(index: number): void {
+    this.scopedAssignments.splice(index, 1);
+    this.syncFormWithScopedAssignments();
+  }
+
+  onAssignmentRoleChanged(assignment: ScopedRoleAssignment, role: 'HOD' | 'TEACHER'): void {
+    assignment.role = role;
+    this.recalculatePrimaryRole();
+  }
+
+  syncFormWithScopedAssignments(): void {
+    const subDeptIds = this.scopedAssignments.map(a => a.subDepartmentId);
+    this.editForm.get('subDepartmentIds')?.setValue(subDeptIds);
+    this.editForm.get('subDepartmentId')?.setValue(subDeptIds.length > 0 ? subDeptIds[0] : null);
+
+    const deptIdsFromAssignments = Array.from(new Set(this.scopedAssignments.map(a => a.departmentId)));
+    for (const dId of deptIdsFromAssignments) {
+      if (!this.selectedDepartments.includes(dId)) {
+        this.selectedDepartments.push(dId);
+      }
+    }
+    this.editForm.get('departmentIds')?.setValue(this.selectedDepartments);
+
+    this.recalculatePrimaryRole();
+    this.reloadSubjects();
+  }
+
+  getDeptName(deptId: number): string {
+    const dept = this.departments.find(d => d.departmentId === deptId);
+    return dept ? dept.name : `Dept #${deptId}`;
   }
 
   togglePasswordVisibility(): void {
@@ -507,18 +743,36 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     const formValue = this.editForm.getRawValue();
     const isSuperAdminRole = formValue.role === 'SUPER_ADMIN';
 
+    // For academic roles, require at least one scoped role assignment
+    const isAcademic = formValue.role === 'HOD' || formValue.role === 'TEACHER' ||
+                       this.primaryRole === 'HOD' || this.primaryRole === 'TEACHER';
+
+    if (isAcademic && this.scopedAssignments.length === 0) {
+      this.errorMessage = 'At least one sub-department role assignment is required for HOD / Teacher.';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const effectiveRole = this.primaryRole || formValue.role;
+
     // Prepare payload
     const payload: any = {
       fullName: formValue.fullName.trim(),
       username: formValue.username.trim(),
       email: formValue.email ? formValue.email.trim() : undefined,
-      role: formValue.role,
+      role: effectiveRole,
+      primaryRole: effectiveRole,
       departmentIds: isSuperAdminRole ? [] : this.selectedDepartments,
       parentUserId: isSuperAdminRole ? null : formValue.parentUserId,
       reportingManagerIds: isSuperAdminRole ? [] : (formValue.reportingManagerIds || []),
-      subDepartmentId: isSuperAdminRole ? null : formValue.subDepartmentId,
-      subDepartmentIds: isSuperAdminRole ? [] : (formValue.subDepartmentIds || []),
-      subjectIds: isSuperAdminRole ? [] : (formValue.subjectIds || [])
+      subDepartmentId: isSuperAdminRole ? null : (this.scopedAssignments.length > 0 ? this.scopedAssignments[0].subDepartmentId : formValue.subDepartmentId),
+      subDepartmentIds: isSuperAdminRole ? [] : this.scopedAssignments.map(a => a.subDepartmentId),
+      subjectIds: isSuperAdminRole ? [] : (formValue.subjectIds || []),
+      roleAssignments: isSuperAdminRole ? [] : this.scopedAssignments.map(a => ({
+        departmentId: a.departmentId,
+        subDepartmentId: a.subDepartmentId,
+        role: a.role
+      }))
     };
 
     // Only include password if provided
@@ -529,18 +783,23 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
     this.isSubmitting = true;
     if (this.isEdit) {
       this.userApi.updateUser(this.userId, payload).subscribe({
-        next: (response) => {
+        next: (response: any) => {
           this.isSubmitting = false;
           this.successMessage = 'User updated successfully!';
 
-          // Show success message for 2 seconds then redirect/close
+          if (response && response.roleAssignments) {
+            this.existingAssignments = response.roleAssignments;
+            this.primaryRole = response.primaryRole || response.role;
+          }
+
+          // Show success message for 1.5 seconds then redirect/close
           setTimeout(() => {
             if (this.isModal) {
               this.closed.emit(true);
             } else {
               this.router.navigate(['/viewAllUsers']);
             }
-          }, 2000);
+          }, 1500);
         },
         error: (err) => {
           this.isSubmitting = false;

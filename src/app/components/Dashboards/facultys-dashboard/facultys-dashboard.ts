@@ -89,6 +89,19 @@ export class FacultysDashboard implements OnInit, OnDestroy {
     this.dataSub = this.apiService.getDashboardData().subscribe({
       next: (data) => {
         if (data) {
+          if (data.departmentName) {
+            const depts = data.departmentName.split(',').map(d => d.trim()).filter(Boolean);
+            data.departmentName = Array.from(new Set(depts)).join(', ');
+          }
+          if (data.subDepartments && data.subDepartments.length > 0) {
+            const seen = new Set<string>();
+            data.subDepartments = data.subDepartments.filter(sd => {
+              const key = sd.id || sd.name;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
+          }
           this.dashboardData = data;
           this.buildSegments(data);
           this.buildBubbles(data);

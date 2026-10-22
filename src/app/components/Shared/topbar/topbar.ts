@@ -8,6 +8,8 @@ import { userDto } from '../../../Model/userDto';
 import { JwtService } from '../../../Services/jwt-service';
 import { SidebarService } from '../../../Services/sidebar-service';
 
+import { UserRoleAssignmentDTO } from '../../../Model/user-role-assignment-dto';
+
 @Component({
   selector: 'app-topbar',
   standalone: true,
@@ -22,6 +24,11 @@ export class TopbarComponent implements OnInit {
   currentDate = new Date();
   userProfile: userDto | null = null;
   profileDropdownOpen = false;
+  roleDropdownOpen = false;
+  isSwitchingRole = false;
+
+  activeAssignment: UserRoleAssignmentDTO | null = null;
+  availableAssignments: UserRoleAssignmentDTO[] = [];
 
   constructor(
     private authService: AuthApiService,
@@ -39,8 +46,23 @@ export class TopbarComponent implements OnInit {
         this.fullName = this.formatName(name);
       }
     });
+
+    this.authService.activeAssignment$.subscribe(active => {
+      this.activeAssignment = active;
+      if (active) {
+        this.role = active.roleName;
+      } else {
+        this.role = this.authService.getCurrentRole();
+      }
+    });
+
+    this.authService.availableAssignments$.subscribe(assignments => {
+      this.availableAssignments = assignments || [];
+    });
+
     this.role = this.authService.getCurrentRole();
     this.loadUserProfile();
+    this.authService.fetchAssignments().subscribe();
   }
 
   loadUserProfile(): void {
@@ -59,6 +81,50 @@ export class TopbarComponent implements OnInit {
         });
       }
     }
+  }
+
+  switchRole(assignment: UserRoleAssignmentDTO): void {
+    if (this.isSwitchingRole || !assignment || assignment.id === this.activeAssignment?.id) {
+      this.roleDropdownOpen = false;
+      return;
+    }
+    this.isSwitchingRole = true;
+    this.roleDropdownOpen = false;
+    this.profileDropdownOpen = false;
+
+    this.authService.switchContext(assignment.id).subscribe({
+      next: () => {
+        this.isSwitchingRole = false;
+        this.role = this.authService.getCurrentRole();
+      },
+      error: (err) => {
+        this.isSwitchingRole = false;
+        console.error('Failed to switch role context:', err);
+      }
+    });
+  }
+
+  toggleRoleDropdown(): void {
+    this.roleDropdownOpen = !this.roleDropdownOpen;
+    if (this.roleDropdownOpen) {
+      this.profileDropdownOpen = false;
+    }
+  }
+
+  getActiveScopeLabel(): string {
+    if (!this.activeAssignment) {
+      return this.role || 'User';
+    }
+    if (this.activeAssignment.displayLabel) {
+      return this.activeAssignment.displayLabel;
+    }
+    let label = this.activeAssignment.roleName;
+    if (this.activeAssignment.subDepartmentName) {
+      label += ` • ${this.activeAssignment.subDepartmentName}`;
+    } else if (this.activeAssignment.departmentName) {
+      label += ` • ${this.activeAssignment.departmentName}`;
+    }
+    return label;
   }
 
   formatName(name: string): string {
@@ -122,12 +188,14 @@ export class TopbarComponent implements OnInit {
   onDocumentClick(event: MouseEvent): void {
     if (!this.elRef.nativeElement.contains(event.target)) {
       this.profileDropdownOpen = false;
+      this.roleDropdownOpen = false;
     }
   }
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.profileDropdownOpen = false;
+    this.roleDropdownOpen = false;
   }
 
   logout(): void {

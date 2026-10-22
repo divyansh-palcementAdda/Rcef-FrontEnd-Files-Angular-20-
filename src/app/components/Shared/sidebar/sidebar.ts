@@ -67,6 +67,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
       filter(perms => perms.length > 0),
       takeUntil(this.destroy$)
     ).subscribe(() => this.buildLinks());
+
+    this.authService.activeAssignment$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(active => {
+      this.role = active ? active.roleName : this.authService.getCurrentRole();
+      this.buildLinks();
+    });
     this.loadUserProfile();
     this.sidebarService.isCollapsed$.subscribe(collapsed => {
       this.isCollapsed = collapsed;

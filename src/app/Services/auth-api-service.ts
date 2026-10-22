@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { environment } from '../environment/environment';
 import { JWTResponseDTO } from '../Model/jwtresponse-dto';
 import { LoginRequestDTO } from '../Model/login-request-dto';
+import { UserRoleAssignmentDTO } from '../Model/user-role-assignment-dto';
 import { UserApiService } from './UserApiService';
 import { JwtService } from './jwt-service';
 
@@ -58,16 +59,48 @@ export class AuthApiService {
   private readonly permissions$ = new BehaviorSubject<string[]>([]);
   readonly permissionsObservable$ = this.permissions$.asObservable();
 
+  /* ---------- active assignment ---------- */
+  private readonly activeAssignmentSubject$ = new BehaviorSubject<UserRoleAssignmentDTO | null>(null);
+  readonly activeAssignment$ = this.activeAssignmentSubject$.asObservable();
+
+  /* ---------- available assignments ---------- */
+  private readonly availableAssignmentsSubject$ = new BehaviorSubject<UserRoleAssignmentDTO[]>([]);
+  readonly availableAssignments$ = this.availableAssignmentsSubject$.asObservable();
+
+  /* ---------- primary role ---------- */
+  private readonly primaryRoleSubject$ = new BehaviorSubject<string | null>(null);
+  readonly primaryRole$ = this.primaryRoleSubject$.asObservable();
+
   constructor() {
     const token = this.getAccessToken();
     this.loggedIn$.next(!!token);
     if (token) {
       this.updateUserFromToken(token);
+      this.restoreStoredAssignments();
       this.loadUserPermissions().subscribe();
       const userId = this.jwtService.getUserIdFromToken(token);
       if (userId) {
         this.userApiService.getCurrentUserProfile(userId).subscribe();
       }
+    }
+  }
+
+  private restoreStoredAssignments(): void {
+    try {
+      const activeRaw = localStorage.getItem('activeAssignment');
+      if (activeRaw) {
+        this.activeAssignmentSubject$.next(JSON.parse(activeRaw));
+      }
+      const availRaw = localStorage.getItem('availableAssignments');
+      if (availRaw) {
+        this.availableAssignmentsSubject$.next(JSON.parse(availRaw));
+      }
+      const primary = localStorage.getItem('primaryRole');
+      if (primary) {
+        this.primaryRoleSubject$.next(primary);
+      }
+    } catch {
+      // Ignore JSON parse errors
     }
   }
 
@@ -220,6 +253,20 @@ export class AuthApiService {
   private handleAuthSuccess(dto: JWTResponseDTO): void {
     this.setAccessToken(dto.accessToken);
     if (dto.refreshToken) this.setRefreshToken(dto.refreshToken);
+
+    if (dto.activeAssignment) {
+      this.activeAssignmentSubject$.next(dto.activeAssignment);
+      localStorage.setItem('activeAssignment', JSON.stringify(dto.activeAssignment));
+    }
+    if (dto.availableAssignments) {
+      this.availableAssignmentsSubject$.next(dto.availableAssignments);
+      localStorage.setItem('availableAssignments', JSON.stringify(dto.availableAssignments));
+    }
+    if (dto.primaryRole) {
+      this.primaryRoleSubject$.next(dto.primaryRole);
+      localStorage.setItem('primaryRole', dto.primaryRole);
+    }
+
     if (dto.permissions && dto.permissions.length > 0) {
       this.permissions$.next(dto.permissions);
       this.storePermissions(dto.permissions); // persist for page refresh
@@ -236,7 +283,13 @@ export class AuthApiService {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userPermissions'); // clear stored permissions on logout
+    localStorage.removeItem('activeAssignment');
+    localStorage.removeItem('availableAssignments');
+    localStorage.removeItem('primaryRole');
     this.permissions$.next([]);
+    this.activeAssignmentSubject$.next(null);
+    this.availableAssignmentsSubject$.next([]);
+    this.primaryRoleSubject$.next(null);
     this.userApiService.clearCurrentUserProfile();
     this.loggedIn$.next(false);
     this.usernameSubject$.next('User');
@@ -311,6 +364,51 @@ export class AuthApiService {
   /* ----------------------------------------------------------------- */
   /* DASHBOARD & ROLE                                                  */
   /* ----------------------------------------------------------------- */
+  /* ----------------------------------------------------------------- */
+  /* CONTEXT SWITCHING & MULTI-ROLE ASSIGNMENTS                       */
+  /* ----------------------------------------------------------------- */
+  switchContext(assignmentId: number): Observable<JWTResponseDTO> {
+    return this.http
+      .post<ApiResult<JWTResponseDTO>>(`${this.apiUrl}/switch-context`, { assignmentId })
+      .pipe(
+        map(res => this.unwrapResult(res, 'Switch context failed')),
+        tap(dto => {
+          this.handleAuthSuccess(dto);
+          this.goToDashboard();
+        }),
+        catchError(this.handleHttpError('Switch Context'))
+      );
+  }
+
+  fetchAssignments(): Observable<UserRoleAssignmentDTO[]> {
+    return this.http
+      .get<ApiResult<UserRoleAssignmentDTO[]>>(`${this.apiUrl}/assignments`)
+      .pipe(
+        map(res => this.unwrapResult(res, 'Fetch assignments failed')),
+        tap(assignments => {
+          const list = assignments || [];
+          this.availableAssignmentsSubject$.next(list);
+          localStorage.setItem('availableAssignments', JSON.stringify(list));
+        }),
+        catchError(this.handleHttpError('Fetch Assignments'))
+      );
+  }
+
+  getActiveAssignment(): UserRoleAssignmentDTO | null {
+    return this.activeAssignmentSubject$.value;
+  }
+
+  getAvailableAssignments(): UserRoleAssignmentDTO[] {
+    return this.availableAssignmentsSubject$.value;
+  }
+
+  getPrimaryRole(): string | null {
+    return this.primaryRoleSubject$.value;
+  }
+
+  /* ----------------------------------------------------------------- */
+  /* DASHBOARD & ROLE                                                  */
+  /* ----------------------------------------------------------------- */
   goToDashboard(): void {
     const token = this.getAccessToken();
     if (!token) {
@@ -336,6 +434,13 @@ export class AuthApiService {
   }
 
   getCurrentRole(): string | null {
+    const active = this.activeAssignmentSubject$.value;
+    if (active && active.roleName) {
+      let r = active.roleName;
+      if (r.startsWith('ROLE_')) r = r.substring(5);
+      return r;
+    }
+
     const token = this.getAccessToken();
     if (!token) return null;
     try {

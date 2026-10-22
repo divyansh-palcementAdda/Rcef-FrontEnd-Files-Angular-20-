@@ -1,9 +1,13 @@
+import { UserRoleAssignmentDTO } from "./user-role-assignment-dto";
+
 export interface userDto {
   userId: number;          // maps to backend userId
   username: string;        // maps to backend username
   email: string;           // maps to backend email
   fullName: string;        // maps to backend fullName
   role: string;            // maps to backend role (can be enum string)
+  primaryRole?: string;
+  roleAssignments?: UserRoleAssignmentDTO[];
   status: string;          // maps to backend status (active/inactive)
   departmentIds: number[];    // maps to backend departmentId
   departmentNames: string[];  // maps to backend departmentName

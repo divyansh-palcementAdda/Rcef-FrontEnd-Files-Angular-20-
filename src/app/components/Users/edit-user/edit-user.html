@@ -209,7 +209,25 @@
           </div>
           <div class="row g-3">
 
-            <!-- Role -->
+            <!-- Primary Role (Derived / Displayed) -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Primary Role <span class="text-danger">*</span></label>
+              <div class="d-flex align-items-center gap-2 p-2 px-3 border rounded-3 bg-light shadow-sm" style="min-height: 48px;">
+                <i class="bi bi-shield-check text-primary fs-5"></i>
+                <div class="flex-grow-1 d-flex align-items-center justify-content-between">
+                  <div>
+                    <span class="badge bg-primary text-white fs-6 px-3 py-1">{{ primaryRole || editForm.get('role')?.value || 'None' }}</span>
+                    <span class="text-muted small ms-2">(Calculated from role hierarchy)</span>
+                  </div>
+                  <span class="badge bg-success-subtle text-success small">Active</span>
+                </div>
+              </div>
+              <div class="field-hint mt-1 text-muted small">
+                <i class="bi bi-info-circle me-1"></i>Used for default dashboard redirection. Automatically derived from highest scoped role: SUPER_ADMIN &gt; ADMIN &gt; SUB_ADMIN &gt; HOD &gt; TEACHER.
+              </div>
+            </div>
+
+            <!-- System Role -->
             <div class="col-md-6">
               <label class="form-label">System Role <span class="text-danger">*</span></label>
               <div class="input-group">
@@ -225,11 +243,13 @@
               <div *ngIf="f['role'].touched && f['role'].invalid" class="text-danger small mt-1">
                 <small>Role assignment is required.</small>
               </div>
+              <div class="field-hint mt-1 text-muted small" *ngIf="editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER'">
+                For academic roles, effective roles are managed per sub-department below.
+              </div>
             </div>
 
             <!-- Super Admin Notice -->
-            <div class="col-md-6" *ngIf="editForm.get('role')?.value === 'SUPER_ADMIN'">
-              <label class="form-label text-muted">Access Privileges</label>
+            <div class="col-12" *ngIf="editForm.get('role')?.value === 'SUPER_ADMIN'">
               <div class="alert alert-info d-flex align-items-center mb-0 py-2 px-3 border-0 bg-info-subtle text-info-emphasis rounded-3" style="min-height: 48px;">
                 <i class="bi bi-shield-check fs-5 me-2 text-primary"></i>
                 <span class="small">Super Admin has global access across all departments without supervisor or department hierarchy restrictions.</span>
@@ -330,11 +350,8 @@
 
               <div class="field-hint mt-2">
                 <i class="bi bi-info-circle me-1"></i>
-                <span
-                  *ngIf="editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'SUB_ADMIN'">HODs/SubAdmins
-                  can only be assigned to a single department.</span>
-                <span *ngIf="editForm.get('role')?.value === 'TEACHER' || editForm.get('role')?.value === 'ADMIN'">Users
-                  in this role can have multiple department access privileges.</span>
+                <span *ngIf="editForm.get('role')?.value === 'SUB_ADMIN'">SubAdmins can only be assigned to a single department.</span>
+                <span *ngIf="editForm.get('role')?.value !== 'SUB_ADMIN'">Users can have multiple department access privileges across sub-departments.</span>
               </div>
 
               <div *ngIf="f['departmentIds'].touched && f['departmentIds'].invalid" class="text-danger small mt-1">
@@ -342,48 +359,133 @@
               </div>
             </div>
 
-            <!-- 2. Sub-Departments (Loaded only after Department Selection) -->
+            <!-- 2. Sub-Department Role Assignments (Multi-Role System) -->
             <div class="col-12 mt-3"
-              *ngIf="editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER'">
-              <label class="form-label">Sub-Departments <span class="text-danger" *ngIf="selectedDepartments.length > 0">*</span></label>
-              
-              <div *ngIf="selectedDepartments.length === 0" class="alert alert-light border py-2 px-3 text-muted small mb-0">
-                <i class="bi bi-arrow-up-circle me-1"></i> Please select a Department above first to choose Sub-Departments.
+              *ngIf="editForm.get('role')?.value === 'HOD' || editForm.get('role')?.value === 'TEACHER' || primaryRole === 'HOD' || primaryRole === 'TEACHER'">
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <label class="form-label mb-0 fw-semibold">
+                  Sub-Department Role Assignments <span class="text-danger" *ngIf="selectedDepartments.length > 0">*</span>
+                </label>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small px-2.5 py-1">
+                  1 Effective Role per Subdepartment
+                </span>
               </div>
 
-              <div *ngIf="selectedDepartments.length > 0" class="custom-multiselect-container subdept-multiselect-container position-relative">
-                <div class="multiselect-input-box d-flex flex-wrap align-items-center gap-2 p-2 border rounded-3"
-                  (click)="showSubDeptDropdown = !showSubDeptDropdown">
-                  <!-- Chips -->
-                  <span *ngFor="let id of getSelectedSubDeptIds()"
-                    class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2.5 rounded-pill shadow-sm">
-                    <span>{{ getSubDeptName(id) }}</span>
-                    <button type="button" class="btn-close btn-close-white text-white ms-1" style="font-size: 0.65rem;"
-                      (click)="removeSubDept(id, $event)"></button>
-                  </span>
-                  <span *ngIf="getSelectedSubDeptIds().length === 0" class="text-muted small px-2">Select Sub-Departments...</span>
+              <!-- Legacy Conflict Alert -->
+              <div class="alert alert-warning d-flex align-items-center mb-3 py-2 px-3 border-0 bg-warning-subtle text-warning-emphasis rounded-3" *ngIf="legacyConflictDetected">
+                <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-warning"></i>
+                <span class="small">{{ legacyConflictMessage }}</span>
+              </div>
+
+              <div *ngIf="selectedDepartments.length === 0" class="alert alert-light border py-2 px-3 text-muted small mb-0">
+                <i class="bi bi-arrow-up-circle me-1"></i> Please select at least one Department above first to configure Sub-Department role assignments.
+              </div>
+
+              <!-- Add Assignment Card -->
+              <div *ngIf="selectedDepartments.length > 0" class="card border rounded-3 p-3 bg-light-subtle mb-3">
+                <div class="small fw-semibold text-secondary mb-2 d-flex align-items-center gap-1">
+                  <i class="bi bi-plus-circle-fill text-primary"></i> Add Sub-Department Assignment
                 </div>
-                <!-- Dropdown Panel -->
-                <div *ngIf="showSubDeptDropdown && subDepartments.length > 0"
-                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white"
-                  style="z-index: 1050; max-height: 220px; overflow-y: auto;">
-                  <div *ngFor="let sub of subDepartments"
-                    class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
-                    (mousedown)="toggleSubDeptSelection(sub.id, $event)" style="cursor: pointer;">
-                    <input type="checkbox" class="form-check-input custom-checkbox" style="pointer-events: none;"
-                      [checked]="isSubDeptSelected(sub.id)" />
-                    <span>{{ sub.name }} ({{ sub.code }})</span>
+                <div class="row g-2 align-items-end">
+                  <!-- Department -->
+                  <div class="col-md-4">
+                    <label class="form-label text-muted small mb-1">Department</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="newAssignmentDeptId" [ngModelOptions]="{standalone: true}" (change)="onNewAssignmentDeptChange()">
+                      <option [ngValue]="null" disabled>Select Department</option>
+                      <option *ngFor="let deptId of selectedDepartments" [ngValue]="deptId">
+                        {{ getDeptName(deptId) }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Sub-Department -->
+                  <div class="col-md-4">
+                    <label class="form-label text-muted small mb-1">Sub-Department</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="newAssignmentSubDeptId" [ngModelOptions]="{standalone: true}" [disabled]="!newAssignmentDeptId">
+                      <option [ngValue]="null" disabled>Select Sub-Department</option>
+                      <option *ngFor="let sd of getFilteredSubDeptsForNewAssignment()" [value]="sd.id">
+                        {{ sd.name }} ({{ sd.code }})
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Role Selector -->
+                  <div class="col-md-2">
+                    <label class="form-label text-muted small mb-1">Assigned Role</label>
+                    <select class="form-select form-select-sm fw-semibold" [(ngModel)]="newAssignmentRole" [ngModelOptions]="{standalone: true}">
+                      <option value="TEACHER">TEACHER</option>
+                      <option value="HOD">HOD</option>
+                    </select>
+                  </div>
+
+                  <!-- Add Button -->
+                  <div class="col-md-2">
+                    <button type="button" class="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center gap-1"
+                      (click)="addScopedAssignment()"
+                      [disabled]="!newAssignmentDeptId || !newAssignmentSubDeptId">
+                      <i class="bi bi-plus-lg"></i> Add Role
+                    </button>
                   </div>
                 </div>
-                <div *ngIf="showSubDeptDropdown && subDepartments.length === 0"
-                  class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted"
-                  style="z-index: 1050;">
-                  No sub-departments available for the selected department(s).
+
+                <!-- Assignment Error Inline Message -->
+                <div *ngIf="assignmentError" class="text-danger small mt-2">
+                  <i class="bi bi-exclamation-circle me-1"></i>{{ assignmentError }}
                 </div>
               </div>
-              <div *ngIf="selectedDepartments.length > 0 && f['subDepartmentIds']?.touched && f['subDepartmentIds']?.invalid"
+
+              <!-- Active Role Assignments Table -->
+              <div class="table-responsive border rounded-3 bg-white shadow-sm" *ngIf="scopedAssignments.length > 0">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light text-muted small">
+                    <tr>
+                      <th style="width: 32%;">DEPARTMENT</th>
+                      <th style="width: 33%;">SUB-DEPARTMENT</th>
+                      <th style="width: 23%;">ASSIGNED ROLE</th>
+                      <th style="width: 12%;" class="text-end">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let a of scopedAssignments; let i = index">
+                      <td>
+                        <span class="fw-medium text-dark">
+                          <i class="bi bi-building me-1 text-muted"></i>{{ a.departmentName || getDeptName(a.departmentId) }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge bg-light text-dark border px-2.5 py-1.5 fw-normal">
+                          <i class="bi bi-diagram-2 me-1 text-primary"></i>{{ a.subDepartmentName || getSubDeptName(a.subDepartmentId) }}
+                        </span>
+                      </td>
+                      <td>
+                        <select class="form-select form-select-sm fw-semibold border-primary-subtle"
+                          [(ngModel)]="a.role"
+                          [ngModelOptions]="{standalone: true}"
+                          (ngModelChange)="onAssignmentRoleChanged(a, a.role)">
+                          <option value="HOD">HOD</option>
+                          <option value="TEACHER">TEACHER</option>
+                        </select>
+                      </td>
+                      <td class="text-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm border-0 px-2 py-1"
+                          (click)="removeScopedAssignment(i)" title="Remove this subdepartment role assignment">
+                          <i class="bi bi-trash3 me-1"></i> Remove
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Empty State -->
+              <div *ngIf="selectedDepartments.length > 0 && scopedAssignments.length === 0"
+                class="alert alert-light border py-3 px-3 text-center text-muted small mb-0 rounded-3">
+                <i class="bi bi-info-circle me-1"></i> No sub-department role assignments configured yet. Choose a department, sub-department, and assigned role above and click <strong>Add Role</strong>.
+              </div>
+
+              <div *ngIf="selectedDepartments.length > 0 && scopedAssignments.length === 0 && f['subDepartmentIds']?.touched"
                 class="text-danger small mt-1">
-                <small>Sub-department assignment is required.</small>
+                <small>At least one sub-department role assignment is required.</small>
               </div>
             </div>
 
