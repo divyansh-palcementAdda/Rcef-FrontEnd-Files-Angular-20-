@@ -252,7 +252,7 @@ export class ViewAllUserss implements OnInit {
   ) {
     this.modalService.modalClosed$.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.success) {
-        this.updateQueryParams();
+        this.loadUsersForRole();
       }
     });
   }
