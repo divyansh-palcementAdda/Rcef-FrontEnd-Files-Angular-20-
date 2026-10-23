@@ -47,6 +47,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
   currentUserRole = '';
   currentUserDepartments: number[] = [];
+  currentUserSubDepartments: string[] = [];
   isHOD = false;
 
   userTasks: TaskDto[] = [];
@@ -413,6 +414,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
         if (this.isHOD) {
           this.currentUserDepartments = currentUser.departmentIds || [];
+          this.currentUserSubDepartments = currentUser.subDepartmentIds || (currentUser.subDepartmentId ? [currentUser.subDepartmentId] : []);
           this.verifyHODAccess();
         } else {
           this.loadUserDetails();
@@ -429,9 +431,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     this.userService.getUserById(this.userId).subscribe({
       next: (user) => {
         const userDeptIds = user.departmentIds || [];
-        const hasAccess = userDeptIds.some(id => this.currentUserDepartments.includes(id));
+        const userSubDeptIds = user.subDepartmentIds || (user.subDepartmentId ? [user.subDepartmentId] : []);
 
-        if (!hasAccess) {
+        const hasDeptAccess = userDeptIds.some(id => this.currentUserDepartments.includes(id));
+        const hasSubDeptAccess = userSubDeptIds.some(id => this.currentUserSubDepartments.includes(id));
+        const hasAccess = hasDeptAccess || hasSubDeptAccess;
+
+        if (!hasAccess && (this.currentUserDepartments.length > 0 || this.currentUserSubDepartments.length > 0)) {
           this.isForbidden = true;
           this.isLoading = false;
           return;
