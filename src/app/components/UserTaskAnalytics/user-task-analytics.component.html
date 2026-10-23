@@ -182,7 +182,7 @@
       </div>
 
       <!-- Role -->
-      <div class="uta-filter-field">
+      <div class="uta-filter-field" *ngIf="!isTeacher">
         <label class="uta-filter-label">Role</label>
         <select class="uta-select" [(ngModel)]="selectedRole" (change)="onFilterChange()" aria-label="Filter by role">
           <option value="">All Roles</option>

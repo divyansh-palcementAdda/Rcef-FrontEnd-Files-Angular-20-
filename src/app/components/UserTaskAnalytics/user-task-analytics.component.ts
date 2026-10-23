@@ -31,6 +31,10 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     return role === 'HOD' || role === 'TEACHER';
   }
 
+  get isTeacher(): boolean {
+    return this.authService.getCurrentRole() === 'TEACHER';
+  }
+
   // ── Department/Sub-Department cards ────────────────────────────────────
   departmentCards: UserTaskDepartmentCardDTO[] = [];
   loadingCards: boolean = false;
@@ -198,22 +202,22 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
 
   private saveStateToSession(): void {
     const state = {
-      selectedDepartmentId:     this.selectedDepartmentId,
+      selectedDepartmentId: this.selectedDepartmentId,
       selectedSubDepartmentCardId: this.selectedSubDepartmentCardId,
-      selectedSubDepartmentId:  this.selectedSubDepartmentId,
+      selectedSubDepartmentId: this.selectedSubDepartmentId,
       selectedSubDepartmentIds: this.selectedSubDepartmentIds,
-      selectedRole:             this.selectedRole,
-      selectedStatus:           this.selectedStatus,
-      selectedPriority:         this.selectedPriority,
-      startDate:                this.startDate,
-      endDate:                  this.endDate,
-      isRecurring:              this.isRecurring,
-      activeUsersOnly:          this.activeUsersOnly,
-      search:                   this.search,
-      sortField:                this.sortField,
-      sortDir:                  this.sortDir,
-      currentPage:              this.currentPage,
-      pageSize:                 this.pageSize
+      selectedRole: this.selectedRole,
+      selectedStatus: this.selectedStatus,
+      selectedPriority: this.selectedPriority,
+      startDate: this.startDate,
+      endDate: this.endDate,
+      isRecurring: this.isRecurring,
+      activeUsersOnly: this.activeUsersOnly,
+      search: this.search,
+      sortField: this.sortField,
+      sortDir: this.sortDir,
+      currentPage: this.currentPage,
+      pageSize: this.pageSize
     };
     sessionStorage.setItem(UserTaskAnalyticsComponent.FILTER_SESSION_KEY, JSON.stringify(state));
   }
@@ -223,22 +227,22 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
     if (!raw) return false;
     try {
       const s = JSON.parse(raw);
-      this.selectedDepartmentId      = s.selectedDepartmentId     ?? null;
+      this.selectedDepartmentId = s.selectedDepartmentId ?? null;
       this.selectedSubDepartmentCardId = s.selectedSubDepartmentCardId ?? '';
-      this.selectedSubDepartmentId   = s.selectedSubDepartmentId  ?? '';
-      this.selectedSubDepartmentIds  = s.selectedSubDepartmentIds ?? [];
-      this.selectedRole              = s.selectedRole             ?? '';
-      this.selectedStatus            = s.selectedStatus           ?? 'ALL';
-      this.selectedPriority          = s.selectedPriority         ?? 'ALL';
-      this.startDate                 = s.startDate                ?? '';
-      this.endDate                   = s.endDate                  ?? '';
-      this.isRecurring               = s.isRecurring              ?? null;
-      this.activeUsersOnly           = s.activeUsersOnly          ?? true;
-      this.search                    = s.search                   ?? '';
-      this.sortField                 = s.sortField                ?? 'fullName';
-      this.sortDir                   = s.sortDir                  ?? 'asc';
-      this.currentPage               = s.currentPage              ?? 0;
-      this.pageSize                  = s.pageSize                 ?? 10;
+      this.selectedSubDepartmentId = s.selectedSubDepartmentId ?? '';
+      this.selectedSubDepartmentIds = s.selectedSubDepartmentIds ?? [];
+      this.selectedRole = s.selectedRole ?? '';
+      this.selectedStatus = s.selectedStatus ?? 'ALL';
+      this.selectedPriority = s.selectedPriority ?? 'ALL';
+      this.startDate = s.startDate ?? '';
+      this.endDate = s.endDate ?? '';
+      this.isRecurring = s.isRecurring ?? null;
+      this.activeUsersOnly = s.activeUsersOnly ?? true;
+      this.search = s.search ?? '';
+      this.sortField = s.sortField ?? 'fullName';
+      this.sortDir = s.sortDir ?? 'asc';
+      this.currentPage = s.currentPage ?? 0;
+      this.pageSize = s.pageSize ?? 10;
       return true;
     } catch {
       return false;
@@ -259,6 +263,23 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
       this.loadDepartmentCards();
       this.loadSubDepartmentsForSelectedDept();
     }
+
+    // Listen for role-context / assignment switching
+    this.authService.activeAssignment$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        sessionStorage.removeItem(UserTaskAnalyticsComponent.FILTER_SESSION_KEY);
+        this.selectedDepartmentId = null;
+        this.selectedSubDepartmentCardId = '';
+        this.selectedSubDepartmentId = '';
+        this.selectedSubDepartmentIds = [];
+        this.selectedRole = '';
+        this.selectedUserId = null;
+        this.search = '';
+        this.currentPage = 0;
+        this.loadDepartmentCards();
+        this.loadSubDepartmentsForSelectedDept();
+      });
 
     // Debounced search
     this.searchSubject.pipe(
