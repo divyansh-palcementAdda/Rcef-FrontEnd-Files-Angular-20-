@@ -4,21 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs/operators';
-import {
-  AllWorkApiService,
-  WorkDashboardResponse,
-  DepartmentCardDTO,
-  SubDepartmentRowDTO,
-  UserRowDTO,
-  WorkAnalyticsResponse
-} from '../../Services/all-work-api.service';
 import { JwtService } from '../../Services/jwt-service';
+import { AuthApiService } from '../../Services/auth-api-service';
 import { ModalWrapperComponent } from '../Shared/modal-wrapper/modal-wrapper';
 import { ModalWrapperService } from '../../Services/modal-wrapper.service';
 import { AllWorkUsersComponent } from './modals/users/all-work-users.component';
 import { AllWorkTasksComponent } from './modals/tasks/all-work-tasks.component';
 import { AllWorkAnalyticsComponent } from './modals/analytics/all-work-analytics.component';
 import { DragScrollDirective } from '../Shared/directives/drag-scroll.directive';
+import { WorkDashboardResponse, DepartmentCardDTO, SubDepartmentRowDTO, AllWorkApiService, UserRowDTO } from '../../Services/all-work-api.service';
 
 @Component({
   selector: 'app-all-work',
@@ -95,6 +89,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
 
   constructor(
     private apiService: AllWorkApiService,
+    private authService: AuthApiService,
     private jwtService: JwtService,
     private router: Router,
     private route: ActivatedRoute,
@@ -106,6 +101,20 @@ export class AllWorkComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const token = this.jwtService.getAccessToken();
     this.currentUserId = token ? this.jwtService.getUserIdFromToken(token) : null;
+
+    // Subscribe to active assignment changes (context switching)
+    this.subscriptions.add(
+      this.authService.activeAssignment$.subscribe(assignment => {
+        if (!this.isInitialLoad && assignment) {
+          this.subDepartments = [];
+          this.totalSubDepts = 0;
+          this.selectedDeptId = null;
+          this.subDeptPage = 0;
+          this.modalWrapperService.clear();
+          this.loadDashboard();
+        }
+      })
+    );
 
     // Subscribe to search input changes with debounce
     this.subscriptions.add(
