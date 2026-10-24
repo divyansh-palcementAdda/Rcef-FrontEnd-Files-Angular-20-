@@ -119,7 +119,7 @@ body.modal-open .modal-backdrop-overlay {
   background: transparent;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  z-index: 9999;
+  z-index: 1050;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,6 +142,8 @@ body.modal-open .modal-backdrop-overlay {
   width: 100%;
   animation: modalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   pointer-events: auto;
+  position: relative;
+  z-index: 1060;
 }
 
 /* Modal Sizes */
@@ -500,7 +502,7 @@ body.modal-open .modal-backdrop-overlay {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  z-index: 1050;
+  z-index: 1060;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -607,7 +609,7 @@ body.modal-open .modal-backdrop-overlay {
   inset: 0;
   background: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(6px);
-  z-index: 2000;
+  z-index: 1100;
 }
 
 .access-denied-modal {

@@ -283,7 +283,7 @@
                 <!-- Dropdown Panel -->
                 <div *ngIf="showManagerDropdown && filteredManagersList().length > 0"
                   class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white"
-                  style="z-index: 99999; max-height: 180px; overflow-y: auto;">
+                  style="z-index: 1060; max-height: 180px; overflow-y: auto;">
                   <div *ngFor="let mgr of filteredManagersList()"
                     class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                     (mousedown)="toggleManagerSelection(mgr.userId, $event)" style="cursor: pointer;">
@@ -294,7 +294,7 @@
                 </div>
                 <div *ngIf="showManagerDropdown && filteredManagersList().length === 0"
                   class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted"
-                  style="z-index: 99999;">
+                  style="z-index: 1060;">
                   No matching managers found.
                 </div>
               </div>
@@ -393,7 +393,7 @@
                 <!-- Dropdown Panel -->
                 <div *ngIf="showSubDeptDropdown && subDepartments.length > 0"
                   class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white"
-                  style="z-index: 99999; max-height: 180px; overflow-y: auto;">
+                  style="z-index: 1060; max-height: 180px; overflow-y: auto;">
                   <div *ngFor="let sub of subDepartments"
                     class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                     (mousedown)="toggleSubDeptSelection(sub.id, $event)" style="cursor: pointer;">
@@ -404,7 +404,7 @@
                 </div>
                 <div *ngIf="showSubDeptDropdown && subDepartments.length === 0"
                   class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted"
-                  style="z-index: 99999;">
+                  style="z-index: 1060;">
                   No sub-departments available for the selected department(s).
                 </div>
               </div>
@@ -446,7 +446,7 @@
                 <!-- Dropdown Panel -->
                 <div *ngIf="showSubjectDropdown && filteredSubjectsList().length > 0"
                   class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white"
-                  style="z-index: 99999; max-height: 180px; overflow-y: auto;">
+                  style="z-index: 1060; max-height: 180px; overflow-y: auto;">
                   <div *ngFor="let sub of filteredSubjectsList(); let idx = index"
                     class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                     [class.active-item]="idx === activeItemIndex" (mousedown)="toggleSubjectSelection(sub.id, $event)"
@@ -458,7 +458,7 @@
                 </div>
                 <div *ngIf="showSubjectDropdown && filteredSubjectsList().length === 0"
                   class="multiselect-dropdown-menu position-absolute w-100 mt-1 shadow border rounded-3 bg-white p-3 text-center text-muted"
-                  style="z-index: 99999;">
+                  style="z-index: 1060;">
                   No matching subjects found.
                 </div>
               </div>

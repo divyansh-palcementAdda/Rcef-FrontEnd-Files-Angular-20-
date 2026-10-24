@@ -201,7 +201,7 @@
     left: -280px;
     width: min(280px, calc(100vw - 1rem));
     height: 100vh;
-    z-index: 10000;
+    z-index: 1040;
     box-shadow: 0 0 20px rgba(15, 23, 42, 0.15);
     transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }

@@ -34,13 +34,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   user?: userDto;
   isLoading = true;
 
-  /** Injected <style> tag to suppress sidebar z-index while modal is open */
-  private _modalStyleEl: HTMLStyleElement | null = null;
-  
-  /** Store previous sidebar state to restore when modal closes */
-  private previousMobileOpen = false;
-  private previousCollapsedState = false;
-  
   errorMessage = '';
   isForbidden = false;
   isMobile = false;
@@ -191,110 +184,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     private sidebarService: SidebarService
   ) { }
 
-  /** Inject a global <style> to push sidebar behind the modal overlay */
-  // private suppressSidebarZIndex(): void {
-  //   document.body.classList.add('modal-open');
-  //   if (this._modalStyleEl) return;
-  //   const style = document.createElement('style');
-  //   style.id = 'vu-modal-sidebar-fix';
-  //   style.textContent = `
-  //     /* Suppress sidebar */
-  //     .sidebar-wrapper {
-  //       z-index: 1 !important;
-  //       pointer-events: none !important;
-  //       filter: blur(2px) !important;
-  //       -webkit-filter: blur(2px) !important;
-  //       opacity: 0.4 !important;
-  //       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  //     }
-  //     app-sidebar { 
-  //       z-index: 1 !important; 
-  //     }
-
-  //     /* Suppress topbar */
-  //     app-topbar,
-  //     .topbar,
-  //     [class*="topbar"] {
-  //       z-index: 1 !important;
-  //       pointer-events: none !important;
-  //       filter: blur(2px) !important;
-  //       -webkit-filter: blur(2px) !important;
-  //       opacity: 0.4 !important;
-  //       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  //     }
-
-  //     .app-layout { 
-  //       position: relative !important; 
-  //     }
-
-  //     /* Ensure modals are on top */
-  //     .view-user-modal-overlay,
-  //     .edit-user-modal-overlay { 
-  //       z-index: 100001 !important; 
-  //     }
-
-  //     .view-user-modal-card,
-  //     .edit-user-modal-card {
-  //       z-index: 100002 !important;
-  //     }
-  //   `;
-  //   document.head.appendChild(style);
-  //   this._modalStyleEl = style;
-  // }
-
-  /** Close/collapse sidebar when modal opens */
-  private closeSidebarForModal(): void {
-    // Store current sidebar state using public getters
-    this.previousMobileOpen = this.sidebarService.getIsMobileOpen();
-    this.previousCollapsedState = this.sidebarService.getIsCollapsed();
-    
-    console.log('Sidebar state before modal:', { 
-      previousMobileOpen: this.previousMobileOpen, 
-      previousCollapsedState: this.previousCollapsedState 
-    });
-    
-    // Close sidebar on mobile
-    this.sidebarService.setMobileSidebarOpen(false);
-    
-    // Collapse sidebar on desktop/tablet
-    if (!this.previousCollapsedState) {
-      this.sidebarService.toggleCollapsed();
-    }
-    
-    console.log('Sidebar closed for modal');
-  }
-
-  /** Restore sidebar to previous state when modal closes */
-  private restoreSidebar(): void {
-    console.log('Restoring sidebar to state:', { 
-      previousMobileOpen: this.previousMobileOpen, 
-      previousCollapsedState: this.previousCollapsedState 
-    });
-    
-    // Restore mobile sidebar state
-    this.sidebarService.setMobileSidebarOpen(this.previousMobileOpen);
-    
-    // Restore collapsed state - only toggle if it was expanded and is now collapsed
-    if (this.previousCollapsedState === false && this.sidebarService.getIsCollapsed() === true) {
-      this.sidebarService.toggleCollapsed();
-    }
-    
-    console.log('Sidebar restored');
-  }
-
-  /** Remove the injected style to restore sidebar */
-  private restoreSidebarZIndex(): void {
-    if (this._modalStyleEl) {
-      this._modalStyleEl.remove();
-      this._modalStyleEl = null;
-    }
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    this.restoreSidebar();
-  }
-
   ngOnDestroy(): void {
-    this.restoreSidebarZIndex();
     document.body.style.overflow = '';
     this._deptSearch$.complete();
     this._subDeptSearch$.complete();
@@ -826,10 +716,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     if (this.canEditDelete()) {
       (document.activeElement as HTMLElement | null)?.blur?.();
       this.isEditModalOpen = true;
-      this.closeSidebarForModal();
       document.body.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
-      // this.suppressSidebarZIndex();
     }
   }
 
@@ -838,8 +726,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     this.isEditModalOpen = false;
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
-    this.restoreSidebarZIndex();
-    this.restoreSidebar();
     if (saved) {
       this.loadUserDetails();
     }
@@ -1045,7 +931,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     this.modalPriority = '';
     this.modalTaskType = '';
     this.isTaskModalOpen = true;
-    this.closeSidebarForModal();
     document.body.classList.add('modal-open');
     document.body.style.overflow = 'hidden';
     this.updateQueryParams();
@@ -1062,7 +947,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     this.modalPriority = '';
     this.modalTaskType = '';
     this.isTaskModalOpen = true;
-    this.closeSidebarForModal();
     document.body.classList.add('modal-open');
     document.body.style.overflow = 'hidden';
     this.updateQueryParams();
@@ -1079,7 +963,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     this.modalPriority = '';
     this.modalTaskType = '';
     this.isTaskModalOpen = true;
-    this.closeSidebarForModal();
     document.body.classList.add('modal-open');
     document.body.style.overflow = 'hidden';
     this.updateQueryParams();
@@ -1144,7 +1027,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
   closeTaskModal(): void {
     this.isTaskModalOpen = false;
     this.modalTasks = [];
-    this.restoreSidebarZIndex();
     this.updateQueryParams();
   }
 

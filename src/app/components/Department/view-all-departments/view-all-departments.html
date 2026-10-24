@@ -407,7 +407,7 @@
 
   <!-- ── Add Sub-Department Modal ──────────────────────────────────────── -->
   <div class="modal-backdrop-custom" *ngIf="showAddSubDeptModal" (click)="closeAddSubDeptModal()"></div>
-  <div class="modal fade show d-block" tabindex="-1" role="dialog" *ngIf="showAddSubDeptModal" style="z-index: 1055;">
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" *ngIf="showAddSubDeptModal">
     <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
       <div class="modal-content border-0 shadow-lg">
 
@@ -477,7 +477,7 @@
 
   <!-- ── Edit Sub-Department Modal ─────────────────────────────────────── -->
   <div class="modal-backdrop-custom" *ngIf="showEditModal" (click)="closeEditModal()"></div>
-  <div class="modal fade show d-block" tabindex="-1" role="dialog" *ngIf="showEditModal" style="z-index: 1055;">
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" *ngIf="showEditModal">
     <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
       <div class="modal-content border-0 shadow-lg">
 

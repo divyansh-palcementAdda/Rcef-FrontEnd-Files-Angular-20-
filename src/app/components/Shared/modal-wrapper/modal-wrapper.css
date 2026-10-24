@@ -19,6 +19,7 @@
   /* Dim overlay on the shell itself — no blur here */
   background-color: rgba(15, 23, 42, 0.5);
   /* NO backdrop-filter — it would blur child elements */
+  z-index: 1050;
 }
 
 .modal-backdrop-custom.backdrop-nested {

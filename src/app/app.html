@@ -57,7 +57,7 @@
 <!-- Premium Global Modals Overlay -->
 <div *ngIf="activeModal" class="modal-backdrop-overlay" (click)="closeActiveModal(false)">
   <div class="modal-window-wrapper" [ngClass]="{
-    'modal-size-large': activeModal === 'add-user' || activeModal === 'edit-user',
+    'modal-size-large': activeModal === 'add-user' || activeModal === 'edit-user' || activeModal === 'bulk-upload-tasks',
     'modal-size-medium': activeModal === 'add-department',
     'modal-size-xlarge': activeModal === 'add-task' || activeModal === 'edit-task'
   }" (click)="$event.stopPropagation()">
@@ -72,5 +72,20 @@
       (closed)="closeActiveModal($event)"></app-edit-user>
     <app-update-task *ngIf="activeModal === 'edit-task'" [isModal]="true"
       (closed)="closeActiveModal($event)"></app-update-task>
+
+    <div *ngIf="activeModal === 'bulk-upload-tasks'" class="modal-form-layout">
+      <div class="modal-form-header d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="modal-title fw-bold mb-0">
+            <i class="bi bi-file-earmark-excel-fill me-2 text-primary"></i>Bulk Upload Tasks
+          </h5>
+          <p class="text-muted small mb-0">Upload a CSV/Excel file to import tasks in bulk</p>
+        </div>
+        <button type="button" class="btn-close" (click)="closeActiveModal(false)" aria-label="Close"></button>
+      </div>
+      <div class="modal-form-body p-0">
+        <app-tasks-import (importCompleted)="closeActiveModal(true)"></app-tasks-import>
+      </div>
+    </div>
   </div>
 </div>

@@ -19,7 +19,7 @@
 /* Elevate component host above global body backdrop when a modal is open */
 :host-context(body.modal-open) {
   position: relative;
-  z-index: 1060 !important;
+  z-index: 1020 !important;
   pointer-events: auto !important;
 }
 

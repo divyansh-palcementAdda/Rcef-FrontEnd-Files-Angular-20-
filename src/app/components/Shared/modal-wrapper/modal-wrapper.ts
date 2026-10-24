@@ -86,10 +86,7 @@ export class ModalWrapperComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.previousActiveElement = document.activeElement as HTMLElement;
     this.modalService.register(this);
-    
-    // Auto-close mobile sidebar when modal opens for better UX
-    this.sidebarService.setMobileSidebarOpen(false);
-    
+
     // Set focus to the modal dialog for keyboard interaction & focus trap
     requestAnimationFrame(() => {
       if (this.modalDialog) {
