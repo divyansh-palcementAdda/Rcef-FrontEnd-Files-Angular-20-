@@ -15,6 +15,7 @@ import { AddDepartmentComponent } from './components/Department/add-department/a
 import { AddTaskComponent } from './components/Tasks/add-task/add-task';
 import { EditUser } from './components/Users/edit-user/edit-user';
 import { UpdateTaskComponent } from './components/Tasks/update-task/update-task';
+import { TasksImportComponent } from './components/Tasks/tasks-import/tasks-import';
 import { ModalService } from './Services/modal-service';
 import { SidebarService } from './Services/sidebar-service';
 import { ConfirmDialogComponent } from './components/Shared/confirm-dialog/confirm-dialog.component';
@@ -24,10 +25,10 @@ import { AccessDeniedModalService } from './Services/access-denied-modal.service
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterOutlet, 
-    Navbar, 
-    SidebarComponent, 
+    CommonModule,
+    RouterOutlet,
+    Navbar,
+    SidebarComponent,
     TopbarComponent,
     BottomNavComponent,
     AddUserComponent,
@@ -35,6 +36,7 @@ import { AccessDeniedModalService } from './Services/access-denied-modal.service
     AddTaskComponent,
     EditUser,
     UpdateTaskComponent,
+    TasksImportComponent,
     ConfirmDialogComponent
   ],
   templateUrl: './app.html',

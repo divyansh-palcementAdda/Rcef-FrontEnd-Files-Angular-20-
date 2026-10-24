@@ -24,7 +24,6 @@ import { SubjectDto } from '../../../Model/subject';
 import { FilterDrawerComponent, FilterFieldConfig } from '../../Shared/filter-drawer/filter-drawer.component';
 import { PageToolbarComponent } from '../../Shared/page-toolbar/page-toolbar.component';
 import { AnalyticsStatCardComponent } from '../../Shared/analytics-stat-card/analytics-stat-card.component';
-import { TasksImportComponent } from '../tasks-import/tasks-import';
 import { AddTaskComponent } from '../add-task/add-task';
 import { DragScrollDirective } from '../../Shared/directives/drag-scroll.directive';
 
@@ -37,7 +36,7 @@ interface ApiResponse<T> {
 @Component({
   selector: 'app-view-tasks',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageToolbarComponent, AnalyticsStatCardComponent, TasksImportComponent, DragScrollDirective],
+  imports: [CommonModule, FormsModule, PageToolbarComponent, AnalyticsStatCardComponent, DragScrollDirective],
 
   templateUrl: './view-tasks.html',
   styleUrls: ['./view-tasks.css']
@@ -62,7 +61,6 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
   isForbidden = false;
   isEmpty = false;
-  showBulkUploadModal = false;
   showAddTaskModal = false;
 
   // Filters
@@ -479,6 +477,9 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       this.modalService.modalClosed$.subscribe(event => {
         if (event.success) {
           this.loadTasksFromServer();
+        }
+        if (event.modal === 'bulk-upload-tasks' && event.success) {
+          this.applyFilters();
         }
       })
     );
@@ -1611,12 +1612,9 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
   }
 
   goToBulkImport(): void {
-    this.showBulkUploadModal = true;
-  }
-
-  closeBulkUploadModal(): void {
-    this.showBulkUploadModal = false;
-    this.applyFilters();
+    this.router.navigate([], {
+      queryParams: { modal: 'bulk-upload-tasks' }
+    });
   }
 
   openAddTaskModal(): void {

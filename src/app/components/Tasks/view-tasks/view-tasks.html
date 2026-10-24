@@ -641,25 +641,3 @@
       </div>
     </div>
   </div>
-
-  <!-- ===================== Bulk Upload Modal ===================== -->
-  <div class="modal-backdrop-overlay" *ngIf="showBulkUploadModal" (click)="closeBulkUploadModal()">
-    <div class="modal-window-wrapper modal-size-large" (click)="$event.stopPropagation()">
-      <div class="modal-form-layout">
-        <!-- Modal Header -->
-        <div class="modal-form-header d-flex justify-content-between align-items-center">
-          <div>
-            <h5 class="modal-title fw-bold mb-0" id="bulkUploadModalLabel">
-              <i class="bi bi-file-earmark-excel-fill me-2 text-primary"></i>Bulk Upload Tasks
-            </h5>
-            <p class="text-muted small mb-0">Upload a CSV/Excel file to import tasks in bulk</p>
-          </div>
-          <button type="button" class="btn-close" (click)="closeBulkUploadModal()" aria-label="Close"></button>
-        </div>
-        <!-- Modal Body -->
-        <div class="modal-form-body p-0">
-          <app-tasks-import *ngIf="showBulkUploadModal"></app-tasks-import>
-        </div>
-      </div>
-    </div>
-  </div>
