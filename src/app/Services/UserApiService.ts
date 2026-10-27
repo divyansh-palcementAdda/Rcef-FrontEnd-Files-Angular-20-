@@ -160,7 +160,7 @@ export class UserApiService {
 
   /**
    * Fetch users for multiple sub-departments
-   * Returns deduplicated array
+   * Returns deduplicated array with scope-specific roles resolved
    */
   getUsersBySubDepartments(subDeptIds: string[]): Observable<userDto[]> {
     if (!subDeptIds || subDeptIds.length === 0) {
@@ -178,14 +178,57 @@ export class UserApiService {
 
     return forkJoin(requests).pipe(
       map(results => {
-        const merged: userDto[] = [];
-        const seen = new Set<number>();
-        results.flat().forEach(user => {
-          if (!seen.has(user.userId)) {
-            seen.add(user.userId);
-            merged.push(user);
-          }
+        const userMap = new Map<number, { user: userDto; rolesBySubDept: Map<string, string> }>();
+
+        results.forEach(subDeptUsers => {
+          subDeptUsers.forEach(u => {
+            const existing = userMap.get(u.userId);
+            const subDeptLabel = u.subDepartmentName || (u.subDepartmentId ? `Sub-Dept` : '');
+            const currentRole = u.role || 'MEMBER';
+            if (!existing) {
+              const rolesMap = new Map<string, string>();
+              if (subDeptLabel) {
+                rolesMap.set(subDeptLabel, currentRole);
+              }
+              userMap.set(u.userId, {
+                user: { ...u },
+                rolesBySubDept: rolesMap
+              });
+            } else {
+              if (subDeptLabel) {
+                existing.rolesBySubDept.set(subDeptLabel, currentRole);
+              }
+              if (u.subDepartmentId) {
+                existing.user.subDepartmentIds = existing.user.subDepartmentIds || [];
+                if (!existing.user.subDepartmentIds.includes(u.subDepartmentId)) {
+                  existing.user.subDepartmentIds.push(u.subDepartmentId);
+                }
+              }
+            }
+          });
         });
+
+        const merged: userDto[] = [];
+        userMap.forEach(({ user, rolesBySubDept }) => {
+          if (rolesBySubDept.size > 0) {
+            const uniqueRoles = Array.from(new Set(rolesBySubDept.values()));
+            if (uniqueRoles.length === 1) {
+              // Same role across all selected sub-departments
+              user.role = uniqueRoles[0];
+            } else {
+              // Different roles across sub-departments: label each scope
+              const roleEntries = Array.from(rolesBySubDept.entries());
+              roleEntries.sort((a, b) => {
+                if (a[1] === 'HOD' && b[1] !== 'HOD') return -1;
+                if (b[1] === 'HOD' && a[1] !== 'HOD') return 1;
+                return a[0].localeCompare(b[0]);
+              });
+              user.role = roleEntries.map(([sdName, r]) => `${r} (${sdName})`).join(', ');
+            }
+          }
+          merged.push(user);
+        });
+
         return merged;
       })
     );

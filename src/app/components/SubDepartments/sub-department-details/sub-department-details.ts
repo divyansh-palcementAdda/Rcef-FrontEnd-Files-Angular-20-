@@ -633,19 +633,27 @@ export class SubDepartmentDetailsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const idParam = this.route.snapshot.paramMap.get('id');
-    if (idParam) {
-      this.subDeptId = idParam;
-      // Read optional userId passed from All-Users > View flow
-      this.route.queryParams.subscribe(params => {
-        const uid = params['userId'];
-        this.selectedUserId = uid ? Number(uid) : null;
-      });
-      this.loadSubDepartmentDetail();
-    } else {
-      this.showError('Invalid sub-department ID');
-      this.goBack();
-    }
+    this.route.paramMap.subscribe(paramMap => {
+      const idParam = paramMap.get('id');
+      if (idParam) {
+        const idChanged = this.subDeptId && this.subDeptId !== idParam;
+        this.subDeptId = idParam;
+        if (idChanged) {
+          this.subDeptDetail = null;
+          this.paginatedTasks = [];
+        }
+        this.loadSubDepartmentDetail();
+      } else {
+        this.showError('Invalid sub-department ID');
+        this.goBack();
+      }
+    });
+
+    // Read optional userId passed from All-Users > View flow
+    this.route.queryParams.subscribe(params => {
+      const uid = params['userId'];
+      this.selectedUserId = uid ? Number(uid) : null;
+    });
   }
 
   loadSubDepartmentDetail(): void {
