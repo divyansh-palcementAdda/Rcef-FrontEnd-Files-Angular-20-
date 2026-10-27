@@ -64,7 +64,8 @@
   min-height: 0;
   overflow: hidden;
   background: #ffffff;
-  width: min(860px, calc(100vw - 2rem));
+  width: 100%;
+  max-width: 100%;
   border-radius: 28px;
 }
 
@@ -93,6 +94,7 @@
 .modal-form-body {
   flex: 1 1 auto;
   overflow-y: auto;
+  overflow-x: visible;
   min-height: 0;
   padding: 28px;
   background-color: #ffffff;
@@ -160,6 +162,7 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
   position: relative;
   z-index: 10;
+  max-width: 100%;
 }
 
 .form-section-card:focus-within,
@@ -467,4 +470,14 @@
   gap: 6px;
   padding: 6px 12px;
   border-radius: 50px;
+}
+
+/* Table responsive overflow handling */
+.table-responsive {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.table-responsive table {
+  min-width: 100%;
 }
