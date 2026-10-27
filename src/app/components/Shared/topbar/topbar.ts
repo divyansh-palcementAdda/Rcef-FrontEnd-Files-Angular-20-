@@ -47,22 +47,16 @@ export class TopbarComponent implements OnInit {
       }
     });
 
-    this.authService.activeAssignment$.subscribe(active => {
-      this.activeAssignment = active;
-      if (active) {
-        this.role = active.roleName;
+    this.authService.primaryRole$.subscribe(primary => {
+      if (primary) {
+        this.role = primary;
       } else {
         this.role = this.authService.getCurrentRole();
       }
     });
 
-    this.authService.availableAssignments$.subscribe(assignments => {
-      this.availableAssignments = assignments || [];
-    });
-
     this.role = this.authService.getCurrentRole();
     this.loadUserProfile();
-    this.authService.fetchAssignments().subscribe();
   }
 
   loadUserProfile(): void {
@@ -80,34 +74,6 @@ export class TopbarComponent implements OnInit {
           error: (err) => console.warn('Failed to load user profile in topbar:', err)
         });
       }
-    }
-  }
-
-  switchRole(assignment: UserRoleAssignmentDTO): void {
-    if (this.isSwitchingRole || !assignment || assignment.id === this.activeAssignment?.id) {
-      this.roleDropdownOpen = false;
-      return;
-    }
-    this.isSwitchingRole = true;
-    this.roleDropdownOpen = false;
-    this.profileDropdownOpen = false;
-
-    this.authService.switchContext(assignment.id).subscribe({
-      next: () => {
-        this.isSwitchingRole = false;
-        this.role = this.authService.getCurrentRole();
-      },
-      error: (err) => {
-        this.isSwitchingRole = false;
-        console.error('Failed to switch role context:', err);
-      }
-    });
-  }
-
-  toggleRoleDropdown(): void {
-    this.roleDropdownOpen = !this.roleDropdownOpen;
-    if (this.roleDropdownOpen) {
-      this.profileDropdownOpen = false;
     }
   }
 

@@ -102,19 +102,7 @@ export class AllWorkComponent implements OnInit, OnDestroy {
     const token = this.jwtService.getAccessToken();
     this.currentUserId = token ? this.jwtService.getUserIdFromToken(token) : null;
 
-    // Subscribe to active assignment changes (context switching)
-    this.subscriptions.add(
-      this.authService.activeAssignment$.subscribe(assignment => {
-        if (!this.isInitialLoad && assignment) {
-          this.subDepartments = [];
-          this.totalSubDepts = 0;
-          this.selectedDeptId = null;
-          this.subDeptPage = 0;
-          this.modalWrapperService.clear();
-          this.loadDashboard();
-        }
-      })
-    );
+
 
     // Subscribe to search input changes with debounce
     this.subscriptions.add(
