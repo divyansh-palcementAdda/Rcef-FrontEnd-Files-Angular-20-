@@ -68,10 +68,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(() => this.buildLinks());
 
-    this.authService.activeAssignment$.pipe(
+    this.authService.primaryRole$.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(active => {
-      this.role = active ? active.roleName : this.authService.getCurrentRole();
+    ).subscribe(primary => {
+      this.role = primary || this.authService.getCurrentRole();
       this.buildLinks();
     });
     this.loadUserProfile();

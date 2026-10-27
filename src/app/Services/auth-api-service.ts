@@ -434,6 +434,13 @@ export class AuthApiService {
   }
 
   getCurrentRole(): string | null {
+    const primary = this.primaryRoleSubject$.value;
+    if (primary && primary.trim() !== '') {
+      let r = primary;
+      if (r.startsWith('ROLE_')) r = r.substring(5);
+      return r;
+    }
+
     const active = this.activeAssignmentSubject$.value;
     if (active && active.roleName) {
       let r = active.roleName;

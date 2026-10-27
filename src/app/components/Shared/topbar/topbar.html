@@ -14,55 +14,9 @@
   <!-- Right actions section -->
   <!-- Right actions section -->
   <div class="topbar-right">
-    <!-- Multi-Role & Scope Switcher -->
-    <div class="role-switcher-container position-relative" *ngIf="availableAssignments && availableAssignments.length > 0">
-      <button class="role-switcher-btn d-flex align-items-center gap-2"
-              [class.single]="availableAssignments.length <= 1"
-              (click)="availableAssignments.length > 1 ? toggleRoleDropdown() : null"
-              [disabled]="isSwitchingRole"
-              [title]="availableAssignments.length > 1 ? 'Switch Role or Department' : 'Current Active Role & Scope'">
-        <span class="role-badge" [attr.data-role]="role">{{ role }}</span>
-        <span class="role-scope-label d-none d-lg-inline text-truncate" *ngIf="activeAssignment?.subDepartmentName || activeAssignment?.departmentName">
-          {{ activeAssignment?.subDepartmentName || activeAssignment?.departmentName }}
-        </span>
-        <svg *ngIf="availableAssignments.length > 1" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="switcher-chevron" [class.rotated]="roleDropdownOpen">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-        <span class="spinner-border spinner-border-sm text-primary" *ngIf="isSwitchingRole" role="status"></span>
-      </button>
-
-      <!-- Role Switcher Dropdown Panel -->
-      <div class="role-dropdown-menu shadow-lg" *ngIf="roleDropdownOpen" (click)="$event.stopPropagation()">
-        <div class="role-dropdown-header">
-          <div class="d-flex align-items-center justify-content-between">
-            <span class="role-dropdown-title">Select Role & Scope</span>
-            <span class="badge bg-secondary-subtle text-secondary">{{ availableAssignments.length }} available</span>
-          </div>
-          <small class="text-muted text-xs">Switch your active working context</small>
-        </div>
-        <div class="role-dropdown-body">
-          <button *ngFor="let a of availableAssignments"
-                  class="role-item-btn d-flex align-items-center justify-content-between w-100"
-                  [class.active]="a.id === activeAssignment?.id"
-                  (click)="switchRole(a)">
-            <div class="d-flex flex-column text-start">
-              <div class="d-flex align-items-center gap-1">
-                <span class="role-item-name fw-semibold">{{ a.roleName }}</span>
-                <span class="primary-indicator" *ngIf="a.isPrimary" title="Primary Role">Primary</span>
-              </div>
-              <span class="role-item-scope text-muted text-xs" *ngIf="a.subDepartmentName || a.departmentName">
-                {{ a.subDepartmentName ? (a.subDepartmentName + (a.departmentName ? ' (' + a.departmentName + ')' : '')) : a.departmentName }}
-              </span>
-              <span class="role-item-scope text-muted text-xs" *ngIf="!a.subDepartmentName && !a.departmentName">
-                Global System Access
-              </span>
-            </div>
-            <div class="role-item-check" *ngIf="a.id === activeAssignment?.id">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </button>
-        </div>
-      </div>
+    <!-- Primary Role Display Badge (Non-interactive) -->
+    <div class="role-badge-container d-flex align-items-center" *ngIf="role">
+      <span class="role-badge" [attr.data-role]="role">{{ role }}</span>
     </div>
 
     <!-- Notifications Bell Component -->
@@ -132,26 +86,7 @@
         </div>
       </div>
 
-      <!-- Quick Context Switcher Section (if multiple assignments) -->
-      <div class="profile-dropdown-divider" *ngIf="availableAssignments && availableAssignments.length > 1"></div>
-      <div class="px-3 py-2" *ngIf="availableAssignments && availableAssignments.length > 1">
-        <div class="text-xs fw-semibold text-muted text-uppercase mb-2">Switch Active Context</div>
-        <div class="d-flex flex-column gap-1">
-          <div *ngFor="let a of availableAssignments"
-               class="role-quick-item d-flex align-items-center justify-content-between p-1 rounded cursor-pointer"
-               [class.active]="a.id === activeAssignment?.id"
-               (click)="switchRole(a)">
-            <div class="d-flex align-items-center gap-2">
-              <span class="role-dot" [class.active]="a.id === activeAssignment?.id"></span>
-              <span class="text-xs fw-medium">{{ a.roleName }}</span>
-              <span class="text-xs text-muted" *ngIf="a.subDepartmentName || a.departmentName">
-                ({{ a.subDepartmentName || a.departmentName }})
-              </span>
-            </div>
-            <span class="text-xs text-primary fw-semibold" *ngIf="a.id === activeAssignment?.id">Active</span>
-          </div>
-        </div>
-      </div>
+
 
       <div class="profile-dropdown-divider"></div>
 

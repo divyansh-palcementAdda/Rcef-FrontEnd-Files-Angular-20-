@@ -264,22 +264,7 @@ export class UserTaskAnalyticsComponent implements OnInit, OnDestroy {
       this.loadSubDepartmentsForSelectedDept();
     }
 
-    // Listen for role-context / assignment switching
-    this.authService.activeAssignment$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        sessionStorage.removeItem(UserTaskAnalyticsComponent.FILTER_SESSION_KEY);
-        this.selectedDepartmentId = null;
-        this.selectedSubDepartmentCardId = '';
-        this.selectedSubDepartmentId = '';
-        this.selectedSubDepartmentIds = [];
-        this.selectedRole = '';
-        this.selectedUserId = null;
-        this.search = '';
-        this.currentPage = 0;
-        this.loadDepartmentCards();
-        this.loadSubDepartmentsForSelectedDept();
-      });
+
 
     // Debounced search
     this.searchSubject.pipe(
