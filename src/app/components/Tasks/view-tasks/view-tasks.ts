@@ -74,7 +74,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
 
   // Dynamic dropdown option lists
   departmentsList: Department[] = [];
-  authorizedSubDepartments: Array<{ id: string; name: string; code?: string; description?: string; departmentId?: number; departmentName?: string }> = [];
+  authorizedSubDepartments: Array<{ id: string; name: string; code?: string; description?: string; departmentId?: number; departmentName?: string; userRole?: string; role?: string }> = [];
   templatesList: TaskTemplateDto[] = [];
   subjectsList: SubjectDto[] = [];
   usersList: userDto[] = [];
@@ -973,6 +973,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     inProgress: number;
     completed: number;
     delayed: number;
+    userRole?: string;
   }> {
     if (this.analyticsData?.subDepartmentBreakdown && this.analyticsData.subDepartmentBreakdown.length > 0) {
       return this.analyticsData.subDepartmentBreakdown.map(sd => ({
@@ -984,7 +985,8 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         pending: sd.pending != null ? sd.pending : (sd.pendingTasks || 0),
         inProgress: sd.inProgress != null ? sd.inProgress : (sd.inProgressTasks || 0),
         completed: sd.completed != null ? sd.completed : (sd.completedTasks || 0),
-        delayed: sd.delayed != null ? sd.delayed : (sd.delayedTasks || 0)
+        delayed: sd.delayed != null ? sd.delayed : (sd.delayedTasks || 0),
+        userRole: sd.userRole || sd.role
       }));
     }
     if (this.authorizedSubDepartments && this.authorizedSubDepartments.length > 0) {
@@ -997,7 +999,8 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
         pending: 0,
         inProgress: 0,
         completed: 0,
-        delayed: 0
+        delayed: 0,
+        userRole: sd.userRole || sd.role
       }));
     }
     return [];

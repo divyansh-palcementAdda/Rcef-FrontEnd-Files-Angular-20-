@@ -113,6 +113,8 @@ export interface TaskDashboardAnalyticsDto {
     completed: number;
     closed?: number;
     delayed: number;
+    userRole?: string;
+    role?: string;
   }>;
   templateVsGeneral: {
     templateTasks: {

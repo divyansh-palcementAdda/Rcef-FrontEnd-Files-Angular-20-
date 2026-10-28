@@ -787,9 +787,15 @@ export class EditUser implements OnInit, OnDestroy, OnChanges {
           this.isSubmitting = false;
           this.successMessage = 'User updated successfully!';
 
-          if (response && response.roleAssignments) {
-            this.existingAssignments = response.roleAssignments;
-            this.primaryRole = response.primaryRole || response.role;
+          if (response) {
+            if (response.departmentIds) {
+              this.selectedDepartments = response.departmentIds;
+              this.editForm.patchValue({ departmentIds: response.departmentIds });
+            }
+            if (response.roleAssignments) {
+              this.existingAssignments = response.roleAssignments;
+              this.primaryRole = response.primaryRole || response.role;
+            }
           }
 
           // Show success message for 1.5 seconds then redirect/close

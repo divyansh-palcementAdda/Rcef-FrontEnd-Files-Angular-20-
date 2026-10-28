@@ -213,6 +213,8 @@ export class DepartmentApiService {
             description: item.description,
             departmentId: deptId,
             departmentName: deptName,
+            userRole: item.userRole ?? item.role,
+            role: item.role ?? item.userRole,
             department: item.department ? {
               departmentId: deptId,
               name: deptName,

@@ -1858,6 +1858,29 @@
   margin-top: 2px;
 }
 
+.subdept-role-badge {
+  font-size: 0.725rem;
+  padding: 0.2rem 0.55rem;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.role-badge-hod {
+  background-color: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.role-badge-teacher {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
 .subdept-metrics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
