@@ -737,7 +737,24 @@
       </div>
       <div class="modal-body p-4">
         <div class="mb-3" *ngIf="approveDialog.requestType === 'EXTENSION'">
-          <label class="form-label text-dark small fw-semibold">NEW DUE DATE (Required for extension)</label>
+          <div class="p-3 mb-3 rounded bg-light border border-secondary-subtle">
+            <div class="d-flex justify-content-between align-items-center mb-2" *ngIf="approveDialog.taskDueDate">
+              <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>Current Task Due Date:</span>
+              <strong class="small text-dark">{{ approveDialog.taskDueDate | date:'mediumDate' }}</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="small text-muted"><i class="bi bi-calendar-event me-1"></i>Requested New Due Date:</span>
+              <strong class="small" [ngClass]="approveDialog.requestedDueDate ? 'text-primary' : 'text-muted fst-italic'">
+                {{ approveDialog.requestedDueDate ? (approveDialog.requestedDueDate | date:'mediumDate') : 'Not specified' }}
+              </strong>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="form-label text-dark small fw-semibold mb-0">NEW DUE DATE (Optional if requested date was provided)</label>
+            <span class="badge bg-success-subtle text-success border border-success-subtle small fw-semibold px-2 py-1" *ngIf="approveDialog.newDueDate">
+              <i class="bi bi-calendar-check me-1"></i>Approved Date: {{ approveDialog.newDueDate | date:'mediumDate' }}
+            </span>
+          </div>
           <input type="datetime-local" class="form-control border-secondary" [(ngModel)]="approveDialog.newDueDate" />
         </div>
 

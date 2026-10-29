@@ -618,8 +618,12 @@
                         </div>
                       </td>
                       <td>
-                        <span class="text-secondary" style="font-size: 0.85rem;">{{ r.requestDate | date:'mediumDate'
-                          }}</span>
+                        <div class="d-flex flex-column">
+                          <span class="text-secondary" style="font-size: 0.85rem;">{{ r.requestDate | date:'mediumDate' }}</span>
+                          <span *ngIf="r.requestType === 'EXTENSION'" class="small mt-1" [ngClass]="r.requestedDueDate ? 'text-primary fw-semibold' : 'text-muted fst-italic'" style="font-size: 0.72rem;">
+                            <i class="bi bi-calendar-event me-1"></i>Req: {{ r.requestedDueDate ? (r.requestedDueDate | date:'mediumDate') : 'Not specified' }}
+                          </span>
+                        </div>
                       </td>
                       <td>
                         <div class="d-flex flex-column gap-1" style="max-width: 220px;">
@@ -1364,6 +1368,34 @@
           </div>
         </div>
 
+        <!-- Extension Due Dates Row (EXTENSION only) -->
+        <div class="row g-3 mb-4" *ngIf="selectedRequest.requestType === 'EXTENSION'">
+          <div class="col-md-6">
+            <div class="p-3 rounded-3 bg-light border border-secondary-subtle h-100">
+              <div class="text-muted mb-1"
+                style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                <i class="bi bi-calendar3 me-1 text-secondary"></i>Current Task Due Date
+              </div>
+              <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                {{ (selectedRequest.taskDueDate || task?.dueDate) ? ((selectedRequest.taskDueDate || task?.dueDate) | date:'mediumDate') : '—' }}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 rounded-3 border h-100" [ngClass]="selectedRequest.requestedDueDate ? 'bg-primary-subtle border-primary' : 'bg-light border-secondary-subtle'">
+              <div class="mb-1"
+                style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;"
+                [ngClass]="selectedRequest.requestedDueDate ? 'text-primary' : 'text-muted'">
+                <i class="bi bi-calendar-event me-1"></i>Requested New Due Date
+              </div>
+              <div class="fw-bold" style="font-size: 0.95rem;"
+                [ngClass]="selectedRequest.requestedDueDate ? 'text-primary' : 'text-muted fst-italic'">
+                {{ selectedRequest.requestedDueDate ? (selectedRequest.requestedDueDate | date:'mediumDate') : 'Not specified' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Remarks Section -->
         <div *ngIf="selectedRequest.remarks" class="mb-4">
           <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
@@ -1679,11 +1711,30 @@
           <input type="text" class="form-control modal-input-readonly" [value]="task?.dueDate | date:'mediumDate'"
             readonly disabled>
         </div>
+        <div class="mb-3" *ngIf="activeApprovingRequest?.requestedDueDate">
+          <label class="form-label fw-semibold text-primary"><i class="bi bi-calendar-event me-1"></i>Requested New Due Date</label>
+          <input type="text" class="form-control bg-primary-subtle text-primary fw-semibold"
+            [value]="activeApprovingRequest.requestedDueDate | date:'mediumDate'" readonly disabled>
+        </div>
+        <div class="mb-3" *ngIf="!activeApprovingRequest?.requestedDueDate">
+          <label class="form-label fw-semibold text-muted"><i class="bi bi-calendar-event me-1"></i>Requested New Due Date</label>
+          <div class="text-muted small fst-italic p-2 bg-light rounded border">Not specified</div>
+        </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">New Approved Due Date <span class="text-danger">*</span></label>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="form-label fw-semibold mb-0">New Approved Due Date <span class="text-danger">*</span></label>
+            <span class="badge bg-success-subtle text-success border border-success-subtle small fw-semibold px-2 py-1" *ngIf="extensionDueDate">
+              <i class="bi bi-calendar-check me-1"></i>Approved Date: {{ extensionDueDate | date:'mediumDate' }}
+            </span>
+          </div>
           <input type="date" [(ngModel)]="extensionDueDate" class="form-control modal-datepicker" [min]="todayDate"
             required>
-          <div class="form-text mt-1 text-muted">Select an approved date extension after the current due date.</div>
+          <div class="d-flex justify-content-between align-items-center mt-1">
+            <div class="form-text text-muted mb-0">Select an approved date extension after the current due date.</div>
+            <div class="small fw-semibold text-success" *ngIf="extensionDueDate">
+              {{ extensionDueDate | date:'mediumDate' }}
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -1728,10 +1779,10 @@
             <div class="row g-3">
               <div class="col-md-6">
                 <div class="modal-radio-card" [class.active-warning]="newRequest.requestType === 'EXTENSION'"
-                  (click)="newRequest.requestType = 'EXTENSION'">
+                  (click)="setRequestType('EXTENSION')">
                   <div class="form-check m-0 mt-1">
                     <input class="form-check-input" type="radio" name="requestType" id="extension"
-                      [(ngModel)]="newRequest.requestType" value="EXTENSION" required>
+                      [ngModel]="newRequest.requestType" (ngModelChange)="setRequestType('EXTENSION')" value="EXTENSION" required>
                   </div>
                   <div>
                     <label class="form-check-label fw-bold d-block text-warning" for="extension">
@@ -1744,10 +1795,10 @@
               </div>
               <div class="col-md-6">
                 <div class="modal-radio-card" [class.active-success]="newRequest.requestType === 'CLOSURE'"
-                  (click)="newRequest.requestType = 'CLOSURE'">
+                  (click)="setRequestType('CLOSURE')">
                   <div class="form-check m-0 mt-1">
                     <input class="form-check-input" type="radio" name="requestType" id="closure"
-                      [(ngModel)]="newRequest.requestType" value="CLOSURE" required>
+                      [ngModel]="newRequest.requestType" (ngModelChange)="setRequestType('CLOSURE')" value="CLOSURE" required>
                   </div>
                   <div>
                     <label class="form-check-label fw-bold d-block text-success" for="closure">
@@ -1758,6 +1809,38 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Requested New Due Date (Optional for EXTENSION) -->
+          <div class="mb-4" *ngIf="newRequest.requestType === 'EXTENSION'">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label fw-semibold mb-0" for="requestedDueDateInput">
+                Requested New Due Date <span class="text-muted fw-normal">(Optional)</span>
+              </label>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-light text-dark border small fw-normal" *ngIf="task?.dueDate">
+                  Current Due Date: <strong class="text-primary">{{ task?.dueDate | date:'mediumDate' }}</strong>
+                </span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small fw-semibold px-2 py-1" *ngIf="newRequest.requestedDueDate">
+                  <i class="bi bi-calendar-check me-1"></i>Requested: {{ newRequest.requestedDueDate | date:'mediumDate' }}
+                </span>
+              </div>
+            </div>
+            <input type="date" id="requestedDueDateInput" class="form-control modal-input"
+              [(ngModel)]="newRequest.requestedDueDate" name="requestedDueDate"
+              [min]="minExtensionDate"
+              placeholder="Select your requested completion date">
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <div class="form-text text-muted mb-0">
+                Select your requested completion date. Must be later than the task's current due date.
+              </div>
+              <div class="small fw-semibold text-primary" *ngIf="newRequest.requestedDueDate">
+                {{ newRequest.requestedDueDate | date:'mediumDate' }}
+              </div>
+            </div>
+            <div class="text-danger small mt-1" *ngIf="requestedDueDateError">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ requestedDueDateError }}
             </div>
           </div>
 

@@ -8,4 +8,7 @@ export interface TaskRequestPayload {
 
   /** Optional remarks */
   remarks?: string;
+
+  /** Optional requested new due date for EXTENSION */
+  requestedDueDate?: string;
 }

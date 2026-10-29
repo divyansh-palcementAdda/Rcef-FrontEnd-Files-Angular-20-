@@ -114,12 +114,16 @@ export class ViewAllRequests implements OnInit, OnDestroy {
     requestType: string | null;
     remarks: string;
     newDueDate: string;
+    requestedDueDate?: string | null;
+    taskDueDate?: string | null;
   } = {
       isOpen: false,
       requestId: null,
       requestType: null,
       remarks: '',
-      newDueDate: ''
+      newDueDate: '',
+      requestedDueDate: null,
+      taskDueDate: null
     };
 
   rejectDialog: {
@@ -569,12 +573,20 @@ export class ViewAllRequests implements OnInit, OnDestroy {
   // Direct Action triggers
   openApproveDialog(request: any, event: Event): void {
     event.stopPropagation();
+    let initialNewDueDate = '';
+    if (request.requestedDueDate) {
+      initialNewDueDate = request.requestedDueDate.includes('T')
+        ? request.requestedDueDate.substring(0, 16)
+        : `${request.requestedDueDate}T00:00`;
+    }
     this.approveDialog = {
       isOpen: true,
       requestId: request.requestId,
       requestType: request.requestType,
       remarks: '',
-      newDueDate: ''
+      newDueDate: initialNewDueDate,
+      requestedDueDate: request.requestedDueDate || null,
+      taskDueDate: request.taskDueDate || null
     };
   }
 

@@ -96,12 +96,16 @@ export class DepartmentOverviewComponent implements OnInit {
     requestType: string | null;
     remarks: string;
     newDueDate: string;
+    requestedDueDate?: string | null;
+    taskDueDate?: string | null;
   } = {
       isOpen: false,
       requestId: null,
       requestType: null,
       remarks: '',
-      newDueDate: ''
+      newDueDate: '',
+      requestedDueDate: null,
+      taskDueDate: null
     };
 
   rejectDialog: {
@@ -1494,12 +1498,20 @@ export class DepartmentOverviewComponent implements OnInit {
   // Approve/Reject Request Methods
   openApproveDialog(approval: any, event: Event): void {
     event.stopPropagation();
+    let initialNewDueDate = '';
+    if (approval.requestedDueDate) {
+      initialNewDueDate = approval.requestedDueDate.includes('T')
+        ? approval.requestedDueDate.substring(0, 16)
+        : `${approval.requestedDueDate}T00:00`;
+    }
     this.approveDialog = {
       isOpen: true,
       requestId: approval.requestId || approval.id,
       requestType: approval.requestType,
       remarks: '',
-      newDueDate: ''
+      newDueDate: initialNewDueDate,
+      requestedDueDate: approval.requestedDueDate || null,
+      taskDueDate: approval.taskDueDate || null
     };
   }
 
