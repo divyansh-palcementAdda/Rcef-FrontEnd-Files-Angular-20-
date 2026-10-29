@@ -430,7 +430,12 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
           // External navigation (from dashboard, sidebar etc.) — apply those params
           // and clear any stale session so they take precedence
           const status = params['status'];
-          this.statusFilter = status ? status.toUpperCase() : '';
+          // Don't set statusFilter for 'Self' - it's a route signal, not a real status
+          if (status && status.toLowerCase() !== 'self') {
+            this.statusFilter = status.toUpperCase();
+          } else {
+            this.statusFilter = '';
+          }
 
           if (this.statusFilter === 'IN_PROGRESS') {
             this.selectedCard = 'active';
@@ -535,6 +540,13 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
       search: this.searchTerm
     };
 
+    // Check current route for status=Self query parameter
+    const currentStatus = this.route.snapshot.queryParamMap.get('status');
+    const currentView = this.route.snapshot.queryParamMap.get('view');
+    if (currentStatus === 'Self' || (currentView && currentView.toLowerCase() === 'self')) {
+      params.assignedUserId = this.currentUserId;
+    }
+
     if (this.subDepartmentIdFilter) {
       params.subDepartmentId = this.subDepartmentIdFilter;
     }
@@ -575,9 +587,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     }
 
     if (this.statusFilter) {
-      if (this.statusFilter === 'SELF') {
-        params.assignedUserId = this.currentUserId;
-      } else if (this.statusFilter === 'SELFASSIGNED') {
+      if (this.statusFilter === 'SELFASSIGNED') {
         params.assignedUserId = this.currentUserId;
         params.createdById = this.currentUserId;
       } else if (this.statusFilter === 'APPROVAL') {
@@ -696,7 +706,7 @@ export class ViewTasksComponent implements OnInit, OnDestroy {
     const chips: Array<{ key: string, label: string }> = [];
 
     if (this.searchTerm) {
-      
+
       chips.push({ key: 'search', label: `Search: "${this.searchTerm}"` });
     }
     if (this.statusFilter) {
