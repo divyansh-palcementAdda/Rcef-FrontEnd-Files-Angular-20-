@@ -561,7 +561,12 @@
               </strong>
             </div>
           </div>
-          <label class="form-label text-dark small fw-semibold">NEW DUE DATE (Optional if requested date was provided)</label>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="form-label text-dark small fw-semibold mb-0">NEW DUE DATE (Optional if requested date was provided)</label>
+            <span class="badge bg-success-subtle text-success border border-success-subtle small fw-semibold px-2 py-1" *ngIf="approveDialog.newDueDate">
+              <i class="bi bi-calendar-check me-1"></i>Approved Date: {{ approveDialog.newDueDate | date:'mediumDate' }}
+            </span>
+          </div>
           <input type="datetime-local" class="form-control border-secondary" [(ngModel)]="approveDialog.newDueDate" />
         </div>
 
