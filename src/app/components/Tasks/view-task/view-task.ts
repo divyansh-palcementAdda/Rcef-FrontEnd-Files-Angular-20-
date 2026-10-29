@@ -135,7 +135,34 @@ export class ViewTask implements OnInit, OnDestroy {
   newRequest: {
     requestType: 'CLOSURE' | 'EXTENSION' | null;
     remarks: string;
-  } = { requestType: null, remarks: '' };
+    requestedDueDate?: string;
+  } = { requestType: null, remarks: '', requestedDueDate: '' };
+  requestedDueDateError: string = '';
+  activeApprovingRequest?: any;
+
+  setRequestType(type: 'CLOSURE' | 'EXTENSION'): void {
+    this.newRequest.requestType = type;
+    this.requestedDueDateError = '';
+    if (type !== 'EXTENSION') {
+      this.newRequest.requestedDueDate = '';
+    }
+  }
+
+  get minExtensionDate(): string {
+    const today = new Date();
+    today.setDate(today.getDate() + 1);
+    const todayStr = today.toISOString().split('T')[0];
+
+    if (!this.task?.dueDate) {
+      return todayStr;
+    }
+
+    const taskDue = new Date(this.task.dueDate);
+    taskDue.setDate(taskDue.getDate() + 1);
+    const taskDueStr = taskDue.toISOString().split('T')[0];
+
+    return taskDueStr > todayStr ? taskDueStr : todayStr;
+  }
 
   selectedProofs: File[] = [];
 
@@ -647,7 +674,8 @@ export class ViewTask implements OnInit, OnDestroy {
   }
 
   openAddRequestModal(): void {
-    this.newRequest = { requestType: 'CLOSURE', remarks: '' };
+    this.newRequest = { requestType: 'CLOSURE', remarks: '', requestedDueDate: '' };
+    this.requestedDueDateError = '';
     this.selectedProofs = [];
     this.studentEntriesList = [{ studentName: '', enrollmentId: '' }];
     this.topicsList = [{ id: Date.now(), value: '' }];
@@ -833,9 +861,38 @@ export class ViewTask implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.newRequest.requestType === 'EXTENSION' && !this.newRequest.remarks?.trim()) {
-      this.errorMessage = 'Reason is required for extension.';
-      return;
+    this.requestedDueDateError = '';
+    if (this.newRequest.requestType === 'EXTENSION') {
+      if (!this.newRequest.remarks?.trim()) {
+        this.errorMessage = 'Reason is required for extension.';
+        return;
+      }
+      if (this.newRequest.requestedDueDate?.trim()) {
+        const selectedDate = new Date(this.newRequest.requestedDueDate);
+        if (isNaN(selectedDate.getTime())) {
+          this.requestedDueDateError = 'Please select a valid date.';
+          this.errorMessage = this.requestedDueDateError;
+          return;
+        }
+        if (this.task?.dueDate) {
+          const currentDueDate = new Date(this.task.dueDate);
+          const selDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+          const curDay = new Date(currentDueDate.getFullYear(), currentDueDate.getMonth(), currentDueDate.getDate());
+          if (selDay <= curDay) {
+            this.requestedDueDateError = 'Requested due date must be later than the task\'s current due date.';
+            this.errorMessage = this.requestedDueDateError;
+            return;
+          }
+        }
+        const today = new Date();
+        const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const selDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+        if (selDay < todayDay) {
+          this.requestedDueDateError = 'Requested due date cannot be in the past.';
+          this.errorMessage = this.requestedDueDateError;
+          return;
+        }
+      }
     }
 
     // Dynamic Validation for Template tasks closure
@@ -908,6 +965,10 @@ export class ViewTask implements OnInit, OnDestroy {
 
     if (this.newRequest.remarks?.trim()) {
       formData.append('remarks', this.newRequest.remarks.trim());
+    }
+
+    if (this.newRequest.requestType === 'EXTENSION' && this.newRequest.requestedDueDate?.trim()) {
+      formData.append('requestedDueDate', this.newRequest.requestedDueDate.trim());
     }
 
     // Append legacy general proofs if any
@@ -1250,8 +1311,15 @@ export class ViewTask implements OnInit, OnDestroy {
       return;
     }
 
+    this.activeApprovingRequest = request;
     this.extensionRequestId = request.requestId;
-    this.extensionDueDate = this.todayDate;
+    if (request.requestedDueDate) {
+      this.extensionDueDate = request.requestedDueDate.includes('T')
+        ? request.requestedDueDate.split('T')[0]
+        : request.requestedDueDate;
+    } else {
+      this.extensionDueDate = this.todayDate;
+    }
 
     this.extensionModal = this.showModalById('extensionApprovalModal');
   }

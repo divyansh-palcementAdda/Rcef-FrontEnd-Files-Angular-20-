@@ -7,12 +7,16 @@ export interface TaskRequestDto {
 
   taskId: number;
   taskTitle: string;
+  taskDueDate?: string;
 
   /** CLOSURE | EXTENSION */
   requestType: 'CLOSURE' | 'EXTENSION';
 
   /** ISO‑8601 string (e.g. "2025-11-05T10:30:00") */
   requestDate: string;
+
+  /** Optional requested new due date for EXTENSION */
+  requestedDueDate?: string;
 
   /** PENDING | APPROVED | REJECTED */
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -22,7 +26,7 @@ export interface TaskRequestDto {
 
   /** User who created the request */
   requestedById: number;               // userId
-  requestedByName?: string;  
+  requestedByName?: string;
   requestedByRole: RoleDTO;        // populated by backend for convenience
 
   /** Approver (only when status = APPROVED/REJECTED) */
@@ -41,4 +45,3 @@ export interface StructuredProofValueDto {
   fieldType: string;
   value: string;
 }
-
