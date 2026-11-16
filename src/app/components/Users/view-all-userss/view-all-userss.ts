@@ -970,14 +970,7 @@ export class ViewAllUserss implements OnInit {
   viewUser(event: Event, userId: number): void {
     event.stopPropagation();
     this.saveFiltersToSession();
-    const user = this.users.find(u => u.userId === userId);
-    if (user?.subDepartmentId) {
-      this.router.navigate(['/sub-department-details', user.subDepartmentId], {
-        queryParams: { userId: userId }
-      });
-    } else {
-      this.router.navigate(['/user', userId]);
-    }
+    this.router.navigate(['/user', userId]);
   }
 
   /** Get paginated users for current page */
